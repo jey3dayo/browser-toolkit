@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- 背景の青い四角 -->
+  <rect width="128" height="128" fill="#4285f4" rx="16"/>
+
+  <!-- 白い円形の背景 -->
+  <circle cx="64" cy="64" r="48" fill="white"/>
+
+  <!-- 青い「T」の文字 -->
+  <text x="64" y="90" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="#4285f4" text-anchor="middle">T</text>
+</svg>

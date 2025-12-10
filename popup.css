@@ -1,0 +1,183 @@
+body {
+  width: 320px;
+  padding: 0;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+}
+
+.container {
+  padding: 16px;
+}
+
+h1 {
+  font-size: 18px;
+  margin: 0 0 16px 0;
+  color: #333;
+}
+
+h2 {
+  font-size: 14px;
+  margin: 0 0 8px 0;
+  color: #555;
+}
+
+h3 {
+  font-size: 13px;
+  margin: 0 0 8px 0;
+  color: #666;
+}
+
+.section {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.section:last-child {
+  border-bottom: none;
+}
+
+ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #666;
+}
+
+li {
+  margin-bottom: 4px;
+}
+
+.btn {
+  width: 100%;
+  padding: 10px;
+  background-color: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.btn:hover {
+  background-color: #357ae8;
+}
+
+.btn:active {
+  background-color: #2a63c8;
+}
+
+label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: #666;
+}
+
+input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+/* ========================================
+   ドメインパターン登録UI
+   ======================================== */
+
+.hint {
+  font-size: 12px;
+  color: #999;
+  margin: 0 0 8px 0;
+}
+
+.pattern-input-group {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.pattern-input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.pattern-input:focus {
+  outline: none;
+  border-color: #4285f4;
+}
+
+.btn-small {
+  padding: 8px 12px;
+  background-color: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.btn-small:hover {
+  background-color: #357ae8;
+}
+
+.btn-small:active {
+  background-color: #2a63c8;
+}
+
+.pattern-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  padding: 8px;
+}
+
+.pattern-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  margin-bottom: 4px;
+  background: #f9f9f9;
+  border-radius: 4px;
+}
+
+.pattern-item:last-child {
+  margin-bottom: 0;
+}
+
+.pattern-text {
+  flex: 1;
+  font-size: 13px;
+  color: #333;
+  word-break: break-all;
+}
+
+.btn-delete {
+  padding: 4px 8px;
+  background-color: #e53935;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.btn-delete:hover {
+  background-color: #c62828;
+}
+
+.btn-delete:active {
+  background-color: #b71c1c;
+}
+
+.empty-message {
+  font-size: 13px;
+  color: #999;
+  text-align: center;
+  margin: 16px 0;
+}
