@@ -1,61 +1,61 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Browser Utils</title>
-  <link rel="stylesheet" href="popup.css">
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <img src="images/logo.png" alt="My Browser Utilsのロゴ" class="logo" />
-      <div class="heading-text">
-        <h1>My Browser Utils</h1>
-        <p class="subtitle">ブラウザ作業を少しラクにするツールセット</p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Browser Utils</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <img src="images/logo.png" alt="My Browser Utilsのロゴ" class="logo" />
+        <div class="heading-text">
+          <h1>My Browser Utils</h1>
+          <p class="subtitle">ブラウザ作業を少しラクにするツールセット</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>機能</h2>
+        <ul>
+          <li>テーブルソート機能</li>
+          <li>AI連携（範囲選択テキスト）</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <button id="enable-table-sort" class="btn">テーブルソート有効化</button>
+      </div>
+
+      <div class="section">
+        <h3>ドメインパターン登録</h3>
+        <p class="hint">ワイルドカード（*）を使用できます</p>
+
+        <div class="pattern-input-group">
+          <input
+            type="text"
+            id="pattern-input"
+            placeholder="例: *.moneyforward.com/bs/*"
+            class="pattern-input"
+          />
+          <button id="add-pattern" class="btn-small">追加</button>
+        </div>
+
+        <div id="pattern-list" class="pattern-list">
+          <!-- JavaScriptで動的に生成 -->
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>設定</h3>
+        <label>
+          <input type="checkbox" id="auto-enable-sort" />
+          自動でテーブルソートを有効化
+        </label>
       </div>
     </div>
 
-    <div class="section">
-      <h2>機能</h2>
-      <ul>
-        <li>テーブルソート機能</li>
-        <li>AI連携（範囲選択テキスト）</li>
-      </ul>
-    </div>
-
-    <div class="section">
-      <button id="enable-table-sort" class="btn">テーブルソート有効化</button>
-    </div>
-
-    <div class="section">
-      <h3>ドメインパターン登録</h3>
-      <p class="hint">ワイルドカード（*）を使用できます</p>
-
-      <div class="pattern-input-group">
-        <input
-          type="text"
-          id="pattern-input"
-          placeholder="例: *.moneyforward.com/bs/*"
-          class="pattern-input"
-        />
-        <button id="add-pattern" class="btn-small">追加</button>
-      </div>
-
-      <div id="pattern-list" class="pattern-list">
-        <!-- JavaScriptで動的に生成 -->
-      </div>
-    </div>
-
-    <div class="section">
-      <h3>設定</h3>
-      <label>
-        <input type="checkbox" id="auto-enable-sort" />
-        自動でテーブルソートを有効化
-      </label>
-    </div>
-  </div>
-
-  <script src="dist/popup.js"></script>
-</body>
+    <script src="dist/popup.js"></script>
+  </body>
 </html>
