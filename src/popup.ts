@@ -1,7 +1,11 @@
 (() => {
-  type StorageData = {
+  type SyncStorageData = {
     domainPatterns?: string[];
     autoEnableSort?: boolean;
+  };
+
+  type LocalStorageData = {
+    openaiApiToken?: string;
   };
 
   type EnableResponse = {
@@ -21,7 +25,7 @@
   async function initializePopup(): Promise<void> {
     const settings = (await chrome.storage.sync.get([
       "autoEnableSort",
-    ])) as StorageData;
+    ])) as SyncStorageData;
     const autoEnableCheckbox = document.getElementById(
       "auto-enable-sort",
     ) as HTMLInputElement | null;
@@ -34,6 +38,15 @@
     const patternInput = document.getElementById(
       "pattern-input",
     ) as HTMLInputElement | null;
+    const tokenInput = document.getElementById(
+      "openai-token",
+    ) as HTMLInputElement | null;
+    const saveTokenButton = document.getElementById(
+      "save-openai-token",
+    ) as HTMLButtonElement | null;
+    const clearTokenButton = document.getElementById(
+      "clear-openai-token",
+    ) as HTMLButtonElement | null;
 
     if (autoEnableCheckbox) {
       autoEnableCheckbox.checked = settings.autoEnableSort ?? false;
@@ -44,6 +57,8 @@
     }
 
     await loadPatterns();
+    await loadOpenAiToken(tokenInput);
+    setupNavigation();
 
     enableButton?.addEventListener("click", async () => {
       const [tab] = await chrome.tabs.query({
@@ -73,6 +88,14 @@
         void handleAddPattern();
       }
     });
+
+    saveTokenButton?.addEventListener("click", () => {
+      void handleSaveToken(tokenInput);
+    });
+
+    clearTokenButton?.addEventListener("click", () => {
+      void handleClearToken(tokenInput);
+    });
   }
 
   function showNotification(
@@ -82,18 +105,19 @@
     const notification = document.createElement("div");
     notification.textContent = message;
 
-    const bgColor = type === "error" ? "#e53935" : "#4285f4";
+    const bgColor = type === "error" ? "#e53935" : "#3ecf8e";
 
     notification.style.cssText = `
     position: fixed;
-    top: 10px;
-    right: 10px;
+    top: 12px;
+    right: 12px;
     background: ${bgColor};
     color: white;
-    padding: 10px 16px;
-    border-radius: 4px;
-    font-size: 12px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 13px;
     z-index: 10000;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.2);
   `;
     document.body.appendChild(notification);
 
@@ -107,7 +131,7 @@
   async function loadPatterns(): Promise<void> {
     const { domainPatterns = [] } = (await chrome.storage.sync.get([
       "domainPatterns",
-    ])) as StorageData;
+    ])) as SyncStorageData;
     renderPatternList(domainPatterns);
   }
 
@@ -159,7 +183,7 @@
 
     const { domainPatterns = [] } = (await chrome.storage.sync.get([
       "domainPatterns",
-    ])) as StorageData;
+    ])) as SyncStorageData;
 
     if (domainPatterns.includes(pattern)) {
       showNotification("このパターンは既に登録されています", "error");
@@ -202,7 +226,7 @@
 
     const { domainPatterns = [] } = (await chrome.storage.sync.get([
       "domainPatterns",
-    ])) as StorageData;
+    ])) as SyncStorageData;
 
     domainPatterns.splice(index, 1);
     await chrome.storage.sync.set({ domainPatterns });
@@ -225,5 +249,58 @@
     const div = document.createElement("div");
     div.textContent = text;
     return div.innerHTML;
+  }
+
+  function setupNavigation(): void {
+    const navItems = Array.from(
+      document.querySelectorAll<HTMLButtonElement>(".nav-item"),
+    );
+    const panes = Array.from(
+      document.querySelectorAll<HTMLElement>(".pane"),
+    );
+
+    navItems.forEach((item) => {
+      item.addEventListener("click", () => {
+        navItems.forEach((nav) => nav.classList.remove("active"));
+        panes.forEach((pane) => pane.classList.remove("active"));
+
+        item.classList.add("active");
+        const targetId = item.dataset.target;
+        if (targetId) {
+          document.getElementById(targetId)?.classList.add("active");
+        }
+      });
+    });
+  }
+
+  async function loadOpenAiToken(input: HTMLInputElement | null): Promise<void> {
+    if (!input) return;
+    const { openaiApiToken = "" } = (await chrome.storage.local.get([
+      "openaiApiToken",
+    ])) as LocalStorageData;
+    input.value = openaiApiToken;
+  }
+
+  async function handleSaveToken(
+    input: HTMLInputElement | null,
+  ): Promise<void> {
+    const token = input?.value.trim() ?? "";
+    if (!token) {
+      showNotification("トークンを入力してください", "error");
+      return;
+    }
+
+    await chrome.storage.local.set({ openaiApiToken: token });
+    showNotification("OpenAIトークンを保存しました");
+  }
+
+  async function handleClearToken(
+    input: HTMLInputElement | null,
+  ): Promise<void> {
+    if (input) {
+      input.value = "";
+    }
+    await chrome.storage.local.remove("openaiApiToken");
+    showNotification("トークンをクリアしました");
   }
 })();

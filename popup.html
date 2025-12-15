@@ -7,53 +7,134 @@
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
-    <div class="container">
-      <div class="header">
-        <img src="images/logo.png" alt="My Browser Utilsのロゴ" class="logo" />
-        <div class="heading-text">
-          <h1>My Browser Utils</h1>
-          <p class="subtitle">ブラウザ作業を少しラクにするツールセット</p>
-        </div>
-      </div>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-brand" aria-hidden="true">MB</div>
+        <button class="nav-item active" data-target="pane-table" aria-label="テーブルソート">
+          <span class="nav-icon">⇅</span>
+          <span class="nav-label">テーブル</span>
+        </button>
+        <button class="nav-item" data-target="pane-settings" aria-label="設定">
+          <span class="nav-icon">⚙</span>
+          <span class="nav-label">設定</span>
+        </button>
+      </aside>
 
-      <div class="section">
-        <h2>機能</h2>
-        <ul>
-          <li>テーブルソート機能</li>
-          <li>AI連携（範囲選択テキスト）</li>
-        </ul>
-      </div>
+      <main class="content">
+        <header class="content-header">
+          <div class="title-block">
+            <img src="images/logo.png" alt="My Browser Utilsのロゴ" class="hero-logo" />
+            <div class="title-text">
+              <p class="eyebrow">MY BROWSER UTILS</p>
+              <div class="title-row">
+                <h1>毎日の表を整える相棒</h1>
+                <span class="chip chip-outline">テーブルソート</span>
+              </div>
+              <p class="subtitle">ブラウザ作業を少しラクにするツールセット</p>
+            </div>
+          </div>
+          <div class="cta-pill">ワンクリックで整列</div>
+        </header>
 
-      <div class="section">
-        <button id="enable-table-sort" class="btn">テーブルソート有効化</button>
-      </div>
+        <section class="pane active" id="pane-table" role="tabpanel" aria-label="テーブルソート">
+          <div class="pane-intro">
+            <div>
+              <p class="pane-eyebrow">テーブルソート</p>
+              <h2>いま開いているページの表に並び替えを付与</h2>
+              <p class="muted">ヘッダーをクリックするだけで昇順/降順を切り替え。動的に増えるテーブルも自動で監視します。</p>
+              <div class="action-row">
+                <button id="enable-table-sort" class="btn btn-primary">このタブで実行</button>
+                <label class="checkbox-inline">
+                  <input type="checkbox" id="auto-enable-sort" />
+                  開いたら自動で有効化
+                </label>
+              </div>
+            </div>
+            <div class="meta-card">
+              <p class="meta-title">Autoモード</p>
+              <p class="meta-note">登録したURLパターンで自動起動。手動トリガーと併用できます。</p>
+            </div>
+          </div>
 
-      <div class="section">
-        <h3>ドメインパターン登録</h3>
-        <p class="hint">ワイルドカード（*）を使用できます</p>
+          <div class="card-grid">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <p class="card-eyebrow">URLパターン</p>
+                  <h3>特定のページで自動化</h3>
+                </div>
+                <span class="chip chip-soft">ワイルドカード対応</span>
+              </div>
+              <p class="card-copy">URLにマッチしたページでは読み込み直後からテーブルソートを有効化します。</p>
 
-        <div class="pattern-input-group">
-          <input
-            type="text"
-            id="pattern-input"
-            placeholder="例: *.moneyforward.com/bs/*"
-            class="pattern-input"
-          />
-          <button id="add-pattern" class="btn-small">追加</button>
-        </div>
+              <div class="pattern-input-group">
+                <input
+                  type="text"
+                  id="pattern-input"
+                  placeholder="例: *.moneyforward.com/bs/*"
+                  class="pattern-input"
+                  aria-label="ドメインパターン"
+                />
+                <button id="add-pattern" class="btn btn-ghost">追加</button>
+              </div>
 
-        <div id="pattern-list" class="pattern-list">
-          <!-- JavaScriptで動的に生成 -->
-        </div>
-      </div>
+              <div id="pattern-list" class="pattern-list" aria-live="polite"></div>
+            </div>
 
-      <div class="section">
-        <h3>設定</h3>
-        <label>
-          <input type="checkbox" id="auto-enable-sort" />
-          自動でテーブルソートを有効化
-        </label>
-      </div>
+            <div class="card secondary">
+              <div class="card-header">
+                <div>
+                  <p class="card-eyebrow">How to</p>
+                  <h3>シンプルな使い方</h3>
+                </div>
+              </div>
+              <ul class="bullet-list">
+                <li>「このタブで実行」を押すだけで、ページ内の全テーブルにソート機能が付きます。</li>
+                <li>自動モードON＋パターン登録で、対象ページは開くだけで有効化。</li>
+                <li>ヘッダーをクリックすると昇順/降順を切り替えます。</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="pane" id="pane-settings" role="tabpanel" aria-label="設定">
+          <div class="pane-intro">
+            <div>
+              <p class="pane-eyebrow">設定</p>
+              <h2>OpenAI API Token</h2>
+              <p class="muted">今後のAI連携機能で使用するトークンを保存します。</p>
+            </div>
+            <div class="meta-card">
+              <p class="meta-title">保存先</p>
+              <p class="meta-note">ブラウザのローカルストレージに平文で保存します。必要に応じてクリアしてください。</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <p class="card-eyebrow">APIキー</p>
+                <h3>OpenAI API Tokenを入力</h3>
+              </div>
+              <span class="chip chip-soft">必須</span>
+            </div>
+
+            <label class="field-label" for="openai-token">OpenAI API Token</label>
+            <div class="token-row">
+              <input
+                type="password"
+                id="openai-token"
+                placeholder="sk-..."
+                class="token-input"
+                autocomplete="off"
+              />
+              <button id="save-openai-token" class="btn btn-primary">保存</button>
+              <button id="clear-openai-token" class="btn btn-ghost">クリア</button>
+            </div>
+            <p class="hint">トークンは暗号化されずに保存されます。共有環境では入力後にクリアすることをおすすめします。</p>
+          </div>
+        </section>
+      </main>
     </div>
 
     <script src="dist/popup.js"></script>
