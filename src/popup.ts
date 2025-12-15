@@ -18,6 +18,17 @@
     action: "enableTableSort";
   };
 
+  type SummarySource = "selection" | "page";
+
+  type PopupToBackgroundMessage = {
+    action: "summarizeTab";
+    tabId: number;
+  };
+
+  type SummarizeResponse =
+    | { ok: true; summary: string; source: SummarySource }
+    | { ok: false; error: string };
+
   document.addEventListener("DOMContentLoaded", () => {
     void initializePopup();
   });
@@ -47,6 +58,18 @@
     const clearTokenButton = document.getElementById(
       "clear-openai-token",
     ) as HTMLButtonElement | null;
+    const summarizeButton = document.getElementById(
+      "summarize-tab",
+    ) as HTMLButtonElement | null;
+    const copySummaryButton = document.getElementById(
+      "copy-summary",
+    ) as HTMLButtonElement | null;
+    const summaryOutput = document.getElementById(
+      "summary-output",
+    ) as HTMLTextAreaElement | null;
+    const summarySourceChip = document.getElementById(
+      "summary-source-chip",
+    ) as HTMLSpanElement | null;
 
     if (autoEnableCheckbox) {
       autoEnableCheckbox.checked = settings.autoEnableSort ?? false;
@@ -96,6 +119,61 @@
     clearTokenButton?.addEventListener("click", () => {
       void handleClearToken(tokenInput);
     });
+
+    summarizeButton?.addEventListener("click", async () => {
+      const [tab] = await chrome.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+      if (tab?.id === undefined) {
+        showNotification("有効なタブが見つかりません", "error");
+        return;
+      }
+
+      if (summaryOutput) summaryOutput.value = "要約中...";
+      if (copySummaryButton) copySummaryButton.disabled = true;
+      if (summarySourceChip) summarySourceChip.textContent = "-";
+      if (summarizeButton) summarizeButton.disabled = true;
+
+      try {
+        const response = await sendMessageToBackground<
+          PopupToBackgroundMessage,
+          SummarizeResponse
+        >({
+          action: "summarizeTab",
+          tabId: tab.id,
+        });
+
+        if (!response.ok) {
+          showNotification(response.error, "error");
+          if (summaryOutput) summaryOutput.value = "";
+          return;
+        }
+
+        if (summaryOutput) summaryOutput.value = response.summary;
+        if (copySummaryButton) copySummaryButton.disabled = false;
+        if (summarySourceChip) {
+          summarySourceChip.textContent =
+            response.source === "selection" ? "選択範囲" : "ページ本文";
+        }
+        showNotification("要約しました");
+      } catch (error) {
+        showNotification(
+          error instanceof Error ? error.message : "要約に失敗しました",
+          "error",
+        );
+        if (summaryOutput) summaryOutput.value = "";
+      } finally {
+        if (summarizeButton) summarizeButton.disabled = false;
+      }
+    });
+
+    copySummaryButton?.addEventListener("click", async () => {
+      const text = summaryOutput?.value ?? "";
+      if (!text) return;
+      await navigator.clipboard.writeText(text);
+      showNotification("コピーしました");
+    });
   }
 
   function showNotification(
@@ -122,6 +200,21 @@
     document.body.appendChild(notification);
 
     window.setTimeout(() => notification.remove(), 2000);
+  }
+
+  function sendMessageToBackground<TRequest, TResponse>(
+    message: TRequest,
+  ): Promise<TResponse> {
+    return new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage(message, (response: TResponse) => {
+        const err = chrome.runtime.lastError;
+        if (err) {
+          reject(new Error(err.message));
+          return;
+        }
+        resolve(response);
+      });
+    });
   }
 
   // ========================================
@@ -255,9 +348,7 @@
     const navItems = Array.from(
       document.querySelectorAll<HTMLButtonElement>(".nav-item"),
     );
-    const panes = Array.from(
-      document.querySelectorAll<HTMLElement>(".pane"),
-    );
+    const panes = Array.from(document.querySelectorAll<HTMLElement>(".pane"));
 
     navItems.forEach((item) => {
       item.addEventListener("click", () => {
@@ -273,7 +364,9 @@
     });
   }
 
-  async function loadOpenAiToken(input: HTMLInputElement | null): Promise<void> {
+  async function loadOpenAiToken(
+    input: HTMLInputElement | null,
+  ): Promise<void> {
     if (!input) return;
     const { openaiApiToken = "" } = (await chrome.storage.local.get([
       "openaiApiToken",

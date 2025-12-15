@@ -10,9 +10,17 @@
     <div class="app-shell">
       <aside class="sidebar">
         <div class="sidebar-brand" aria-hidden="true">MB</div>
-        <button class="nav-item active" data-target="pane-table" aria-label="テーブルソート">
+        <button
+          class="nav-item active"
+          data-target="pane-table"
+          aria-label="テーブルソート"
+        >
           <span class="nav-icon">⇅</span>
           <span class="nav-label">テーブル</span>
+        </button>
+        <button class="nav-item" data-target="pane-summary" aria-label="要約">
+          <span class="nav-icon">📝</span>
+          <span class="nav-label">要約</span>
         </button>
         <button class="nav-item" data-target="pane-settings" aria-label="設定">
           <span class="nav-icon">⚙</span>
@@ -23,7 +31,11 @@
       <main class="content">
         <header class="content-header">
           <div class="title-block">
-            <img src="images/logo.png" alt="My Browser Utilsのロゴ" class="hero-logo" />
+            <img
+              src="images/logo.png"
+              alt="My Browser Utilsのロゴ"
+              class="hero-logo"
+            />
             <div class="title-text">
               <p class="eyebrow">MY BROWSER UTILS</p>
               <div class="title-row">
@@ -36,14 +48,23 @@
           <div class="cta-pill">ワンクリックで整列</div>
         </header>
 
-        <section class="pane active" id="pane-table" role="tabpanel" aria-label="テーブルソート">
+        <section
+          class="pane active"
+          id="pane-table"
+          role="tabpanel"
+          aria-label="テーブルソート"
+        >
           <div class="pane-intro">
             <div>
               <p class="pane-eyebrow">テーブルソート</p>
               <h2>いま開いているページの表に並び替えを付与</h2>
-              <p class="muted">ヘッダーをクリックするだけで昇順/降順を切り替え。動的に増えるテーブルも自動で監視します。</p>
+              <p class="muted">
+                ヘッダーをクリックするだけで昇順/降順を切り替え。動的に増えるテーブルも自動で監視します。
+              </p>
               <div class="action-row">
-                <button id="enable-table-sort" class="btn btn-primary">このタブで実行</button>
+                <button id="enable-table-sort" class="btn btn-primary">
+                  このタブで実行
+                </button>
                 <label class="checkbox-inline">
                   <input type="checkbox" id="auto-enable-sort" />
                   開いたら自動で有効化
@@ -52,7 +73,9 @@
             </div>
             <div class="meta-card">
               <p class="meta-title">Autoモード</p>
-              <p class="meta-note">登録したURLパターンで自動起動。手動トリガーと併用できます。</p>
+              <p class="meta-note">
+                登録したURLパターンで自動起動。手動トリガーと併用できます。
+              </p>
             </div>
           </div>
 
@@ -65,7 +88,9 @@
                 </div>
                 <span class="chip chip-soft">ワイルドカード対応</span>
               </div>
-              <p class="card-copy">URLにマッチしたページでは読み込み直後からテーブルソートを有効化します。</p>
+              <p class="card-copy">
+                URLにマッチしたページでは読み込み直後からテーブルソートを有効化します。
+              </p>
 
               <div class="pattern-input-group">
                 <input
@@ -78,7 +103,11 @@
                 <button id="add-pattern" class="btn btn-ghost">追加</button>
               </div>
 
-              <div id="pattern-list" class="pattern-list" aria-live="polite"></div>
+              <div
+                id="pattern-list"
+                class="pattern-list"
+                aria-live="polite"
+              ></div>
             </div>
 
             <div class="card secondary">
@@ -89,24 +118,87 @@
                 </div>
               </div>
               <ul class="bullet-list">
-                <li>「このタブで実行」を押すだけで、ページ内の全テーブルにソート機能が付きます。</li>
-                <li>自動モードON＋パターン登録で、対象ページは開くだけで有効化。</li>
+                <li>
+                  「このタブで実行」を押すだけで、ページ内の全テーブルにソート機能が付きます。
+                </li>
+                <li>
+                  自動モードON＋パターン登録で、対象ページは開くだけで有効化。
+                </li>
                 <li>ヘッダーをクリックすると昇順/降順を切り替えます。</li>
               </ul>
             </div>
           </div>
         </section>
 
-        <section class="pane" id="pane-settings" role="tabpanel" aria-label="設定">
+        <section
+          class="pane"
+          id="pane-summary"
+          role="tabpanel"
+          aria-label="要約"
+        >
+          <div class="pane-intro">
+            <div>
+              <p class="pane-eyebrow">AI要約</p>
+              <h2>選択範囲 or ページ本文をまとめる</h2>
+              <p class="muted">
+                ページ上でテキストを選択していればその範囲、未選択ならページ本文（タブ内テキスト）を要約します。
+              </p>
+              <div class="action-row">
+                <button id="summarize-tab" class="btn btn-primary">
+                  このタブを要約
+                </button>
+                <button id="copy-summary" class="btn btn-ghost" disabled>
+                  コピー
+                </button>
+              </div>
+            </div>
+            <div class="meta-card">
+              <p class="meta-title">事前準備</p>
+              <p class="meta-note">
+                「設定」タブで OpenAI API Token を保存してください。
+              </p>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <p class="card-eyebrow">Output</p>
+                <h3>要約結果</h3>
+              </div>
+              <span class="chip chip-soft" id="summary-source-chip">-</span>
+            </div>
+            <textarea
+              id="summary-output"
+              class="summary-output"
+              placeholder="ここに要約が表示されます"
+              readonly
+            ></textarea>
+            <p class="hint">
+              結果はコピーしてメモやチャットに貼り付けられます。
+            </p>
+          </div>
+        </section>
+
+        <section
+          class="pane"
+          id="pane-settings"
+          role="tabpanel"
+          aria-label="設定"
+        >
           <div class="pane-intro">
             <div>
               <p class="pane-eyebrow">設定</p>
               <h2>OpenAI API Token</h2>
-              <p class="muted">今後のAI連携機能で使用するトークンを保存します。</p>
+              <p class="muted">
+                今後のAI連携機能で使用するトークンを保存します。
+              </p>
             </div>
             <div class="meta-card">
               <p class="meta-title">保存先</p>
-              <p class="meta-note">ブラウザのローカルストレージに平文で保存します。必要に応じてクリアしてください。</p>
+              <p class="meta-note">
+                ブラウザのローカルストレージに平文で保存します。必要に応じてクリアしてください。
+              </p>
             </div>
           </div>
 
@@ -119,7 +211,9 @@
               <span class="chip chip-soft">必須</span>
             </div>
 
-            <label class="field-label" for="openai-token">OpenAI API Token</label>
+            <label class="field-label" for="openai-token"
+              >OpenAI API Token</label
+            >
             <div class="token-row">
               <input
                 type="password"
@@ -128,10 +222,16 @@
                 class="token-input"
                 autocomplete="off"
               />
-              <button id="save-openai-token" class="btn btn-primary">保存</button>
-              <button id="clear-openai-token" class="btn btn-ghost">クリア</button>
+              <button id="save-openai-token" class="btn btn-primary">
+                保存
+              </button>
+              <button id="clear-openai-token" class="btn btn-ghost">
+                クリア
+              </button>
             </div>
-            <p class="hint">トークンは暗号化されずに保存されます。共有環境では入力後にクリアすることをおすすめします。</p>
+            <p class="hint">
+              トークンは暗号化されずに保存されます。共有環境では入力後にクリアすることをおすすめします。
+            </p>
           </div>
         </section>
       </main>

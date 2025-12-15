@@ -6,9 +6,20 @@
     autoEnableSort?: boolean;
   };
 
+  type SummarySource = "selection" | "page";
+
   type ContentRequest =
     | { action: "enableTableSort" }
-    | { action: "showNotification"; message: string };
+    | { action: "showNotification"; message: string }
+    | { action: "getSummaryTargetText" }
+    | { action: "showSummaryOverlay"; summary: string; source: SummarySource };
+
+  type SummaryTarget = {
+    text: string;
+    source: SummarySource;
+    title: string;
+    url: string;
+  };
 
   let tableObserver: MutationObserver | null = null;
 
@@ -54,6 +65,17 @@
 
       if (request.action === "showNotification") {
         showNotification(request.message);
+      }
+
+      if (request.action === "getSummaryTargetText") {
+        void (async () => {
+          const target = await getSummaryTargetText();
+          sendResponse(target);
+        })();
+      }
+
+      if (request.action === "showSummaryOverlay") {
+        showSummaryOverlay(request.summary, request.source);
       }
 
       return true;
@@ -178,7 +200,10 @@
   document.addEventListener("mouseup", () => {
     const selectedText = window.getSelection()?.toString().trim();
     if (selectedText) {
-      void chrome.storage.local.set({ selectedText });
+      void chrome.storage.local.set({
+        selectedText,
+        selectedTextUpdatedAt: Date.now(),
+      });
     }
   });
 
@@ -232,6 +257,163 @@
     }
   `;
     document.head.appendChild(style);
+  }
+
+  async function getSummaryTargetText(): Promise<SummaryTarget> {
+    const selection = window.getSelection()?.toString().trim() ?? "";
+    if (selection) {
+      return {
+        text: selection,
+        source: "selection",
+        title: document.title ?? "",
+        url: window.location.href,
+      };
+    }
+
+    const storedSelection = (await chrome.storage.local.get([
+      "selectedText",
+      "selectedTextUpdatedAt",
+    ])) as {
+      selectedText?: string;
+      selectedTextUpdatedAt?: number;
+    };
+    const fallbackSelection = storedSelection.selectedText?.trim() ?? "";
+    const updatedAt = storedSelection.selectedTextUpdatedAt ?? 0;
+    const isFresh = Date.now() - updatedAt <= 30_000;
+
+    if (isFresh && fallbackSelection) {
+      return {
+        text: fallbackSelection,
+        source: "selection",
+        title: document.title ?? "",
+        url: window.location.href,
+      };
+    }
+
+    const bodyText = document.body?.innerText ?? "";
+    return {
+      text: normalizeText(bodyText),
+      source: "page",
+      title: document.title ?? "",
+      url: window.location.href,
+    };
+  }
+
+  function normalizeText(text: string): string {
+    return text
+      .replace(/\r\n/g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }
+
+  function showSummaryOverlay(summary: string, source: SummarySource): void {
+    const existing = document.getElementById("my-browser-utils-summary");
+    if (existing) existing.remove();
+
+    const root = document.createElement("div");
+    root.id = "my-browser-utils-summary";
+    root.style.cssText = `
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    width: min(520px, calc(100vw - 32px));
+    max-height: 70vh;
+    z-index: 2147483647;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  `;
+
+    const header = document.createElement("div");
+    header.style.cssText = `
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    background: #f7f7f7;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+  `;
+
+    const title = document.createElement("div");
+    title.textContent =
+      source === "selection" ? "要約（選択範囲）" : "要約（ページ本文）";
+    title.style.cssText = `
+    font-size: 13px;
+    font-weight: 700;
+    color: #111;
+  `;
+
+    const actions = document.createElement("div");
+    actions.style.cssText = `
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  `;
+
+    const copyButton = document.createElement("button");
+    copyButton.textContent = "コピー";
+    copyButton.style.cssText = `
+    padding: 6px 10px;
+    font-size: 12px;
+    border: none;
+    border-radius: 6px;
+    background: #4285f4;
+    color: white;
+    cursor: pointer;
+  `;
+    copyButton.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(summary);
+        showNotification("コピーしました");
+      } catch {
+        showNotification("コピーに失敗しました");
+      }
+    });
+
+    const closeButton = document.createElement("button");
+    closeButton.textContent = "閉じる";
+    closeButton.style.cssText = `
+    padding: 6px 10px;
+    font-size: 12px;
+    border: none;
+    border-radius: 6px;
+    background: #6b7280;
+    color: white;
+    cursor: pointer;
+  `;
+    closeButton.addEventListener("click", () => root.remove());
+
+    actions.appendChild(copyButton);
+    actions.appendChild(closeButton);
+    header.appendChild(title);
+    header.appendChild(actions);
+
+    const body = document.createElement("div");
+    body.style.cssText = `
+    padding: 12px;
+    overflow: auto;
+    max-height: calc(70vh - 44px);
+  `;
+
+    const pre = document.createElement("pre");
+    pre.textContent = summary;
+    pre.style.cssText = `
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #111;
+  `;
+
+    body.appendChild(pre);
+    root.appendChild(header);
+    root.appendChild(body);
+    document.body.appendChild(root);
   }
 
   // ========================================
