@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { ensureOpenAiTokenConfigured } from '../src/popup/token_guard';
 
 describe('ensureOpenAiTokenConfigured', () => {
