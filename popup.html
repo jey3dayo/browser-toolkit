@@ -6,21 +6,10 @@
     <title>My Browser Utils</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
-  <body>
+  <body class="no-js">
     <div class="app-shell">
       <aside class="sidebar">
         <div class="sidebar-brand" aria-hidden="true">MB</div>
-        <a
-          class="nav-item active"
-          data-target="pane-table"
-          href="#pane-table"
-          role="tab"
-          aria-controls="pane-table"
-          aria-label="テーブルソート"
-        >
-          <span class="nav-icon">⇅</span>
-          <span class="nav-label">テーブル</span>
-        </a>
         <a
           class="nav-item"
           data-target="pane-summary"
@@ -31,6 +20,17 @@
         >
           <span class="nav-icon">📝</span>
           <span class="nav-label">要約</span>
+        </a>
+        <a
+          class="nav-item active"
+          data-target="pane-table"
+          href="#pane-table"
+          role="tab"
+          aria-controls="pane-table"
+          aria-label="テーブルソート"
+        >
+          <span class="nav-icon">⇅</span>
+          <span class="nav-label">テーブル</span>
         </a>
         <a
           class="nav-item"
@@ -58,7 +58,7 @@
               <p class="subtitle">ブラウザ作業を少しラクにするツールセット</p>
             </div>
           </div>
-          <div class="cta-pill" id="cta-pill">ワンクリックで整列</div>
+          <button type="button" class="cta-pill" id="cta-pill" hidden></button>
         </header>
 
         <section class="pane active" id="pane-table" role="tabpanel" aria-label="テーブルソート">
@@ -83,16 +83,15 @@
             </div>
           </div>
 
-          <div class="card-grid">
-            <div class="card">
-              <div class="card-header">
-                <div>
-                  <p class="card-eyebrow">URLパターン</p>
-                  <h3>特定のページで自動化</h3>
-                </div>
-                <span class="chip chip-soft">ワイルドカード対応</span>
-              </div>
-              <p class="card-copy">URLにマッチしたページでは読み込み直後からテーブルソートを有効化します。</p>
+	          <div class="card-grid">
+	            <div class="card">
+	              <div class="card-header">
+	                <div>
+	                  <p class="card-eyebrow">URLパターン</p>
+	                  <h3>特定のページで自動化</h3>
+	                </div>
+	              </div>
+	              <p class="card-copy">URLにマッチしたページでは読み込み直後からテーブルソートを有効化します。</p>
 
               <div class="pattern-input-group">
                 <input

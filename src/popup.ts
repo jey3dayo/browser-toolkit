@@ -35,6 +35,9 @@
 
   type TestTokenResponse = { ok: true } | { ok: false; error: string };
 
+  const isExtensionPage = window.location.protocol === 'chrome-extension:';
+  const fallbackStoragePrefix = 'mbu:popup:';
+
   const start = (): void => {
     void initializePopup().catch(error => {
       // 初期化が途中で落ちると、ボタンが一切反応しないように見えるため通知しておく
@@ -85,22 +88,26 @@
     }
 
     enableButton?.addEventListener('click', async () => {
-      const [tab] = await tabsQuery({
-        active: true,
-        currentWindow: true,
-      });
-      if (tab?.id === undefined) {
-        showNotification('有効なタブが見つかりません', 'error');
-        return;
-      }
-
-      const message: PopupToContentMessage = { action: 'enableTableSort' };
-
-      chrome.tabs.sendMessage(tab.id, message, (response?: EnableResponse) => {
-        if (response?.success) {
-          showNotification('テーブルソートを有効化しました');
+      try {
+        const [tab] = await tabsQuery({
+          active: true,
+          currentWindow: true,
+        });
+        if (tab?.id === undefined) {
+          showNotification('有効なタブが見つかりません', 'error');
+          return;
         }
-      });
+
+        const message: PopupToContentMessage = { action: 'enableTableSort' };
+
+        chrome.tabs.sendMessage(tab.id, message, (response?: EnableResponse) => {
+          if (response?.success) {
+            showNotification('テーブルソートを有効化しました');
+          }
+        });
+      } catch (error) {
+        showNotification(error instanceof Error ? error.message : 'テーブルソートの実行に失敗しました', 'error');
+      }
     });
 
     addPatternButton?.addEventListener('click', () => {
@@ -160,21 +167,21 @@
     });
 
     summarizeButton?.addEventListener('click', async () => {
-      const [tab] = await tabsQuery({
-        active: true,
-        currentWindow: true,
-      });
-      if (tab?.id === undefined) {
-        showNotification('有効なタブが見つかりません', 'error');
-        return;
-      }
-
-      if (summaryOutput) summaryOutput.value = '要約中...';
-      if (copySummaryButton) copySummaryButton.disabled = true;
-      if (summarySourceChip) summarySourceChip.textContent = '-';
-      if (summarizeButton) summarizeButton.disabled = true;
-
       try {
+        const [tab] = await tabsQuery({
+          active: true,
+          currentWindow: true,
+        });
+        if (tab?.id === undefined) {
+          showNotification('有効なタブが見つかりません', 'error');
+          return;
+        }
+
+        if (summaryOutput) summaryOutput.value = '要約中...';
+        if (copySummaryButton) copySummaryButton.disabled = true;
+        if (summarySourceChip) summarySourceChip.textContent = '-';
+        if (summarizeButton) summarizeButton.disabled = true;
+
         const response = await sendMessageToBackground<PopupToBackgroundMessage, SummarizeResponse>({
           action: 'summarizeTab',
           tabId: tab.id,
@@ -260,6 +267,9 @@
   }
 
   function sendMessageToBackground<TRequest, TResponse>(message: TRequest): Promise<TResponse> {
+    if (!isExtensionPage || !(chrome as unknown as { runtime?: unknown }).runtime) {
+      return Promise.reject(new Error('拡張機能として開いてください（chrome-extension://...）'));
+    }
     return new Promise((resolve, reject) => {
       chrome.runtime.sendMessage(message, (response: TResponse) => {
         const err = chrome.runtime.lastError;
@@ -276,7 +286,37 @@
   // ドメインパターン管理機能
   // ========================================
 
+  function fallbackStorageGet(scope: 'sync' | 'local', keys: string[]): Record<string, unknown> {
+    const data: Record<string, unknown> = {};
+    keys.forEach(key => {
+      const raw = window.localStorage.getItem(`${fallbackStoragePrefix}${scope}:${key}`);
+      if (raw === null) return;
+      try {
+        data[key] = JSON.parse(raw) as unknown;
+      } catch {
+        data[key] = raw;
+      }
+    });
+    return data;
+  }
+
+  function fallbackStorageSet(scope: 'sync' | 'local', items: Record<string, unknown>): void {
+    Object.entries(items).forEach(([key, value]) => {
+      window.localStorage.setItem(`${fallbackStoragePrefix}${scope}:${key}`, JSON.stringify(value));
+    });
+  }
+
+  function fallbackStorageRemove(scope: 'sync' | 'local', keys: string[] | string): void {
+    const list = Array.isArray(keys) ? keys : [keys];
+    list.forEach(key => {
+      window.localStorage.removeItem(`${fallbackStoragePrefix}${scope}:${key}`);
+    });
+  }
+
   function storageSyncGet(keys: string[]): Promise<unknown> {
+    if (!isExtensionPage || !(chrome as unknown as { storage?: unknown }).storage) {
+      return Promise.resolve(fallbackStorageGet('sync', keys));
+    }
     return new Promise((resolve, reject) => {
       chrome.storage.sync.get(keys, items => {
         const err = chrome.runtime.lastError;
@@ -290,6 +330,10 @@
   }
 
   function storageSyncSet(items: Record<string, unknown>): Promise<void> {
+    if (!isExtensionPage || !(chrome as unknown as { storage?: unknown }).storage) {
+      fallbackStorageSet('sync', items);
+      return Promise.resolve();
+    }
     return new Promise((resolve, reject) => {
       chrome.storage.sync.set(items, () => {
         const err = chrome.runtime.lastError;
@@ -303,6 +347,9 @@
   }
 
   function storageLocalGet(keys: string[]): Promise<unknown> {
+    if (!isExtensionPage || !(chrome as unknown as { storage?: unknown }).storage) {
+      return Promise.resolve(fallbackStorageGet('local', keys));
+    }
     return new Promise((resolve, reject) => {
       chrome.storage.local.get(keys, items => {
         const err = chrome.runtime.lastError;
@@ -316,6 +363,10 @@
   }
 
   function storageLocalSet(items: Record<string, unknown>): Promise<void> {
+    if (!isExtensionPage || !(chrome as unknown as { storage?: unknown }).storage) {
+      fallbackStorageSet('local', items);
+      return Promise.resolve();
+    }
     return new Promise((resolve, reject) => {
       chrome.storage.local.set(items, () => {
         const err = chrome.runtime.lastError;
@@ -329,6 +380,10 @@
   }
 
   function storageLocalRemove(keys: string[] | string): Promise<void> {
+    if (!isExtensionPage || !(chrome as unknown as { storage?: unknown }).storage) {
+      fallbackStorageRemove('local', keys);
+      return Promise.resolve();
+    }
     return new Promise((resolve, reject) => {
       chrome.storage.local.remove(keys, () => {
         const err = chrome.runtime.lastError;
@@ -342,6 +397,9 @@
   }
 
   function tabsQuery(queryInfo: chrome.tabs.QueryInfo): Promise<chrome.tabs.Tab[]> {
+    if (!isExtensionPage || !(chrome as unknown as { tabs?: unknown }).tabs) {
+      return Promise.reject(new Error('拡張機能として開いてください（chrome-extension://...）'));
+    }
     return new Promise((resolve, reject) => {
       chrome.tabs.query(queryInfo, tabs => {
         const err = chrome.runtime.lastError;
@@ -481,33 +539,49 @@
   }
 
   function setupNavigation(): void {
+    // 拡張機能ページではJSでタブ切り替え（.active）を制御できるので、
+    // CSSの `:target` フォールバック（no-js）を無効化する。
+    if (isExtensionPage) {
+      document.body.classList.remove('no-js');
+    }
+
     const navItems = Array.from(document.querySelectorAll<HTMLElement>('.nav-item'));
     const panes = Array.from(document.querySelectorAll<HTMLElement>('.pane'));
     const heroChip = document.getElementById('hero-chip') as HTMLSpanElement | null;
-    const ctaPill = document.getElementById('cta-pill') as HTMLDivElement | null;
+    const ctaPill = document.getElementById('cta-pill') as HTMLButtonElement | null;
+
+    if (ctaPill && !isExtensionPage) {
+      ctaPill.disabled = true;
+    }
 
     const updateHero = (activeTargetId?: string): void => {
       if (!heroChip || !ctaPill) return;
       if (activeTargetId === 'pane-summary') {
         heroChip.textContent = 'AI要約';
         ctaPill.textContent = 'すぐ要約';
+        ctaPill.hidden = false;
         return;
       }
       if (activeTargetId === 'pane-settings') {
         heroChip.textContent = '設定';
         ctaPill.textContent = '好みに調整';
+        ctaPill.hidden = false;
         return;
       }
 
       heroChip.textContent = 'テーブルソート';
-      ctaPill.textContent = 'ワンクリックで整列';
+      ctaPill.textContent = '';
+      ctaPill.hidden = true;
     };
+
+    let currentActiveTargetId: string | undefined;
 
     const setActive = (targetId?: string): void => {
       const resolvedTargetId =
         targetId || navItems.find(item => item.classList.contains('active'))?.dataset.target || panes[0]?.id;
 
       if (!resolvedTargetId) return;
+      currentActiveTargetId = resolvedTargetId;
 
       navItems.forEach(nav => {
         const isActive = nav.dataset.target === resolvedTargetId;
@@ -522,6 +596,23 @@
       updateHero(resolvedTargetId);
     };
 
+    ctaPill?.addEventListener('click', () => {
+      if (currentActiveTargetId === 'pane-summary') {
+        const summarizeButton = document.getElementById('summarize-tab') as HTMLButtonElement | null;
+        summarizeButton?.click();
+        return;
+      }
+
+      if (currentActiveTargetId === 'pane-settings') {
+        const tokenInput = document.getElementById('openai-token') as HTMLInputElement | null;
+        (tokenInput as HTMLElement | null)?.focus?.();
+        return;
+      }
+
+      const enableButton = document.getElementById('enable-table-sort') as HTMLButtonElement | null;
+      enableButton?.click();
+    });
+
     const getTargetFromHash = (): string | undefined => {
       const hash = window.location.hash.replace(/^#/, '');
       if (!hash) return undefined;
@@ -531,6 +622,12 @@
 
     navItems.forEach(item => {
       item.addEventListener('click', event => {
+        if (!isExtensionPage) {
+          // 通常ページ（file:// など）ではアンカーのデフォルト挙動に任せて `:target` を更新する。
+          // `hashchange` で setActive が呼ばれるので、ここで何もしなくてOK。
+          return;
+        }
+
         // `href="#pane-..."` のデフォルト挙動（アンカーへのスクロール）を止めて、
         // タブ切り替え時にスクロール位置が意図せず動かないようにする。
         event.preventDefault();
