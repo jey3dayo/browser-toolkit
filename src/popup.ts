@@ -103,8 +103,8 @@
     }
 
     await loadPatterns();
-    await loadOpenAiToken(tokenInput);
     await loadOpenAiCustomPrompt(customPromptInput);
+    await loadOpenAiToken(tokenInput);
     setupNavigation();
 
     enableButton?.addEventListener("click", async () => {
