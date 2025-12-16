@@ -1,4 +1,6 @@
 (() => {
+  (globalThis as unknown as { __MBU_POPUP_LOADED__?: boolean }).__MBU_POPUP_LOADED__ = true;
+
   type SyncStorageData = {
     domainPatterns?: string[];
     autoEnableSort?: boolean;
