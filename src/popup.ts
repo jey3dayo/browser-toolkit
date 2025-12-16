@@ -481,10 +481,10 @@
   }
 
   function setupNavigation(): void {
-    const navItems = Array.from(document.querySelectorAll<HTMLButtonElement>('.nav-item'));
+    const navItems = Array.from(document.querySelectorAll<HTMLElement>('.nav-item'));
     const panes = Array.from(document.querySelectorAll<HTMLElement>('.pane'));
-    const heroChip = document.getElementById('hero-chip') as HTMLSpanElement;
-    const ctaPill = document.getElementById('cta-pill') as HTMLDivElement;
+    const heroChip = document.getElementById('hero-chip') as HTMLSpanElement | null;
+    const ctaPill = document.getElementById('cta-pill') as HTMLDivElement | null;
 
     const updateHero = (activeTargetId?: string): void => {
       if (!heroChip || !ctaPill) return;
@@ -503,22 +503,47 @@
       ctaPill.textContent = 'ワンクリックで整列';
     };
 
+    const setActive = (targetId?: string): void => {
+      const resolvedTargetId =
+        targetId ||
+        navItems.find(item => item.classList.contains('active'))?.dataset.target ||
+        panes[0]?.id;
+
+      if (!resolvedTargetId) return;
+
+      navItems.forEach(nav => {
+        const isActive = nav.dataset.target === resolvedTargetId;
+        nav.classList.toggle('active', isActive);
+        nav.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+
+      panes.forEach(pane => {
+        pane.classList.toggle('active', pane.id === resolvedTargetId);
+      });
+
+      updateHero(resolvedTargetId);
+    };
+
+    const getTargetFromHash = (): string | undefined => {
+      const hash = window.location.hash.replace(/^#/, '');
+      if (!hash) return undefined;
+      if (!document.getElementById(hash)) return undefined;
+      return hash;
+    };
+
     navItems.forEach(item => {
       item.addEventListener('click', () => {
-        navItems.forEach(nav => nav.classList.remove('active'));
-        panes.forEach(pane => pane.classList.remove('active'));
-
-        item.classList.add('active');
         const targetId = item.dataset.target;
-        if (targetId) {
-          document.getElementById(targetId)?.classList.add('active');
-        }
-        updateHero(targetId);
+        if (!targetId) return;
+        setActive(targetId);
       });
     });
 
-    const defaultActive = navItems.find(item => item.classList.contains('active'))?.dataset.target;
-    updateHero(defaultActive);
+    window.addEventListener('hashchange', () => {
+      setActive(getTargetFromHash());
+    });
+
+    setActive(getTargetFromHash());
   }
 
   async function loadOpenAiToken(input: HTMLInputElement | null): Promise<void> {

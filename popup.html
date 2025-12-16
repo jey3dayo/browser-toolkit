@@ -10,18 +10,39 @@
     <div class="app-shell">
       <aside class="sidebar">
         <div class="sidebar-brand" aria-hidden="true">MB</div>
-        <button class="nav-item active" data-target="pane-table" aria-label="テーブルソート">
+        <a
+          class="nav-item active"
+          data-target="pane-table"
+          href="#pane-table"
+          role="tab"
+          aria-controls="pane-table"
+          aria-label="テーブルソート"
+        >
           <span class="nav-icon">⇅</span>
           <span class="nav-label">テーブル</span>
-        </button>
-        <button class="nav-item" data-target="pane-summary" aria-label="要約">
+        </a>
+        <a
+          class="nav-item"
+          data-target="pane-summary"
+          href="#pane-summary"
+          role="tab"
+          aria-controls="pane-summary"
+          aria-label="要約"
+        >
           <span class="nav-icon">📝</span>
           <span class="nav-label">要約</span>
-        </button>
-        <button class="nav-item" data-target="pane-settings" aria-label="設定">
+        </a>
+        <a
+          class="nav-item"
+          data-target="pane-settings"
+          href="#pane-settings"
+          role="tab"
+          aria-controls="pane-settings"
+          aria-label="設定"
+        >
           <span class="nav-icon">⚙</span>
           <span class="nav-label">設定</span>
-        </button>
+        </a>
       </aside>
 
       <main class="content">
