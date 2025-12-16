@@ -100,6 +100,20 @@
     });
   }
 
+  type ContentTestHooks = {
+    patternToRegex?: (pattern: string) => RegExp;
+    matchesAnyPattern?: (patterns: string[]) => boolean;
+  };
+
+  const testHooks = (
+    globalThis as unknown as { __MBU_TEST_HOOKS__?: ContentTestHooks }
+  ).__MBU_TEST_HOOKS__;
+
+  if (testHooks) {
+    testHooks.patternToRegex = patternToRegex;
+    testHooks.matchesAnyPattern = matchesAnyPattern;
+  }
+
   // ========================================
   // 2. メッセージリスナー
   // ========================================
