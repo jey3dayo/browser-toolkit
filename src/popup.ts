@@ -1,5 +1,5 @@
-import { addHours } from 'date-fns';
 import {
+  addHours,
   formatLocalYyyyMmDdFromDate,
   formatUtcDateTimeFromDate,
   nextDateYyyyMmDd,
@@ -51,24 +51,31 @@ import {
     actionId: string;
   };
 
-	  type RunContextActionResponse =
-	    | { ok: true; resultType: 'text'; text: string; source: SummarySource }
-	    | { ok: true; resultType: 'event'; event: ExtractedEvent; eventText: string; calendarUrl: string; source: SummarySource }
-	    | { ok: false; error: string };
+  type RunContextActionResponse =
+    | { ok: true; resultType: 'text'; text: string; source: SummarySource }
+    | {
+        ok: true;
+        resultType: 'event';
+        event: ExtractedEvent;
+        eventText: string;
+        calendarUrl: string;
+        source: SummarySource;
+      }
+    | { ok: false; error: string };
 
-	  type TestTokenResponse = { ok: true } | { ok: false; error: string };
+  type TestTokenResponse = { ok: true } | { ok: false; error: string };
 
-	  const isExtensionPage = window.location.protocol === 'chrome-extension:';
-	  const fallbackStoragePrefix = 'mbu:popup:';
+  const isExtensionPage = window.location.protocol === 'chrome-extension:';
+  const fallbackStoragePrefix = 'mbu:popup:';
 
-	  type ExtractedEvent = {
-	    title: string;
-	    start: string;
-	    end?: string;
-	    allDay?: boolean;
-	    location?: string;
-	    description?: string;
-	  };
+  type ExtractedEvent = {
+    title: string;
+    start: string;
+    end?: string;
+    allDay?: boolean;
+    location?: string;
+    description?: string;
+  };
 
   const DEFAULT_CONTEXT_ACTIONS: ContextAction[] = [
     {
@@ -118,42 +125,42 @@ import {
     start();
   }
 
-	  async function initializePopup(): Promise<void> {
-	    const autoEnableCheckbox = document.getElementById('auto-enable-sort') as HTMLInputElement | null;
-	    const enableButton = document.getElementById('enable-table-sort') as HTMLButtonElement | null;
-	    const addPatternButton = document.getElementById('add-pattern') as HTMLButtonElement | null;
-	    const patternInput = document.getElementById('pattern-input') as HTMLInputElement | null;
-	    const tokenInput = document.getElementById('openai-token') as HTMLInputElement | null;
-	    const saveTokenButton = document.getElementById('save-openai-token') as HTMLButtonElement | null;
-	    const clearTokenButton = document.getElementById('clear-openai-token') as HTMLButtonElement | null;
-	    const toggleTokenVisibilityButton = document.getElementById(
-	      'toggle-openai-token-visibility',
-	    ) as HTMLButtonElement | null;
-	    const testTokenButton = document.getElementById('test-openai-token') as HTMLButtonElement | null;
-	    const customPromptInput = document.getElementById('openai-custom-prompt') as HTMLTextAreaElement | null;
-	    const saveCustomPromptButton = document.getElementById('save-openai-custom-prompt') as HTMLButtonElement | null;
-	    const clearCustomPromptButton = document.getElementById('clear-openai-custom-prompt') as HTMLButtonElement | null;
-	    const actionButtons = document.getElementById('action-buttons') as HTMLDivElement | null;
-	    const actionSourceChip = document.getElementById('action-source-chip') as HTMLSpanElement | null;
-	    const actionOutputTitle = document.getElementById('action-output-title') as HTMLHeadingElement | null;
-	    const actionOutput = document.getElementById('action-output') as HTMLTextAreaElement | null;
-	    const copyActionOutputButton = document.getElementById('copy-action-output') as HTMLButtonElement | null;
-	    const openCalendarButton = document.getElementById('open-calendar') as HTMLButtonElement | null;
-	    const downloadIcsButton = document.getElementById('download-ics') as HTMLButtonElement | null;
-	    const actionTitleInput = document.getElementById('action-title') as HTMLInputElement | null;
-	    const actionKindSelect = document.getElementById('action-kind') as HTMLSelectElement | null;
-	    const actionPromptInput = document.getElementById('action-prompt') as HTMLTextAreaElement | null;
-	    const saveActionButton = document.getElementById('save-action') as HTMLButtonElement | null;
-	    const clearActionButton = document.getElementById('clear-action') as HTMLButtonElement | null;
-	    const deleteActionButton = document.getElementById('delete-action') as HTMLButtonElement | null;
-	    const actionList = document.getElementById('action-list') as HTMLDivElement | null;
+  async function initializePopup(): Promise<void> {
+    const autoEnableCheckbox = document.getElementById('auto-enable-sort') as HTMLInputElement | null;
+    const enableButton = document.getElementById('enable-table-sort') as HTMLButtonElement | null;
+    const addPatternButton = document.getElementById('add-pattern') as HTMLButtonElement | null;
+    const patternInput = document.getElementById('pattern-input') as HTMLInputElement | null;
+    const tokenInput = document.getElementById('openai-token') as HTMLInputElement | null;
+    const saveTokenButton = document.getElementById('save-openai-token') as HTMLButtonElement | null;
+    const clearTokenButton = document.getElementById('clear-openai-token') as HTMLButtonElement | null;
+    const toggleTokenVisibilityButton = document.getElementById(
+      'toggle-openai-token-visibility',
+    ) as HTMLButtonElement | null;
+    const testTokenButton = document.getElementById('test-openai-token') as HTMLButtonElement | null;
+    const customPromptInput = document.getElementById('openai-custom-prompt') as HTMLTextAreaElement | null;
+    const saveCustomPromptButton = document.getElementById('save-openai-custom-prompt') as HTMLButtonElement | null;
+    const clearCustomPromptButton = document.getElementById('clear-openai-custom-prompt') as HTMLButtonElement | null;
+    const actionButtons = document.getElementById('action-buttons') as HTMLDivElement | null;
+    const actionSourceChip = document.getElementById('action-source-chip') as HTMLSpanElement | null;
+    const actionOutputTitle = document.getElementById('action-output-title') as HTMLHeadingElement | null;
+    const actionOutput = document.getElementById('action-output') as HTMLTextAreaElement | null;
+    const copyActionOutputButton = document.getElementById('copy-action-output') as HTMLButtonElement | null;
+    const openCalendarButton = document.getElementById('open-calendar') as HTMLButtonElement | null;
+    const downloadIcsButton = document.getElementById('download-ics') as HTMLButtonElement | null;
+    const actionTitleInput = document.getElementById('action-title') as HTMLInputElement | null;
+    const actionKindSelect = document.getElementById('action-kind') as HTMLSelectElement | null;
+    const actionPromptInput = document.getElementById('action-prompt') as HTMLTextAreaElement | null;
+    const saveActionButton = document.getElementById('save-action') as HTMLButtonElement | null;
+    const clearActionButton = document.getElementById('clear-action') as HTMLButtonElement | null;
+    const deleteActionButton = document.getElementById('delete-action') as HTMLButtonElement | null;
+    const actionList = document.getElementById('action-list') as HTMLDivElement | null;
 
-	    let contextActions: ContextAction[] = [];
-	    let editingActionId: string | null = null;
-	    let lastCalendarUrl: string | null = null;
-	    let lastEvent: ExtractedEvent | null = null;
+    let contextActions: ContextAction[] = [];
+    let editingActionId: string | null = null;
+    let lastCalendarUrl: string | null = null;
+    let lastEvent: ExtractedEvent | null = null;
 
-	    setupNavigation();
+    setupNavigation();
 
     if (autoEnableCheckbox) {
       autoEnableCheckbox.addEventListener('change', event => {
@@ -239,96 +246,96 @@ import {
       void handleSaveCustomPrompt(customPromptInput);
     });
 
-	    clearCustomPromptButton?.addEventListener('click', () => {
-	      void handleClearCustomPrompt(customPromptInput);
-	    });
+    clearCustomPromptButton?.addEventListener('click', () => {
+      void handleClearCustomPrompt(customPromptInput);
+    });
 
-	    copyActionOutputButton?.addEventListener('click', async () => {
-	      const text = actionOutput?.value ?? '';
-	      if (!text) return;
-	      await navigator.clipboard.writeText(text);
-	      showNotification('コピーしました');
-	    });
+    copyActionOutputButton?.addEventListener('click', async () => {
+      const text = actionOutput?.value ?? '';
+      if (!text) return;
+      await navigator.clipboard.writeText(text);
+      showNotification('コピーしました');
+    });
 
-	    openCalendarButton?.addEventListener('click', () => {
-	      const url = lastCalendarUrl?.trim() ?? '';
-	      if (!url) return;
-	      if (isExtensionPage && (chrome as unknown as { tabs?: unknown }).tabs) {
-	        void chrome.tabs.create({ url });
-	        return;
-	      }
-	      window.open(url, '_blank', 'noopener');
-	    });
+    openCalendarButton?.addEventListener('click', () => {
+      const url = lastCalendarUrl?.trim() ?? '';
+      if (!url) return;
+      if (isExtensionPage && (chrome as unknown as { tabs?: unknown }).tabs) {
+        void chrome.tabs.create({ url });
+        return;
+      }
+      window.open(url, '_blank', 'noopener');
+    });
 
-	    downloadIcsButton?.addEventListener('click', () => {
-	      if (!lastEvent) return;
-	      const ics = buildIcs(lastEvent);
-	      if (!ics) {
-	        showNotification('icsの生成に失敗しました', 'error');
-	        return;
-	      }
+    downloadIcsButton?.addEventListener('click', () => {
+      if (!lastEvent) return;
+      const ics = buildIcs(lastEvent);
+      if (!ics) {
+        showNotification('icsの生成に失敗しました', 'error');
+        return;
+      }
 
-	      const baseName = sanitizeFileName(lastEvent.title?.trim() || 'event');
-	      const fileName = `${baseName}.ics`;
-	      const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
-	      const url = URL.createObjectURL(blob);
-	      const a = document.createElement('a');
-	      a.href = url;
-	      a.download = fileName;
-	      document.body.appendChild(a);
-	      a.click();
-	      a.remove();
-	      window.setTimeout(() => URL.revokeObjectURL(url), 0);
-	      showNotification('.icsをダウンロードしました');
-	    });
+      const baseName = sanitizeFileName(lastEvent.title?.trim() || 'event');
+      const fileName = `${baseName}.ics`;
+      const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 0);
+      showNotification('.icsをダウンロードしました');
+    });
 
-	    const clearActionForm = (): void => {
-	      editingActionId = null;
-	      if (deleteActionButton) deleteActionButton.disabled = true;
-	      if (actionTitleInput) actionTitleInput.value = '';
-	      if (actionPromptInput) actionPromptInput.value = '';
-	      if (actionKindSelect) actionKindSelect.value = 'text';
-	    };
+    const clearActionForm = (): void => {
+      editingActionId = null;
+      if (deleteActionButton) deleteActionButton.disabled = true;
+      if (actionTitleInput) actionTitleInput.value = '';
+      if (actionPromptInput) actionPromptInput.value = '';
+      if (actionKindSelect) actionKindSelect.value = 'text';
+    };
 
-	    const setEditingAction = (targetAction: ContextAction | null): void => {
-	      editingActionId = targetAction?.id ?? null;
-	      if (deleteActionButton) deleteActionButton.disabled = !editingActionId;
-	      if (!targetAction) {
-	        clearActionForm();
-	        return;
-	      }
-	      if (actionTitleInput) actionTitleInput.value = targetAction.title;
-	      if (actionPromptInput) actionPromptInput.value = targetAction.prompt;
-	      if (actionKindSelect) actionKindSelect.value = targetAction.kind;
-	    };
+    const setEditingAction = (targetAction: ContextAction | null): void => {
+      editingActionId = targetAction?.id ?? null;
+      if (deleteActionButton) deleteActionButton.disabled = !editingActionId;
+      if (!targetAction) {
+        clearActionForm();
+        return;
+      }
+      if (actionTitleInput) actionTitleInput.value = targetAction.title;
+      if (actionPromptInput) actionPromptInput.value = targetAction.prompt;
+      if (actionKindSelect) actionKindSelect.value = targetAction.kind;
+    };
 
-	    const persistContextActions = async (next: ContextAction[]): Promise<void> => {
-	      contextActions = next;
-	      await storageSyncSet({ contextActions: next });
-	      renderContextActions();
-	    };
+    const persistContextActions = async (next: ContextAction[]): Promise<void> => {
+      contextActions = next;
+      await storageSyncSet({ contextActions: next });
+      renderContextActions();
+    };
 
-	    const renderContextActions = (): void => {
-	      if (actionButtons) {
-	        actionButtons.innerHTML = '';
-	        contextActions.forEach(action => {
-	          const button = document.createElement('button');
-	          button.type = 'button';
-	          button.className = action.kind === 'event' ? 'btn btn-ghost' : 'btn btn-primary';
-	          button.dataset.actionId = action.id;
-	          button.textContent = action.title;
-	          actionButtons.appendChild(button);
-	        });
-	      }
+    const renderContextActions = (): void => {
+      if (actionButtons) {
+        actionButtons.innerHTML = '';
+        contextActions.forEach(action => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = action.kind === 'event' ? 'btn btn-ghost' : 'btn btn-primary';
+          button.dataset.actionId = action.id;
+          button.textContent = action.title;
+          actionButtons.appendChild(button);
+        });
+      }
 
-	      if (actionList) {
-	        if (contextActions.length === 0) {
-	          actionList.innerHTML = '<p class="empty-message">登録されたアクションはありません</p>';
-	        } else {
-	          actionList.innerHTML = contextActions
-	            .map(action => {
-	              const kindLabel = action.kind === 'event' ? 'カレンダー' : 'テキスト';
-	              return `
+      if (actionList) {
+        if (contextActions.length === 0) {
+          actionList.innerHTML = '<p class="empty-message">登録されたアクションはありません</p>';
+        } else {
+          actionList.innerHTML = contextActions
+            .map(action => {
+              const kindLabel = action.kind === 'event' ? 'カレンダー' : 'テキスト';
+              return `
 	                <div class="pattern-item" data-action-id="${escapeHtml(action.id)}">
 	                  <div class="pattern-text">
 	                    <div><strong>${escapeHtml(action.title)}</strong></div>
@@ -340,170 +347,170 @@ import {
 	                  </div>
 	                </div>
 	              `;
-	            })
-	            .join('');
-	        }
-	      }
-	    };
+            })
+            .join('');
+        }
+      }
+    };
 
-	    const ensureContextActions = async (): Promise<void> => {
-	      try {
-	        const data = (await storageSyncGet(['contextActions'])) as SyncStorageData;
-	        const normalized = normalizeContextActions(data.contextActions);
-	        if (normalized.length > 0) {
-	          contextActions = normalized;
-	          renderContextActions();
-	          return;
-	        }
+    const ensureContextActions = async (): Promise<void> => {
+      try {
+        const data = (await storageSyncGet(['contextActions'])) as SyncStorageData;
+        const normalized = normalizeContextActions(data.contextActions);
+        if (normalized.length > 0) {
+          contextActions = normalized;
+          renderContextActions();
+          return;
+        }
 
-	        contextActions = DEFAULT_CONTEXT_ACTIONS;
-	        await storageSyncSet({ contextActions: contextActions });
-	        renderContextActions();
-	      } catch (error) {
-	        contextActions = DEFAULT_CONTEXT_ACTIONS;
-	        renderContextActions();
-	        showNotification(error instanceof Error ? error.message : 'アクションの読み込みに失敗しました', 'error');
-	      }
-	    };
+        contextActions = DEFAULT_CONTEXT_ACTIONS;
+        await storageSyncSet({ contextActions: contextActions });
+        renderContextActions();
+      } catch (error) {
+        contextActions = DEFAULT_CONTEXT_ACTIONS;
+        renderContextActions();
+        showNotification(error instanceof Error ? error.message : 'アクションの読み込みに失敗しました', 'error');
+      }
+    };
 
-	    const runContextAction = async (actionId: string): Promise<void> => {
-	      const action = contextActions.find(item => item.id === actionId);
-	      if (!action) {
-	        showNotification('アクションが見つかりません', 'error');
-	        return;
-	      }
+    const runContextAction = async (actionId: string): Promise<void> => {
+      const action = contextActions.find(item => item.id === actionId);
+      if (!action) {
+        showNotification('アクションが見つかりません', 'error');
+        return;
+      }
 
-	      if (actionOutputTitle) actionOutputTitle.textContent = action.title;
-	      if (actionOutput) actionOutput.value = '実行中...';
-	      if (copyActionOutputButton) copyActionOutputButton.disabled = true;
-	      if (openCalendarButton) openCalendarButton.hidden = true;
-	      if (downloadIcsButton) downloadIcsButton.hidden = true;
-	      lastCalendarUrl = null;
-	      lastEvent = null;
+      if (actionOutputTitle) actionOutputTitle.textContent = action.title;
+      if (actionOutput) actionOutput.value = '実行中...';
+      if (copyActionOutputButton) copyActionOutputButton.disabled = true;
+      if (openCalendarButton) openCalendarButton.hidden = true;
+      if (downloadIcsButton) downloadIcsButton.hidden = true;
+      lastCalendarUrl = null;
+      lastEvent = null;
 
-	      try {
-	        const [tab] = await tabsQuery({
-	          active: true,
-	          currentWindow: true,
-	        });
-	        if (tab?.id === undefined) {
-	          showNotification('有効なタブが見つかりません', 'error');
-	          if (actionOutput) actionOutput.value = '';
-	          return;
-	        }
+      try {
+        const [tab] = await tabsQuery({
+          active: true,
+          currentWindow: true,
+        });
+        if (tab?.id === undefined) {
+          showNotification('有効なタブが見つかりません', 'error');
+          if (actionOutput) actionOutput.value = '';
+          return;
+        }
 
-	        const response = await sendMessageToBackground<RunContextActionRequest, RunContextActionResponse>({
-	          action: 'runContextAction',
-	          tabId: tab.id,
-	          actionId,
-	        });
+        const response = await sendMessageToBackground<RunContextActionRequest, RunContextActionResponse>({
+          action: 'runContextAction',
+          tabId: tab.id,
+          actionId,
+        });
 
-	        if (!response.ok) {
-	          showNotification(response.error, 'error');
-	          if (actionOutput) actionOutput.value = '';
-	          return;
-	        }
+        if (!response.ok) {
+          showNotification(response.error, 'error');
+          if (actionOutput) actionOutput.value = '';
+          return;
+        }
 
-	        if (actionSourceChip) {
-	          actionSourceChip.textContent = response.source === 'selection' ? '選択範囲' : 'ページ本文';
-	        }
+        if (actionSourceChip) {
+          actionSourceChip.textContent = response.source === 'selection' ? '選択範囲' : 'ページ本文';
+        }
 
-	        if (response.resultType === 'event') {
-	          if (actionOutput) actionOutput.value = response.eventText;
-	          lastCalendarUrl = response.calendarUrl;
-	          lastEvent = response.event;
-	          if (openCalendarButton) openCalendarButton.hidden = false;
-	          if (downloadIcsButton) downloadIcsButton.hidden = false;
-	        } else {
-	          if (actionOutput) actionOutput.value = response.text;
-	        }
+        if (response.resultType === 'event') {
+          if (actionOutput) actionOutput.value = response.eventText;
+          lastCalendarUrl = response.calendarUrl;
+          lastEvent = response.event;
+          if (openCalendarButton) openCalendarButton.hidden = false;
+          if (downloadIcsButton) downloadIcsButton.hidden = false;
+        } else {
+          if (actionOutput) actionOutput.value = response.text;
+        }
 
-	        if (copyActionOutputButton) copyActionOutputButton.disabled = false;
-	        showNotification('完了しました');
-	      } catch (error) {
-	        showNotification(error instanceof Error ? error.message : 'アクションの実行に失敗しました', 'error');
-	        if (actionOutput) actionOutput.value = '';
-	      }
-	    };
+        if (copyActionOutputButton) copyActionOutputButton.disabled = false;
+        showNotification('完了しました');
+      } catch (error) {
+        showNotification(error instanceof Error ? error.message : 'アクションの実行に失敗しました', 'error');
+        if (actionOutput) actionOutput.value = '';
+      }
+    };
 
-	    actionButtons?.addEventListener('click', event => {
-	      const target = event.target as HTMLElement | null;
-	      const actionId = target?.closest<HTMLElement>('button')?.dataset.actionId;
-	      if (!actionId) return;
-	      void runContextAction(actionId);
-	    });
+    actionButtons?.addEventListener('click', event => {
+      const target = event.target as HTMLElement | null;
+      const actionId = target?.closest<HTMLElement>('button')?.dataset.actionId;
+      if (!actionId) return;
+      void runContextAction(actionId);
+    });
 
-	    actionList?.addEventListener('click', event => {
-	      const target = event.target as HTMLElement | null;
-	      const action = target?.closest<HTMLElement>('button')?.dataset.action;
-	      const actionId = target?.closest<HTMLElement>('button')?.dataset.actionId;
-	      if (!action || !actionId) return;
+    actionList?.addEventListener('click', event => {
+      const target = event.target as HTMLElement | null;
+      const action = target?.closest<HTMLElement>('button')?.dataset.action;
+      const actionId = target?.closest<HTMLElement>('button')?.dataset.actionId;
+      if (!action || !actionId) return;
 
-	      if (action === 'edit') {
-	        const found = contextActions.find(item => item.id === actionId) ?? null;
-	        setEditingAction(found);
-	        return;
-	      }
+      if (action === 'edit') {
+        const found = contextActions.find(item => item.id === actionId) ?? null;
+        setEditingAction(found);
+        return;
+      }
 
-	      if (action === 'delete') {
-	        void persistContextActions(contextActions.filter(item => item.id !== actionId));
-	        if (editingActionId === actionId) {
-	          clearActionForm();
-	        }
-	      }
-	    });
+      if (action === 'delete') {
+        void persistContextActions(contextActions.filter(item => item.id !== actionId));
+        if (editingActionId === actionId) {
+          clearActionForm();
+        }
+      }
+    });
 
-	    saveActionButton?.addEventListener('click', () => {
-	      void (async () => {
-	        const title = actionTitleInput?.value.trim() ?? '';
-	        const kind = (actionKindSelect?.value as ContextActionKind | undefined) ?? 'text';
-	        const prompt = actionPromptInput?.value ?? '';
+    saveActionButton?.addEventListener('click', () => {
+      void (async () => {
+        const title = actionTitleInput?.value.trim() ?? '';
+        const kind = (actionKindSelect?.value as ContextActionKind | undefined) ?? 'text';
+        const prompt = actionPromptInput?.value ?? '';
 
-	        if (!title) {
-	          showNotification('タイトルを入力してください', 'error');
-	          return;
-	        }
+        if (!title) {
+          showNotification('タイトルを入力してください', 'error');
+          return;
+        }
 
-	        if (kind === 'text' && !prompt.trim()) {
-	          showNotification('プロンプトを入力してください', 'error');
-	          return;
-	        }
+        if (kind === 'text' && !prompt.trim()) {
+          showNotification('プロンプトを入力してください', 'error');
+          return;
+        }
 
-	        const next: ContextAction = {
-	          id:
-	            editingActionId ||
-	            `user:${
-	              typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-	                ? crypto.randomUUID()
-	                : String(Date.now())
-	            }`,
-	          title,
-	          kind,
-	          prompt,
-	        };
+        const next: ContextAction = {
+          id:
+            editingActionId ||
+            `user:${
+              typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+                ? crypto.randomUUID()
+                : String(Date.now())
+            }`,
+          title,
+          kind,
+          prompt,
+        };
 
-	        const filtered = contextActions.filter(item => item.id !== next.id);
-	        await persistContextActions([next, ...filtered]);
-	        setEditingAction(null);
-	        showNotification('保存しました');
-	      })();
-	    });
+        const filtered = contextActions.filter(item => item.id !== next.id);
+        await persistContextActions([next, ...filtered]);
+        setEditingAction(null);
+        showNotification('保存しました');
+      })();
+    });
 
-	    clearActionButton?.addEventListener('click', () => {
-	      setEditingAction(null);
-	    });
+    clearActionButton?.addEventListener('click', () => {
+      setEditingAction(null);
+    });
 
-	    deleteActionButton?.addEventListener('click', () => {
-	      if (!editingActionId) return;
-	      void persistContextActions(contextActions.filter(item => item.id !== editingActionId));
-	      setEditingAction(null);
-	      showNotification('削除しました');
-	    });
+    deleteActionButton?.addEventListener('click', () => {
+      if (!editingActionId) return;
+      void persistContextActions(contextActions.filter(item => item.id !== editingActionId));
+      setEditingAction(null);
+      showNotification('削除しました');
+    });
 
-	    // 初期表示のロード（失敗しても、ボタン操作自体は動くようにしておく）
-	    try {
-	      const settings = (await storageSyncGet(['autoEnableSort'])) as SyncStorageData;
-	      if (autoEnableCheckbox) {
+    // 初期表示のロード（失敗しても、ボタン操作自体は動くようにしておく）
+    try {
+      const settings = (await storageSyncGet(['autoEnableSort'])) as SyncStorageData;
+      if (autoEnableCheckbox) {
         autoEnableCheckbox.checked = settings.autoEnableSort ?? false;
       }
     } catch (error) {
@@ -522,14 +529,14 @@ import {
       showNotification(error instanceof Error ? error.message : 'カスタムプロンプトの読み込みに失敗しました', 'error');
     }
 
-	    try {
-	      await loadOpenAiToken(tokenInput);
-	    } catch (error) {
-	      showNotification(error instanceof Error ? error.message : 'OpenAIトークンの読み込みに失敗しました', 'error');
-	    }
+    try {
+      await loadOpenAiToken(tokenInput);
+    } catch (error) {
+      showNotification(error instanceof Error ? error.message : 'OpenAIトークンの読み込みに失敗しました', 'error');
+    }
 
-	    await ensureContextActions();
-	  }
+    await ensureContextActions();
+  }
 
   function showNotification(message: string, type: NotificationType = 'info'): void {
     const notification = document.createElement('div');
@@ -847,19 +854,14 @@ import {
     return trimmed.replace(/[\\/:*?"<>|]/g, '_').slice(0, 80) || 'event';
   }
 
-		  function buildIcs(event: ExtractedEvent): string | null {
-		    const title = event.title?.trim() || '予定';
-		    const description = event.description?.trim() || '';
-		    const location = event.location?.trim() || '';
-		    const toUtcDateTimeFromDate = (date: Date): string | null => formatUtcDateTimeFromDate(date);
+  function buildIcs(event: ExtractedEvent): string | null {
+    const title = event.title?.trim() || '予定';
+    const description = event.description?.trim() || '';
+    const location = event.location?.trim() || '';
+    const toUtcDateTimeFromDate = (date: Date): string | null => formatUtcDateTimeFromDate(date);
 
-	    const escapeIcsText = (value: string): string =>
-	      value
-        .replace(/\\/g, '\\\\')
-        .replace(/\n/g, '\\n')
-        .replace(/;/g, '\\;')
-        .replace(/,/g, '\\,')
-        .replace(/\r/g, '');
+    const escapeIcsText = (value: string): string =>
+      value.replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r/g, '');
 
     const foldLine = (line: string): string => {
       const max = 75;
@@ -871,54 +873,53 @@ import {
       return out;
     };
 
-	    const startRaw = event.start?.trim() || '';
-	    if (!startRaw) return null;
+    const startRaw = event.start?.trim() || '';
+    if (!startRaw) return null;
 
-	    let dtStartLine = '';
-	    let dtEndLine = '';
+    let dtStartLine = '';
+    let dtEndLine = '';
 
-		    const startDateOnly = parseDateOnlyToYyyyMmDd(startRaw);
-		    const endRaw = event.end?.trim() || '';
-		    const endDateOnly = endRaw ? parseDateOnlyToYyyyMmDd(endRaw) : null;
+    const startDateOnly = parseDateOnlyToYyyyMmDd(startRaw);
+    const endRaw = event.end?.trim() || '';
+    const endDateOnly = endRaw ? parseDateOnlyToYyyyMmDd(endRaw) : null;
 
-		    if (event.allDay === true || startDateOnly) {
-		      const startDateFromTime = event.allDay === true && !startDateOnly ? parseDateTimeLoose(startRaw) : null;
-		      const startDate =
-		        startDateOnly || (startDateFromTime ? formatLocalYyyyMmDdFromDate(startDateFromTime) : null);
-		      if (!startDate) return null;
-		      const endDateFromTime = event.allDay === true && endRaw && !endDateOnly ? parseDateTimeLoose(endRaw) : null;
-		      let endDate =
-		        endDateOnly ||
-		        (endDateFromTime ? formatLocalYyyyMmDdFromDate(endDateFromTime) : null) ||
-		        nextDateYyyyMmDd(startDate);
-		      if (endDate.length !== 8) return null;
-		      if (endDate <= startDate) {
-		        endDate = nextDateYyyyMmDd(startDate);
-	      }
-	      dtStartLine = `DTSTART;VALUE=DATE:${startDate}`;
-	      dtEndLine = `DTEND;VALUE=DATE:${endDate}`;
-			    } else {
-			      const startDate = parseDateTimeLoose(startRaw);
-			      if (!startDate) return null;
-			      const startUtc = toUtcDateTimeFromDate(startDate);
-			      if (!startUtc) return null;
-			      let endDate = endRaw ? parseDateTimeLoose(endRaw) : null;
-			      if (!endDate || endDate.getTime() <= startDate.getTime()) {
-			        endDate = addHours(startDate, 1);
-			      }
-			      if (!endDate) return null;
-			      const endUtc = toUtcDateTimeFromDate(endDate);
-			      if (!endUtc) return null;
-			      dtStartLine = `DTSTART:${startUtc}`;
-			      dtEndLine = `DTEND:${endUtc}`;
-		    }
+    if (event.allDay === true || startDateOnly) {
+      const startDateFromTime = event.allDay === true && !startDateOnly ? parseDateTimeLoose(startRaw) : null;
+      const startDate = startDateOnly || (startDateFromTime ? formatLocalYyyyMmDdFromDate(startDateFromTime) : null);
+      if (!startDate) return null;
+      const endDateFromTime = event.allDay === true && endRaw && !endDateOnly ? parseDateTimeLoose(endRaw) : null;
+      let endDate =
+        endDateOnly ||
+        (endDateFromTime ? formatLocalYyyyMmDdFromDate(endDateFromTime) : null) ||
+        nextDateYyyyMmDd(startDate);
+      if (endDate.length !== 8) return null;
+      if (endDate <= startDate) {
+        endDate = nextDateYyyyMmDd(startDate);
+      }
+      dtStartLine = `DTSTART;VALUE=DATE:${startDate}`;
+      dtEndLine = `DTEND;VALUE=DATE:${endDate}`;
+    } else {
+      const startDate = parseDateTimeLoose(startRaw);
+      if (!startDate) return null;
+      const startUtc = toUtcDateTimeFromDate(startDate);
+      if (!startUtc) return null;
+      let endDate = endRaw ? parseDateTimeLoose(endRaw) : null;
+      if (!endDate || endDate.getTime() <= startDate.getTime()) {
+        endDate = addHours(startDate, 1);
+      }
+      if (!endDate) return null;
+      const endUtc = toUtcDateTimeFromDate(endDate);
+      if (!endUtc) return null;
+      dtStartLine = `DTSTART:${startUtc}`;
+      dtEndLine = `DTEND:${endUtc}`;
+    }
 
     const uid =
       typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
         ? crypto.randomUUID()
         : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-	    const dtStamp = toUtcDateTimeFromDate(new Date());
-	    if (!dtStamp) return null;
+    const dtStamp = toUtcDateTimeFromDate(new Date());
+    if (!dtStamp) return null;
 
     const lines = [
       'BEGIN:VCALENDAR',
@@ -952,43 +953,43 @@ import {
     const heroChip = document.getElementById('hero-chip') as HTMLSpanElement | null;
     const ctaPill = document.getElementById('cta-pill') as HTMLButtonElement | null;
 
-	    if (ctaPill && !isExtensionPage) {
-	      ctaPill.disabled = true;
-	    }
+    if (ctaPill && !isExtensionPage) {
+      ctaPill.disabled = true;
+    }
 
-	    const updateHero = (activeTargetId?: string): void => {
-	      if (!heroChip || !ctaPill) return;
-	      ctaPill.textContent = '';
-	      ctaPill.hidden = true;
-	      if (activeTargetId === 'pane-actions') {
-	        heroChip.textContent = 'アクション';
-	        return;
-	      }
-	      if (activeTargetId === 'pane-settings') {
-	        heroChip.textContent = '設定';
-	        return;
-	      }
-	      heroChip.textContent = 'テーブルソート';
-	    };
+    const updateHero = (activeTargetId?: string): void => {
+      if (!heroChip || !ctaPill) return;
+      ctaPill.textContent = '';
+      ctaPill.hidden = true;
+      if (activeTargetId === 'pane-actions') {
+        heroChip.textContent = 'アクション';
+        return;
+      }
+      if (activeTargetId === 'pane-settings') {
+        heroChip.textContent = '設定';
+        return;
+      }
+      heroChip.textContent = 'テーブルソート';
+    };
 
-	    const setActive = (targetId?: string): void => {
-	      const resolvedTargetId =
-	        targetId || navItems.find(item => item.classList.contains('active'))?.dataset.target || panes[0]?.id;
+    const setActive = (targetId?: string): void => {
+      const resolvedTargetId =
+        targetId || navItems.find(item => item.classList.contains('active'))?.dataset.target || panes[0]?.id;
 
-	      if (!resolvedTargetId) return;
+      if (!resolvedTargetId) return;
 
-	      navItems.forEach(nav => {
-	        const isActive = nav.dataset.target === resolvedTargetId;
-	        nav.classList.toggle('active', isActive);
-	        nav.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      navItems.forEach(nav => {
+        const isActive = nav.dataset.target === resolvedTargetId;
+        nav.classList.toggle('active', isActive);
+        nav.setAttribute('aria-selected', isActive ? 'true' : 'false');
       });
 
       panes.forEach(pane => {
         pane.classList.toggle('active', pane.id === resolvedTargetId);
       });
 
-	      updateHero(resolvedTargetId);
-	    };
+      updateHero(resolvedTargetId);
+    };
 
     const getTargetFromHash = (): string | undefined => {
       const hash = window.location.hash.replace(/^#/, '');

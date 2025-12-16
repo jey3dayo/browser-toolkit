@@ -1,7 +1,7 @@
 // Background Service Worker
 
-import { addHours } from 'date-fns';
 import {
+  addHours,
   formatLocalYyyyMmDdFromDate,
   formatUtcDateTimeFromDate,
   nextDateYyyyMmDd,
@@ -38,13 +38,22 @@ type ContentScriptMessage =
       error?: string;
     };
 
-type BackgroundRequest = { action: 'summarizeTab'; tabId: number } | { action: 'runContextAction'; tabId: number; actionId: string };
+type BackgroundRequest =
+  | { action: 'summarizeTab'; tabId: number }
+  | { action: 'runContextAction'; tabId: number; actionId: string };
 
 type BackgroundResponse = { ok: true; summary: string; source: SummarySource } | { ok: false; error: string };
 
 type RunContextActionResponse =
   | { ok: true; resultType: 'text'; text: string; source: SummarySource }
-  | { ok: true; resultType: 'event'; event: ExtractedEvent; eventText: string; calendarUrl: string; source: SummarySource }
+  | {
+      ok: true;
+      resultType: 'event';
+      event: ExtractedEvent;
+      eventText: string;
+      calendarUrl: string;
+      source: SummarySource;
+    }
   | { ok: false; error: string };
 
 type LocalStorageData = {
@@ -362,7 +371,9 @@ chrome.runtime.onMessage.addListener(
           }
 
           if (action.kind === 'event') {
-            const extraInstruction = action.prompt?.trim() ? renderInstructionTemplate(action.prompt, target) : undefined;
+            const extraInstruction = action.prompt?.trim()
+              ? renderInstructionTemplate(action.prompt, target)
+              : undefined;
             const result = await extractEventWithOpenAI(target, extraInstruction);
             if (!result.ok) {
               sendResponse(result);
@@ -794,14 +805,14 @@ async function extractEventWithOpenAI(
       messages: [
         {
           role: 'system',
-	          content: [
-	            'あなたはイベント抽出アシスタントです。入力テキストから、カレンダー登録に必要な情報を抽出してください。',
-	            '出力は必ずJSONのみ。コードフェンス禁止。キーは title,start,end,allDay,location,description を使う。',
-	            'start/end はISO 8601 (例: 2025-01-31T19:00:00+09:00) を優先。難しければ YYYY-MM-DD HH:mm でもOK。',
-	            'YYYY/MM/DD や「2025年1月31日 19:00」のような表記は避けてください。',
-	            '日付しか不明な場合は YYYY-MM-DD でOK。',
-	            'end が不明なら省略可。allDay は終日なら true、それ以外は false または省略。',
-	            'description はイベントの概要を日本語で短くまとめる。',
+          content: [
+            'あなたはイベント抽出アシスタントです。入力テキストから、カレンダー登録に必要な情報を抽出してください。',
+            '出力は必ずJSONのみ。コードフェンス禁止。キーは title,start,end,allDay,location,description を使う。',
+            'start/end はISO 8601 (例: 2025-01-31T19:00:00+09:00) を優先。難しければ YYYY-MM-DD HH:mm でもOK。',
+            'YYYY/MM/DD や「2025年1月31日 19:00」のような表記は避けてください。',
+            '日付しか不明な場合は YYYY-MM-DD でOK。',
+            'end が不明なら省略可。allDay は終日なら true、それ以外は false または省略。',
+            'description はイベントの概要を日本語で短くまとめる。',
             openaiCustomPrompt?.trim()
               ? `\n\nユーザーの追加指示（descriptionの文体に反映）:\n${openaiCustomPrompt.trim()}`
               : '',
@@ -934,13 +945,10 @@ function buildGoogleCalendarUrl(event: ExtractedEvent): string | null {
   const endDateOnly = endRaw ? parseDateOnlyToYyyyMmDd(endRaw) : null;
 
   if (event.allDay === true || startDateOnly) {
-    const startDateFromTime =
-      event.allDay === true && !startDateOnly ? parseDateTimeLoose(startRaw) : null;
-    const startDate =
-      startDateOnly || (startDateFromTime ? formatLocalYyyyMmDdFromDate(startDateFromTime) : null);
+    const startDateFromTime = event.allDay === true && !startDateOnly ? parseDateTimeLoose(startRaw) : null;
+    const startDate = startDateOnly || (startDateFromTime ? formatLocalYyyyMmDdFromDate(startDateFromTime) : null);
     if (!startDate) return null;
-    const endDateFromTime =
-      event.allDay === true && endRaw && !endDateOnly ? parseDateTimeLoose(endRaw) : null;
+    const endDateFromTime = event.allDay === true && endRaw && !endDateOnly ? parseDateTimeLoose(endRaw) : null;
     let endDate =
       endDateOnly ||
       (endDateFromTime ? formatLocalYyyyMmDdFromDate(endDateFromTime) : null) ||
@@ -950,19 +958,19 @@ function buildGoogleCalendarUrl(event: ExtractedEvent): string | null {
       endDate = nextDateYyyyMmDd(startDate);
     }
     dates = `${startDate}/${endDate}`;
-	  } else {
-	    const startDate = parseDateTimeLoose(startRaw);
-	    if (!startDate) return null;
-	    let endDate = endRaw ? parseDateTimeLoose(endRaw) : null;
-	    if (!endDate || endDate.getTime() <= startDate.getTime()) {
-	      endDate = addHours(startDate, 1);
-	    }
-	    const startUtc = formatUtcDateTimeFromDate(startDate);
-	    if (!endDate) return null;
-	    const endUtc = formatUtcDateTimeFromDate(endDate);
-	    if (!startUtc || !endUtc) return null;
-	    dates = `${startUtc}/${endUtc}`;
-	  }
+  } else {
+    const startDate = parseDateTimeLoose(startRaw);
+    if (!startDate) return null;
+    let endDate = endRaw ? parseDateTimeLoose(endRaw) : null;
+    if (!endDate || endDate.getTime() <= startDate.getTime()) {
+      endDate = addHours(startDate, 1);
+    }
+    const startUtc = formatUtcDateTimeFromDate(startDate);
+    if (!endDate) return null;
+    const endUtc = formatUtcDateTimeFromDate(endDate);
+    if (!startUtc || !endUtc) return null;
+    dates = `${startUtc}/${endUtc}`;
+  }
 
   const params = new URLSearchParams({
     action: 'TEMPLATE',

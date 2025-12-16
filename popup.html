@@ -83,15 +83,15 @@
             </div>
           </div>
 
-	          <div class="card-grid">
-	            <div class="card">
-	              <div class="card-header">
-	                <div>
-	                  <p class="card-eyebrow">URLパターン</p>
-	                  <h3>特定のページで自動化</h3>
-	                </div>
-	              </div>
-	              <p class="card-copy">URLにマッチしたページでは読み込み直後からテーブルソートを有効化します。</p>
+          <div class="card-grid">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <p class="card-eyebrow">URLパターン</p>
+                  <h3>特定のページで自動化</h3>
+                </div>
+              </div>
+              <p class="card-copy">URLにマッチしたページでは読み込み直後からテーブルソートを有効化します。</p>
 
               <div class="pattern-input-group">
                 <input
@@ -128,12 +128,14 @@
             <div>
               <p class="pane-eyebrow">Context Actions</p>
               <h2>選択テキストを起点にアクション実行</h2>
-              <p class="muted">ページ上で選択しているテキスト（なければページ本文）を入力にして、アクションを実行します。</p>
-	              <div class="action-row">
-	                <button id="copy-action-output" class="btn btn-ghost" disabled>コピー</button>
-	                <button id="open-calendar" class="btn btn-ghost" hidden>Googleカレンダー</button>
-	                <button id="download-ics" class="btn btn-ghost" hidden>.ics</button>
-	              </div>
+              <p class="muted">
+                ページ上で選択しているテキスト（なければページ本文）を入力にして、アクションを実行します。
+              </p>
+              <div class="action-row">
+                <button id="copy-action-output" class="btn btn-ghost" disabled>コピー</button>
+                <button id="open-calendar" class="btn btn-ghost" hidden>Googleカレンダー</button>
+                <button id="download-ics" class="btn btn-ghost" hidden>.ics</button>
+              </div>
             </div>
             <div class="meta-card">
               <p class="meta-title">事前準備</p>
@@ -193,7 +195,12 @@
                 <h3 id="action-output-title">結果</h3>
               </div>
             </div>
-            <textarea id="action-output" class="summary-output" placeholder="ここに結果が表示されます" readonly></textarea>
+            <textarea
+              id="action-output"
+              class="summary-output"
+              placeholder="ここに結果が表示されます"
+              readonly
+            ></textarea>
             <p class="hint">結果はコピーしてメモやチャットに貼り付けられます。</p>
           </div>
         </section>
@@ -215,7 +222,7 @@
             <div class="card-header">
               <div>
                 <p class="card-eyebrow">プロンプト</p>
-                  <h3>AI出力の口調・特徴をカスタム</h3>
+                <h3>AI出力の口調・特徴をカスタム</h3>
               </div>
               <span class="chip chip-soft">任意</span>
             </div>

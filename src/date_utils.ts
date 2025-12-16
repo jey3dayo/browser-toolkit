@@ -1,4 +1,4 @@
-import { addDays, format, isMatch, isValid, parse, parseISO } from 'date-fns';
+import { addDays, addHours as addHoursDateFns, format, isMatch, isValid, parse, parseISO } from 'date-fns';
 
 function normalizeDateTimeInput(value: string): string {
   return value
@@ -23,13 +23,7 @@ export function parseDateOnlyToYyyyMmDd(value: string): string | null {
   const raw = value.trim();
   if (!raw) return null;
 
-  const parsed = parseWithFormats(raw, [
-    'yyyy-M-d',
-    'yyyy-MM-dd',
-    'yyyy/M/d',
-    'yyyy/MM/dd',
-    'yyyy年M月d日',
-  ]);
+  const parsed = parseWithFormats(raw, ['yyyy-M-d', 'yyyy-MM-dd', 'yyyy/M/d', 'yyyy/MM/dd', 'yyyy年M月d日']);
   if (!parsed) return null;
 
   return format(parsed, 'yyyyMMdd');
@@ -99,4 +93,8 @@ export function nextDateYyyyMmDd(yyyymmdd: string): string {
   if (!isValid(parsed)) return raw;
 
   return format(addDays(parsed, 1), 'yyyyMMdd');
+}
+
+export function addHours(date: Date, hours: number): Date {
+  return addHoursDateFns(date, hours);
 }

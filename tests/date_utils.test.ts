@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-
 import {
   formatLocalYyyyMmDdFromDate,
   formatUtcDateTimeFromDate,
@@ -36,4 +35,3 @@ describe('src/date_utils.ts', () => {
     expect(nextDateYyyyMmDd('20250131')).toBe('20250201');
   });
 });
-
