@@ -8,45 +8,6 @@
   </head>
   <body class="no-js">
     <div class="app-shell">
-      <aside class="sidebar">
-        <div class="sidebar-brand" aria-hidden="true">
-          <img src="images/logo.png" alt="" class="brand-logo" />
-        </div>
-        <a
-          class="nav-item active"
-          data-target="pane-actions"
-          href="#pane-actions"
-          role="tab"
-          aria-controls="pane-actions"
-          aria-label="アクション"
-        >
-          <span class="nav-icon">⚡</span>
-          <span class="nav-label">アクション</span>
-        </a>
-        <a
-          class="nav-item"
-          data-target="pane-table"
-          href="#pane-table"
-          role="tab"
-          aria-controls="pane-table"
-          aria-label="テーブルソート"
-        >
-          <span class="nav-icon">⇅</span>
-          <span class="nav-label">テーブル</span>
-        </a>
-        <a
-          class="nav-item"
-          data-target="pane-settings"
-          href="#pane-settings"
-          role="tab"
-          aria-controls="pane-settings"
-          aria-label="設定"
-        >
-          <span class="nav-icon">⚙</span>
-          <span class="nav-label">設定</span>
-        </a>
-      </aside>
-
       <main class="content">
         <header class="content-header">
           <div class="title-block">
@@ -276,6 +237,48 @@
           </div>
         </section>
       </main>
+
+      <aside class="sidebar" aria-label="メニュー">
+        <div class="sidebar-brand" aria-hidden="true">
+          <img src="images/logo.png" alt="" class="brand-logo" />
+        </div>
+        <a
+          class="nav-item active"
+          data-target="pane-actions"
+          href="#pane-actions"
+          role="tab"
+          aria-controls="pane-actions"
+          aria-label="アクション"
+          title="アクション"
+        >
+          <span class="nav-icon">⚡</span>
+          <span class="nav-label">アクション</span>
+        </a>
+        <a
+          class="nav-item"
+          data-target="pane-table"
+          href="#pane-table"
+          role="tab"
+          aria-controls="pane-table"
+          aria-label="テーブルソート"
+          title="テーブル"
+        >
+          <span class="nav-icon">⇅</span>
+          <span class="nav-label">テーブル</span>
+        </a>
+        <a
+          class="nav-item"
+          data-target="pane-settings"
+          href="#pane-settings"
+          role="tab"
+          aria-controls="pane-settings"
+          aria-label="設定"
+          title="設定"
+        >
+          <span class="nav-icon">⚙</span>
+          <span class="nav-label">設定</span>
+        </a>
+      </aside>
     </div>
 
     <script src="popup_bootstrap.js"></script>

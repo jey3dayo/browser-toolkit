@@ -962,9 +962,12 @@ import {
 
     const readSidebarCollapsed = (): boolean => {
       try {
-        return localStorage.getItem(sidebarCollapsedKey) === '1';
+        const raw = localStorage.getItem(sidebarCollapsedKey);
+        // 右側レール（アイコン中心）を基本にしたいので、未設定時は折りたたみ状態をデフォルトにする。
+        if (raw === null) return true;
+        return raw === '1';
       } catch {
-        return false;
+        return true;
       }
     };
 

@@ -39,17 +39,17 @@ body {
 
 .app-shell {
   display: grid;
-  grid-template-columns: 112px 1fr;
+  grid-template-columns: 1fr 112px;
   height: 100%;
 }
 
 body.sidebar-collapsed .app-shell {
-  grid-template-columns: 76px 1fr;
+  grid-template-columns: 1fr 76px;
 }
 
 .sidebar {
   background: var(--panel);
-  border-right: 1px solid var(--line);
+  border-left: 1px solid var(--line);
   display: flex;
   flex-direction: column;
   align-items: center;
