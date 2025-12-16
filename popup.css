@@ -245,6 +245,22 @@ body.no-js:has(.pane:target) .pane.active:not(:target) {
   display: none;
 }
 
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.hint code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1px 6px;
+  border-radius: 8px;
+}
+
 .pane-intro {
   background: var(--panel);
   border: 1px solid var(--line);
@@ -383,6 +399,13 @@ body.no-js:has(.pane:target) .pane.active:not(:target) {
 
 .btn:active {
   transform: translateY(0);
+}
+
+.btn-small {
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .pattern-input-group {

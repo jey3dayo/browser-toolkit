@@ -12,14 +12,14 @@
         <div class="sidebar-brand" aria-hidden="true">MB</div>
         <a
           class="nav-item"
-          data-target="pane-summary"
-          href="#pane-summary"
+          data-target="pane-actions"
+          href="#pane-actions"
           role="tab"
-          aria-controls="pane-summary"
-          aria-label="要約"
+          aria-controls="pane-actions"
+          aria-label="アクション"
         >
-          <span class="nav-icon">📝</span>
-          <span class="nav-label">要約</span>
+          <span class="nav-icon">⚡</span>
+          <span class="nav-label">アクション</span>
         </a>
         <a
           class="nav-item active"
@@ -123,18 +123,17 @@
           </div>
         </section>
 
-        <section class="pane" id="pane-summary" role="tabpanel" aria-label="要約">
+        <section class="pane" id="pane-actions" role="tabpanel" aria-label="アクション">
           <div class="pane-intro">
             <div>
-              <p class="pane-eyebrow">AI要約</p>
-              <h2>選択範囲 or ページ本文をまとめる</h2>
-              <p class="muted">
-                ページ上でテキストを選択していればその範囲、未選択ならページ本文（タブ内テキスト）を要約します。
-              </p>
-              <div class="action-row">
-                <button id="summarize-tab" class="btn btn-primary">このタブを要約</button>
-                <button id="copy-summary" class="btn btn-ghost" disabled>コピー</button>
-              </div>
+              <p class="pane-eyebrow">Context Actions</p>
+              <h2>選択テキストを起点にアクション実行</h2>
+              <p class="muted">ページ上で選択しているテキスト（なければページ本文）を入力にして、アクションを実行します。</p>
+	              <div class="action-row">
+	                <button id="copy-action-output" class="btn btn-ghost" disabled>コピー</button>
+	                <button id="open-calendar" class="btn btn-ghost" hidden>Googleカレンダー</button>
+	                <button id="download-ics" class="btn btn-ghost" hidden>.ics</button>
+	              </div>
             </div>
             <div class="meta-card">
               <p class="meta-title">事前準備</p>
@@ -142,20 +141,59 @@
             </div>
           </div>
 
+          <div class="card-grid">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <p class="card-eyebrow">Actions</p>
+                  <h3>アクション一覧</h3>
+                </div>
+                <span class="chip chip-soft" id="action-source-chip">-</span>
+              </div>
+              <div id="action-buttons" class="action-buttons" aria-label="アクションボタン一覧"></div>
+              <p class="hint">
+                変数: <code>{{text}}</code> <code>{{title}}</code> <code>{{url}}</code> <code>{{source}}</code>
+              </p>
+            </div>
+
+            <div class="card secondary">
+              <div class="card-header">
+                <div>
+                  <p class="card-eyebrow">Register</p>
+                  <h3>タイトルとプロンプトを登録</h3>
+                </div>
+                <span class="chip chip-soft">任意</span>
+              </div>
+              <label class="field-label" for="action-title">タイトル</label>
+              <input type="text" id="action-title" class="token-input" placeholder="例: 日本語に翻訳" />
+              <label class="field-label" for="action-kind">種類</label>
+              <select id="action-kind" class="token-input" aria-label="アクション種類">
+                <option value="text" selected>テキスト生成</option>
+                <option value="event">カレンダー登録（イベント抽出）</option>
+              </select>
+              <label class="field-label" for="action-prompt">プロンプト</label>
+              <textarea
+                id="action-prompt"
+                class="prompt-input"
+                placeholder="例: 次のテキストを日本語に翻訳してください。\n\n{{text}}"
+              ></textarea>
+              <div class="token-row token-row-actions">
+                <button id="save-action" class="btn btn-primary">保存</button>
+                <button id="clear-action" class="btn btn-ghost">クリア</button>
+                <button id="delete-action" class="btn btn-ghost" disabled>削除</button>
+              </div>
+              <div id="action-list" class="pattern-list" aria-live="polite"></div>
+            </div>
+          </div>
+
           <div class="card">
             <div class="card-header">
               <div>
                 <p class="card-eyebrow">Output</p>
-                <h3>要約結果</h3>
+                <h3 id="action-output-title">結果</h3>
               </div>
-              <span class="chip chip-soft" id="summary-source-chip">-</span>
             </div>
-            <textarea
-              id="summary-output"
-              class="summary-output"
-              placeholder="ここに要約が表示されます"
-              readonly
-            ></textarea>
+            <textarea id="action-output" class="summary-output" placeholder="ここに結果が表示されます" readonly></textarea>
             <p class="hint">結果はコピーしてメモやチャットに貼り付けられます。</p>
           </div>
         </section>
@@ -177,7 +215,7 @@
             <div class="card-header">
               <div>
                 <p class="card-eyebrow">プロンプト</p>
-                <h3>要約の口調・特徴をカスタム</h3>
+                  <h3>AI出力の口調・特徴をカスタム</h3>
               </div>
               <span class="chip chip-soft">任意</span>
             </div>

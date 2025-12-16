@@ -8,17 +8,27 @@
 
   type SummarySource = 'selection' | 'page';
 
-  type ContentRequest =
-    | { action: 'enableTableSort' }
-    | { action: 'showNotification'; message: string }
-    | { action: 'getSummaryTargetText' }
-    | {
-        action: 'showSummaryOverlay';
-        status: 'loading' | 'ready' | 'error';
-        source: SummarySource;
-        summary?: string;
-        error?: string;
-      };
+	  type ContentRequest =
+	    | { action: 'enableTableSort' }
+	    | { action: 'showNotification'; message: string }
+	    | { action: 'getSummaryTargetText' }
+	    | {
+	        action: 'showSummaryOverlay';
+	        status: 'loading' | 'ready' | 'error';
+	        source: SummarySource;
+	        summary?: string;
+	        error?: string;
+	      }
+	    | {
+	        action: 'showActionOverlay';
+	        status: 'loading' | 'ready' | 'error';
+	        mode: 'text' | 'event';
+	        source: SummarySource;
+	        title: string;
+	        primary?: string;
+	        secondary?: string;
+	        calendarUrl?: string;
+	      };
 
   type SummaryTarget = {
     text: string;
@@ -55,11 +65,11 @@
     closeButton: HTMLButtonElement;
   } | null = null;
   let overlayCleanup: (() => void) | null = null;
-  let overlayMode: 'summary' | 'event' = 'summary';
-  let overlaySummaryText = '';
-  let overlayEventText = '';
-  let overlayCalendarUrl = '';
-  let overlayAnchor: DOMRect | null = null;
+	  let overlayMode: 'summary' | 'event' | 'text' = 'summary';
+	  let overlaySummaryText = '';
+	  let overlayEventText = '';
+	  let overlayCalendarUrl = '';
+	  let overlayAnchor: DOMRect | null = null;
 
   // ========================================
   // 1. ユーティリティ関数
@@ -123,13 +133,17 @@
         })();
       }
 
-      if (request.action === 'showSummaryOverlay') {
-        showSummaryOverlay(request);
-      }
+	      if (request.action === 'showSummaryOverlay') {
+	        showSummaryOverlay(request);
+	      }
 
-      return true;
-    },
-  );
+	      if (request.action === 'showActionOverlay') {
+	        showActionOverlay(request);
+	      }
+
+	      return true;
+	    },
+	  );
 
   // ========================================
   // 3. テーブルソート機能
@@ -653,29 +667,45 @@
     els.title.textContent = text;
   }
 
-  function setOverlayActionsVisibility(nextMode: 'summary' | 'event'): void {
-    const els = ensureOverlay();
-    const isSummary = nextMode === 'summary';
-    els.eventButton.style.display = isSummary ? '' : 'none';
-    els.openCalendarButton.style.display = isSummary ? 'none' : '';
-    els.copyLinkButton.style.display = isSummary ? 'none' : '';
-  }
+	  function setOverlayActionsVisibility(nextMode: 'summary' | 'event' | 'text'): void {
+	    const els = ensureOverlay();
+	    if (nextMode === 'event') {
+	      els.eventButton.style.display = 'none';
+	      els.openCalendarButton.style.display = '';
+	      els.copyLinkButton.style.display = '';
+	      return;
+	    }
+	    if (nextMode === 'text') {
+	      els.eventButton.style.display = 'none';
+	      els.openCalendarButton.style.display = 'none';
+	      els.copyLinkButton.style.display = 'none';
+	      return;
+	    }
+	    els.eventButton.style.display = '';
+	    els.openCalendarButton.style.display = 'none';
+	    els.copyLinkButton.style.display = 'none';
+	  }
 
-  function setOverlayContent(primary: string, secondary: string, status: 'loading' | 'ready' | 'error'): void {
-    const els = ensureOverlay();
-    els.primaryText.textContent = primary;
-    els.secondaryText.textContent = secondary;
-    els.secondaryText.style.display = secondary ? '' : 'none';
+	  function setOverlayContent(
+	    primary: string,
+	    secondary: string,
+	    status: 'loading' | 'ready' | 'error',
+	    loadingLabel: string = '要約中...',
+	  ): void {
+	    const els = ensureOverlay();
+	    els.primaryText.textContent = primary;
+	    els.secondaryText.textContent = secondary;
+	    els.secondaryText.style.display = secondary ? '' : 'none';
 
-    if (status === 'loading') {
-      els.content.prepend(createStatusRow('要約中...', true));
-    } else if (status === 'error') {
-      els.content.prepend(createStatusRow('エラー', false));
-    } else {
-      const existing = els.content.querySelector('.status');
-      if (existing) existing.remove();
-    }
-  }
+	    if (status === 'loading') {
+	      els.content.prepend(createStatusRow(loadingLabel, true));
+	    } else if (status === 'error') {
+	      els.content.prepend(createStatusRow('エラー', false));
+	    } else {
+	      const existing = els.content.querySelector('.status');
+	      if (existing) existing.remove();
+	    }
+	  }
 
   function createStatusRow(text: string, spinning: boolean): HTMLDivElement {
     const els = ensureOverlay();
@@ -799,21 +829,81 @@
     requestAnimationFrame(positionOverlay);
   }
 
-  function showEventOverlayError(error: string): void {
-    overlayMode = 'event';
-    overlayEventText = '';
-    overlayCalendarUrl = '';
-    overlayAnchor = getSelectionAnchorRect();
-    setOverlayActionsVisibility('event');
-    setOverlayTitle('イベント要約');
+	  function showEventOverlayError(error: string): void {
+	    overlayMode = 'event';
+	    overlayEventText = '';
+	    overlayCalendarUrl = '';
+	    overlayAnchor = getSelectionAnchorRect();
+	    setOverlayActionsVisibility('event');
+	    setOverlayTitle('イベント要約');
 
     const els = ensureOverlay();
     els.copyButton.disabled = true;
     els.openCalendarButton.disabled = true;
     els.copyLinkButton.disabled = true;
-    setOverlayContent(error || 'イベント要約に失敗しました', '', 'error');
-    requestAnimationFrame(positionOverlay);
-  }
+	    setOverlayContent(error || 'イベント要約に失敗しました', '', 'error');
+	    requestAnimationFrame(positionOverlay);
+	  }
+
+	  function showActionOverlay(request: Extract<ContentRequest, { action: 'showActionOverlay' }>): void {
+	    const source = request.source;
+	    overlayAnchor = source === 'selection' ? getSelectionAnchorRect() : null;
+
+	    if (request.mode === 'event') {
+	      overlayMode = 'event';
+	      setOverlayActionsVisibility('event');
+	    } else {
+	      overlayMode = 'text';
+	      setOverlayActionsVisibility('text');
+	    }
+
+	    setOverlayTitle(request.title);
+
+	    const els = ensureOverlay();
+	    const primary = request.primary?.trim() ?? '';
+	    const secondary = request.secondary?.trim() ?? '';
+	    const calendarUrl = request.calendarUrl?.trim() ?? '';
+
+	    if (request.status === 'loading') {
+	      overlaySummaryText = '';
+	      overlayEventText = '';
+	      overlayCalendarUrl = '';
+	      els.copyButton.disabled = true;
+	      els.openCalendarButton.disabled = true;
+	      els.copyLinkButton.disabled = true;
+	      setOverlayContent('', secondary || '処理に数秒かかることがあります。', 'loading', '処理中...');
+	      requestAnimationFrame(positionOverlay);
+	      return;
+	    }
+
+	    if (request.status === 'error') {
+	      overlaySummaryText = '';
+	      overlayEventText = '';
+	      overlayCalendarUrl = '';
+	      els.copyButton.disabled = true;
+	      els.openCalendarButton.disabled = true;
+	      els.copyLinkButton.disabled = true;
+	      setOverlayContent(primary || '処理に失敗しました', secondary, 'error');
+	      requestAnimationFrame(positionOverlay);
+	      return;
+	    }
+
+	    if (request.mode === 'event') {
+	      overlayEventText = primary;
+	      overlayCalendarUrl = calendarUrl;
+	      els.copyButton.disabled = !primary;
+	      els.openCalendarButton.disabled = !calendarUrl;
+	      els.copyLinkButton.disabled = !calendarUrl;
+	      setOverlayContent(primary || '結果が空でした', secondary, 'ready');
+	      requestAnimationFrame(positionOverlay);
+	      return;
+	    }
+
+	    overlaySummaryText = primary;
+	    els.copyButton.disabled = !primary;
+	    setOverlayContent(primary || '結果が空でした', secondary, 'ready');
+	    requestAnimationFrame(positionOverlay);
+	  }
 
   async function maybeAutoSummarizeSelection(selectedText: string, event: MouseEvent): Promise<void> {
     const target = event.target as HTMLElement | null;
