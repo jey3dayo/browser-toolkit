@@ -11,15 +11,21 @@
     "watch": "tsc --watch",
     "clean": "rm -rf dist",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prettier": "prettier --write --cache --log-level warn --ignore-path .prettierignore './*.{js,ts,jsx,tsx,css,html,json,md}' './{docs,src,tests}/**/*.{js,ts,jsx,tsx,css,html,json,md}'",
+    "prettier:check": "prettier --check --cache --ignore-path .prettierignore './*.{js,ts,jsx,tsx,css,html,json,md}' './{docs,src,tests}/**/*.{js,ts,jsx,tsx,css,html,json,md}'",
+    "format": "pnpm run prettier"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
     "@types/chrome": "^0.1.32",
     "@types/jsdom": "^27.0.0",
+    "eslint-config-prettier": "^10.1.8",
     "jsdom": "^27.0.0",
+    "prettier": "^3.7.4",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
   },

@@ -6,15 +6,15 @@
     autoEnableSort?: boolean;
   };
 
-  type SummarySource = "selection" | "page";
+  type SummarySource = 'selection' | 'page';
 
   type ContentRequest =
-    | { action: "enableTableSort" }
-    | { action: "showNotification"; message: string }
-    | { action: "getSummaryTargetText" }
+    | { action: 'enableTableSort' }
+    | { action: 'showNotification'; message: string }
+    | { action: 'getSummaryTargetText' }
     | {
-        action: "showSummaryOverlay";
-        status: "loading" | "ready" | "error";
+        action: 'showSummaryOverlay';
+        status: 'loading' | 'ready' | 'error';
         source: SummarySource;
         summary?: string;
         error?: string;
@@ -28,12 +28,10 @@
   };
 
   type ContentToBackgroundMessage =
-    | { action: "summarizeText"; target: SummaryTarget }
-    | { action: "summarizeEvent"; target: SummaryTarget };
+    | { action: 'summarizeText'; target: SummaryTarget }
+    | { action: 'summarizeEvent'; target: SummaryTarget };
 
-  type SummarizeTextResponse =
-    | { ok: true; summary: string; source: SummarySource }
-    | { ok: false; error: string };
+  type SummarizeTextResponse = { ok: true; summary: string; source: SummarySource } | { ok: false; error: string };
 
   type SummarizeEventResponse =
     | { ok: true; event: unknown; calendarUrl: string; eventText: string }
@@ -42,9 +40,8 @@
   let tableObserver: MutationObserver | null = null;
   let autoSummaryTimer: number | null = null;
   let autoSummaryRequestId = 0;
-  let lastAutoSummaryText = "";
-  let lastAutoSummaryResult: { summary: string; source: SummarySource } | null =
-    null;
+  let lastAutoSummaryText = '';
+  let lastAutoSummaryResult: { summary: string; source: SummarySource } | null = null;
   let overlayEls: {
     host: HTMLDivElement;
     title: HTMLDivElement;
@@ -58,10 +55,10 @@
     closeButton: HTMLButtonElement;
   } | null = null;
   let overlayCleanup: (() => void) | null = null;
-  let overlayMode: "summary" | "event" = "summary";
-  let overlaySummaryText = "";
-  let overlayEventText = "";
-  let overlayCalendarUrl = "";
+  let overlayMode: 'summary' | 'event' = 'summary';
+  let overlaySummaryText = '';
+  let overlayEventText = '';
+  let overlayCalendarUrl = '';
   let overlayAnchor: DOMRect | null = null;
 
   // ========================================
@@ -69,31 +66,22 @@
   // ========================================
 
   function patternToRegex(pattern: string): RegExp {
-    const escaped = pattern
-      .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
-      .replace(/\*/g, ".*");
+    const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
 
     const shouldAllowQueryHashSuffix = !/[?#]/.test(pattern);
-    const allowOptionalTrailingSlash =
-      shouldAllowQueryHashSuffix &&
-      !pattern.endsWith("/") &&
-      !pattern.includes("*");
+    const allowOptionalTrailingSlash = shouldAllowQueryHashSuffix && !pattern.endsWith('/') && !pattern.includes('*');
 
-    const optionalTrailingSlash = allowOptionalTrailingSlash ? "(?:/)?" : "";
-    const optionalQueryHashSuffix = shouldAllowQueryHashSuffix
-      ? "(?:[?#].*)?"
-      : "";
+    const optionalTrailingSlash = allowOptionalTrailingSlash ? '(?:/)?' : '';
+    const optionalQueryHashSuffix = shouldAllowQueryHashSuffix ? '(?:[?#].*)?' : '';
 
-    return new RegExp(
-      `^${escaped}${optionalTrailingSlash}${optionalQueryHashSuffix}$`,
-    );
+    return new RegExp(`^${escaped}${optionalTrailingSlash}${optionalQueryHashSuffix}$`);
   }
 
   function matchesAnyPattern(patterns: string[]): boolean {
-    const urlWithoutProtocol = window.location.href.replace(/^https?:\/\//, "");
+    const urlWithoutProtocol = window.location.href.replace(/^https?:\/\//, '');
 
-    return patterns.some((pattern) => {
-      const patternWithoutProtocol = pattern.replace(/^https?:\/\//, "");
+    return patterns.some(pattern => {
+      const patternWithoutProtocol = pattern.replace(/^https?:\/\//, '');
       const regex = patternToRegex(patternWithoutProtocol);
 
       return regex.test(urlWithoutProtocol);
@@ -105,9 +93,7 @@
     matchesAnyPattern?: (patterns: string[]) => boolean;
   };
 
-  const testHooks = (
-    globalThis as unknown as { __MBU_TEST_HOOKS__?: ContentTestHooks }
-  ).__MBU_TEST_HOOKS__;
+  const testHooks = (globalThis as unknown as { __MBU_TEST_HOOKS__?: ContentTestHooks }).__MBU_TEST_HOOKS__;
 
   if (testHooks) {
     testHooks.patternToRegex = patternToRegex;
@@ -119,29 +105,25 @@
   // ========================================
 
   chrome.runtime.onMessage.addListener(
-    (
-      request: ContentRequest,
-      _sender: chrome.runtime.MessageSender,
-      sendResponse: (response?: unknown) => void,
-    ) => {
-      if (request.action === "enableTableSort") {
+    (request: ContentRequest, _sender: chrome.runtime.MessageSender, sendResponse: (response?: unknown) => void) => {
+      if (request.action === 'enableTableSort') {
         enableTableSort();
         startTableObserver();
         sendResponse({ success: true });
       }
 
-      if (request.action === "showNotification") {
+      if (request.action === 'showNotification') {
         showNotification(request.message);
       }
 
-      if (request.action === "getSummaryTargetText") {
+      if (request.action === 'getSummaryTargetText') {
         void (async () => {
           const target = await getSummaryTargetText();
           sendResponse(target);
         })();
       }
 
-      if (request.action === "showSummaryOverlay") {
+      if (request.action === 'showSummaryOverlay') {
         showSummaryOverlay(request);
       }
 
@@ -156,24 +138,24 @@
   function enableSingleTable(table: HTMLTableElement): void {
     if (table.dataset.sortable) return;
 
-    table.dataset.sortable = "true";
-    const headers = table.querySelectorAll<HTMLTableCellElement>("th");
+    table.dataset.sortable = 'true';
+    const headers = table.querySelectorAll<HTMLTableCellElement>('th');
 
     headers.forEach((header, index) => {
-      header.style.cursor = "pointer";
-      header.style.userSelect = "none";
-      header.title = "クリックでソート";
+      header.style.cursor = 'pointer';
+      header.style.userSelect = 'none';
+      header.title = 'クリックでソート';
 
-      header.addEventListener("click", () => {
+      header.addEventListener('click', () => {
         sortTable(table, index);
       });
     });
   }
 
   function enableTableSort(): void {
-    const tables = document.querySelectorAll<HTMLTableElement>("table");
+    const tables = document.querySelectorAll<HTMLTableElement>('table');
 
-    tables.forEach((table) => {
+    tables.forEach(table => {
       enableSingleTable(table);
     });
 
@@ -183,20 +165,18 @@
   }
 
   function sortTable(table: HTMLTableElement, columnIndex: number): void {
-    const tbody = table.querySelector(
-      "tbody",
-    ) as HTMLTableSectionElement | null;
+    const tbody = table.querySelector('tbody') as HTMLTableSectionElement | null;
     const targetBody = tbody ?? table;
-    const rows = Array.from(
-      targetBody.querySelectorAll<HTMLTableRowElement>("tr"),
-    ).filter((row) => row.parentNode === targetBody);
+    const rows = Array.from(targetBody.querySelectorAll<HTMLTableRowElement>('tr')).filter(
+      row => row.parentNode === targetBody,
+    );
 
-    const isAscending = table.dataset.sortOrder !== "asc";
-    table.dataset.sortOrder = isAscending ? "asc" : "desc";
+    const isAscending = table.dataset.sortOrder !== 'asc';
+    table.dataset.sortOrder = isAscending ? 'asc' : 'desc';
 
     rows.sort((a, b) => {
-      const aCell = a.cells[columnIndex]?.textContent?.trim() ?? "";
-      const bCell = b.cells[columnIndex]?.textContent?.trim() ?? "";
+      const aCell = a.cells[columnIndex]?.textContent?.trim() ?? '';
+      const bCell = b.cells[columnIndex]?.textContent?.trim() ?? '';
 
       const aNum = parseFloat(aCell);
       const bNum = parseFloat(bCell);
@@ -205,12 +185,10 @@
         return isAscending ? aNum - bNum : bNum - aNum;
       }
 
-      return isAscending
-        ? aCell.localeCompare(bCell, "ja")
-        : bCell.localeCompare(aCell, "ja");
+      return isAscending ? aCell.localeCompare(bCell, 'ja') : bCell.localeCompare(aCell, 'ja');
     });
 
-    rows.forEach((row) => targetBody.appendChild(row));
+    rows.forEach(row => targetBody.appendChild(row));
   }
 
   // ========================================
@@ -238,18 +216,14 @@
   }
 
   function checkForNewTables(): void {
-    const tables = document.querySelectorAll<HTMLTableElement>(
-      "table:not([data-sortable])",
-    );
+    const tables = document.querySelectorAll<HTMLTableElement>('table:not([data-sortable])');
 
     if (tables.length > 0) {
-      tables.forEach((table) => {
+      tables.forEach(table => {
         enableSingleTable(table);
       });
 
-      showNotification(
-        `${tables.length}個の新しいテーブルでソートを有効化しました`,
-      );
+      showNotification(`${tables.length}個の新しいテーブルでソートを有効化しました`);
     }
   }
 
@@ -264,8 +238,8 @@
   // 5. UI・通知関連
   // ========================================
 
-  document.addEventListener("mouseup", (event) => {
-    const selectedText = window.getSelection()?.toString().trim() ?? "";
+  document.addEventListener('mouseup', event => {
+    const selectedText = window.getSelection()?.toString().trim() ?? '';
     if (selectedText) {
       void storageLocalSet({
         selectedText,
@@ -277,7 +251,7 @@
   });
 
   function showNotification(message: string): void {
-    const notification = document.createElement("div");
+    const notification = document.createElement('div');
     notification.textContent = message;
     notification.style.cssText = `
     position: fixed;
@@ -295,14 +269,14 @@
 
     document.body.appendChild(notification);
     window.setTimeout(() => {
-      notification.style.animation = "slideOut 0.3s ease-out";
+      notification.style.animation = 'slideOut 0.3s ease-out';
       window.setTimeout(() => notification.remove(), 300);
     }, 2500);
   }
 
-  if (!document.getElementById("my-browser-utils-styles")) {
-    const style = document.createElement("style");
-    style.id = "my-browser-utils-styles";
+  if (!document.getElementById('my-browser-utils-styles')) {
+    const style = document.createElement('style');
+    style.id = 'my-browser-utils-styles';
     style.textContent = `
     @keyframes slideIn {
       from {
@@ -329,60 +303,57 @@
   }
 
   async function getSummaryTargetText(): Promise<SummaryTarget> {
-    const selection = window.getSelection()?.toString().trim() ?? "";
+    const selection = window.getSelection()?.toString().trim() ?? '';
     if (selection) {
       return {
         text: selection,
-        source: "selection",
-        title: document.title ?? "",
+        source: 'selection',
+        title: document.title ?? '',
         url: window.location.href,
       };
     }
 
-    const storedSelection = (await storageLocalGet([
-      "selectedText",
-      "selectedTextUpdatedAt",
-    ])) as {
+    const storedSelection = (await storageLocalGet(['selectedText', 'selectedTextUpdatedAt'])) as {
       selectedText?: string;
       selectedTextUpdatedAt?: number;
     };
-    const fallbackSelection = storedSelection.selectedText?.trim() ?? "";
+    const fallbackSelection = storedSelection.selectedText?.trim() ?? '';
     const updatedAt = storedSelection.selectedTextUpdatedAt ?? 0;
     const isFresh = Date.now() - updatedAt <= 30_000;
 
     if (isFresh && fallbackSelection) {
       return {
         text: fallbackSelection,
-        source: "selection",
-        title: document.title ?? "",
+        source: 'selection',
+        title: document.title ?? '',
         url: window.location.href,
       };
     }
 
-    const bodyText = document.body?.innerText ?? "";
+    const bodyText = document.body?.innerText ?? '';
     return {
       text: normalizeText(bodyText),
-      source: "page",
-      title: document.title ?? "",
+      source: 'page',
+      title: document.title ?? '',
       url: window.location.href,
     };
   }
 
   function normalizeText(text: string): string {
     return text
-      .replace(/\r\n/g, "\n")
-      .replace(/\n{3,}/g, "\n\n")
+      .replace(/\r\n/g, '\n')
+      .replace(/\n{3,}/g, '\n\n')
       .trim();
   }
 
   function ensureOverlay(): NonNullable<typeof overlayEls> {
     if (overlayEls) return overlayEls;
 
-    const legacy = document.getElementById("my-browser-utils-summary");
+    const legacy = document.getElementById('my-browser-utils-summary');
     if (legacy) legacy.remove();
 
-    const host = document.createElement("div");
-    host.id = "my-browser-utils-overlay";
+    const host = document.createElement('div');
+    host.id = 'my-browser-utils-overlay';
     host.style.cssText = `
       all: initial;
       position: fixed;
@@ -393,8 +364,8 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     `;
 
-    const shadow = host.attachShadow({ mode: "open" });
-    const style = document.createElement("style");
+    const shadow = host.attachShadow({ mode: 'open' });
+    const style = document.createElement('style');
     style.textContent = `
       :host { all: initial; }
       *, *::before, *::after { box-sizing: border-box; font-family: inherit; }
@@ -502,37 +473,37 @@
       }
     `;
 
-    const panel = document.createElement("div");
-    panel.className = "panel";
+    const panel = document.createElement('div');
+    panel.className = 'panel';
 
-    const header = document.createElement("div");
-    header.className = "header";
+    const header = document.createElement('div');
+    header.className = 'header';
 
-    const title = document.createElement("div");
-    title.className = "title";
+    const title = document.createElement('div');
+    title.className = 'title';
 
-    const actions = document.createElement("div");
-    actions.className = "actions";
+    const actions = document.createElement('div');
+    actions.className = 'actions';
 
-    const copyButton = document.createElement("button");
-    copyButton.className = "btn-primary";
-    copyButton.textContent = "コピー";
+    const copyButton = document.createElement('button');
+    copyButton.className = 'btn-primary';
+    copyButton.textContent = 'コピー';
 
-    const eventButton = document.createElement("button");
-    eventButton.className = "btn-dark";
-    eventButton.textContent = "イベント";
+    const eventButton = document.createElement('button');
+    eventButton.className = 'btn-dark';
+    eventButton.textContent = 'イベント';
 
-    const openCalendarButton = document.createElement("button");
-    openCalendarButton.className = "btn-primary";
-    openCalendarButton.textContent = "カレンダー";
+    const openCalendarButton = document.createElement('button');
+    openCalendarButton.className = 'btn-primary';
+    openCalendarButton.textContent = 'カレンダー';
 
-    const copyLinkButton = document.createElement("button");
-    copyLinkButton.className = "btn-quiet";
-    copyLinkButton.textContent = "リンクコピー";
+    const copyLinkButton = document.createElement('button');
+    copyLinkButton.className = 'btn-quiet';
+    copyLinkButton.textContent = 'リンクコピー';
 
-    const closeButton = document.createElement("button");
-    closeButton.className = "btn-quiet";
-    closeButton.textContent = "閉じる";
+    const closeButton = document.createElement('button');
+    closeButton.className = 'btn-quiet';
+    closeButton.textContent = '閉じる';
 
     actions.appendChild(copyButton);
     actions.appendChild(eventButton);
@@ -542,13 +513,13 @@
     header.appendChild(title);
     header.appendChild(actions);
 
-    const body = document.createElement("div");
-    body.className = "body";
+    const body = document.createElement('div');
+    body.className = 'body';
 
-    const content = document.createElement("div");
-    const primaryText = document.createElement("pre");
-    const secondaryText = document.createElement("pre");
-    secondaryText.className = "secondary";
+    const content = document.createElement('div');
+    const primaryText = document.createElement('pre');
+    const secondaryText = document.createElement('pre');
+    secondaryText.className = 'secondary';
 
     content.appendChild(primaryText);
     content.appendChild(secondaryText);
@@ -561,28 +532,27 @@
     shadow.appendChild(panel);
 
     const onKeyDown = (event: KeyboardEvent): void => {
-      if (event.key === "Escape") {
+      if (event.key === 'Escape') {
         closeOverlay();
       }
     };
 
     const onCopy = (): void => {
-      const text =
-        overlayMode === "event" ? overlayEventText : overlaySummaryText;
+      const text = overlayMode === 'event' ? overlayEventText : overlaySummaryText;
       if (!text) return;
       void (async () => {
         try {
           await navigator.clipboard.writeText(text);
-          showNotification("コピーしました");
+          showNotification('コピーしました');
         } catch {
-          showNotification("コピーに失敗しました");
+          showNotification('コピーに失敗しました');
         }
       })();
     };
 
     const onOpenCalendar = (): void => {
       if (!overlayCalendarUrl) return;
-      window.open(overlayCalendarUrl, "_blank", "noopener,noreferrer");
+      window.open(overlayCalendarUrl, '_blank', 'noopener,noreferrer');
     };
 
     const onCopyLink = (): void => {
@@ -590,9 +560,9 @@
       void (async () => {
         try {
           await navigator.clipboard.writeText(overlayCalendarUrl);
-          showNotification("コピーしました");
+          showNotification('コピーしました');
         } catch {
-          showNotification("コピーに失敗しました");
+          showNotification('コピーに失敗しました');
         }
       })();
     };
@@ -601,20 +571,17 @@
       void (async () => {
         if (eventButton) eventButton.disabled = true;
         const prevText = eventButton.textContent;
-        eventButton.textContent = "処理中...";
+        eventButton.textContent = '処理中...';
 
         try {
           const target = await getSummaryTargetText();
-          if (target.source !== "selection") {
-            showNotification("選択範囲が見つかりませんでした");
+          if (target.source !== 'selection') {
+            showNotification('選択範囲が見つかりませんでした');
             return;
           }
 
-          const response = await sendMessageToBackground<
-            ContentToBackgroundMessage,
-            SummarizeEventResponse
-          >({
-            action: "summarizeEvent",
+          const response = await sendMessageToBackground<ContentToBackgroundMessage, SummarizeEventResponse>({
+            action: 'summarizeEvent',
             target,
           });
 
@@ -625,32 +592,28 @@
 
           showEventOverlay(response.eventText, response.calendarUrl);
         } catch (error) {
-          showEventOverlayError(
-            error instanceof Error
-              ? error.message
-              : "イベント要約に失敗しました",
-          );
+          showEventOverlayError(error instanceof Error ? error.message : 'イベント要約に失敗しました');
         } finally {
-          eventButton.textContent = prevText ?? "イベント";
+          eventButton.textContent = prevText ?? 'イベント';
           eventButton.disabled = false;
         }
       })();
     };
 
-    window.addEventListener("keydown", onKeyDown, true);
-    closeButton.addEventListener("click", closeOverlay);
-    copyButton.addEventListener("click", onCopy);
-    openCalendarButton.addEventListener("click", onOpenCalendar);
-    copyLinkButton.addEventListener("click", onCopyLink);
-    eventButton.addEventListener("click", onEvent);
+    window.addEventListener('keydown', onKeyDown, true);
+    closeButton.addEventListener('click', closeOverlay);
+    copyButton.addEventListener('click', onCopy);
+    openCalendarButton.addEventListener('click', onOpenCalendar);
+    copyLinkButton.addEventListener('click', onCopyLink);
+    eventButton.addEventListener('click', onEvent);
 
     overlayCleanup = () => {
-      window.removeEventListener("keydown", onKeyDown, true);
-      closeButton.removeEventListener("click", closeOverlay);
-      copyButton.removeEventListener("click", onCopy);
-      openCalendarButton.removeEventListener("click", onOpenCalendar);
-      copyLinkButton.removeEventListener("click", onCopyLink);
-      eventButton.removeEventListener("click", onEvent);
+      window.removeEventListener('keydown', onKeyDown, true);
+      closeButton.removeEventListener('click', closeOverlay);
+      copyButton.removeEventListener('click', onCopy);
+      openCalendarButton.removeEventListener('click', onOpenCalendar);
+      copyLinkButton.removeEventListener('click', onCopyLink);
+      eventButton.removeEventListener('click', onEvent);
     };
 
     (document.documentElement ?? document.body ?? document).appendChild(host);
@@ -676,10 +639,10 @@
     overlayCleanup = null;
     overlayEls?.host.remove();
     overlayEls = null;
-    overlayMode = "summary";
-    overlaySummaryText = "";
-    overlayEventText = "";
-    overlayCalendarUrl = "";
+    overlayMode = 'summary';
+    overlaySummaryText = '';
+    overlayEventText = '';
+    overlayCalendarUrl = '';
     overlayAnchor = null;
   }
 
@@ -688,47 +651,43 @@
     els.title.textContent = text;
   }
 
-  function setOverlayActionsVisibility(nextMode: "summary" | "event"): void {
+  function setOverlayActionsVisibility(nextMode: 'summary' | 'event'): void {
     const els = ensureOverlay();
-    const isSummary = nextMode === "summary";
-    els.eventButton.style.display = isSummary ? "" : "none";
-    els.openCalendarButton.style.display = isSummary ? "none" : "";
-    els.copyLinkButton.style.display = isSummary ? "none" : "";
+    const isSummary = nextMode === 'summary';
+    els.eventButton.style.display = isSummary ? '' : 'none';
+    els.openCalendarButton.style.display = isSummary ? 'none' : '';
+    els.copyLinkButton.style.display = isSummary ? 'none' : '';
   }
 
-  function setOverlayContent(
-    primary: string,
-    secondary: string,
-    status: "loading" | "ready" | "error",
-  ): void {
+  function setOverlayContent(primary: string, secondary: string, status: 'loading' | 'ready' | 'error'): void {
     const els = ensureOverlay();
     els.primaryText.textContent = primary;
     els.secondaryText.textContent = secondary;
-    els.secondaryText.style.display = secondary ? "" : "none";
+    els.secondaryText.style.display = secondary ? '' : 'none';
 
-    if (status === "loading") {
-      els.content.prepend(createStatusRow("要約中...", true));
-    } else if (status === "error") {
-      els.content.prepend(createStatusRow("エラー", false));
+    if (status === 'loading') {
+      els.content.prepend(createStatusRow('要約中...', true));
+    } else if (status === 'error') {
+      els.content.prepend(createStatusRow('エラー', false));
     } else {
-      const existing = els.content.querySelector(".status");
+      const existing = els.content.querySelector('.status');
       if (existing) existing.remove();
     }
   }
 
   function createStatusRow(text: string, spinning: boolean): HTMLDivElement {
     const els = ensureOverlay();
-    const existing = els.content.querySelector(".status");
+    const existing = els.content.querySelector('.status');
     if (existing) existing.remove();
 
-    const row = document.createElement("div");
-    row.className = "status";
+    const row = document.createElement('div');
+    row.className = 'status';
     if (spinning) {
-      const spinner = document.createElement("div");
-      spinner.className = "spinner";
+      const spinner = document.createElement('div');
+      spinner.className = 'spinner';
       row.appendChild(spinner);
     }
-    const label = document.createElement("div");
+    const label = document.createElement('div');
     label.textContent = text;
     row.appendChild(label);
     return row;
@@ -740,10 +699,7 @@
 
     const range = selection.getRangeAt(0);
     const rects = Array.from(range.getClientRects());
-    const rect =
-      rects.length > 0
-        ? rects[rects.length - 1]
-        : range.getBoundingClientRect();
+    const rect = rects.length > 0 ? rects[rects.length - 1] : range.getBoundingClientRect();
 
     if (!rect || (rect.width === 0 && rect.height === 0)) return null;
     return rect;
@@ -771,56 +727,47 @@
     const preferredLeft = anchor.left;
     const preferredTop = anchor.bottom + 10;
 
-    const left = Math.min(
-      Math.max(margin, preferredLeft),
-      Math.max(margin, viewportW - width - margin),
-    );
+    const left = Math.min(Math.max(margin, preferredLeft), Math.max(margin, viewportW - width - margin));
 
-    const top = Math.min(
-      Math.max(margin, preferredTop),
-      Math.max(margin, viewportH - height - margin),
-    );
+    const top = Math.min(Math.max(margin, preferredTop), Math.max(margin, viewportH - height - margin));
 
     els.host.style.left = `${Math.round(left)}px`;
     els.host.style.top = `${Math.round(top)}px`;
   }
 
-  function showSummaryOverlay(
-    request: Extract<ContentRequest, { action: "showSummaryOverlay" }>,
-  ): void {
-    overlayMode = "summary";
-    setOverlayActionsVisibility("summary");
+  function showSummaryOverlay(request: Extract<ContentRequest, { action: 'showSummaryOverlay' }>): void {
+    overlayMode = 'summary';
+    setOverlayActionsVisibility('summary');
 
     const source = request.source;
-    const title =
-      source === "selection" ? "要約（選択範囲）" : "要約（ページ本文）";
+    const title = source === 'selection' ? '要約（選択範囲）' : '要約（ページ本文）';
     setOverlayTitle(title);
 
     const els = ensureOverlay();
-    overlayAnchor = source === "selection" ? getSelectionAnchorRect() : null;
+    overlayAnchor = source === 'selection' ? getSelectionAnchorRect() : null;
 
-    const summary = request.summary?.trim() ?? "";
-    const error = request.error?.trim() ?? "";
+    const summary = request.summary?.trim() ?? '';
+    const error = request.error?.trim() ?? '';
 
-    if (request.status === "loading") {
-      overlaySummaryText = "";
+    if (request.status === 'loading') {
+      overlaySummaryText = '';
       els.copyButton.disabled = true;
       els.eventButton.disabled = true;
-      els.eventButton.style.display = source === "selection" ? "" : "none";
-      setOverlayContent("", "処理に数秒かかることがあります。", "loading");
+      els.eventButton.style.display = source === 'selection' ? '' : 'none';
+      setOverlayContent('', '処理に数秒かかることがあります。', 'loading');
       requestAnimationFrame(positionOverlay);
       return;
     }
 
-    if (request.status === "error") {
-      overlaySummaryText = "";
+    if (request.status === 'error') {
+      overlaySummaryText = '';
       els.copyButton.disabled = true;
       els.eventButton.disabled = true;
-      els.eventButton.style.display = "none";
+      els.eventButton.style.display = 'none';
       setOverlayContent(
-        error || "要約に失敗しました",
-        "OpenAI API Token未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。",
-        "error",
+        error || '要約に失敗しました',
+        'OpenAI API Token未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。',
+        'error',
       );
       requestAnimationFrame(positionOverlay);
       return;
@@ -829,49 +776,46 @@
     overlaySummaryText = summary;
     els.copyButton.disabled = !summary;
     els.eventButton.disabled = false;
-    els.eventButton.style.display = source === "selection" ? "" : "none";
-    setOverlayContent(summary || "要約結果が空でした", "", "ready");
+    els.eventButton.style.display = source === 'selection' ? '' : 'none';
+    setOverlayContent(summary || '要約結果が空でした', '', 'ready');
     requestAnimationFrame(positionOverlay);
   }
 
   function showEventOverlay(eventText: string, calendarUrl: string): void {
-    overlayMode = "event";
+    overlayMode = 'event';
     overlayEventText = eventText;
     overlayCalendarUrl = calendarUrl;
     overlayAnchor = getSelectionAnchorRect();
-    setOverlayActionsVisibility("event");
-    setOverlayTitle("イベント要約");
+    setOverlayActionsVisibility('event');
+    setOverlayTitle('イベント要約');
 
     const els = ensureOverlay();
     els.copyButton.disabled = !eventText;
     els.openCalendarButton.disabled = !calendarUrl;
     els.copyLinkButton.disabled = !calendarUrl;
-    setOverlayContent(eventText, "", "ready");
+    setOverlayContent(eventText, '', 'ready');
     requestAnimationFrame(positionOverlay);
   }
 
   function showEventOverlayError(error: string): void {
-    overlayMode = "event";
-    overlayEventText = "";
-    overlayCalendarUrl = "";
+    overlayMode = 'event';
+    overlayEventText = '';
+    overlayCalendarUrl = '';
     overlayAnchor = getSelectionAnchorRect();
-    setOverlayActionsVisibility("event");
-    setOverlayTitle("イベント要約");
+    setOverlayActionsVisibility('event');
+    setOverlayTitle('イベント要約');
 
     const els = ensureOverlay();
     els.copyButton.disabled = true;
     els.openCalendarButton.disabled = true;
     els.copyLinkButton.disabled = true;
-    setOverlayContent(error || "イベント要約に失敗しました", "", "error");
+    setOverlayContent(error || 'イベント要約に失敗しました', '', 'error');
     requestAnimationFrame(positionOverlay);
   }
 
-  async function maybeAutoSummarizeSelection(
-    selectedText: string,
-    event: MouseEvent,
-  ): Promise<void> {
+  async function maybeAutoSummarizeSelection(selectedText: string, event: MouseEvent): Promise<void> {
     const target = event.target as HTMLElement | null;
-    if (target?.closest("#my-browser-utils-summary")) return;
+    if (target?.closest('#my-browser-utils-summary')) return;
 
     const MIN_CHARS = 1;
     const trimmed = selectedText.trim();
@@ -879,8 +823,8 @@
 
     if (trimmed === lastAutoSummaryText && lastAutoSummaryResult) {
       showSummaryOverlay({
-        action: "showSummaryOverlay",
-        status: "ready",
+        action: 'showSummaryOverlay',
+        status: 'ready',
         summary: lastAutoSummaryResult.summary,
         source: lastAutoSummaryResult.source,
       });
@@ -897,26 +841,23 @@
     const requestId = ++autoSummaryRequestId;
     autoSummaryTimer = window.setTimeout(() => {
       void (async () => {
-        const currentSelection = window.getSelection()?.toString().trim() ?? "";
+        const currentSelection = window.getSelection()?.toString().trim() ?? '';
         if (currentSelection && currentSelection !== trimmed) {
           return;
         }
 
-        showNotification("要約中...");
+        showNotification('要約中...');
 
         const summaryTarget: SummaryTarget = {
           text: trimmed,
-          source: "selection",
-          title: document.title ?? "",
+          source: 'selection',
+          title: document.title ?? '',
           url: window.location.href,
         };
 
         try {
-          const response = await sendMessageToBackground<
-            ContentToBackgroundMessage,
-            SummarizeTextResponse
-          >({
-            action: "summarizeText",
+          const response = await sendMessageToBackground<ContentToBackgroundMessage, SummarizeTextResponse>({
+            action: 'summarizeText',
             target: summaryTarget,
           });
 
@@ -924,9 +865,9 @@
 
           if (!response.ok) {
             showSummaryOverlay({
-              action: "showSummaryOverlay",
-              status: "error",
-              source: "selection",
+              action: 'showSummaryOverlay',
+              status: 'error',
+              source: 'selection',
               error: response.error,
             });
             return;
@@ -937,28 +878,25 @@
             source: response.source,
           };
           showSummaryOverlay({
-            action: "showSummaryOverlay",
-            status: "ready",
+            action: 'showSummaryOverlay',
+            status: 'ready',
             summary: response.summary,
             source: response.source,
           });
         } catch (error) {
           if (requestId !== autoSummaryRequestId) return;
           showSummaryOverlay({
-            action: "showSummaryOverlay",
-            status: "error",
-            source: "selection",
-            error:
-              error instanceof Error ? error.message : "要約に失敗しました",
+            action: 'showSummaryOverlay',
+            status: 'error',
+            source: 'selection',
+            error: error instanceof Error ? error.message : '要約に失敗しました',
           });
         }
       })();
     }, 450);
   }
 
-  function sendMessageToBackground<TRequest, TResponse>(
-    message: TRequest,
-  ): Promise<TResponse> {
+  function sendMessageToBackground<TRequest, TResponse>(message: TRequest): Promise<TResponse> {
     return new Promise((resolve, reject) => {
       chrome.runtime.sendMessage(message, (response: TResponse) => {
         const err = chrome.runtime.lastError;
@@ -977,11 +915,10 @@
 
   (async function autoEnableTableSort(): Promise<void> {
     try {
-      const { domainPatterns = [], autoEnableSort = false }: StorageData =
-        (await storageSyncGet([
-          "domainPatterns",
-          "autoEnableSort",
-        ])) as StorageData;
+      const { domainPatterns = [], autoEnableSort = false }: StorageData = (await storageSyncGet([
+        'domainPatterns',
+        'autoEnableSort',
+      ])) as StorageData;
 
       if (autoEnableSort) {
         enableTableSort();
@@ -994,13 +931,13 @@
         startTableObserver();
       }
     } catch (error) {
-      console.error("Auto-enable table sort failed:", error);
+      console.error('Auto-enable table sort failed:', error);
     }
   })();
 
   function storageSyncGet(keys: string[]): Promise<unknown> {
     return new Promise((resolve, reject) => {
-      chrome.storage.sync.get(keys, (items) => {
+      chrome.storage.sync.get(keys, items => {
         const err = chrome.runtime.lastError;
         if (err) {
           reject(new Error(err.message));
@@ -1013,7 +950,7 @@
 
   function storageLocalGet(keys: string[]): Promise<unknown> {
     return new Promise((resolve, reject) => {
-      chrome.storage.local.get(keys, (items) => {
+      chrome.storage.local.get(keys, items => {
         const err = chrome.runtime.lastError;
         if (err) {
           reject(new Error(err.message));

@@ -13,7 +13,7 @@ _.path = ["./node_modules/.bin"]
 [tools]
 node = "22"
 "npm:pnpm" = "10.26.0"
-"npm:prettier" = "3.6.2"
+"npm:prettier" = "3.7.4"
 
 # ========================================
 # コマンド（ショートカット）
@@ -21,7 +21,7 @@ node = "22"
 
 [tasks.format]
 description = "Prettierでソース全体を整形"
-run = "prettier --write \"src/**/*.{ts,js}\" \"tests/**/*.{ts,js}\" popup.html popup_bootstrap.js manifest.json popup.css content.css README.md"
+run = "pnpm run format"
 
 [tasks."lint:types"]
 description = "TypeScriptの型チェックのみ"
@@ -29,7 +29,7 @@ run = "pnpm exec tsc --noEmit"
 
 [tasks."lint:prettier"]
 description = "Prettierのチェックのみ"
-run = "prettier --check \"src/**/*.{ts,js}\" \"tests/**/*.{ts,js}\" popup.html popup_bootstrap.js manifest.json popup.css content.css README.md"
+run = "pnpm run prettier:check"
 
 [tasks.test]
 description = "Vitestでユニットテストを実行"

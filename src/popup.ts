@@ -13,312 +13,234 @@
     success: boolean;
   };
 
-  type NotificationType = "info" | "error";
+  type NotificationType = 'info' | 'error';
 
   type PopupToContentMessage = {
-    action: "enableTableSort";
+    action: 'enableTableSort';
   };
 
-  type SummarySource = "selection" | "page";
+  type SummarySource = 'selection' | 'page';
 
   type PopupToBackgroundMessage = {
-    action: "summarizeTab";
+    action: 'summarizeTab';
     tabId: number;
   };
 
   type PopupToBackgroundTestTokenMessage = {
-    action: "testOpenAiToken";
+    action: 'testOpenAiToken';
     token?: string;
   };
 
-  type SummarizeResponse =
-    | { ok: true; summary: string; source: SummarySource }
-    | { ok: false; error: string };
+  type SummarizeResponse = { ok: true; summary: string; source: SummarySource } | { ok: false; error: string };
 
   type TestTokenResponse = { ok: true } | { ok: false; error: string };
 
   const start = (): void => {
-    void initializePopup().catch((error) => {
+    void initializePopup().catch(error => {
       // 初期化が途中で落ちると、ボタンが一切反応しないように見えるため通知しておく
-      console.error("Popup initialization failed:", error);
+      console.error('Popup initialization failed:', error);
       showNotification(
-        error instanceof Error
-          ? error.message
-          : "初期化に失敗しました（拡張機能を再読み込みしてください）",
-        "error",
+        error instanceof Error ? error.message : '初期化に失敗しました（拡張機能を再読み込みしてください）',
+        'error',
       );
     });
   };
 
   // `popup.js` が遅れて読み込まれるケースでも初期化できるようにする
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", start);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
   } else {
     start();
   }
 
   async function initializePopup(): Promise<void> {
-    const autoEnableCheckbox = document.getElementById(
-      "auto-enable-sort",
-    ) as HTMLInputElement | null;
-    const enableButton = document.getElementById(
-      "enable-table-sort",
-    ) as HTMLButtonElement | null;
-    const addPatternButton = document.getElementById(
-      "add-pattern",
-    ) as HTMLButtonElement | null;
-    const patternInput = document.getElementById(
-      "pattern-input",
-    ) as HTMLInputElement | null;
-    const tokenInput = document.getElementById(
-      "openai-token",
-    ) as HTMLInputElement | null;
-    const saveTokenButton = document.getElementById(
-      "save-openai-token",
-    ) as HTMLButtonElement | null;
-    const clearTokenButton = document.getElementById(
-      "clear-openai-token",
-    ) as HTMLButtonElement | null;
+    const autoEnableCheckbox = document.getElementById('auto-enable-sort') as HTMLInputElement | null;
+    const enableButton = document.getElementById('enable-table-sort') as HTMLButtonElement | null;
+    const addPatternButton = document.getElementById('add-pattern') as HTMLButtonElement | null;
+    const patternInput = document.getElementById('pattern-input') as HTMLInputElement | null;
+    const tokenInput = document.getElementById('openai-token') as HTMLInputElement | null;
+    const saveTokenButton = document.getElementById('save-openai-token') as HTMLButtonElement | null;
+    const clearTokenButton = document.getElementById('clear-openai-token') as HTMLButtonElement | null;
     const toggleTokenVisibilityButton = document.getElementById(
-      "toggle-openai-token-visibility",
+      'toggle-openai-token-visibility',
     ) as HTMLButtonElement | null;
-    const testTokenButton = document.getElementById(
-      "test-openai-token",
-    ) as HTMLButtonElement | null;
-    const customPromptInput = document.getElementById(
-      "openai-custom-prompt",
-    ) as HTMLTextAreaElement | null;
-    const saveCustomPromptButton = document.getElementById(
-      "save-openai-custom-prompt",
-    ) as HTMLButtonElement | null;
-    const clearCustomPromptButton = document.getElementById(
-      "clear-openai-custom-prompt",
-    ) as HTMLButtonElement | null;
-    const summarizeButton = document.getElementById(
-      "summarize-tab",
-    ) as HTMLButtonElement | null;
-    const copySummaryButton = document.getElementById(
-      "copy-summary",
-    ) as HTMLButtonElement | null;
-    const summaryOutput = document.getElementById(
-      "summary-output",
-    ) as HTMLTextAreaElement | null;
-    const summarySourceChip = document.getElementById(
-      "summary-source-chip",
-    ) as HTMLSpanElement | null;
+    const testTokenButton = document.getElementById('test-openai-token') as HTMLButtonElement | null;
+    const customPromptInput = document.getElementById('openai-custom-prompt') as HTMLTextAreaElement | null;
+    const saveCustomPromptButton = document.getElementById('save-openai-custom-prompt') as HTMLButtonElement | null;
+    const clearCustomPromptButton = document.getElementById('clear-openai-custom-prompt') as HTMLButtonElement | null;
+    const summarizeButton = document.getElementById('summarize-tab') as HTMLButtonElement | null;
+    const copySummaryButton = document.getElementById('copy-summary') as HTMLButtonElement | null;
+    const summaryOutput = document.getElementById('summary-output') as HTMLTextAreaElement | null;
+    const summarySourceChip = document.getElementById('summary-source-chip') as HTMLSpanElement | null;
 
     setupNavigation();
 
     if (autoEnableCheckbox) {
-      autoEnableCheckbox.addEventListener("change", (event) => {
+      autoEnableCheckbox.addEventListener('change', event => {
         const target = event.target as HTMLInputElement;
-        void storageSyncSet({ autoEnableSort: target.checked }).catch(
-          (error) => {
-            showNotification(
-              error instanceof Error
-                ? error.message
-                : "設定の保存に失敗しました",
-              "error",
-            );
-          },
-        );
+        void storageSyncSet({ autoEnableSort: target.checked }).catch(error => {
+          showNotification(error instanceof Error ? error.message : '設定の保存に失敗しました', 'error');
+        });
       });
     }
 
-    enableButton?.addEventListener("click", async () => {
+    enableButton?.addEventListener('click', async () => {
       const [tab] = await tabsQuery({
         active: true,
         currentWindow: true,
       });
       if (tab?.id === undefined) {
-        showNotification("有効なタブが見つかりません", "error");
+        showNotification('有効なタブが見つかりません', 'error');
         return;
       }
 
-      const message: PopupToContentMessage = { action: "enableTableSort" };
+      const message: PopupToContentMessage = { action: 'enableTableSort' };
 
       chrome.tabs.sendMessage(tab.id, message, (response?: EnableResponse) => {
         if (response?.success) {
-          showNotification("テーブルソートを有効化しました");
+          showNotification('テーブルソートを有効化しました');
         }
       });
     });
 
-    addPatternButton?.addEventListener("click", () => {
+    addPatternButton?.addEventListener('click', () => {
       void handleAddPattern();
     });
 
-    patternInput?.addEventListener("keypress", (event: KeyboardEvent) => {
-      if (event.key === "Enter") {
+    patternInput?.addEventListener('keypress', (event: KeyboardEvent) => {
+      if (event.key === 'Enter') {
         void handleAddPattern();
       }
     });
 
-    saveTokenButton?.addEventListener("click", () => {
+    saveTokenButton?.addEventListener('click', () => {
       void handleSaveToken(tokenInput);
     });
 
-    clearTokenButton?.addEventListener("click", () => {
+    clearTokenButton?.addEventListener('click', () => {
       void handleClearToken(tokenInput);
     });
 
-    toggleTokenVisibilityButton?.addEventListener("click", () => {
+    toggleTokenVisibilityButton?.addEventListener('click', () => {
       if (!tokenInput) return;
-      const nextType = tokenInput.type === "password" ? "text" : "password";
+      const nextType = tokenInput.type === 'password' ? 'text' : 'password';
       tokenInput.type = nextType;
-      toggleTokenVisibilityButton.textContent =
-        nextType === "text" ? "非表示" : "表示";
+      toggleTokenVisibilityButton.textContent = nextType === 'text' ? '非表示' : '表示';
     });
 
-    testTokenButton?.addEventListener("click", async () => {
+    testTokenButton?.addEventListener('click', async () => {
       if (testTokenButton) testTokenButton.disabled = true;
-      showNotification("OpenAI API Tokenを確認中...");
+      showNotification('OpenAI API Tokenを確認中...');
       try {
-        const token = tokenInput?.value.trim() ?? "";
-        const response = await sendMessageToBackground<
-          PopupToBackgroundTestTokenMessage,
-          TestTokenResponse
-        >({
-          action: "testOpenAiToken",
+        const token = tokenInput?.value.trim() ?? '';
+        const response = await sendMessageToBackground<PopupToBackgroundTestTokenMessage, TestTokenResponse>({
+          action: 'testOpenAiToken',
           token: token || undefined,
         });
 
         if (!response.ok) {
-          showNotification(response.error, "error");
+          showNotification(response.error, 'error');
           return;
         }
 
-        showNotification("OK: トークンは有効です");
+        showNotification('OK: トークンは有効です');
       } catch (error) {
-        showNotification(
-          error instanceof Error ? error.message : "トークン確認に失敗しました",
-          "error",
-        );
+        showNotification(error instanceof Error ? error.message : 'トークン確認に失敗しました', 'error');
       } finally {
         if (testTokenButton) testTokenButton.disabled = false;
       }
     });
 
-    saveCustomPromptButton?.addEventListener("click", () => {
+    saveCustomPromptButton?.addEventListener('click', () => {
       void handleSaveCustomPrompt(customPromptInput);
     });
 
-    clearCustomPromptButton?.addEventListener("click", () => {
+    clearCustomPromptButton?.addEventListener('click', () => {
       void handleClearCustomPrompt(customPromptInput);
     });
 
-    summarizeButton?.addEventListener("click", async () => {
+    summarizeButton?.addEventListener('click', async () => {
       const [tab] = await tabsQuery({
         active: true,
         currentWindow: true,
       });
       if (tab?.id === undefined) {
-        showNotification("有効なタブが見つかりません", "error");
+        showNotification('有効なタブが見つかりません', 'error');
         return;
       }
 
-      if (summaryOutput) summaryOutput.value = "要約中...";
+      if (summaryOutput) summaryOutput.value = '要約中...';
       if (copySummaryButton) copySummaryButton.disabled = true;
-      if (summarySourceChip) summarySourceChip.textContent = "-";
+      if (summarySourceChip) summarySourceChip.textContent = '-';
       if (summarizeButton) summarizeButton.disabled = true;
 
       try {
-        const response = await sendMessageToBackground<
-          PopupToBackgroundMessage,
-          SummarizeResponse
-        >({
-          action: "summarizeTab",
+        const response = await sendMessageToBackground<PopupToBackgroundMessage, SummarizeResponse>({
+          action: 'summarizeTab',
           tabId: tab.id,
         });
 
         if (!response.ok) {
-          showNotification(response.error, "error");
-          if (summaryOutput) summaryOutput.value = "";
+          showNotification(response.error, 'error');
+          if (summaryOutput) summaryOutput.value = '';
           return;
         }
 
         if (summaryOutput) summaryOutput.value = response.summary;
         if (copySummaryButton) copySummaryButton.disabled = false;
         if (summarySourceChip) {
-          summarySourceChip.textContent =
-            response.source === "selection" ? "選択範囲" : "ページ本文";
+          summarySourceChip.textContent = response.source === 'selection' ? '選択範囲' : 'ページ本文';
         }
-        showNotification("要約しました");
+        showNotification('要約しました');
       } catch (error) {
-        showNotification(
-          error instanceof Error ? error.message : "要約に失敗しました",
-          "error",
-        );
-        if (summaryOutput) summaryOutput.value = "";
+        showNotification(error instanceof Error ? error.message : '要約に失敗しました', 'error');
+        if (summaryOutput) summaryOutput.value = '';
       } finally {
         if (summarizeButton) summarizeButton.disabled = false;
       }
     });
 
-    copySummaryButton?.addEventListener("click", async () => {
-      const text = summaryOutput?.value ?? "";
+    copySummaryButton?.addEventListener('click', async () => {
+      const text = summaryOutput?.value ?? '';
       if (!text) return;
       await navigator.clipboard.writeText(text);
-      showNotification("コピーしました");
+      showNotification('コピーしました');
     });
 
     // 初期表示のロード（失敗しても、ボタン操作自体は動くようにしておく）
     try {
-      const settings = (await storageSyncGet([
-        "autoEnableSort",
-      ])) as SyncStorageData;
+      const settings = (await storageSyncGet(['autoEnableSort'])) as SyncStorageData;
       if (autoEnableCheckbox) {
         autoEnableCheckbox.checked = settings.autoEnableSort ?? false;
       }
     } catch (error) {
-      showNotification(
-        error instanceof Error ? error.message : "設定の読み込みに失敗しました",
-        "error",
-      );
+      showNotification(error instanceof Error ? error.message : '設定の読み込みに失敗しました', 'error');
     }
 
     try {
       await loadPatterns();
     } catch (error) {
-      showNotification(
-        error instanceof Error
-          ? error.message
-          : "ドメインパターンの読み込みに失敗しました",
-        "error",
-      );
+      showNotification(error instanceof Error ? error.message : 'ドメインパターンの読み込みに失敗しました', 'error');
     }
 
     try {
       await loadOpenAiCustomPrompt(customPromptInput);
     } catch (error) {
-      showNotification(
-        error instanceof Error
-          ? error.message
-          : "カスタムプロンプトの読み込みに失敗しました",
-        "error",
-      );
+      showNotification(error instanceof Error ? error.message : 'カスタムプロンプトの読み込みに失敗しました', 'error');
     }
 
     try {
       await loadOpenAiToken(tokenInput);
     } catch (error) {
-      showNotification(
-        error instanceof Error
-          ? error.message
-          : "OpenAIトークンの読み込みに失敗しました",
-        "error",
-      );
+      showNotification(error instanceof Error ? error.message : 'OpenAIトークンの読み込みに失敗しました', 'error');
     }
   }
 
-  function showNotification(
-    message: string,
-    type: NotificationType = "info",
-  ): void {
-    const notification = document.createElement("div");
+  function showNotification(message: string, type: NotificationType = 'info'): void {
+    const notification = document.createElement('div');
     notification.textContent = message;
 
-    const bgColor = type === "error" ? "#e53935" : "#3ecf8e";
+    const bgColor = type === 'error' ? '#e53935' : '#3ecf8e';
 
     notification.style.cssText = `
     position: fixed;
@@ -337,9 +259,7 @@
     window.setTimeout(() => notification.remove(), 2000);
   }
 
-  function sendMessageToBackground<TRequest, TResponse>(
-    message: TRequest,
-  ): Promise<TResponse> {
+  function sendMessageToBackground<TRequest, TResponse>(message: TRequest): Promise<TResponse> {
     return new Promise((resolve, reject) => {
       chrome.runtime.sendMessage(message, (response: TResponse) => {
         const err = chrome.runtime.lastError;
@@ -358,7 +278,7 @@
 
   function storageSyncGet(keys: string[]): Promise<unknown> {
     return new Promise((resolve, reject) => {
-      chrome.storage.sync.get(keys, (items) => {
+      chrome.storage.sync.get(keys, items => {
         const err = chrome.runtime.lastError;
         if (err) {
           reject(new Error(err.message));
@@ -384,7 +304,7 @@
 
   function storageLocalGet(keys: string[]): Promise<unknown> {
     return new Promise((resolve, reject) => {
-      chrome.storage.local.get(keys, (items) => {
+      chrome.storage.local.get(keys, items => {
         const err = chrome.runtime.lastError;
         if (err) {
           reject(new Error(err.message));
@@ -421,11 +341,9 @@
     });
   }
 
-  function tabsQuery(
-    queryInfo: chrome.tabs.QueryInfo,
-  ): Promise<chrome.tabs.Tab[]> {
+  function tabsQuery(queryInfo: chrome.tabs.QueryInfo): Promise<chrome.tabs.Tab[]> {
     return new Promise((resolve, reject) => {
-      chrome.tabs.query(queryInfo, (tabs) => {
+      chrome.tabs.query(queryInfo, tabs => {
         const err = chrome.runtime.lastError;
         if (err) {
           reject(new Error(err.message));
@@ -437,22 +355,17 @@
   }
 
   async function loadPatterns(): Promise<void> {
-    const { domainPatterns = [] } = (await storageSyncGet([
-      "domainPatterns",
-    ])) as SyncStorageData;
+    const { domainPatterns = [] } = (await storageSyncGet(['domainPatterns'])) as SyncStorageData;
     renderPatternList(domainPatterns);
   }
 
   function renderPatternList(patterns: string[]): void {
-    const listContainer = document.getElementById(
-      "pattern-list",
-    ) as HTMLDivElement | null;
+    const listContainer = document.getElementById('pattern-list') as HTMLDivElement | null;
 
     if (!listContainer) return;
 
     if (patterns.length === 0) {
-      listContainer.innerHTML =
-        '<p class="empty-message">登録されたパターンはありません</p>';
+      listContainer.innerHTML = '<p class="empty-message">登録されたパターンはありません</p>';
       return;
     }
 
@@ -465,52 +378,43 @@
       </div>
     `,
       )
-      .join("");
+      .join('');
 
-    listContainer.querySelectorAll(".btn-delete").forEach((btn) => {
+    listContainer.querySelectorAll('.btn-delete').forEach(btn => {
       const button = btn as HTMLButtonElement;
-      button.addEventListener("click", handleDeletePattern);
+      button.addEventListener('click', handleDeletePattern);
     });
   }
 
   async function handleAddPattern(): Promise<void> {
-    const input = document.getElementById(
-      "pattern-input",
-    ) as HTMLInputElement | null;
-    const pattern = input?.value.trim() ?? "";
+    const input = document.getElementById('pattern-input') as HTMLInputElement | null;
+    const pattern = input?.value.trim() ?? '';
 
     if (!pattern) {
-      showNotification("パターンを入力してください", "error");
+      showNotification('パターンを入力してください', 'error');
       return;
     }
 
     if (!validatePattern(pattern)) {
-      showNotification("無効なパターンです", "error");
+      showNotification('無効なパターンです', 'error');
       return;
     }
 
     let domainPatterns: string[] = [];
     try {
-      ({ domainPatterns = [] } = (await storageSyncGet([
-        "domainPatterns",
-      ])) as SyncStorageData);
+      ({ domainPatterns = [] } = (await storageSyncGet(['domainPatterns'])) as SyncStorageData);
     } catch (error) {
-      showNotification(
-        error instanceof Error
-          ? error.message
-          : "パターンの読み込みに失敗しました",
-        "error",
-      );
+      showNotification(error instanceof Error ? error.message : 'パターンの読み込みに失敗しました', 'error');
       return;
     }
 
     if (domainPatterns.includes(pattern)) {
-      showNotification("このパターンは既に登録されています", "error");
+      showNotification('このパターンは既に登録されています', 'error');
       return;
     }
 
     if (domainPatterns.length >= 50) {
-      showNotification("パターンは最大50個まで登録できます", "error");
+      showNotification('パターンは最大50個まで登録できます', 'error');
       return;
     }
 
@@ -519,40 +423,33 @@
       await storageSyncSet({ domainPatterns });
 
       if (input) {
-        input.value = "";
+        input.value = '';
       }
       renderPatternList(domainPatterns);
-      showNotification("パターンを追加しました");
+      showNotification('パターンを追加しました');
     } catch (error) {
-      if (error instanceof Error && error.message.includes("QUOTA_BYTES")) {
-        showNotification("ストレージ容量を超えました", "error");
+      if (error instanceof Error && error.message.includes('QUOTA_BYTES')) {
+        showNotification('ストレージ容量を超えました', 'error');
       } else {
-        showNotification("パターンの追加に失敗しました", "error");
+        showNotification('パターンの追加に失敗しました', 'error');
       }
     }
   }
 
   async function handleDeletePattern(event: Event): Promise<void> {
     const target = event.target as HTMLButtonElement | null;
-    const index = target?.dataset.index
-      ? Number(target.dataset.index)
-      : Number.NaN;
+    const index = target?.dataset.index ? Number(target.dataset.index) : Number.NaN;
 
     if (Number.isNaN(index)) {
-      showNotification("削除に失敗しました", "error");
+      showNotification('削除に失敗しました', 'error');
       return;
     }
 
     let domainPatterns: string[] = [];
     try {
-      ({ domainPatterns = [] } = (await storageSyncGet([
-        "domainPatterns",
-      ])) as SyncStorageData);
+      ({ domainPatterns = [] } = (await storageSyncGet(['domainPatterns'])) as SyncStorageData);
     } catch (error) {
-      showNotification(
-        error instanceof Error ? error.message : "削除に失敗しました",
-        "error",
-      );
+      showNotification(error instanceof Error ? error.message : '削除に失敗しました', 'error');
       return;
     }
 
@@ -560,7 +457,7 @@
     await storageSyncSet({ domainPatterns });
 
     renderPatternList(domainPatterns);
-    showNotification("パターンを削除しました");
+    showNotification('パターンを削除しました');
   }
 
   function validatePattern(pattern: string): boolean {
@@ -578,140 +475,108 @@
   }
 
   function escapeHtml(text: string): string {
-    const div = document.createElement("div");
+    const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
   }
 
   function setupNavigation(): void {
-    const navItems = Array.from(
-      document.querySelectorAll<HTMLButtonElement>(".nav-item"),
-    );
-    const panes = Array.from(document.querySelectorAll<HTMLElement>(".pane"));
-    const heroChip = document.getElementById("hero-chip") as HTMLSpanElement;
-    const ctaPill = document.getElementById("cta-pill") as HTMLDivElement;
+    const navItems = Array.from(document.querySelectorAll<HTMLButtonElement>('.nav-item'));
+    const panes = Array.from(document.querySelectorAll<HTMLElement>('.pane'));
+    const heroChip = document.getElementById('hero-chip') as HTMLSpanElement;
+    const ctaPill = document.getElementById('cta-pill') as HTMLDivElement;
 
     const updateHero = (activeTargetId?: string): void => {
       if (!heroChip || !ctaPill) return;
-      if (activeTargetId === "pane-summary") {
-        heroChip.textContent = "AI要約";
-        ctaPill.textContent = "すぐ要約";
+      if (activeTargetId === 'pane-summary') {
+        heroChip.textContent = 'AI要約';
+        ctaPill.textContent = 'すぐ要約';
         return;
       }
-      if (activeTargetId === "pane-settings") {
-        heroChip.textContent = "設定";
-        ctaPill.textContent = "好みに調整";
+      if (activeTargetId === 'pane-settings') {
+        heroChip.textContent = '設定';
+        ctaPill.textContent = '好みに調整';
         return;
       }
 
-      heroChip.textContent = "テーブルソート";
-      ctaPill.textContent = "ワンクリックで整列";
+      heroChip.textContent = 'テーブルソート';
+      ctaPill.textContent = 'ワンクリックで整列';
     };
 
-    navItems.forEach((item) => {
-      item.addEventListener("click", () => {
-        navItems.forEach((nav) => nav.classList.remove("active"));
-        panes.forEach((pane) => pane.classList.remove("active"));
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        navItems.forEach(nav => nav.classList.remove('active'));
+        panes.forEach(pane => pane.classList.remove('active'));
 
-        item.classList.add("active");
+        item.classList.add('active');
         const targetId = item.dataset.target;
         if (targetId) {
-          document.getElementById(targetId)?.classList.add("active");
+          document.getElementById(targetId)?.classList.add('active');
         }
         updateHero(targetId);
       });
     });
 
-    const defaultActive = navItems.find((item) =>
-      item.classList.contains("active"),
-    )?.dataset.target;
+    const defaultActive = navItems.find(item => item.classList.contains('active'))?.dataset.target;
     updateHero(defaultActive);
   }
 
-  async function loadOpenAiToken(
-    input: HTMLInputElement | null,
-  ): Promise<void> {
+  async function loadOpenAiToken(input: HTMLInputElement | null): Promise<void> {
     if (!input) return;
-    const { openaiApiToken = "" } = (await storageLocalGet([
-      "openaiApiToken",
-    ])) as LocalStorageData;
+    const { openaiApiToken = '' } = (await storageLocalGet(['openaiApiToken'])) as LocalStorageData;
     input.value = openaiApiToken;
   }
 
-  async function handleSaveToken(
-    input: HTMLInputElement | null,
-  ): Promise<void> {
-    const token = input?.value.trim() ?? "";
+  async function handleSaveToken(input: HTMLInputElement | null): Promise<void> {
+    const token = input?.value.trim() ?? '';
     if (!token) {
-      showNotification("トークンを入力してください", "error");
+      showNotification('トークンを入力してください', 'error');
       return;
     }
 
     try {
       await storageLocalSet({ openaiApiToken: token });
-      showNotification("OpenAIトークンを保存しました");
+      showNotification('OpenAIトークンを保存しました');
     } catch (error) {
-      showNotification(
-        error instanceof Error ? error.message : "保存に失敗しました",
-        "error",
-      );
+      showNotification(error instanceof Error ? error.message : '保存に失敗しました', 'error');
     }
   }
 
-  async function handleClearToken(
-    input: HTMLInputElement | null,
-  ): Promise<void> {
+  async function handleClearToken(input: HTMLInputElement | null): Promise<void> {
     if (input) {
-      input.value = "";
+      input.value = '';
     }
     try {
-      await storageLocalRemove("openaiApiToken");
-      showNotification("トークンをクリアしました");
+      await storageLocalRemove('openaiApiToken');
+      showNotification('トークンをクリアしました');
     } catch (error) {
-      showNotification(
-        error instanceof Error ? error.message : "クリアに失敗しました",
-        "error",
-      );
+      showNotification(error instanceof Error ? error.message : 'クリアに失敗しました', 'error');
     }
   }
 
-  async function loadOpenAiCustomPrompt(
-    input: HTMLTextAreaElement | null,
-  ): Promise<void> {
+  async function loadOpenAiCustomPrompt(input: HTMLTextAreaElement | null): Promise<void> {
     if (!input) return;
-    const { openaiCustomPrompt = "" } = (await storageLocalGet([
-      "openaiCustomPrompt",
-    ])) as LocalStorageData;
+    const { openaiCustomPrompt = '' } = (await storageLocalGet(['openaiCustomPrompt'])) as LocalStorageData;
     input.value = openaiCustomPrompt;
   }
 
-  async function handleSaveCustomPrompt(
-    input: HTMLTextAreaElement | null,
-  ): Promise<void> {
-    const prompt = input?.value ?? "";
+  async function handleSaveCustomPrompt(input: HTMLTextAreaElement | null): Promise<void> {
+    const prompt = input?.value ?? '';
     try {
       await storageLocalSet({ openaiCustomPrompt: prompt });
-      showNotification("カスタムプロンプトを保存しました");
+      showNotification('カスタムプロンプトを保存しました');
     } catch (error) {
-      showNotification(
-        error instanceof Error ? error.message : "保存に失敗しました",
-        "error",
-      );
+      showNotification(error instanceof Error ? error.message : '保存に失敗しました', 'error');
     }
   }
 
-  async function handleClearCustomPrompt(
-    input: HTMLTextAreaElement | null,
-  ): Promise<void> {
-    if (input) input.value = "";
+  async function handleClearCustomPrompt(input: HTMLTextAreaElement | null): Promise<void> {
+    if (input) input.value = '';
     try {
-      await storageLocalRemove("openaiCustomPrompt");
-      showNotification("カスタムプロンプトをクリアしました");
+      await storageLocalRemove('openaiCustomPrompt');
+      showNotification('カスタムプロンプトをクリアしました');
     } catch (error) {
-      showNotification(
-        error instanceof Error ? error.message : "クリアに失敗しました",
-        "error",
-      );
+      showNotification(error instanceof Error ? error.message : 'クリアに失敗しました', 'error');
     }
   }
 })();
