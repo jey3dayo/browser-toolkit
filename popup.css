@@ -82,6 +82,8 @@ body {
   gap: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
+  text-decoration: none;
+  font: inherit;
 }
 
 .nav-item .nav-icon {
@@ -208,6 +210,14 @@ body {
 
 .pane.active {
   display: flex;
+}
+
+.pane:target {
+  display: flex;
+}
+
+body:has(.pane:target) .pane.active:not(:target) {
+  display: none;
 }
 
 .pane-intro {
