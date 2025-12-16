@@ -530,10 +530,21 @@
     };
 
     navItems.forEach(item => {
-      item.addEventListener('click', () => {
+      item.addEventListener('click', event => {
+        // `href="#pane-..."` のデフォルト挙動（アンカーへのスクロール）を止めて、
+        // タブ切り替え時にスクロール位置が意図せず動かないようにする。
+        event.preventDefault();
+
         const targetId = item.dataset.target;
         if (!targetId) return;
+
         setActive(targetId);
+
+        // `location.hash = ...` はスクロールしてしまうので replaceState でURLだけ更新する。
+        const nextHash = `#${targetId}`;
+        if (window.location.hash !== nextHash) {
+          window.history.replaceState(null, '', nextHash);
+        }
       });
     });
 
