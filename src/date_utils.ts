@@ -3,8 +3,15 @@ import { addDays, addHours as addHoursDateFns, format, isMatch, isValid, parse, 
 function normalizeDateTimeInput(value: string): string {
   return value
     .trim()
+    .replace(/[０-９]/g, char => String.fromCharCode(char.charCodeAt(0) - 0xff10 + 0x30))
+    .replace(/：/g, ':')
+    .replace(/／/g, '/')
+    .replace(/[－‐‑‒–—―]/g, '-')
     .replace(/\s+/g, ' ')
     .replace(/([+-]\d{2})(\d{2})$/, '$1:$2') // +0900 -> +09:00
+    .replace(/(\d{1,2})時(\d{1,2})分?/g, (_m, h, m) => `${h}:${String(m).padStart(2, '0')}`)
+    .replace(/(\d{1,2})時(?!\d)/g, '$1:00')
+    .replace(/[分秒]/g, '')
     .replace(/\bJST\b/gi, '')
     .replace(/\b日本時間\b/g, '')
     .trim();
@@ -23,7 +30,18 @@ export function parseDateOnlyToYyyyMmDd(value: string): string | null {
   const raw = value.trim();
   if (!raw) return null;
 
-  const parsed = parseWithFormats(raw, ['yyyy-M-d', 'yyyy-MM-dd', 'yyyy/M/d', 'yyyy/MM/dd', 'yyyy年M月d日']);
+  const parsed = parseWithFormats(raw, [
+    'yyyy-M-d',
+    'yyyy-MM-dd',
+    'yyyy/M/d',
+    'yyyy/MM/dd',
+    'yyyy年M月d日',
+    'M/d',
+    'MM/dd',
+    'M-d',
+    'MM-dd',
+    'M月d日',
+  ]);
   if (!parsed) return null;
 
   return format(parsed, 'yyyyMMdd');
@@ -62,6 +80,18 @@ export function parseDateTimeLoose(value: string): Date | null {
     'yyyy/MM/dd HH:mm',
     'yyyy/MM/dd H:mm:ss',
     'yyyy/MM/dd HH:mm:ss',
+    'M/d H:mm',
+    'M/d HH:mm',
+    'M/d H:mm:ss',
+    'M/d HH:mm:ss',
+    'M-d H:mm',
+    'M-d HH:mm',
+    'M-d H:mm:ss',
+    'M-d HH:mm:ss',
+    'M月d日 H:mm',
+    'M月d日 HH:mm',
+    'M月d日 H:mm:ss',
+    'M月d日 HH:mm:ss',
   ]);
 }
 

@@ -13,12 +13,23 @@ describe('src/date_utils.ts', () => {
     expect(parseDateOnlyToYyyyMmDd('2025/01/02')).toBe('20250102');
     expect(parseDateOnlyToYyyyMmDd('2025年1月2日')).toBe('20250102');
     expect(parseDateOnlyToYyyyMmDd('2025-02-30')).toBeNull();
+    expect(parseDateOnlyToYyyyMmDd('12/16')).toMatch(/^\d{8}$/);
   });
 
   it('parses ISO-ish datetime with timezone offsets', () => {
     const parsed = parseDateTimeLoose('2025-12-16T10:00:00+09:00');
     expect(parsed).not.toBeNull();
     expect(parsed?.toISOString()).toBe('2025-12-16T01:00:00.000Z');
+  });
+
+  it('parses datetime inputs without year', () => {
+    const parsed = parseDateTimeLoose('12/16 10:00');
+    expect(parsed).not.toBeNull();
+  });
+
+  it('parses Japanese hour notation', () => {
+    const parsed = parseDateTimeLoose('2025-12-16 10時');
+    expect(parsed).not.toBeNull();
   });
 
   it('formats UTC datetime as YYYYMMDDTHHMMSSZ', () => {

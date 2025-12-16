@@ -911,11 +911,52 @@ function storageLocalGet(keys: string[]): Promise<unknown> {
 
 function normalizeEvent(event: ExtractedEvent): ExtractedEvent {
   const title = (event.title ?? '').trim() || '予定';
-  const start = (event.start ?? '').trim();
-  const end = event.end?.trim() || undefined;
+  let start = (event.start ?? '').trim();
+  let end = event.end?.trim() || undefined;
   const location = event.location?.trim() || undefined;
   const description = event.description?.trim() || undefined;
-  const allDay = event.allDay === true ? true : undefined;
+  let allDay = event.allDay === true ? true : undefined;
+
+  // モデルが `start: "2025-12-16 14:00〜15:00"` のようにレンジを一つの文字列に詰めるケースがあるため補正する。
+  if (!end && start) {
+    const splitRange = (value: string): [string, string] | null => {
+      const normalized = value.trim();
+      if (!normalized) return null;
+      const waveMatch = normalized.match(/^(.*?)\s*(?:〜|~|–|—)\s*(.*?)$/);
+      if (waveMatch) return [waveMatch[1].trim(), waveMatch[2].trim()];
+      const dashMatch = normalized.match(/^(.*?)\s+-\s+(.*?)$/);
+      if (dashMatch) return [dashMatch[1].trim(), dashMatch[2].trim()];
+      const timeDashMatch = normalized.match(/^(.+\d{1,2}:\d{2}(?::\d{2})?)\s*-\s*(\d{1,2}:\d{2}(?::\d{2})?)$/);
+      if (timeDashMatch) return [timeDashMatch[1].trim(), timeDashMatch[2].trim()];
+      return null;
+    };
+
+    const parts = splitRange(start);
+    if (parts) {
+      const [left, right] = parts;
+
+      // date-only range: "2025-12-16〜2025-12-17"
+      if (parseDateOnlyToYyyyMmDd(left) && parseDateOnlyToYyyyMmDd(right)) {
+        start = left;
+        end = right;
+        allDay = allDay ?? true;
+      } else {
+        // datetime range with time-only end: "2025-12-16 14:00〜15:00"
+        const leftDatePrefix = left.match(
+          /^(\d{4}-\d{1,2}-\d{1,2}|\d{4}\/\d{1,2}\/\d{1,2}|\d{4}年\d{1,2}月\d{1,2}日|\d{1,2}[/-]\d{1,2}|\d{1,2}月\d{1,2}日)\s+/,
+        )?.[1];
+        const rightTimeOnly = right.match(/^(\d{1,2}:\d{2}(?::\d{2})?)$/)?.[1];
+
+        start = left;
+        if (leftDatePrefix && rightTimeOnly) {
+          end = `${leftDatePrefix} ${rightTimeOnly}`;
+        } else if (parseDateTimeLoose(right)) {
+          end = right;
+        }
+      }
+    }
+  }
+
   return { title, start, end, allDay, location, description };
 }
 
