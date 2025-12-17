@@ -24,6 +24,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@praha/byethrow": "^0.8.2",
     "date-fns": "^4.1.0"
   },
   "devDependencies": {
@@ -31,10 +32,11 @@
     "@eslint/eslintrc": "^3.3.3",
     "@eslint/js": "^9.39.2",
     "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
-    "@typescript-eslint/parser": "^8.50.0",
-    "@typescript-eslint/types": "^8.50.0",
     "@types/chrome": "^0.1.32",
     "@types/jsdom": "^27.0.0",
+    "@typescript-eslint/parser": "^8.50.0",
+    "@typescript-eslint/types": "^8.50.0",
+    "esbuild": "^0.25.10",
     "eslint": "^9.39.2",
     "eslint-config-next": "16.0.10",
     "eslint-config-prettier": "^10.1.8",
@@ -44,11 +46,10 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-storybook": "10.1.7",
-    "esbuild": "^0.25.10",
     "jsdom": "^27.3.0",
     "prettier": "^3.7.4",
-    "typescript-eslint": "^8.50.0",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.50.0",
     "vitest": "^4.0.15"
   },
   "pnpm": {

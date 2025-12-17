@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@praha/byethrow':
+        specifier: ^0.8.2
+        version: 0.8.2(typescript@5.9.3)
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
@@ -654,6 +657,11 @@ packages:
   '@pkgr/core@0.2.9':
     resolution: {integrity: sha512-QNqXyfVS2wm9hweSYD2O7F0G06uurj9kZ96TRQE5Y9hU7+tgdZwIkbAKc5Ocy1HxEY2kuDQa6cQ1WRs/O5LFKA==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
+
+  '@praha/byethrow@0.8.2':
+    resolution: {integrity: sha512-gUpjF6EVLbrSVH7XRfn3Ti655Hs87U0yZwdGJ5eIYUM27B94fqD7bkPh+ZLtEmd56LwBYWtk9uYkseenNfgxcQ==}
+    peerDependencies:
+      typescript: '>=5.0.0'
 
   '@rollup/rollup-android-arm-eabi@4.53.4':
     resolution: {integrity: sha512-PWU3Y92H4DD0bOqorEPp1Y0tbzwAurFmIYpjcObv5axGVOtcTlB0b2UKMd2echo08MgN7jO8WQZSSysvfisFSQ==}
@@ -3096,6 +3104,11 @@ snapshots:
   '@nolyfill/is-core-module@1.0.39': {}
 
   '@pkgr/core@0.2.9': {}
+
+  '@praha/byethrow@0.8.2(typescript@5.9.3)':
+    dependencies:
+      '@standard-schema/spec': 1.1.0
+      typescript: 5.9.3
 
   '@rollup/rollup-android-arm-eabi@4.53.4':
     optional: true
