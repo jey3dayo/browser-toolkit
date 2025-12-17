@@ -42,9 +42,7 @@ export function parseDateOnlyToYyyyMmDd(value: string): string | null {
     'MM-dd',
     'M月d日',
   ]);
-  if (!parsed) return null;
-
-  return format(parsed, 'yyyyMMdd');
+  return parsed ? formatLocalYyyyMmDdFromDate(parsed) : null;
 }
 
 export function parseDateTimeLoose(value: string): Date | null {
@@ -115,14 +113,17 @@ export function formatLocalYyyyMmDdFromDate(date: Date): string | null {
   return format(date, 'yyyyMMdd');
 }
 
+function parseYyyyMmDdOrNull(value: string): Date | null {
+  if (!/^\d{8}$/.test(value)) return null;
+  const parsed = parse(value, 'yyyyMMdd', new Date());
+  return isValid(parsed) ? parsed : null;
+}
+
 export function nextDateYyyyMmDd(yyyymmdd: string): string {
   const raw = yyyymmdd.trim();
-  if (!/^\d{8}$/.test(raw)) return raw;
-
-  const parsed = parse(raw, 'yyyyMMdd', new Date());
-  if (!isValid(parsed)) return raw;
-
-  return format(addDays(parsed, 1), 'yyyyMMdd');
+  const parsed = parseYyyyMmDdOrNull(raw);
+  const next = parsed ? formatLocalYyyyMmDdFromDate(addDays(parsed, 1)) : null;
+  return next ?? raw;
 }
 
 export function addHours(date: Date, hours: number): Date {

@@ -1,17 +1,17 @@
 // Content Script - Webページに注入される
 
+import type { SummarySource } from './shared_types';
+
 (() => {
   type StorageData = {
     domainPatterns?: string[];
     autoEnableSort?: boolean;
   };
 
-  type SummarySource = 'selection' | 'page';
-
   type ContentRequest =
     | { action: 'enableTableSort' }
     | { action: 'showNotification'; message: string }
-    | { action: 'getSummaryTargetText' }
+    | { action: 'getSummaryTargetText'; ignoreSelection?: boolean }
     | {
         action: 'showSummaryOverlay';
         status: 'loading' | 'ready' | 'error';
@@ -126,7 +126,7 @@
         case 'getSummaryTargetText': {
           void (async () => {
             try {
-              const target = await getSummaryTargetText();
+              const target = await getSummaryTargetText({ ignoreSelection: request.ignoreSelection });
               sendResponse(target);
             } catch {
               sendResponse({
@@ -323,37 +323,39 @@
     document.head.appendChild(style);
   }
 
-  async function getSummaryTargetText(): Promise<SummaryTarget> {
-    const selection = window.getSelection()?.toString().trim() ?? '';
-    if (selection) {
-      return {
-        text: selection,
-        source: 'selection',
-        title: document.title ?? '',
-        url: window.location.href,
-      };
-    }
+  async function getSummaryTargetText(options?: { ignoreSelection?: boolean }): Promise<SummaryTarget> {
+    if (!options?.ignoreSelection) {
+      const selection = window.getSelection()?.toString().trim() ?? '';
+      if (selection) {
+        return {
+          text: selection,
+          source: 'selection',
+          title: document.title ?? '',
+          url: window.location.href,
+        };
+      }
 
-    let storedSelection: { selectedText?: string; selectedTextUpdatedAt?: number } = {};
-    try {
-      storedSelection = (await storageLocalGet(['selectedText', 'selectedTextUpdatedAt'])) as {
-        selectedText?: string;
-        selectedTextUpdatedAt?: number;
-      };
-    } catch {
-      storedSelection = {};
-    }
-    const fallbackSelection = storedSelection.selectedText?.trim() ?? '';
-    const updatedAt = storedSelection.selectedTextUpdatedAt ?? 0;
-    const isFresh = Date.now() - updatedAt <= 30_000;
+      let storedSelection: { selectedText?: string; selectedTextUpdatedAt?: number } = {};
+      try {
+        storedSelection = (await storageLocalGet(['selectedText', 'selectedTextUpdatedAt'])) as {
+          selectedText?: string;
+          selectedTextUpdatedAt?: number;
+        };
+      } catch {
+        storedSelection = {};
+      }
+      const fallbackSelection = storedSelection.selectedText?.trim() ?? '';
+      const updatedAt = storedSelection.selectedTextUpdatedAt ?? 0;
+      const isFresh = Date.now() - updatedAt <= 30_000;
 
-    if (isFresh && fallbackSelection) {
-      return {
-        text: fallbackSelection,
-        source: 'selection',
-        title: document.title ?? '',
-        url: window.location.href,
-      };
+      if (isFresh && fallbackSelection) {
+        return {
+          text: fallbackSelection,
+          source: 'selection',
+          title: document.title ?? '',
+          url: window.location.href,
+        };
+      }
     }
 
     const bodyText = document.body?.innerText ?? '';

@@ -57,5 +57,5 @@ run = "pnpm run clean"
 
 [tasks.ci]
 description = "CI 相当のチェック (lint + build)"
-depends = ["lint", "test", "build"]
+depends = ["format", "lint", "test", "build"]
 run = "echo '✅ CI checks completed'"

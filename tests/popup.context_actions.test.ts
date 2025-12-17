@@ -192,7 +192,9 @@ describe('popup context actions (src/popup.ts)', () => {
 
     expect(dom.window.document.getElementById('action-output-title')?.textContent).toBe('要約');
     expect((dom.window.document.getElementById('action-output') as HTMLTextAreaElement | null)?.value).toBe('summary');
-    expect((dom.window.document.getElementById('copy-action-output') as HTMLButtonElement | null)?.disabled).toBe(false);
+    expect((dom.window.document.getElementById('copy-action-output') as HTMLButtonElement | null)?.disabled).toBe(
+      false,
+    );
     expect(dom.window.document.getElementById('action-source-chip')?.textContent).toBe('選択範囲');
 
     expect(chromeStub.runtime.sendMessage).toHaveBeenCalled();
@@ -211,4 +213,3 @@ describe('popup context actions (src/popup.ts)', () => {
     expect((dom.window.document.getElementById('action-output') as HTMLTextAreaElement | null)?.value).toBe('');
   });
 });
-

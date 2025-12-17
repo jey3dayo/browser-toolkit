@@ -1,19 +1,14 @@
 // Background Service Worker
 
 import { Result } from '@praha/byethrow';
-import {
-  addHours,
-  formatLocalYyyyMmDdFromDate,
-  formatUtcDateTimeFromDate,
-  nextDateYyyyMmDd,
-  parseDateOnlyToYyyyMmDd,
-  parseDateTimeLoose,
-} from './date_utils';
+import { DEFAULT_CONTEXT_ACTIONS, normalizeContextActions, type ContextAction } from './context_actions';
+import { parseDateOnlyToYyyyMmDd, parseDateTimeLoose } from './date_utils';
+import { computeEventDateRange } from './event_date_range';
+import type { ExtractedEvent, SummarySource } from './shared_types';
+import type { LocalStorageData } from './storage/types';
 import { toErrorMessage } from './utils/errors';
 import { safeParseJsonObject } from './utils/json';
 import { fetchOpenAiChatCompletionOk, fetchOpenAiChatCompletionText } from './utils/openai';
-
-type SummarySource = 'selection' | 'page';
 
 type SummaryTarget = {
   text: string;
@@ -22,18 +17,9 @@ type SummaryTarget = {
   url?: string;
 };
 
-type ContextActionKind = 'text' | 'event';
-
-type ContextAction = {
-  id: string;
-  title: string;
-  kind: ContextActionKind;
-  prompt: string;
-};
-
 type ContentScriptMessage =
   | { action: 'showNotification'; message: string }
-  | { action: 'getSummaryTargetText' }
+  | { action: 'getSummaryTargetText'; ignoreSelection?: boolean }
   | {
       action: 'showSummaryOverlay';
       status: 'loading' | 'ready' | 'error';
@@ -60,56 +46,12 @@ type RunContextActionResponse =
     }
   | { ok: false; error: string };
 
-type LocalStorageData = {
-  openaiApiToken?: string;
-  openaiCustomPrompt?: string;
-};
-
 type SyncStorageData = {
   contextActions?: ContextAction[];
 };
 
-type ExtractedEvent = {
-  title: string;
-  start: string;
-  end?: string;
-  allDay?: boolean;
-  location?: string;
-  description?: string;
-};
-
 const CONTEXT_MENU_ROOT_ID = 'mbu-root';
 const CONTEXT_MENU_ACTION_PREFIX = 'mbu-action:';
-
-const DEFAULT_CONTEXT_ACTIONS: ContextAction[] = [
-  {
-    id: 'builtin:summarize',
-    title: '要約',
-    kind: 'text',
-    prompt: [
-      '次のテキストを日本語で要約してください。',
-      '',
-      '要件:',
-      '- 重要ポイントを箇条書き(3〜7個)',
-      '- 最後に一文で結論/要約',
-      '- 事実と推測を混同しない',
-      '',
-      '{{text}}',
-    ].join('\n'),
-  },
-  {
-    id: 'builtin:translate-ja',
-    title: '日本語に翻訳',
-    kind: 'text',
-    prompt: ['次のテキストを自然な日本語に翻訳してください。', '', '{{text}}'].join('\n'),
-  },
-  {
-    id: 'builtin:calendar',
-    title: 'カレンダー登録する',
-    kind: 'event',
-    prompt: '',
-  },
-];
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log('My Browser Utils installed');
@@ -195,7 +137,7 @@ chrome.contextMenus.onClicked.addListener((info: chrome.contextMenus.OnClickData
             title: tab?.title,
             url: tab?.url,
           }
-        : await sendMessageToTab(tabId, { action: 'getSummaryTargetText' });
+        : await sendMessageToTab(tabId, { action: 'getSummaryTargetText', ignoreSelection: true });
 
       const resolvedSuffix = target.source === 'selection' ? '選択範囲' : 'ページ本文';
       const resolvedTitle = `${action.title}（${resolvedSuffix}）`;
@@ -383,6 +325,7 @@ chrome.runtime.onMessage.addListener(
         try {
           const target = await sendMessageToTab<ContentScriptMessage, SummaryTarget>(request.tabId, {
             action: 'getSummaryTargetText',
+            ignoreSelection: true,
           });
 
           const result = await summarizeWithOpenAI(target);
@@ -641,22 +584,6 @@ async function summarizeWithOpenAI(target: SummaryTarget): Promise<BackgroundRes
 async function loadContextActions(): Promise<ContextAction[]> {
   const data = (await storageSyncGet(['contextActions'])) as SyncStorageData;
   return normalizeContextActions(data.contextActions);
-}
-
-function normalizeContextActions(value: unknown): ContextAction[] {
-  if (!Array.isArray(value)) return [];
-  const actions: ContextAction[] = [];
-  value.forEach(item => {
-    if (typeof item !== 'object' || item === null) return;
-    const raw = item as Partial<ContextAction>;
-    const id = typeof raw.id === 'string' ? raw.id.trim() : '';
-    const title = typeof raw.title === 'string' ? raw.title.trim() : '';
-    const kind = raw.kind === 'event' ? 'event' : raw.kind === 'text' ? 'text' : null;
-    const prompt = typeof raw.prompt === 'string' ? raw.prompt : '';
-    if (!id || !title || !kind) return;
-    actions.push({ id, title, kind, prompt });
-  });
-  return actions;
 }
 
 async function runPromptActionWithOpenAI(
@@ -961,40 +888,12 @@ function buildGoogleCalendarUrl(event: ExtractedEvent): string | null {
   const details = event.description?.trim() || '';
   const location = event.location?.trim() || '';
 
-  let dates = '';
-  const startRaw = event.start.trim();
-  const endRaw = event.end?.trim() || '';
-
-  const startDateOnly = parseDateOnlyToYyyyMmDd(startRaw);
-  const endDateOnly = endRaw ? parseDateOnlyToYyyyMmDd(endRaw) : null;
-
-  if (event.allDay === true || startDateOnly) {
-    const startDateFromTime = event.allDay === true && !startDateOnly ? parseDateTimeLoose(startRaw) : null;
-    const startDate = startDateOnly || (startDateFromTime ? formatLocalYyyyMmDdFromDate(startDateFromTime) : null);
-    if (!startDate) return null;
-    const endDateFromTime = event.allDay === true && endRaw && !endDateOnly ? parseDateTimeLoose(endRaw) : null;
-    let endDate =
-      endDateOnly ||
-      (endDateFromTime ? formatLocalYyyyMmDdFromDate(endDateFromTime) : null) ||
-      nextDateYyyyMmDd(startDate);
-    if (endDate.length !== 8) return null;
-    if (endDate <= startDate) {
-      endDate = nextDateYyyyMmDd(startDate);
-    }
-    dates = `${startDate}/${endDate}`;
-  } else {
-    const startDate = parseDateTimeLoose(startRaw);
-    if (!startDate) return null;
-    let endDate = endRaw ? parseDateTimeLoose(endRaw) : null;
-    if (!endDate || endDate.getTime() <= startDate.getTime()) {
-      endDate = addHours(startDate, 1);
-    }
-    const startUtc = formatUtcDateTimeFromDate(startDate);
-    if (!endDate) return null;
-    const endUtc = formatUtcDateTimeFromDate(endDate);
-    if (!startUtc || !endUtc) return null;
-    dates = `${startUtc}/${endUtc}`;
-  }
+  const range = computeEventDateRange({ start: event.start, end: event.end, allDay: event.allDay });
+  if (!range) return null;
+  const dates =
+    range.kind === 'allDay'
+      ? `${range.startYyyyMmDd}/${range.endYyyyMmDdExclusive}`
+      : `${range.startUtc}/${range.endUtc}`;
 
   const params = new URLSearchParams({
     action: 'TEMPLATE',

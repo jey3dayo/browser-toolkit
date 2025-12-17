@@ -1,25 +1,22 @@
 import { Result } from '@praha/byethrow';
 import {
-  addHours,
-  formatLocalYyyyMmDdFromDate,
-  formatUtcDateTimeFromDate,
-  nextDateYyyyMmDd,
-  parseDateOnlyToYyyyMmDd,
-  parseDateTimeLoose,
-} from './date_utils';
+  DEFAULT_CONTEXT_ACTIONS,
+  normalizeContextActions,
+  type ContextAction,
+  type ContextActionKind,
+} from './context_actions';
+import { formatUtcDateTimeFromDate } from './date_utils';
+import { computeEventDateRange } from './event_date_range';
 import { setupPopupNavigation } from './popup/navigation';
 import { ensureOpenAiTokenConfigured } from './popup/token_guard';
+import type { ExtractedEvent, SummarySource } from './shared_types';
+import type { LocalStorageData } from './storage/types';
 
 (() => {
   type SyncStorageData = {
     domainPatterns?: string[];
     autoEnableSort?: boolean;
     contextActions?: ContextAction[];
-  };
-
-  type LocalStorageData = {
-    openaiApiToken?: string;
-    openaiCustomPrompt?: string;
   };
 
   type EnableResponse = {
@@ -30,17 +27,6 @@ import { ensureOpenAiTokenConfigured } from './popup/token_guard';
 
   type PopupToContentMessage = {
     action: 'enableTableSort';
-  };
-
-  type SummarySource = 'selection' | 'page';
-
-  type ContextActionKind = 'text' | 'event';
-
-  type ContextAction = {
-    id: string;
-    title: string;
-    kind: ContextActionKind;
-    prompt: string;
   };
 
   type PopupToBackgroundTestTokenMessage = {
@@ -70,45 +56,6 @@ import { ensureOpenAiTokenConfigured } from './popup/token_guard';
 
   const isExtensionPage = window.location.protocol === 'chrome-extension:';
   const fallbackStoragePrefix = 'mbu:popup:';
-
-  type ExtractedEvent = {
-    title: string;
-    start: string;
-    end?: string;
-    allDay?: boolean;
-    location?: string;
-    description?: string;
-  };
-
-  const DEFAULT_CONTEXT_ACTIONS: ContextAction[] = [
-    {
-      id: 'builtin:summarize',
-      title: '要約',
-      kind: 'text',
-      prompt: [
-        '次のテキストを日本語で要約してください。',
-        '',
-        '要件:',
-        '- 重要ポイントを箇条書き(3〜7個)',
-        '- 最後に一文で結論/要約',
-        '- 事実と推測を混同しない',
-        '',
-        '{{text}}',
-      ].join('\n'),
-    },
-    {
-      id: 'builtin:translate-ja',
-      title: '日本語に翻訳',
-      kind: 'text',
-      prompt: ['次のテキストを自然な日本語に翻訳してください。', '', '{{text}}'].join('\n'),
-    },
-    {
-      id: 'builtin:calendar',
-      title: 'カレンダー登録する',
-      kind: 'event',
-      prompt: '',
-    },
-  ];
 
   const start = (): void => {
     void initializePopup().catch(error => {
@@ -868,22 +815,6 @@ import { ensureOpenAiTokenConfigured } from './popup/token_guard';
     return div.innerHTML;
   }
 
-  function normalizeContextActions(value: unknown): ContextAction[] {
-    if (!Array.isArray(value)) return [];
-    const actions: ContextAction[] = [];
-    value.forEach(item => {
-      if (typeof item !== 'object' || item === null) return;
-      const raw = item as Partial<ContextAction>;
-      const id = typeof raw.id === 'string' ? raw.id.trim() : '';
-      const title = typeof raw.title === 'string' ? raw.title.trim() : '';
-      const kind = raw.kind === 'event' ? 'event' : raw.kind === 'text' ? 'text' : null;
-      const prompt = typeof raw.prompt === 'string' ? raw.prompt : '';
-      if (!id || !title || !kind) return;
-      actions.push({ id, title, kind, prompt });
-    });
-    return actions;
-  }
-
   function sanitizeFileName(name: string): string {
     const trimmed = name.trim() || 'event';
     return trimmed.replace(/[\\/:*?"<>|]/g, '_').slice(0, 80) || 'event';
@@ -893,7 +824,6 @@ import { ensureOpenAiTokenConfigured } from './popup/token_guard';
     const title = event.title?.trim() || '予定';
     const description = event.description?.trim() || '';
     const location = event.location?.trim() || '';
-    const toUtcDateTimeFromDate = (date: Date): string | null => formatUtcDateTimeFromDate(date);
 
     const escapeIcsText = (value: string): string =>
       value.replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r/g, '');
@@ -908,52 +838,19 @@ import { ensureOpenAiTokenConfigured } from './popup/token_guard';
       return out;
     };
 
-    const startRaw = event.start?.trim() || '';
-    if (!startRaw) return null;
+    const range = computeEventDateRange({ start: event.start ?? '', end: event.end, allDay: event.allDay });
+    if (!range) return null;
 
-    let dtStartLine = '';
-    let dtEndLine = '';
-
-    const startDateOnly = parseDateOnlyToYyyyMmDd(startRaw);
-    const endRaw = event.end?.trim() || '';
-    const endDateOnly = endRaw ? parseDateOnlyToYyyyMmDd(endRaw) : null;
-
-    if (event.allDay === true || startDateOnly) {
-      const startDateFromTime = event.allDay === true && !startDateOnly ? parseDateTimeLoose(startRaw) : null;
-      const startDate = startDateOnly || (startDateFromTime ? formatLocalYyyyMmDdFromDate(startDateFromTime) : null);
-      if (!startDate) return null;
-      const endDateFromTime = event.allDay === true && endRaw && !endDateOnly ? parseDateTimeLoose(endRaw) : null;
-      let endDate =
-        endDateOnly ||
-        (endDateFromTime ? formatLocalYyyyMmDdFromDate(endDateFromTime) : null) ||
-        nextDateYyyyMmDd(startDate);
-      if (endDate.length !== 8) return null;
-      if (endDate <= startDate) {
-        endDate = nextDateYyyyMmDd(startDate);
-      }
-      dtStartLine = `DTSTART;VALUE=DATE:${startDate}`;
-      dtEndLine = `DTEND;VALUE=DATE:${endDate}`;
-    } else {
-      const startDate = parseDateTimeLoose(startRaw);
-      if (!startDate) return null;
-      const startUtc = toUtcDateTimeFromDate(startDate);
-      if (!startUtc) return null;
-      let endDate = endRaw ? parseDateTimeLoose(endRaw) : null;
-      if (!endDate || endDate.getTime() <= startDate.getTime()) {
-        endDate = addHours(startDate, 1);
-      }
-      if (!endDate) return null;
-      const endUtc = toUtcDateTimeFromDate(endDate);
-      if (!endUtc) return null;
-      dtStartLine = `DTSTART:${startUtc}`;
-      dtEndLine = `DTEND:${endUtc}`;
-    }
+    const dtStartLine =
+      range.kind === 'allDay' ? `DTSTART;VALUE=DATE:${range.startYyyyMmDd}` : `DTSTART:${range.startUtc}`;
+    const dtEndLine =
+      range.kind === 'allDay' ? `DTEND;VALUE=DATE:${range.endYyyyMmDdExclusive}` : `DTEND:${range.endUtc}`;
 
     const uid =
       typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
         ? crypto.randomUUID()
         : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    const dtStamp = toUtcDateTimeFromDate(new Date());
+    const dtStamp = formatUtcDateTimeFromDate(new Date());
     if (!dtStamp) return null;
 
     const lines = [

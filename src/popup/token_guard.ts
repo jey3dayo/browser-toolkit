@@ -1,8 +1,5 @@
 import { Result } from '@praha/byethrow';
-
-type LocalStorageData = {
-  openaiApiToken?: string;
-};
+import type { LocalStorageData } from '../storage/types';
 
 export type TokenGuardDeps = {
   storageLocalGet: (keys: string[]) => Promise<unknown>;
