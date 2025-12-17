@@ -113,32 +113,33 @@
 
   chrome.runtime.onMessage.addListener(
     (request: ContentRequest, _sender: chrome.runtime.MessageSender, sendResponse: (response?: unknown) => void) => {
-      if (request.action === 'enableTableSort') {
-        enableTableSort();
-        startTableObserver();
-        sendResponse({ success: true });
+      switch (request.action) {
+        case 'enableTableSort': {
+          enableTableSort();
+          startTableObserver();
+          sendResponse({ success: true });
+          return;
+        }
+        case 'showNotification': {
+          showNotification(request.message);
+          return;
+        }
+        case 'getSummaryTargetText': {
+          void (async () => {
+            const target = await getSummaryTargetText();
+            sendResponse(target);
+          })();
+          return true;
+        }
+        case 'showSummaryOverlay': {
+          showSummaryOverlay(request);
+          return;
+        }
+        case 'showActionOverlay': {
+          showActionOverlay(request);
+          return;
+        }
       }
-
-      if (request.action === 'showNotification') {
-        showNotification(request.message);
-      }
-
-      if (request.action === 'getSummaryTargetText') {
-        void (async () => {
-          const target = await getSummaryTargetText();
-          sendResponse(target);
-        })();
-      }
-
-      if (request.action === 'showSummaryOverlay') {
-        showSummaryOverlay(request);
-      }
-
-      if (request.action === 'showActionOverlay') {
-        showActionOverlay(request);
-      }
-
-      return true;
     },
   );
 
