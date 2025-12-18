@@ -506,6 +506,21 @@ import { ensureShadowUiBaseStyles } from './ui/styles';
       flex-wrap: wrap;
     }
 
+    .mbu-overlay-primary-block {
+      position: relative;
+    }
+
+    .mbu-overlay-primary-block .mbu-overlay-copy {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      margin-left: 0;
+    }
+
+    .mbu-overlay-primary-block .mbu-overlay-primary-text {
+      padding-right: 44px;
+    }
+
     .mbu-overlay-status {
       font-size: 12px;
       font-weight: 750;

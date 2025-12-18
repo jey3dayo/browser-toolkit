@@ -247,32 +247,30 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
         </div>
 
         <div className="mbu-overlay-body">
-          <div className="mbu-overlay-body-actions">
-            {props.viewModel.mode === 'event' ? (
-              <>
-                <button className="mbu-overlay-action" disabled={!canOpenCalendar} onClick={openCalendar} type="button">
-                  Googleカレンダーに登録
-                </button>
-                <button className="mbu-overlay-action" disabled={!canDownloadIcs} onClick={downloadIcs} type="button">
-                  .ics
-                </button>
-              </>
-            ) : null}
-            <button
-              aria-label="コピー"
-              className="mbu-overlay-action mbu-overlay-icon-button mbu-overlay-copy"
-              data-testid="overlay-copy"
-              disabled={!canCopyPrimary}
-              onClick={() => void copyPrimary()}
-              title="コピー"
-              type="button"
-            >
-              <svg aria-hidden="true" viewBox="0 0 24 24">
-                <rect height="13" rx="2" width="13" x="9" y="9" />
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-              </svg>
-            </button>
-          </div>
+          {props.viewModel.mode === 'event' ? (
+            <div className="mbu-overlay-body-actions">
+              <button className="mbu-overlay-action" disabled={!canOpenCalendar} onClick={openCalendar} type="button">
+                Googleカレンダーに登録
+              </button>
+              <button className="mbu-overlay-action" disabled={!canDownloadIcs} onClick={downloadIcs} type="button">
+                .ics
+              </button>
+              <button
+                aria-label="コピー"
+                className="mbu-overlay-action mbu-overlay-icon-button mbu-overlay-copy"
+                data-testid="overlay-copy"
+                disabled={!canCopyPrimary}
+                onClick={() => void copyPrimary()}
+                title="コピー"
+                type="button"
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <rect height="13" rx="2" width="13" x="9" y="9" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
+              </button>
+            </div>
+          ) : null}
           {isReadyEvent ? (
             <>
               <table className="mbu-overlay-event-table">
@@ -308,7 +306,23 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
           ) : (
             <>
               {statusLabel ? <div className="mbu-overlay-status">{statusLabel}</div> : null}
-              <pre className="mbu-overlay-primary-text">{props.viewModel.primary}</pre>
+              <div className="mbu-overlay-primary-block">
+                <button
+                  aria-label="コピー"
+                  className="mbu-overlay-action mbu-overlay-icon-button mbu-overlay-copy"
+                  data-testid="overlay-copy"
+                  disabled={!canCopyPrimary}
+                  onClick={() => void copyPrimary()}
+                  title="コピー"
+                  type="button"
+                >
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <rect height="13" rx="2" width="13" x="9" y="9" />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                  </svg>
+                </button>
+                <pre className="mbu-overlay-primary-text">{props.viewModel.primary}</pre>
+              </div>
               {secondaryText ? <pre className="mbu-overlay-secondary-text">{secondaryText}</pre> : null}
               <AuxTextDisclosure summary="選択したテキスト（確認用）" text={selectionText} />
             </>
