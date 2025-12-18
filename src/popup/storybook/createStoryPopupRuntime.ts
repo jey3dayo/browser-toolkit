@@ -1,10 +1,14 @@
 import type { LocalStorageData } from '../../storage/types';
-import type { PopupRuntime, SyncStorageData } from '../runtime';
+import type { PopupRuntime, RunContextActionRequest, SyncStorageData, TestOpenAiTokenRequest } from '../runtime';
 
 type Options = {
   sync?: Partial<SyncStorageData>;
   local?: Partial<LocalStorageData>;
   activeTabId?: number | null;
+  background?: {
+    testOpenAiToken?: (message: TestOpenAiTokenRequest) => unknown | Promise<unknown>;
+    runContextAction?: (message: RunContextActionRequest) => unknown | Promise<unknown>;
+  };
 };
 
 export function createStoryPopupRuntime(options: Options = {}): PopupRuntime {
@@ -65,10 +69,16 @@ export function createStoryPopupRuntime(options: Options = {}): PopupRuntime {
       const action = typeof message === 'object' && message !== null ? (message as { action?: unknown }).action : null;
 
       if (action === 'testOpenAiToken') {
+        if (options.background?.testOpenAiToken) {
+          return (await options.background.testOpenAiToken(message as TestOpenAiTokenRequest)) as never;
+        }
         return { ok: true } as never;
       }
 
       if (action === 'runContextAction') {
+        if (options.background?.runContextAction) {
+          return (await options.background.runContextAction(message as RunContextActionRequest)) as never;
+        }
         return { ok: false, error: 'storybook runtime: not implemented' } as never;
       }
 

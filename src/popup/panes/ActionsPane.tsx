@@ -12,6 +12,9 @@ import type { Notifier } from '../../ui/toast';
 import type { PaneId } from '../panes';
 import type { PopupRuntime, RunContextActionRequest, RunContextActionResponse } from '../runtime';
 import { ensureOpenAiTokenConfigured } from '../token_guard';
+import { ActionButtons } from './actions/ActionButtons';
+import { ActionEditorPanel } from './actions/ActionEditorPanel';
+import { ActionOutputPanel } from './actions/ActionOutputPanel';
 
 type OutputState =
   | { status: 'idle' }
@@ -76,6 +79,14 @@ export function ActionsPane(props: Props): React.JSX.Element {
   const canCopyOutput = Boolean(outputText.trim());
   const canOpenCalendar = output.status === 'ready' && output.mode === 'event' && Boolean(output.calendarUrl?.trim());
   const canDownloadIcs = output.status === 'ready' && output.mode === 'event' && Boolean(output.event);
+  const outputValue =
+    output.status === 'ready'
+      ? output.text
+      : output.status === 'running'
+        ? '実行中...'
+        : output.status === 'error'
+          ? output.message
+          : '';
 
   useEffect(() => {
     let cancelled = false;
@@ -368,174 +379,61 @@ export function ActionsPane(props: Props): React.JSX.Element {
         <code>{'{{source}}'}</code>
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
-        {actions.map(action => (
-          <button
-            data-action-id={action.id}
-            key={action.id}
-            onClick={() => {
-              void runAction(action.id);
-            }}
-            type="button"
-          >
-            {action.title}
-          </button>
-        ))}
-      </div>
+      <ActionButtons
+        actions={actions}
+        onRun={actionId => {
+          void runAction(actionId);
+        }}
+      />
 
-      <div style={{ marginTop: 16 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-          <div style={{ fontWeight: 700 }}>{outputTitle}</div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <button
-              data-testid="copy-output"
-              disabled={!canCopyOutput}
-              onClick={() => {
-                void copyOutput();
-              }}
-              type="button"
-            >
-              コピー
-            </button>
-            <button
-              data-testid="open-calendar"
-              disabled={!canOpenCalendar}
-              onClick={() => {
-                openCalendar();
-              }}
-              type="button"
-            >
-              カレンダー
-            </button>
-            <button
-              data-testid="download-ics"
-              disabled={!canDownloadIcs}
-              onClick={() => {
-                downloadIcs();
-              }}
-              type="button"
-            >
-              .ics
-            </button>
-          </div>
-        </div>
-        <textarea
-          data-testid="action-output"
-          readOnly
-          style={{ width: '100%', minHeight: 120 }}
-          value={
-            output.status === 'ready'
-              ? output.text
-              : output.status === 'running'
-                ? '実行中...'
-                : output.status === 'error'
-                  ? output.message
-                  : ''
-          }
-        />
-      </div>
+      <ActionOutputPanel
+        canCopy={canCopyOutput}
+        canDownloadIcs={canDownloadIcs}
+        canOpenCalendar={canOpenCalendar}
+        onCopy={() => {
+          void copyOutput();
+        }}
+        onDownloadIcs={() => {
+          downloadIcs();
+        }}
+        onOpenCalendar={() => {
+          openCalendar();
+        }}
+        title={outputTitle}
+        value={outputValue}
+      />
 
-      <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.12)' }}>
-        <h3 style={{ margin: 0, fontSize: 14 }}>アクション編集</h3>
-
-        <div style={{ marginTop: 10, display: 'grid', gap: 10 }}>
-          <label style={{ display: 'grid', gap: 6 }}>
-            <span style={{ fontSize: 12, opacity: 0.9 }}>対象</span>
-            <select
-              data-testid="action-editor-select"
-              onChange={event => {
-                selectActionForEdit(event.currentTarget.value);
-              }}
-              value={editorId}
-            >
-              <option value="">新規作成</option>
-              {actions.map(action => (
-                <option key={action.id} value={action.id}>
-                  {action.title}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label style={{ display: 'grid', gap: 6 }}>
-            <span style={{ fontSize: 12, opacity: 0.9 }}>タイトル</span>
-            <input
-              data-testid="action-editor-title"
-              onChange={event => {
-                setEditorTitle(event.currentTarget.value);
-              }}
-              type="text"
-              value={editorTitle}
-            />
-          </label>
-
-          <label style={{ display: 'grid', gap: 6 }}>
-            <span style={{ fontSize: 12, opacity: 0.9 }}>種類</span>
-            <select
-              data-testid="action-editor-kind"
-              onChange={event => {
-                setEditorKind(coerceKind(event.currentTarget.value) ?? 'text');
-              }}
-              value={editorKind}
-            >
-              <option value="text">text</option>
-              <option value="event">event</option>
-            </select>
-          </label>
-
-          <label style={{ display: 'grid', gap: 6 }}>
-            <span style={{ fontSize: 12, opacity: 0.9 }}>プロンプト</span>
-            <textarea
-              data-testid="action-editor-prompt"
-              onChange={event => {
-                setEditorPrompt(event.currentTarget.value);
-              }}
-              rows={6}
-              value={editorPrompt}
-            />
-          </label>
-
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            <button
-              data-testid="action-editor-save"
-              onClick={() => {
-                void saveEditor();
-              }}
-              type="button"
-            >
-              保存
-            </button>
-            <button
-              data-testid="action-editor-delete"
-              disabled={!editorId}
-              onClick={() => {
-                void deleteEditor();
-              }}
-              type="button"
-            >
-              削除
-            </button>
-            <button
-              data-testid="action-editor-clear"
-              onClick={() => {
-                selectActionForEdit('');
-              }}
-              type="button"
-            >
-              クリア
-            </button>
-            <button
-              data-testid="action-editor-reset"
-              onClick={() => {
-                void resetActions();
-              }}
-              type="button"
-            >
-              デフォルトに戻す
-            </button>
-          </div>
-        </div>
-      </div>
+      <ActionEditorPanel
+        actions={actions}
+        editorId={editorId}
+        editorKind={editorKind}
+        editorPrompt={editorPrompt}
+        editorTitle={editorTitle}
+        onChangeKind={next => {
+          setEditorKind(next);
+        }}
+        onChangePrompt={next => {
+          setEditorPrompt(next);
+        }}
+        onChangeTitle={next => {
+          setEditorTitle(next);
+        }}
+        onClear={() => {
+          selectActionForEdit('');
+        }}
+        onDelete={() => {
+          void deleteEditor();
+        }}
+        onReset={() => {
+          void resetActions();
+        }}
+        onSave={() => {
+          void saveEditor();
+        }}
+        onSelectActionId={nextId => {
+          selectActionForEdit(nextId);
+        }}
+      />
     </div>
   );
 }
