@@ -7,9 +7,10 @@ type Props = {
 
 export function ActionButtons(props: Props): React.JSX.Element {
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
+    <div className="action-buttons">
       {props.actions.map(action => (
         <button
+          className="btn btn-ghost btn-small"
           data-action-id={action.id}
           key={action.id}
           onClick={() => {

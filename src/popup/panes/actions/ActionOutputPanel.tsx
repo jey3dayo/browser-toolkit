@@ -11,11 +11,12 @@ type Props = {
 
 export function ActionOutputPanel(props: Props): React.JSX.Element {
   return (
-    <div style={{ marginTop: 16 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-        <div style={{ fontWeight: 700 }}>{props.title}</div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+    <section className="output-panel">
+      <div className="row-between">
+        <div className="meta-title">{props.title}</div>
+        <div className="button-row">
           <button
+            className="btn btn-ghost btn-small"
             data-testid="copy-output"
             disabled={!props.canCopy}
             onClick={() => {
@@ -26,6 +27,7 @@ export function ActionOutputPanel(props: Props): React.JSX.Element {
             コピー
           </button>
           <button
+            className="btn btn-ghost btn-small"
             data-testid="open-calendar"
             disabled={!props.canOpenCalendar}
             onClick={() => {
@@ -36,6 +38,7 @@ export function ActionOutputPanel(props: Props): React.JSX.Element {
             カレンダー
           </button>
           <button
+            className="btn btn-ghost btn-small"
             data-testid="download-ics"
             disabled={!props.canDownloadIcs}
             onClick={() => {
@@ -47,7 +50,12 @@ export function ActionOutputPanel(props: Props): React.JSX.Element {
           </button>
         </div>
       </div>
-      <textarea data-testid="action-output" readOnly style={{ width: '100%', minHeight: 120 }} value={props.value} />
-    </div>
+      <textarea
+        className="summary-output summary-output--sm"
+        data-testid="action-output"
+        readOnly
+        value={props.value}
+      />
+    </section>
   );
 }

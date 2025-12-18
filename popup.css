@@ -672,7 +672,70 @@ body.no-js:has(.pane:target) .pane.active:not(:target) {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 12px;
+  margin-top: 0;
+}
+
+.stack {
+  display: grid;
+  gap: 10px;
+}
+
+.stack-sm {
+  display: grid;
+  gap: 8px;
+}
+
+.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.button-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pane-title {
+  margin: 0;
+  font-size: 16px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field-name {
+  font-size: 12px;
+  opacity: 0.9;
+  color: var(--text-sub);
+}
+
+.output-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.editor-panel {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  display: grid;
+  gap: 10px;
+}
+
+.editor-title {
+  margin: 0;
+  font-size: 14px;
+}
+
+.editor-form {
+  display: grid;
+  gap: 10px;
 }
 
 .hint code {
@@ -754,7 +817,7 @@ body.no-js:has(.pane:target) .pane.active:not(:target) {
 }
 
 .meta-title {
-  margin: 0 0 6px;
+  margin: 0;
   font-weight: 700;
 }
 
@@ -778,6 +841,11 @@ body.no-js:has(.pane:target) .pane.active:not(:target) {
   box-shadow: var(--shadow);
 }
 
+.card-stack {
+  display: grid;
+  gap: 14px;
+}
+
 .card.secondary {
   background: linear-gradient(
     140deg,
@@ -789,7 +857,7 @@ body.no-js:has(.pane:target) .pane.active:not(:target) {
 .card-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
 }
 
@@ -853,17 +921,19 @@ body.no-js:has(.pane:target) .pane.active:not(:target) {
 .pattern-input-group {
   display: flex;
   gap: 10px;
-  margin: 10px 0 12px;
+  margin: 0;
 }
 
 .pattern-input,
 .token-input {
   flex: 1;
+  min-width: 0;
   padding: 10px 12px;
   border-radius: 12px;
   border: 1px solid var(--line);
   background: var(--panel-soft);
   color: var(--text);
+  font: inherit;
   font-size: 14px;
 }
 
@@ -879,6 +949,8 @@ body.no-js:has(.pane:target) .pane.active:not(:target) {
   border-radius: 12px;
   padding: 10px;
   background: rgba(255, 255, 255, 0.02);
+  margin: 0;
+  list-style: none;
 }
 
 .pattern-item {
@@ -913,11 +985,6 @@ body.no-js:has(.pane:target) .pane.active:not(:target) {
   background: rgba(229, 115, 115, 0.25);
 }
 
-.empty-message {
-  margin: 0;
-  color: var(--text-sub);
-}
-
 .bullet-list {
   margin: 0;
   padding-left: 16px;
@@ -945,11 +1012,11 @@ body.no-js:has(.pane:target) .pane.active:not(:target) {
   width: 100%;
   min-height: 110px;
   padding: 12px;
-  margin-top: 10px;
   border-radius: 12px;
   border: 1px solid var(--line);
   background: var(--panel-soft);
   color: var(--text);
+  font: inherit;
   resize: vertical;
   line-height: 1.5;
   font-size: 13px;
@@ -963,14 +1030,18 @@ body.no-js:has(.pane:target) .pane.active:not(:target) {
   width: 100%;
   min-height: 160px;
   padding: 12px;
-  margin-top: 10px;
   border-radius: 12px;
   border: 1px solid var(--line);
   background: var(--panel-soft);
   color: var(--text);
+  font: inherit;
   resize: vertical;
   line-height: 1.5;
   font-size: 13px;
+}
+
+.summary-output--sm {
+  min-height: 120px;
 }
 
 .summary-output::placeholder {
@@ -985,7 +1056,7 @@ body.no-js:has(.pane:target) .pane.active:not(:target) {
 }
 
 .hint {
-  margin: 6px 0 0;
+  margin: 0;
   color: var(--text-sub);
   font-size: 12px;
   line-height: 1.5;
@@ -1000,8 +1071,23 @@ input[type="checkbox"] {
 }
 
 .empty-message {
-  font-size: 13px;
-  color: #999;
-  text-align: center;
-  margin: 16px 0;
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-sub);
+  line-height: 1.5;
+}
+
+.mbu-build-error {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 2147483647;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(229, 57, 53, 0.92);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
 }

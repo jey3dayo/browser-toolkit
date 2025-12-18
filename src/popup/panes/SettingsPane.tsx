@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { Input } from '@base-ui/react/input';
+import { useEffect, useId, useState } from 'react';
 import { DEFAULT_OPENAI_MODEL, normalizeOpenAiModel, OPENAI_MODEL_OPTIONS } from '../../openai/settings';
 import type { LocalStorageData } from '../../storage/types';
 import type { TestOpenAiTokenRequest, TestOpenAiTokenResponse } from '../runtime';
@@ -21,6 +22,8 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
   const [showToken, setShowToken] = useState(false);
   const [customPrompt, setCustomPrompt] = useState('');
   const [model, setModel] = useState(DEFAULT_OPENAI_MODEL);
+  const tokenInputId = useId();
+  const showTokenId = useId();
 
   useEffect(() => {
     let cancelled = false;
@@ -125,17 +128,19 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
   };
 
   return (
-    <div style={{ padding: 16, display: 'grid', gap: 16 }}>
-      <div>
-        <h2 style={{ margin: 0, fontSize: 16 }}>設定</h2>
-        <div style={{ marginTop: 8, fontSize: 12, opacity: 0.9 }}>OpenAI設定はこの端末のみ（同期されません）</div>
+    <div className="card card-stack">
+      <div className="stack-sm">
+        <h2 className="pane-title">設定</h2>
+        <p className="hint">OpenAI設定はこの端末のみ（同期されません）</p>
       </div>
 
-      <div style={{ display: 'grid', gap: 10 }}>
-        <label style={{ display: 'grid', gap: 6 }}>
-          <span style={{ fontSize: 12, opacity: 0.9 }}>OpenAI API Token</span>
-          <input
+      <section className="stack">
+        <label className="field" htmlFor={tokenInputId}>
+          <span className="field-name">OpenAI API Token</span>
+          <Input
+            className="token-input"
             data-testid="openai-token"
+            id={tokenInputId}
             onChange={event => setToken(event.currentTarget.value)}
             ref={props.tokenInputRef}
             type={showToken ? 'text' : 'password'}
@@ -143,33 +148,49 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
           />
         </label>
 
-        <label style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <input
+        <label className="checkbox-inline" htmlFor={showTokenId}>
+          <Input
             checked={showToken}
             data-testid="token-visible"
+            id={showTokenId}
             onChange={event => setShowToken(event.currentTarget.checked)}
             type="checkbox"
           />
           表示する
         </label>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          <button data-testid="token-save" onClick={() => void saveToken()} type="button">
+        <div className="button-row">
+          <button
+            className="btn btn-primary btn-small"
+            data-testid="token-save"
+            onClick={() => void saveToken()}
+            type="button"
+          >
             保存
           </button>
-          <button data-testid="token-clear" onClick={() => void clearToken()} type="button">
+          <button className="btn-delete" data-testid="token-clear" onClick={() => void clearToken()} type="button">
             削除
           </button>
-          <button data-testid="token-test" onClick={() => void testToken()} type="button">
+          <button
+            className="btn btn-ghost btn-small"
+            data-testid="token-test"
+            onClick={() => void testToken()}
+            type="button"
+          >
             トークン確認
           </button>
         </div>
-      </div>
+      </section>
 
-      <div style={{ display: 'grid', gap: 10 }}>
-        <label style={{ display: 'grid', gap: 6 }}>
-          <span style={{ fontSize: 12, opacity: 0.9 }}>モデル</span>
-          <select data-testid="openai-model" onChange={event => setModel(event.currentTarget.value)} value={model}>
+      <section className="stack">
+        <label className="field">
+          <span className="field-name">モデル</span>
+          <select
+            className="token-input"
+            data-testid="openai-model"
+            onChange={event => setModel(event.currentTarget.value)}
+            value={model}
+          >
             {OPENAI_MODEL_OPTIONS.map(option => (
               <option key={option} value={option}>
                 {option}
@@ -178,20 +199,31 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
           </select>
         </label>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          <button data-testid="model-save" onClick={() => void saveModel()} type="button">
+        <div className="button-row">
+          <button
+            className="btn btn-primary btn-small"
+            data-testid="model-save"
+            onClick={() => void saveModel()}
+            type="button"
+          >
             保存
           </button>
-          <button data-testid="model-reset" onClick={() => void resetModel()} type="button">
+          <button
+            className="btn btn-ghost btn-small"
+            data-testid="model-reset"
+            onClick={() => void resetModel()}
+            type="button"
+          >
             デフォルトに戻す
           </button>
         </div>
-      </div>
+      </section>
 
-      <div style={{ display: 'grid', gap: 10 }}>
-        <label style={{ display: 'grid', gap: 6 }}>
-          <span style={{ fontSize: 12, opacity: 0.9 }}>追加指示（任意）</span>
+      <section className="stack">
+        <label className="field">
+          <span className="field-name">追加指示（任意）</span>
           <textarea
+            className="prompt-input"
             data-testid="custom-prompt"
             onChange={event => setCustomPrompt(event.currentTarget.value)}
             rows={6}
@@ -199,15 +231,20 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
           />
         </label>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          <button data-testid="prompt-save" onClick={() => void savePrompt()} type="button">
+        <div className="button-row">
+          <button
+            className="btn btn-primary btn-small"
+            data-testid="prompt-save"
+            onClick={() => void savePrompt()}
+            type="button"
+          >
             保存
           </button>
-          <button data-testid="prompt-clear" onClick={() => void clearPrompt()} type="button">
+          <button className="btn-delete" data-testid="prompt-clear" onClick={() => void clearPrompt()} type="button">
             削除
           </button>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

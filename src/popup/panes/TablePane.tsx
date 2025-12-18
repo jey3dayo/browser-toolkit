@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { Input } from '@base-ui/react/input';
+import { useEffect, useId, useState } from 'react';
 import type { EnableTableSortMessage } from '../runtime';
 import type { PopupPaneBaseProps } from './types';
 
@@ -16,6 +17,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
   const [autoEnable, setAutoEnable] = useState(false);
   const [patterns, setPatterns] = useState<string[]>([]);
   const [patternInput, setPatternInput] = useState('');
+  const autoEnableId = useId();
 
   useEffect(() => {
     let cancelled = false;
@@ -98,58 +100,74 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
   };
 
   return (
-    <div style={{ padding: 16, display: 'grid', gap: 14 }}>
-      <div style={{ display: 'grid', gap: 8 }}>
-        <h2 style={{ margin: 0, fontSize: 16 }}>テーブルソート</h2>
-        <button data-testid="enable-table-sort" onClick={() => void enableNow()} type="button">
+    <div className="card card-stack">
+      <div className="row-between">
+        <h2 className="pane-title">テーブルソート</h2>
+        <button
+          className="btn btn-primary"
+          data-testid="enable-table-sort"
+          onClick={() => void enableNow()}
+          type="button"
+        >
           このタブで有効化
         </button>
       </div>
 
-      <label style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <input
+      <label className="checkbox-inline" htmlFor={autoEnableId}>
+        <Input
           checked={autoEnable}
           data-testid="auto-enable-sort"
+          id={autoEnableId}
           onChange={event => void toggleAutoEnable(event.currentTarget.checked)}
           type="checkbox"
         />
         自動で有効化する
       </label>
 
-      <div style={{ display: 'grid', gap: 10 }}>
-        <div style={{ fontSize: 12, opacity: 0.9 }}>
+      <div className="stack">
+        <div className="hint">
           URLパターン（<code>*</code>ワイルドカード対応 / protocolは無視）
         </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <input
+        <div className="pattern-input-group">
+          <Input
+            className="pattern-input"
             data-testid="pattern-input"
             onChange={event => setPatternInput(event.currentTarget.value)}
             placeholder="example.com/path*"
-            style={{ flex: 1, minWidth: 0 }}
             type="text"
             value={patternInput}
           />
-          <button data-testid="pattern-add" onClick={() => void addPattern()} type="button">
+          <button
+            className="btn btn-ghost btn-small"
+            data-testid="pattern-add"
+            onClick={() => void addPattern()}
+            type="button"
+          >
             追加
           </button>
         </div>
 
-        <ul style={{ margin: 0, paddingLeft: 16, display: 'grid', gap: 6 }}>
-          {patterns.map(pattern => (
-            <li key={pattern}>
-              <code>{pattern}</code>{' '}
-              <button
-                data-pattern-remove={pattern}
-                onClick={() => {
-                  void removePattern(pattern);
-                }}
-                type="button"
-              >
-                削除
-              </button>
-            </li>
-          ))}
-        </ul>
+        {patterns.length > 0 ? (
+          <ul aria-label="登録済みパターン" className="pattern-list">
+            {patterns.map(pattern => (
+              <li className="pattern-item" key={pattern}>
+                <code className="pattern-text">{pattern}</code>
+                <button
+                  className="btn-delete"
+                  data-pattern-remove={pattern}
+                  onClick={() => {
+                    void removePattern(pattern);
+                  }}
+                  type="button"
+                >
+                  削除
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="empty-message">まだパターンが登録されていません</p>
+        )}
       </div>
     </div>
   );

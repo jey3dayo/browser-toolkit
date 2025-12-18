@@ -1,3 +1,5 @@
+import { Input } from '@base-ui/react/input';
+import { useId } from 'react';
 import type { ContextAction, ContextActionKind } from '../../../context_actions';
 
 type Props = {
@@ -17,14 +19,17 @@ type Props = {
 };
 
 export function ActionEditorPanel(props: Props): React.JSX.Element {
-  return (
-    <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.12)' }}>
-      <h3 style={{ margin: 0, fontSize: 14 }}>アクション編集</h3>
+  const titleInputId = useId();
 
-      <div style={{ marginTop: 10, display: 'grid', gap: 10 }}>
-        <label style={{ display: 'grid', gap: 6 }}>
-          <span style={{ fontSize: 12, opacity: 0.9 }}>対象</span>
+  return (
+    <section className="editor-panel">
+      <h3 className="editor-title">アクション編集</h3>
+
+      <div className="editor-form">
+        <label className="field">
+          <span className="field-name">対象</span>
           <select
+            className="token-input"
             data-testid="action-editor-select"
             onChange={event => {
               props.onSelectActionId(event.currentTarget.value);
@@ -40,10 +45,12 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
           </select>
         </label>
 
-        <label style={{ display: 'grid', gap: 6 }}>
-          <span style={{ fontSize: 12, opacity: 0.9 }}>タイトル</span>
-          <input
+        <label className="field" htmlFor={titleInputId}>
+          <span className="field-name">タイトル</span>
+          <Input
+            className="token-input"
             data-testid="action-editor-title"
+            id={titleInputId}
             onChange={event => {
               props.onChangeTitle(event.currentTarget.value);
             }}
@@ -52,9 +59,10 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
           />
         </label>
 
-        <label style={{ display: 'grid', gap: 6 }}>
-          <span style={{ fontSize: 12, opacity: 0.9 }}>種類</span>
+        <label className="field">
+          <span className="field-name">種類</span>
           <select
+            className="token-input"
             data-testid="action-editor-kind"
             onChange={event => {
               props.onChangeKind(event.currentTarget.value === 'event' ? 'event' : 'text');
@@ -66,9 +74,10 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
           </select>
         </label>
 
-        <label style={{ display: 'grid', gap: 6 }}>
-          <span style={{ fontSize: 12, opacity: 0.9 }}>プロンプト</span>
+        <label className="field">
+          <span className="field-name">プロンプト</span>
           <textarea
+            className="prompt-input"
             data-testid="action-editor-prompt"
             onChange={event => {
               props.onChangePrompt(event.currentTarget.value);
@@ -78,8 +87,9 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
           />
         </label>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        <div className="button-row">
           <button
+            className="btn btn-primary btn-small"
             data-testid="action-editor-save"
             onClick={() => {
               props.onSave();
@@ -89,6 +99,7 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
             保存
           </button>
           <button
+            className="btn-delete"
             data-testid="action-editor-delete"
             disabled={!props.editorId}
             onClick={() => {
@@ -99,6 +110,7 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
             削除
           </button>
           <button
+            className="btn btn-ghost btn-small"
             data-testid="action-editor-clear"
             onClick={() => {
               props.onClear();
@@ -108,6 +120,7 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
             クリア
           </button>
           <button
+            className="btn btn-ghost btn-small"
             data-testid="action-editor-reset"
             onClick={() => {
               props.onReset();
@@ -118,6 +131,6 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
           </button>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

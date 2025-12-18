@@ -5,6 +5,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import { OverlayApp, type OverlayViewModel } from './content/overlay/OverlayApp';
 import type { ExtractedEvent, SummarySource } from './shared_types';
 import { ensureShadowUiBaseStyles } from './ui/styles';
+import { createNotifications, type Notifier, ToastHost, type ToastManager } from './ui/toast';
 
 (() => {
   type StorageData = {
@@ -47,15 +48,27 @@ import { ensureShadowUiBaseStyles } from './ui/styles';
   const OVERLAY_ROOT_ID = 'mbu-overlay-react-root';
   const OVERLAY_STYLE_ID = 'mbu-overlay-react-styles';
 
+  const TOAST_HOST_ID = 'my-browser-utils-toast-host';
+  const TOAST_ROOT_ID = 'mbu-toast-react-root';
+
   type OverlayMount = {
     host: HTMLDivElement;
     shadow: ShadowRoot;
     root: Root;
   };
 
+  type ToastMount = {
+    host: HTMLDivElement;
+    shadow: ShadowRoot;
+    root: Root;
+    toastManager: ToastManager;
+    notify: Notifier;
+  };
+
   type GlobalContentState = {
     initialized: boolean;
     overlayMount: OverlayMount | null;
+    toastMount: ToastMount | null;
   };
 
   const globalContainer = globalThis as unknown as { __MBU_CONTENT_STATE__?: GlobalContentState };
@@ -63,6 +76,7 @@ import { ensureShadowUiBaseStyles } from './ui/styles';
     globalContainer.__MBU_CONTENT_STATE__ = {
       initialized: false,
       overlayMount: null,
+      toastMount: null,
     };
   }
   const globalState = globalContainer.__MBU_CONTENT_STATE__;
@@ -230,44 +244,62 @@ import { ensureShadowUiBaseStyles } from './ui/styles';
     }
   });
 
-  function showNotification(message: string): void {
-    const notification = document.createElement('div');
-    notification.textContent = message;
-    notification.style.cssText = `
+  function ensureToastMount(): ToastMount {
+    if (globalState.toastMount?.host.isConnected) {
+      return globalState.toastMount;
+    }
+
+    const existing = document.getElementById(TOAST_HOST_ID) as HTMLDivElement | null;
+    const host = existing || document.createElement('div');
+    host.id = TOAST_HOST_ID;
+    host.style.cssText = `
+      all: initial;
       position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #4285f4;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 4px;
-      font-size: 14px;
-      z-index: 10000;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      animation: slideIn 0.3s ease-out;
+      top: 0;
+      left: 0;
+      z-index: 2147483647;
+      color-scheme: light;
     `;
 
-    document.body.appendChild(notification);
-    window.setTimeout(() => {
-      notification.style.animation = 'slideOut 0.3s ease-out';
-      window.setTimeout(() => notification.remove(), 300);
-    }, 2500);
+    const shadow = host.shadowRoot ?? host.attachShadow({ mode: 'open' });
+    ensureShadowUiBaseStyles(shadow);
+
+    let rootEl = shadow.getElementById(TOAST_ROOT_ID) as HTMLDivElement | null;
+    if (!rootEl) {
+      rootEl = document.createElement('div');
+      rootEl.id = TOAST_ROOT_ID;
+      shadow.appendChild(rootEl);
+    }
+
+    const notifications = createNotifications();
+    const root = createRoot(rootEl);
+    root.render(
+      createElement(ToastHost, {
+        toastManager: notifications.toastManager,
+        placement: 'screen',
+        portalContainer: shadow,
+      }),
+    );
+
+    if (!host.isConnected) {
+      (document.documentElement ?? document.body ?? document).appendChild(host);
+    }
+
+    globalState.toastMount = {
+      host,
+      shadow,
+      root,
+      toastManager: notifications.toastManager,
+      notify: notifications.notify,
+    };
+    return globalState.toastMount;
   }
 
-  if (!document.getElementById('my-browser-utils-styles')) {
-    const style = document.createElement('style');
-    style.id = 'my-browser-utils-styles';
-    style.textContent = `
-      @keyframes slideIn {
-        from { transform: translateX(400px); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-      }
-      @keyframes slideOut {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(400px); opacity: 0; }
-      }
-    `;
-    document.head.appendChild(style);
+  function showNotification(message: string): void {
+    const text = message.trim();
+    if (!text) return;
+    const mount = ensureToastMount();
+    mount.notify.info(text);
   }
 
   async function getSummaryTargetText(options?: { ignoreSelection?: boolean }): Promise<SummaryTarget> {

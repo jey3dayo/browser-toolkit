@@ -366,18 +366,18 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
   };
 
   return (
-    <div style={{ padding: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-        <h2 style={{ margin: 0, fontSize: 16 }}>Context Actions</h2>
-        <span data-testid="action-source">
-          {output.status === 'ready' ? output.sourceLabel : output.status === 'running' ? '-' : '-'}
+    <div className="card card-stack">
+      <div className="row-between">
+        <h2 className="pane-title">Context Actions</h2>
+        <span className="chip chip-soft" data-testid="action-source">
+          {output.status === 'ready' ? output.sourceLabel : '-'}
         </span>
       </div>
 
-      <div data-testid="template-vars" style={{ marginTop: 10, fontSize: 12, opacity: 0.9 }}>
+      <p className="hint" data-testid="template-vars">
         テンプレ変数: <code>{'{{text}}'}</code> <code>{'{{title}}'}</code> <code>{'{{url}}'}</code>{' '}
         <code>{'{{source}}'}</code>
-      </div>
+      </p>
 
       <ActionButtons
         actions={actions}
