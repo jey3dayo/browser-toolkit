@@ -1,9 +1,9 @@
-import { Copy, MapPin } from 'lucide-react';
+import { Icon } from '../../components/icon';
 
 export function PinIcon(): React.JSX.Element {
-  return <MapPin aria-hidden="true" />;
+  return <Icon aria-hidden="true" name="pin" />;
 }
 
 export function CopyIcon(): React.JSX.Element {
-  return <Copy aria-hidden="true" />;
+  return <Icon aria-hidden="true" name="copy" />;
 }

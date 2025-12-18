@@ -1,13 +1,7 @@
 import { Dialog, Tabs } from '@base-ui/react';
 import { Button } from '@base-ui/react/button';
-import {
-  X as CloseIcon,
-  Menu as MenuIcon,
-  Settings as SettingsIcon,
-  Table as TableIcon,
-  Zap as ZapIcon,
-} from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Icon } from '../components/icon';
 import { createNotifications, ToastHost } from '../ui/toast';
 import { coercePaneId, getPaneIdFromHash, type PaneId } from './panes';
 import { ActionsPane } from './panes/ActionsPane';
@@ -121,7 +115,7 @@ export function PopupApp(): React.JSX.Element {
         <aside aria-label="メニュー" className="sidebar">
           <Dialog.Root onOpenChange={setMenuOpen} open={menuOpen}>
             <Dialog.Trigger aria-label="メニュー" className="sidebar-brand">
-              <MenuIcon aria-hidden="true" />
+              <Icon aria-hidden="true" name="menu" />
             </Dialog.Trigger>
             <Tabs.List>
               <Tabs.Tab
@@ -132,7 +126,7 @@ export function PopupApp(): React.JSX.Element {
                 value="pane-actions"
               >
                 <span aria-hidden="true" className="nav-icon">
-                  <ZapIcon aria-hidden="true" />
+                  <Icon aria-hidden="true" name="zap" />
                 </span>
                 <span className="nav-label">アクション</span>
               </Tabs.Tab>
@@ -144,7 +138,7 @@ export function PopupApp(): React.JSX.Element {
                 value="pane-table"
               >
                 <span aria-hidden="true" className="nav-icon">
-                  <TableIcon aria-hidden="true" />
+                  <Icon aria-hidden="true" name="table" />
                 </span>
                 <span className="nav-label">テーブルソート</span>
               </Tabs.Tab>
@@ -171,7 +165,7 @@ export function PopupApp(): React.JSX.Element {
                 value="pane-settings"
               >
                 <span aria-hidden="true" className="nav-icon">
-                  <SettingsIcon aria-hidden="true" />
+                  <Icon aria-hidden="true" name="settings" />
                 </span>
                 <span className="nav-label">設定</span>
               </Tabs.Tab>
@@ -183,7 +177,7 @@ export function PopupApp(): React.JSX.Element {
                 <div className="menu-drawer-header">
                   <h2 className="menu-drawer-title">メニュー</h2>
                   <Button aria-label="閉じる" className="menu-close" onClick={() => setMenuOpen(false)} type="button">
-                    <CloseIcon aria-hidden="true" />
+                    <Icon aria-hidden="true" name="close" />
                   </Button>
                 </div>
                 <nav className="menu-drawer-nav">
@@ -194,7 +188,7 @@ export function PopupApp(): React.JSX.Element {
                     type="button"
                   >
                     <span aria-hidden="true" className="menu-icon">
-                      <ZapIcon aria-hidden="true" />
+                      <Icon aria-hidden="true" name="zap" />
                     </span>
                     アクション
                   </Button>
@@ -205,7 +199,7 @@ export function PopupApp(): React.JSX.Element {
                     type="button"
                   >
                     <span aria-hidden="true" className="menu-icon">
-                      <TableIcon aria-hidden="true" />
+                      <Icon aria-hidden="true" name="table" />
                     </span>
                     テーブルソート
                   </Button>
@@ -230,7 +224,7 @@ export function PopupApp(): React.JSX.Element {
                     type="button"
                   >
                     <span aria-hidden="true" className="menu-icon">
-                      <SettingsIcon aria-hidden="true" />
+                      <Icon aria-hidden="true" name="settings" />
                     </span>
                     設定
                   </Button>
