@@ -22,6 +22,7 @@ My Browser Utils is a personal Chrome extension that adds small, high-leverage u
   - For popup-triggered flows, fall back to a timestamped “recent selection” cache (treated as fresh for ~30s; local-only), or
   - Extracted page text (fallback).
 - Built-in actions exist (summarize/translate/calendar), and user-defined actions are editable in the popup UI.
+- Results are surfaced in-page as a lightweight overlay (Shadow DOM), anchored to the selection when possible, with copy/calendar handoff affordances.
 - Actions support simple template variables (e.g. `{{text}}`, `{{title}}`, `{{url}}`, `{{source}}`) to reuse metadata in prompts.
 - Secrets (OpenAI API token) are configured by the user; the extension guides the user to settings when missing.
 - “Calendar” actions extract a structured event and provide handoff options (Google Calendar link; optional `.ics` export).
@@ -29,6 +30,7 @@ My Browser Utils is a personal Chrome extension that adds small, high-leverage u
 ## UX Principles
 - “Works where you are”: features are surfaced via the popup (settings/controls) and context menu (actions).
 - Keep UI strings and default prompts Japanese-first (match the existing UI tone), unless intentionally localizing.
+- Keep theme (light/dark) consistent across popup and in-page UI.
 - Fail loudly but safely: show a clear in-page/popup message instead of silently doing nothing.
 - Prefer accessible UI behaviors: keyboard-friendly navigation and explicit ARIA state updates (especially in the popup).
 

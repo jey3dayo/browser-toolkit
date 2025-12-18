@@ -1,5 +1,15 @@
 # Chrome拡張機能 開発ルール
 
+> **Note**: このプロジェクトの開発ルールは、Chrome Extension Best Practicesスキルに統合されています。
+> 詳細なベストプラクティス、セキュリティパターン、Web Storeポリシー準拠ガイドについては、スキルを参照してください。
+>
+> **スキル起動方法**:
+>
+> - "Chrome拡張のセキュリティをレビューして"
+> - "Manifest V3に準拠しているかチェックして"
+> - "Web Store申請前のチェックをして"
+> - または、manifest.json、chrome.\* API、content/background scriptの編集時に自動起動
+
 このプロジェクトの開発における基本ルールとガイドラインです。
 
 ## 🏗️ プロジェクト構造
