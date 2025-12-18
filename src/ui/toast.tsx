@@ -1,4 +1,4 @@
-import { Toast } from '@base-ui/react';
+import { Toast } from '@base-ui/react/toast';
 import { useMemo } from 'react';
 
 export type Notifier = {

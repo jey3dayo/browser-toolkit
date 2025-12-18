@@ -68,12 +68,11 @@ describe('popup Table Sort pane', () => {
   });
 
   it('persists auto-enable toggle in sync storage', async () => {
-    const checkbox = dom.window.document.querySelector<HTMLInputElement>('[data-testid="auto-enable-sort"]');
-    expect(checkbox).not.toBeNull();
-    expect(checkbox?.checked).toBe(false);
+    const toggle = dom.window.document.querySelector<HTMLButtonElement>('[data-testid="auto-enable-sort"]');
+    expect(toggle).not.toBeNull();
 
     await act(async () => {
-      checkbox?.click();
+      toggle?.click();
       await flush(dom.window);
     });
 

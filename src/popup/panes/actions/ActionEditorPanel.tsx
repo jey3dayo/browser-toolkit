@@ -1,5 +1,8 @@
 import { Button } from '@base-ui/react/button';
+import { Fieldset } from '@base-ui/react/fieldset';
+import { Form } from '@base-ui/react/form';
 import { Input } from '@base-ui/react/input';
+import { Select } from '@base-ui/react/select';
 import { useId } from 'react';
 import type { ContextAction, ContextActionKind } from '../../../context_actions';
 
@@ -21,115 +24,174 @@ type Props = {
 
 export function ActionEditorPanel(props: Props): React.JSX.Element {
   const titleInputId = useId();
+  const actionLabelId = useId();
+  const kindLabelId = useId();
+
+  const actions = [
+    { label: '新規作成', value: null as string | null },
+    ...props.actions.map(action => ({ label: action.title, value: action.id })),
+  ];
+
+  const kinds = [
+    { label: 'text', value: 'text' as const },
+    { label: 'event', value: 'event' as const },
+  ];
 
   return (
     <section className="editor-panel">
-      <h3 className="editor-title">アクション編集</h3>
+      <Form
+        onSubmit={event => {
+          event.preventDefault();
+          props.onSave();
+        }}
+      >
+        <Fieldset.Root className="editor-form mbu-fieldset">
+          <Fieldset.Legend className="editor-title">アクション編集</Fieldset.Legend>
 
-      <div className="editor-form">
-        <label className="field">
-          <span className="field-name">対象</span>
-          <select
-            className="token-input"
-            data-testid="action-editor-select"
-            onChange={event => {
-              props.onSelectActionId(event.currentTarget.value);
-            }}
-            value={props.editorId}
-          >
-            <option value="">新規作成</option>
-            {props.actions.map(action => (
-              <option key={action.id} value={action.id}>
-                {action.title}
-              </option>
-            ))}
-          </select>
-        </label>
+          <div className="field">
+            <span className="field-name" id={actionLabelId}>
+              対象
+            </span>
+            <Select.Root
+              items={actions}
+              onValueChange={value => {
+                props.onSelectActionId(typeof value === 'string' ? value : '');
+              }}
+              value={props.editorId || null}
+            >
+              <Select.Trigger
+                aria-labelledby={actionLabelId}
+                className="token-input mbu-select-trigger"
+                data-testid="action-editor-select"
+                type="button"
+              >
+                <Select.Value className="mbu-select-value" />
+                <Select.Icon className="mbu-select-icon">▾</Select.Icon>
+              </Select.Trigger>
+              <Select.Portal>
+                <Select.Positioner className="mbu-select-positioner" sideOffset={6}>
+                  <Select.Popup className="mbu-select-popup">
+                    <Select.List className="mbu-select-list">
+                      {actions.map(item => (
+                        <Select.Item className="mbu-select-item" key={item.value ?? 'new'} value={item.value}>
+                          <Select.ItemText>{item.label}</Select.ItemText>
+                          <Select.ItemIndicator className="mbu-select-indicator">✓</Select.ItemIndicator>
+                        </Select.Item>
+                      ))}
+                    </Select.List>
+                  </Select.Popup>
+                </Select.Positioner>
+              </Select.Portal>
+            </Select.Root>
+          </div>
 
-        <label className="field" htmlFor={titleInputId}>
-          <span className="field-name">タイトル</span>
-          <Input
-            className="token-input"
-            data-testid="action-editor-title"
-            id={titleInputId}
-            onValueChange={props.onChangeTitle}
-            type="text"
-            value={props.editorTitle}
-          />
-        </label>
+          <label className="field" htmlFor={titleInputId}>
+            <span className="field-name">タイトル</span>
+            <Input
+              className="token-input"
+              data-testid="action-editor-title"
+              id={titleInputId}
+              onValueChange={props.onChangeTitle}
+              type="text"
+              value={props.editorTitle}
+            />
+          </label>
 
-        <label className="field">
-          <span className="field-name">種類</span>
-          <select
-            className="token-input"
-            data-testid="action-editor-kind"
-            onChange={event => {
-              props.onChangeKind(event.currentTarget.value === 'event' ? 'event' : 'text');
-            }}
-            value={props.editorKind}
-          >
-            <option value="text">text</option>
-            <option value="event">event</option>
-          </select>
-        </label>
+          <div className="field">
+            <span className="field-name" id={kindLabelId}>
+              種類
+            </span>
+            <Select.Root
+              items={kinds}
+              onValueChange={value => {
+                props.onChangeKind(value === 'event' ? 'event' : 'text');
+              }}
+              value={props.editorKind}
+            >
+              <Select.Trigger
+                aria-labelledby={kindLabelId}
+                className="token-input mbu-select-trigger"
+                data-testid="action-editor-kind"
+                type="button"
+              >
+                <Select.Value className="mbu-select-value" />
+                <Select.Icon className="mbu-select-icon">▾</Select.Icon>
+              </Select.Trigger>
+              <Select.Portal>
+                <Select.Positioner className="mbu-select-positioner" sideOffset={6}>
+                  <Select.Popup className="mbu-select-popup">
+                    <Select.List className="mbu-select-list">
+                      {kinds.map(item => (
+                        <Select.Item className="mbu-select-item" key={item.value} value={item.value}>
+                          <Select.ItemText>{item.label}</Select.ItemText>
+                          <Select.ItemIndicator className="mbu-select-indicator">✓</Select.ItemIndicator>
+                        </Select.Item>
+                      ))}
+                    </Select.List>
+                  </Select.Popup>
+                </Select.Positioner>
+              </Select.Portal>
+            </Select.Root>
+          </div>
 
-        <label className="field">
-          <span className="field-name">プロンプト</span>
-          <textarea
-            className="prompt-input"
-            data-testid="action-editor-prompt"
-            onChange={event => {
-              props.onChangePrompt(event.currentTarget.value);
-            }}
-            rows={6}
-            value={props.editorPrompt}
-          />
-        </label>
+          <label className="field">
+            <span className="field-name">プロンプト</span>
+            <textarea
+              className="prompt-input"
+              data-testid="action-editor-prompt"
+              onChange={event => {
+                props.onChangePrompt(event.currentTarget.value);
+              }}
+              rows={6}
+              value={props.editorPrompt}
+            />
+          </label>
 
-        <div className="button-row">
-          <Button
-            className="btn btn-primary btn-small"
-            data-testid="action-editor-save"
-            onClick={() => {
-              props.onSave();
-            }}
-            type="button"
-          >
-            保存
-          </Button>
-          <Button
-            className="btn-delete"
-            data-testid="action-editor-delete"
-            disabled={!props.editorId}
-            onClick={() => {
-              props.onDelete();
-            }}
-            type="button"
-          >
-            削除
-          </Button>
-          <Button
-            className="btn btn-ghost btn-small"
-            data-testid="action-editor-clear"
-            onClick={() => {
-              props.onClear();
-            }}
-            type="button"
-          >
-            クリア
-          </Button>
-          <Button
-            className="btn btn-ghost btn-small"
-            data-testid="action-editor-reset"
-            onClick={() => {
-              props.onReset();
-            }}
-            type="button"
-          >
-            デフォルトに戻す
-          </Button>
-        </div>
-      </div>
+          <div className="button-row">
+            <Button
+              className="btn btn-primary btn-small"
+              data-testid="action-editor-save"
+              onClick={() => {
+                props.onSave();
+              }}
+              type="button"
+            >
+              保存
+            </Button>
+            <Button
+              className="btn-delete"
+              data-testid="action-editor-delete"
+              disabled={!props.editorId}
+              onClick={() => {
+                props.onDelete();
+              }}
+              type="button"
+            >
+              削除
+            </Button>
+            <Button
+              className="btn btn-ghost btn-small"
+              data-testid="action-editor-clear"
+              onClick={() => {
+                props.onClear();
+              }}
+              type="button"
+            >
+              クリア
+            </Button>
+            <Button
+              className="btn btn-ghost btn-small"
+              data-testid="action-editor-reset"
+              onClick={() => {
+                props.onReset();
+              }}
+              type="button"
+            >
+              デフォルトに戻す
+            </Button>
+          </div>
+        </Fieldset.Root>
+      </Form>
     </section>
   );
 }

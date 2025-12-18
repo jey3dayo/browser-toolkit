@@ -2,7 +2,7 @@ import type { JSDOM } from 'jsdom';
 import { act } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { flush } from './helpers/async';
-import { inputValue } from './helpers/forms';
+import { inputValue, selectBaseUiOption } from './helpers/forms';
 import { createPopupChromeStub, type PopupChromeStub } from './helpers/popupChromeStub';
 import { createPopupDom } from './helpers/popupDom';
 
@@ -55,7 +55,7 @@ describe('popup Settings pane', () => {
 
   it('toggles token visibility without changing the token value', async () => {
     const token = dom.window.document.querySelector<HTMLInputElement>('[data-testid="openai-token"]');
-    const toggle = dom.window.document.querySelector<HTMLInputElement>('[data-testid="token-visible"]');
+    const toggle = dom.window.document.querySelector<HTMLButtonElement>('[data-testid="token-visible"]');
     expect(token).not.toBeNull();
     expect(toggle).not.toBeNull();
 
@@ -136,15 +136,15 @@ describe('popup Settings pane', () => {
   });
 
   it('saves the selected model using local storage', async () => {
-    const modelSelect = dom.window.document.querySelector<HTMLSelectElement>('[data-testid="openai-model"]');
+    const modelSelect = dom.window.document.querySelector<HTMLButtonElement>('[data-testid="openai-model"]');
     const save = dom.window.document.querySelector<HTMLButtonElement>('[data-testid="model-save"]');
     expect(modelSelect).not.toBeNull();
     expect(save).not.toBeNull();
 
-    expect(modelSelect?.value).toBe('gpt-4o');
+    expect(modelSelect?.textContent).toContain('gpt-4o');
 
     await act(async () => {
-      inputValue(dom.window, modelSelect as HTMLSelectElement, 'gpt-4o-mini');
+      await selectBaseUiOption(dom.window, modelSelect as HTMLButtonElement, 'gpt-4o-mini');
       save?.click();
       await flush(dom.window);
     });

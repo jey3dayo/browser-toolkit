@@ -1,5 +1,10 @@
 import { Button } from '@base-ui/react/button';
+import { Fieldset } from '@base-ui/react/fieldset';
+import { Form } from '@base-ui/react/form';
 import { Input } from '@base-ui/react/input';
+import { Select } from '@base-ui/react/select';
+import { Separator } from '@base-ui/react/separator';
+import { Toggle } from '@base-ui/react/toggle';
 import { useEffect, useId, useState } from 'react';
 import { DEFAULT_OPENAI_MODEL, normalizeOpenAiModel, OPENAI_MODEL_OPTIONS } from '../../openai/settings';
 import type { LocalStorageData } from '../../storage/types';
@@ -24,7 +29,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
   const [customPrompt, setCustomPrompt] = useState('');
   const [model, setModel] = useState(DEFAULT_OPENAI_MODEL);
   const tokenInputId = useId();
-  const showTokenId = useId();
+  const modelLabelId = useId();
 
   useEffect(() => {
     let cancelled = false;
@@ -135,30 +140,39 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
         <p className="hint">OpenAI設定はこの端末のみ（同期されません）</p>
       </div>
 
-      <section className="stack">
-        <label className="field" htmlFor={tokenInputId}>
-          <span className="field-name">OpenAI API Token</span>
-          <Input
-            className="token-input"
-            data-testid="openai-token"
-            id={tokenInputId}
-            onValueChange={setToken}
-            ref={props.tokenInputRef}
-            type={showToken ? 'text' : 'password'}
-            value={token}
-          />
-        </label>
+      <Form
+        className="stack"
+        onSubmit={event => {
+          event.preventDefault();
+          void saveToken();
+        }}
+      >
+        <Fieldset.Root className="mbu-fieldset stack">
+          <Fieldset.Legend className="mbu-fieldset-legend">OpenAI API トークン</Fieldset.Legend>
 
-        <label className="checkbox-inline" htmlFor={showTokenId}>
-          <Input
-            checked={showToken}
+          <label className="field" htmlFor={tokenInputId}>
+            <span className="field-name">トークン</span>
+            <Input
+              className="token-input"
+              data-testid="openai-token"
+              id={tokenInputId}
+              onValueChange={setToken}
+              ref={props.tokenInputRef}
+              type={showToken ? 'text' : 'password'}
+              value={token}
+            />
+          </label>
+
+          <Toggle
+            className="mbu-toggle"
             data-testid="token-visible"
-            id={showTokenId}
-            onChange={event => setShowToken(event.currentTarget.checked)}
-            type="checkbox"
-          />
-          表示する
-        </label>
+            onPressedChange={setShowToken}
+            pressed={showToken}
+            type="button"
+          >
+            表示する
+          </Toggle>
+        </Fieldset.Root>
 
         <div className="button-row">
           <Button
@@ -181,24 +195,55 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
             トークン確認
           </Button>
         </div>
-      </section>
+      </Form>
 
-      <section className="stack">
-        <label className="field">
-          <span className="field-name">モデル</span>
-          <select
-            className="token-input"
-            data-testid="openai-model"
-            onChange={event => setModel(event.currentTarget.value)}
-            value={model}
-          >
-            {OPENAI_MODEL_OPTIONS.map(option => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        </label>
+      <Separator className="mbu-separator" />
+
+      <Form
+        className="stack"
+        onSubmit={event => {
+          event.preventDefault();
+          void saveModel();
+        }}
+      >
+        <Fieldset.Root className="mbu-fieldset stack">
+          <Fieldset.Legend className="mbu-fieldset-legend">モデル</Fieldset.Legend>
+          <div className="field">
+            <span className="field-name" id={modelLabelId}>
+              モデル
+            </span>
+            <Select.Root
+              onValueChange={value => {
+                if (typeof value === 'string') setModel(value);
+              }}
+              value={model}
+            >
+              <Select.Trigger
+                aria-labelledby={modelLabelId}
+                className="token-input mbu-select-trigger"
+                data-testid="openai-model"
+                type="button"
+              >
+                <Select.Value className="mbu-select-value" />
+                <Select.Icon className="mbu-select-icon">▾</Select.Icon>
+              </Select.Trigger>
+              <Select.Portal>
+                <Select.Positioner className="mbu-select-positioner" sideOffset={6}>
+                  <Select.Popup className="mbu-select-popup">
+                    <Select.List className="mbu-select-list">
+                      {OPENAI_MODEL_OPTIONS.map(option => (
+                        <Select.Item className="mbu-select-item" key={option} value={option}>
+                          <Select.ItemText>{option}</Select.ItemText>
+                          <Select.ItemIndicator className="mbu-select-indicator">✓</Select.ItemIndicator>
+                        </Select.Item>
+                      ))}
+                    </Select.List>
+                  </Select.Popup>
+                </Select.Positioner>
+              </Select.Portal>
+            </Select.Root>
+          </div>
+        </Fieldset.Root>
 
         <div className="button-row">
           <Button
@@ -218,19 +263,30 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
             デフォルトに戻す
           </Button>
         </div>
-      </section>
+      </Form>
 
-      <section className="stack">
-        <label className="field">
-          <span className="field-name">追加指示（任意）</span>
-          <textarea
-            className="prompt-input"
-            data-testid="custom-prompt"
-            onChange={event => setCustomPrompt(event.currentTarget.value)}
-            rows={6}
-            value={customPrompt}
-          />
-        </label>
+      <Separator className="mbu-separator" />
+
+      <Form
+        className="stack"
+        onSubmit={event => {
+          event.preventDefault();
+          void savePrompt();
+        }}
+      >
+        <Fieldset.Root className="mbu-fieldset stack">
+          <Fieldset.Legend className="mbu-fieldset-legend">追加指示（任意）</Fieldset.Legend>
+          <label className="field">
+            <span className="field-name">追加指示</span>
+            <textarea
+              className="prompt-input"
+              data-testid="custom-prompt"
+              onChange={event => setCustomPrompt(event.currentTarget.value)}
+              rows={6}
+              value={customPrompt}
+            />
+          </label>
+        </Fieldset.Root>
 
         <div className="button-row">
           <Button
@@ -245,7 +301,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
             削除
           </Button>
         </div>
-      </section>
+      </Form>
     </div>
   );
 }

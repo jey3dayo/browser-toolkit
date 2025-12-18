@@ -56,7 +56,13 @@ export const Basic: Story = {
       expect(canvas.getByTestId('action-source').textContent).toContain('選択範囲');
     });
 
-    await userEvent.selectOptions(canvas.getByTestId('action-editor-select'), 'builtin:summarize');
+    await userEvent.click(canvas.getByTestId('action-editor-select'));
+    await waitFor(() => {
+      expect(canvasElement.ownerDocument.querySelector('.mbu-select-popup')).toBeTruthy();
+    });
+    const popup = canvasElement.ownerDocument.querySelector<HTMLElement>('.mbu-select-popup');
+    if (!popup) throw new Error('Select popup not found');
+    await userEvent.click(within(popup).getByText('要約'));
     await userEvent.clear(canvas.getByTestId('action-editor-title'));
     await userEvent.type(canvas.getByTestId('action-editor-title'), '要約（編集テスト）');
     await userEvent.click(canvas.getByTestId('action-editor-save'));

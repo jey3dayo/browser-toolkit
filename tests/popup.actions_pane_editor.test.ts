@@ -2,7 +2,7 @@ import type { JSDOM } from 'jsdom';
 import { act } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { flush } from './helpers/async';
-import { inputValue, selectValue } from './helpers/forms';
+import { inputValue, selectBaseUiOption } from './helpers/forms';
 import { createPopupChromeStub, type PopupChromeStub } from './helpers/popupChromeStub';
 import { createPopupDom } from './helpers/popupDom';
 
@@ -67,7 +67,7 @@ describe('popup Actions pane: editor', () => {
 
   it('creates a new action and persists to sync storage', async () => {
     const title = dom.window.document.querySelector<HTMLInputElement>('[data-testid="action-editor-title"]');
-    const kind = dom.window.document.querySelector<HTMLSelectElement>('[data-testid="action-editor-kind"]');
+    const kind = dom.window.document.querySelector<HTMLButtonElement>('[data-testid="action-editor-kind"]');
     const prompt = dom.window.document.querySelector<HTMLTextAreaElement>('[data-testid="action-editor-prompt"]');
     const save = dom.window.document.querySelector<HTMLButtonElement>('[data-testid="action-editor-save"]');
 
@@ -78,7 +78,7 @@ describe('popup Actions pane: editor', () => {
 
     await act(async () => {
       inputValue(dom.window, title as HTMLInputElement, 'カスタム');
-      selectValue(dom.window, kind as HTMLSelectElement, 'text');
+      await selectBaseUiOption(dom.window, kind as HTMLButtonElement, 'text');
       inputValue(dom.window, prompt as HTMLTextAreaElement, '{{text}}');
       save?.click();
       await flush(dom.window);
@@ -96,7 +96,7 @@ describe('popup Actions pane: editor', () => {
   });
 
   it('edits an existing action and persists changes', async () => {
-    const selector = dom.window.document.querySelector<HTMLSelectElement>('[data-testid="action-editor-select"]');
+    const selector = dom.window.document.querySelector<HTMLButtonElement>('[data-testid="action-editor-select"]');
     const title = dom.window.document.querySelector<HTMLInputElement>('[data-testid="action-editor-title"]');
     const save = dom.window.document.querySelector<HTMLButtonElement>('[data-testid="action-editor-save"]');
 
@@ -104,7 +104,7 @@ describe('popup Actions pane: editor', () => {
     expect(title).not.toBeNull();
 
     await act(async () => {
-      selectValue(dom.window, selector as HTMLSelectElement, 'custom:one');
+      await selectBaseUiOption(dom.window, selector as HTMLButtonElement, 'テスト');
       inputValue(dom.window, title as HTMLInputElement, 'テスト更新');
       save?.click();
       await flush(dom.window);
@@ -122,14 +122,14 @@ describe('popup Actions pane: editor', () => {
   });
 
   it('deletes an existing action and removes it from the list', async () => {
-    const selector = dom.window.document.querySelector<HTMLSelectElement>('[data-testid="action-editor-select"]');
+    const selector = dom.window.document.querySelector<HTMLButtonElement>('[data-testid="action-editor-select"]');
     const deleteButton = dom.window.document.querySelector<HTMLButtonElement>('[data-testid="action-editor-delete"]');
 
     expect(selector).not.toBeNull();
     expect(deleteButton).not.toBeNull();
 
     await act(async () => {
-      selectValue(dom.window, selector as HTMLSelectElement, 'custom:one');
+      await selectBaseUiOption(dom.window, selector as HTMLButtonElement, 'テスト');
       deleteButton?.click();
       await flush(dom.window);
     });
