@@ -200,7 +200,7 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
 
   return (
     <div className="mbu-overlay-surface">
-      <ToastHost portalContainer={props.portalContainer} toastManager={toastManager} />
+      <ToastHost placement="surface" portalContainer={props.portalContainer} toastManager={toastManager} />
       <div className="mbu-overlay-panel" ref={panelRef}>
         <div className="mbu-overlay-header">
           <div className="mbu-overlay-header-left">

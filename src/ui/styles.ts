@@ -54,6 +54,14 @@ const BASE_CSS = `
   pointer-events: none;
 }
 
+.mbu-toast-viewport[data-placement='surface'] {
+  position: absolute;
+}
+
+.mbu-toast-viewport[data-placement='surface'] .mbu-toast-root {
+  max-width: min(360px, calc(100vw - 56px));
+}
+
 .mbu-toast-positioner {
   pointer-events: none;
 }

@@ -31,13 +31,15 @@ export function createNotifications(): { toastManager: ToastManager; notify: Not
 export type ToastHostProps = {
   toastManager: ToastManager;
   portalContainer?: ToastPortalContainer;
+  placement?: 'screen' | 'surface';
 };
 
 export function ToastHost(props: ToastHostProps): React.JSX.Element {
+  const placement = props.placement ?? 'screen';
   return (
     <Toast.Provider toastManager={props.toastManager}>
       <Toast.Portal container={props.portalContainer}>
-        <Toast.Viewport className="mbu-toast-viewport">
+        <Toast.Viewport className="mbu-toast-viewport" data-placement={placement}>
           <ToastList />
         </Toast.Viewport>
       </Toast.Portal>
