@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createNotifications, ToastHost } from '../ui/toast';
 import { coercePaneId, getPaneIdFromHash, type PaneId } from './panes';
 import { ActionsPane } from './panes/ActionsPane';
+import { CreateLinkPane } from './panes/CreateLinkPane';
 import { SettingsPane } from './panes/SettingsPane';
 import { TablePane } from './panes/TablePane';
 import { createPopupRuntime } from './runtime';
@@ -101,6 +102,9 @@ export function PopupApp(): React.JSX.Element {
             <Tabs.Panel data-pane="pane-table" value="pane-table">
               <TablePane notify={notifications.notify} runtime={runtime} />
             </Tabs.Panel>
+            <Tabs.Panel data-pane="pane-create-link" value="pane-create-link">
+              <CreateLinkPane notify={notifications.notify} runtime={runtime} />
+            </Tabs.Panel>
             <Tabs.Panel data-pane="pane-settings" value="pane-settings">
               <SettingsPane notify={notifications.notify} runtime={runtime} tokenInputRef={tokenInputRef} />
             </Tabs.Panel>
@@ -147,6 +151,21 @@ export function PopupApp(): React.JSX.Element {
                   </svg>
                 </span>
                 <span className="nav-label">テーブルソート</span>
+              </Tabs.Tab>
+              <Tabs.Tab
+                aria-label="リンク作成"
+                className="nav-item"
+                data-tooltip="リンク作成"
+                data-value="pane-create-link"
+                value="pane-create-link"
+              >
+                <span aria-hidden="true" className="nav-icon">
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M10 13a5 5 0 0 0 7.07 0l1.41-1.41a5 5 0 0 0 0-7.07a5 5 0 0 0-7.07 0L10 5.93" />
+                    <path d="M14 11a5 5 0 0 0-7.07 0L5.52 12.41a5 5 0 0 0 0 7.07a5 5 0 0 0 7.07 0L14 18.07" />
+                  </svg>
+                </span>
+                <span className="nav-label">リンク作成</span>
               </Tabs.Tab>
               <Tabs.Tab
                 aria-label="設定"
@@ -206,6 +225,20 @@ export function PopupApp(): React.JSX.Element {
                       </svg>
                     </span>
                     テーブルソート
+                  </Button>
+                  <Button
+                    aria-current={tabValue === 'pane-create-link' ? 'page' : undefined}
+                    className={tabValue === 'pane-create-link' ? 'menu-item active' : 'menu-item'}
+                    onClick={() => navigateToPane('pane-create-link')}
+                    type="button"
+                  >
+                    <span aria-hidden="true" className="menu-icon">
+                      <svg aria-hidden="true" viewBox="0 0 24 24">
+                        <path d="M10 13a5 5 0 0 0 7.07 0l1.41-1.41a5 5 0 0 0 0-7.07a5 5 0 0 0-7.07 0L10 5.93" />
+                        <path d="M14 11a5 5 0 0 0-7.07 0L5.52 12.41a5 5 0 0 0 0 7.07a5 5 0 0 0 7.07 0L14 18.07" />
+                      </svg>
+                    </span>
+                    リンク作成
                   </Button>
                   <Button
                     aria-current={tabValue === 'pane-settings' ? 'page' : undefined}

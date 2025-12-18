@@ -1,4 +1,4 @@
-export const PANE_IDS = ['pane-actions', 'pane-table', 'pane-settings'] as const;
+export const PANE_IDS = ['pane-actions', 'pane-table', 'pane-create-link', 'pane-settings'] as const;
 export type PaneId = (typeof PANE_IDS)[number];
 
 export function coercePaneId(value: unknown): PaneId {

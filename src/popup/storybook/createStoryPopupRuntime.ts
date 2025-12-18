@@ -1,9 +1,16 @@
 import type { LocalStorageData } from '../../storage/types';
-import type { PopupRuntime, RunContextActionRequest, SyncStorageData, TestOpenAiTokenRequest } from '../runtime';
+import type {
+  ActiveTabInfo,
+  PopupRuntime,
+  RunContextActionRequest,
+  SyncStorageData,
+  TestOpenAiTokenRequest,
+} from '../runtime';
 
 type Options = {
   sync?: Partial<SyncStorageData>;
   local?: Partial<LocalStorageData>;
+  activeTab?: ActiveTabInfo | null;
   activeTabId?: number | null;
   background?: {
     testOpenAiToken?: (message: TestOpenAiTokenRequest) => unknown | Promise<unknown>;
@@ -51,7 +58,12 @@ function getMessageAction(message: unknown): unknown {
 }
 
 export function createStoryPopupRuntime(options: Options = {}): PopupRuntime {
-  const activeTabId = options.activeTabId ?? 123;
+  const activeTab: ActiveTabInfo | null =
+    typeof options.activeTab !== 'undefined'
+      ? options.activeTab
+      : options.activeTabId === null
+        ? null
+        : { id: options.activeTabId ?? 123 };
   const sync = createInMemoryStorageArea<SyncStorageData>(options.sync);
   const local = createInMemoryStorageArea<LocalStorageData>(options.local);
 
@@ -62,7 +74,8 @@ export function createStoryPopupRuntime(options: Options = {}): PopupRuntime {
     storageLocalGet: local.get,
     storageLocalSet: local.set,
     storageLocalRemove: local.remove,
-    getActiveTabId: async () => activeTabId,
+    getActiveTab: async () => activeTab,
+    getActiveTabId: async () => activeTab?.id ?? null,
     sendMessageToBackground: async message => {
       const action = getMessageAction(message);
 

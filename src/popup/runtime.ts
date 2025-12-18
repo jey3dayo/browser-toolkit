@@ -27,6 +27,12 @@ export type RunContextActionResponse =
 export type TestOpenAiTokenRequest = { action: 'testOpenAiToken'; token?: string };
 export type TestOpenAiTokenResponse = { ok: true } | { ok: false; error: string };
 
+export type ActiveTabInfo = {
+  id: number;
+  title?: string;
+  url?: string;
+};
+
 export type PopupRuntime = {
   isExtensionPage: boolean;
   storageSyncGet: (keys: (keyof SyncStorageData)[]) => Promise<Partial<SyncStorageData>>;
@@ -34,6 +40,7 @@ export type PopupRuntime = {
   storageLocalGet: (keys: (keyof LocalStorageData)[]) => Promise<Partial<LocalStorageData>>;
   storageLocalSet: (items: Partial<LocalStorageData>) => Promise<void>;
   storageLocalRemove: (keys: (keyof LocalStorageData)[] | keyof LocalStorageData) => Promise<void>;
+  getActiveTab: () => Promise<ActiveTabInfo | null>;
   getActiveTabId: () => Promise<number | null>;
   sendMessageToBackground: <TRequest, TResponse>(message: TRequest) => Promise<TResponse>;
   sendMessageToTab: <TRequest, TResponse>(tabId: number, message: TRequest) => Promise<TResponse>;
@@ -168,7 +175,7 @@ export function createPopupRuntime(): PopupRuntime {
     });
   };
 
-  const getActiveTabId: PopupRuntime['getActiveTabId'] = async () => {
+  const getActiveTab: PopupRuntime['getActiveTab'] = async () => {
     if (!(isExtensionPage && (chrome as unknown as { tabs?: unknown }).tabs)) {
       return null;
     }
@@ -189,8 +196,12 @@ export function createPopupRuntime(): PopupRuntime {
       );
     });
     const [tab] = tabs;
-    return tab?.id ?? null;
+    const id = tab?.id;
+    if (id === undefined) return null;
+    return { id, title: tab?.title, url: tab?.url };
   };
+
+  const getActiveTabId: PopupRuntime['getActiveTabId'] = async () => (await getActiveTab())?.id ?? null;
 
   const sendMessageToBackground: PopupRuntime['sendMessageToBackground'] = async <TRequest, TResponse>(
     message: TRequest,
@@ -246,6 +257,7 @@ export function createPopupRuntime(): PopupRuntime {
     storageLocalGet,
     storageLocalSet,
     storageLocalRemove,
+    getActiveTab,
     getActiveTabId,
     sendMessageToBackground,
     sendMessageToTab,

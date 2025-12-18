@@ -55,7 +55,7 @@ describe('popup layout structure', () => {
     });
 
     const tabButtons = Array.from(dom.window.document.querySelectorAll<HTMLElement>('aside.sidebar [role="tab"]'));
-    expect(tabButtons.length).toBe(3);
+    expect(tabButtons.length).toBe(4);
 
     tabButtons.forEach(tab => {
       expect(tab.classList.contains('nav-item')).toBe(true);
