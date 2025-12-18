@@ -275,4 +275,39 @@ describe('content overlay (React + Shadow DOM)', () => {
     expect(shadow?.textContent).not.toContain('（選択範囲）');
     expect(shadow?.textContent).toContain('選択範囲');
   });
+
+  it('renders selection text as an auxiliary collapsed section in text mode', async () => {
+    await import('../src/content.ts');
+    const [listener] = listeners;
+    if (!listener) throw new Error('missing message listener');
+
+    await dispatchMessage(
+      listener,
+      {
+        action: 'showActionOverlay',
+        status: 'ready',
+        mode: 'text',
+        source: 'selection',
+        title: '要約（選択範囲）',
+        primary: '結果テキスト',
+        secondary: '選択範囲:\n引用テキスト',
+      },
+      dom.window,
+    );
+
+    const host = dom.window.document.querySelector<HTMLDivElement>('#my-browser-utils-overlay');
+    const shadow = host?.shadowRoot ?? null;
+    expect(shadow).not.toBeNull();
+
+    const aux = shadow?.querySelector<HTMLElement>('.mbu-overlay-aux');
+    expect(aux).not.toBeNull();
+    expect(shadow?.querySelector('.mbu-overlay-aux-summary')?.textContent).toContain('選択したテキスト');
+
+    const quote = shadow?.querySelector<HTMLElement>('.mbu-overlay-quote');
+    expect(quote).not.toBeNull();
+    expect(quote?.textContent).toContain('引用テキスト');
+
+    const secondary = shadow?.querySelector<HTMLElement>('.mbu-overlay-secondary-text');
+    expect(secondary?.textContent ?? '').not.toContain('引用テキスト');
+  });
 });

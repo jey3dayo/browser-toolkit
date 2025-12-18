@@ -5,6 +5,7 @@ import { type ContextAction, DEFAULT_CONTEXT_ACTIONS, normalizeContextActions } 
 import { parseDateOnlyToYyyyMmDd, parseDateTimeLoose } from './date_utils';
 import { computeEventDateRange } from './event_date_range';
 import { buildIcs } from './ics';
+import { loadOpenAiModel, loadOpenAiSettings } from './openai/settings';
 import type { ExtractedEvent, SummarySource } from './shared_types';
 import type { LocalStorageData } from './storage/types';
 import { toErrorMessage } from './utils/errors';
@@ -501,33 +502,12 @@ function sendMessageToTab<TRequest, TResponse>(tabId: number, message: TRequest)
   });
 }
 
-type OpenAiSettings = {
-  token: string;
-  customPrompt: string;
-};
-
-function loadOpenAiSettings(): Result.ResultAsync<OpenAiSettings, string> {
-  return Result.pipe(
-    Result.try({
-      immediate: true,
-      try: () => storageLocalGet(['openaiApiToken', 'openaiCustomPrompt']),
-      catch: error => toErrorMessage(error, 'OpenAI設定の読み込みに失敗しました'),
-    }),
-    Result.map(data => data as LocalStorageData),
-    Result.map(data => ({
-      token: data.openaiApiToken?.trim() ?? '',
-      customPrompt: data.openaiCustomPrompt?.trim() ?? '',
-    })),
-    Result.andThen(settings =>
-      settings.token
-        ? Result.succeed(settings)
-        : Result.fail('OpenAI API Tokenが未設定です（ポップアップの「設定」タブで設定してください）'),
-    ),
-  );
+function storageLocalGetTyped(keys: (keyof LocalStorageData)[]): Promise<Partial<LocalStorageData>> {
+  return storageLocalGet(keys as string[]) as Promise<Partial<LocalStorageData>>;
 }
 
 async function summarizeWithOpenAI(target: SummaryTarget): Promise<BackgroundResponse> {
-  const settingsResult = await loadOpenAiSettings();
+  const settingsResult = await loadOpenAiSettings(storageLocalGetTyped);
   if (Result.isFailure(settingsResult)) {
     return { ok: false, error: settingsResult.error };
   }
@@ -544,7 +524,7 @@ async function summarizeWithOpenAI(target: SummaryTarget): Promise<BackgroundRes
   const meta = target.title || target.url ? `\n\n---\nタイトル: ${target.title ?? '-'}\nURL: ${target.url ?? '-'}` : '';
 
   const body = {
-    model: 'gpt-4o-mini',
+    model: settings.model,
     temperature: 0.2,
     messages: [
       {
@@ -594,7 +574,7 @@ async function runPromptActionWithOpenAI(
   target: SummaryTarget,
   promptTemplate: string,
 ): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
-  const settingsResult = await loadOpenAiSettings();
+  const settingsResult = await loadOpenAiSettings(storageLocalGetTyped);
   if (Result.isFailure(settingsResult)) {
     return { ok: false, error: settingsResult.error };
   }
@@ -630,7 +610,7 @@ async function runPromptActionWithOpenAI(
   const userContent = [rendered.trim(), needsText ? `\n\n${clippedText}` : '', needsMeta ? meta : ''].join('').trim();
 
   const body = {
-    model: 'gpt-4o-mini',
+    model: settings.model,
     temperature: 0.2,
     messages: [
       {
@@ -697,7 +677,7 @@ async function testOpenAiToken(tokenOverride?: string): Promise<{ ok: true } | {
   }
 
   const checkResult = await fetchOpenAiChatCompletionOk(fetch, token.value, {
-    model: 'gpt-4o-mini',
+    model: await loadOpenAiModel(storageLocalGetTyped),
     max_tokens: 5,
     temperature: 0,
     messages: [
@@ -717,7 +697,7 @@ async function extractEventWithOpenAI(
   target: SummaryTarget,
   extraInstruction?: string,
 ): Promise<{ ok: true; event: ExtractedEvent } | { ok: false; error: string }> {
-  const settingsResult = await loadOpenAiSettings();
+  const settingsResult = await loadOpenAiSettings(storageLocalGetTyped);
   if (Result.isFailure(settingsResult)) {
     return { ok: false, error: settingsResult.error };
   }
@@ -734,7 +714,7 @@ async function extractEventWithOpenAI(
   const meta = target.title || target.url ? `\n\n---\nタイトル: ${target.title ?? '-'}\nURL: ${target.url ?? '-'}` : '';
 
   const body = {
-    model: 'gpt-4o-mini',
+    model: settings.model,
     temperature: 0.2,
     response_format: { type: 'json_object' },
     messages: [

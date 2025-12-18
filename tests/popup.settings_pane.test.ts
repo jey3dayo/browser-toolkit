@@ -74,7 +74,11 @@ async function flush(window: Window, times = 5): Promise<void> {
   }
 }
 
-function inputValue(window: Window, el: HTMLInputElement | HTMLTextAreaElement, value: string): void {
+function inputValue(
+  window: Window,
+  el: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement,
+  value: string,
+): void {
   const proto = Object.getPrototypeOf(el) as object;
   const descriptor = Object.getOwnPropertyDescriptor(proto, 'value');
   if (descriptor?.set) {
@@ -102,6 +106,7 @@ describe('popup Settings pane', () => {
       const items: Record<string, unknown> = {};
       if (keyList.includes('openaiApiToken')) items.openaiApiToken = 'sk-existing';
       if (keyList.includes('openaiCustomPrompt')) items.openaiCustomPrompt = 'prompt';
+      if (keyList.includes('openaiModel')) items.openaiModel = 'gpt-4o';
       callback(items);
     });
 
@@ -210,5 +215,25 @@ describe('popup Settings pane', () => {
     });
 
     expect(chromeStub.storage.local.remove).toHaveBeenCalledWith('openaiCustomPrompt', expect.any(Function));
+  });
+
+  it('saves the selected model using local storage', async () => {
+    const modelSelect = dom.window.document.querySelector<HTMLSelectElement>('[data-testid="openai-model"]');
+    const save = dom.window.document.querySelector<HTMLButtonElement>('[data-testid="model-save"]');
+    expect(modelSelect).not.toBeNull();
+    expect(save).not.toBeNull();
+
+    expect(modelSelect?.value).toBe('gpt-4o');
+
+    await act(async () => {
+      inputValue(dom.window, modelSelect as HTMLSelectElement, 'gpt-4o-mini');
+      save?.click();
+      await flush(dom.window);
+    });
+
+    expect(chromeStub.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({ openaiModel: 'gpt-4o-mini' }),
+      expect.any(Function),
+    );
   });
 });

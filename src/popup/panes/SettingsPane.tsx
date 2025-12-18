@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { DEFAULT_OPENAI_MODEL, normalizeOpenAiModel, OPENAI_MODEL_OPTIONS } from '../../openai/settings';
 import type { LocalStorageData } from '../../storage/types';
 import type { Notifier } from '../../ui/toast';
 import type { PopupRuntime, TestOpenAiTokenRequest, TestOpenAiTokenResponse } from '../runtime';
@@ -21,16 +22,18 @@ export function SettingsPane(props: Props): React.JSX.Element {
   const [token, setToken] = useState('');
   const [showToken, setShowToken] = useState(false);
   const [customPrompt, setCustomPrompt] = useState('');
+  const [model, setModel] = useState(DEFAULT_OPENAI_MODEL);
 
   useEffect(() => {
     let cancelled = false;
     void (async () => {
       try {
-        const data = await props.runtime.storageLocalGet(['openaiApiToken', 'openaiCustomPrompt']);
+        const data = await props.runtime.storageLocalGet(['openaiApiToken', 'openaiCustomPrompt', 'openaiModel']);
         const raw = data as Partial<LocalStorageData>;
         if (cancelled) return;
         setToken(raw.openaiApiToken ?? '');
         setCustomPrompt(raw.openaiCustomPrompt ?? '');
+        setModel(normalizeOpenAiModel(raw.openaiModel));
       } catch {
         // no-op
       }
@@ -102,6 +105,27 @@ export function SettingsPane(props: Props): React.JSX.Element {
     }
   };
 
+  const saveModel = async (): Promise<void> => {
+    const normalized = normalizeOpenAiModel(model);
+    try {
+      await props.runtime.storageLocalSet({ openaiModel: normalized });
+      setModel(normalized);
+      props.notify.success('保存しました');
+    } catch {
+      props.notify.error('保存に失敗しました');
+    }
+  };
+
+  const resetModel = async (): Promise<void> => {
+    try {
+      await props.runtime.storageLocalRemove('openaiModel');
+      setModel(DEFAULT_OPENAI_MODEL);
+      props.notify.success('デフォルトに戻しました');
+    } catch {
+      props.notify.error('変更に失敗しました');
+    }
+  };
+
   return (
     <div style={{ padding: 16, display: 'grid', gap: 16 }}>
       <div>
@@ -140,6 +164,28 @@ export function SettingsPane(props: Props): React.JSX.Element {
           </button>
           <button data-testid="token-test" onClick={() => void testToken()} type="button">
             トークン確認
+          </button>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gap: 10 }}>
+        <label style={{ display: 'grid', gap: 6 }}>
+          <span style={{ fontSize: 12, opacity: 0.9 }}>モデル</span>
+          <select data-testid="openai-model" onChange={event => setModel(event.currentTarget.value)} value={model}>
+            {OPENAI_MODEL_OPTIONS.map(option => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          <button data-testid="model-save" onClick={() => void saveModel()} type="button">
+            保存
+          </button>
+          <button data-testid="model-reset" onClick={() => void resetModel()} type="button">
+            デフォルトに戻す
           </button>
         </div>
       </div>

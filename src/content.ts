@@ -404,11 +404,16 @@ import { ensureShadowUiBaseStyles } from './ui/styles';
 	      background: color-mix(in oklab, var(--mbu-surface) 92%, transparent);
 	      color: var(--mbu-text);
 	      border-radius: 10px;
-	      padding: 7px 10px;
+	      height: 32px;
+	      padding: 0 10px;
 	      font-size: 12px;
 	      line-height: 1;
 	      cursor: pointer;
 	      font-weight: 700;
+	      display: inline-flex;
+	      align-items: center;
+	      justify-content: center;
+	      gap: 6px;
 	    }
 	    .mbu-overlay-action:disabled {
 	      opacity: 0.6;
@@ -416,11 +421,9 @@ import { ensureShadowUiBaseStyles } from './ui/styles';
 	    }
 
 	    .mbu-overlay-icon-button {
-	      padding: 0;
 	      width: 32px;
-	      height: 32px;
-	      display: grid;
-	      place-items: center;
+	      padding: 0;
+	      flex: 0 0 auto;
 	    }
 
 	    .mbu-overlay-icon-button svg {
@@ -448,14 +451,15 @@ import { ensureShadowUiBaseStyles } from './ui/styles';
       border: 1px solid var(--mbu-border);
       background: color-mix(in oklab, var(--mbu-surface) 85%, transparent);
       color: var(--mbu-text);
-      width: 28px;
-      height: 28px;
+      width: 32px;
+      height: 32px;
       padding: 0;
       border-radius: 10px;
       cursor: grab;
       touch-action: none;
-      display: grid;
-      place-items: center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       flex: 0 0 auto;
     }
     .mbu-overlay-drag:active {
@@ -467,6 +471,14 @@ import { ensureShadowUiBaseStyles } from './ui/styles';
       overflow: auto;
       display: grid;
       gap: 10px;
+    }
+
+    .mbu-overlay-body-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
     .mbu-overlay-status {
@@ -537,6 +549,50 @@ import { ensureShadowUiBaseStyles } from './ui/styles';
       font-size: 12px;
       white-space: pre-wrap;
       word-break: break-word;
+    }
+
+    .mbu-overlay-aux {
+      border: 1px solid var(--mbu-border);
+      border-radius: 12px;
+      background: color-mix(in oklab, var(--mbu-surface) 92%, transparent);
+      overflow: hidden;
+    }
+
+    .mbu-overlay-aux-summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 750;
+      color: var(--mbu-text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .mbu-overlay-aux-summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .mbu-overlay-aux-summary::after {
+      content: '⌄';
+      font-size: 12px;
+      opacity: 0.8;
+      transform: translateY(-1px);
+      transition: transform 140ms ease;
+    }
+
+    .mbu-overlay-aux[open] > .mbu-overlay-aux-summary::after {
+      transform: rotate(180deg) translateY(1px);
+    }
+
+    .mbu-overlay-aux .mbu-overlay-quote {
+      border: none;
+      border-top: 1px solid var(--mbu-border);
+      border-left: 4px solid color-mix(in oklab, var(--mbu-accent) 60%, var(--mbu-border));
+      border-radius: 0 0 12px 12px;
+      background: transparent;
     }
   `;
 
@@ -840,6 +896,12 @@ import { ensureShadowUiBaseStyles } from './ui/styles';
   if (chrome.storage?.onChanged) {
     chrome.storage.onChanged.addListener((changes, areaName) => {
       if (areaName !== 'sync') return;
+
+      if ('contextActions' in changes) {
+        summarizeOverlayTitleCache = null;
+        summarizeOverlayTitleInFlight = null;
+      }
+
       if (!('domainPatterns' in changes || 'autoEnableSort' in changes)) return;
       void (async () => {
         await refreshTableConfig();

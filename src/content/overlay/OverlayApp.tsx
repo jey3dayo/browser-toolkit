@@ -1,4 +1,5 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { AuxTextDisclosure } from '../../components/AuxTextDisclosure';
 import type { ExtractedEvent, SummarySource } from '../../shared_types';
 import { createNotifications, ToastHost } from '../../ui/toast';
 
@@ -27,6 +28,23 @@ type Point = { left: number; top: number };
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
+}
+
+function splitSelectionSecondary(secondary: string): { selectionText: string; remainder: string } {
+  const raw = secondary.trim();
+  const match = raw.match(/^選択範囲:\s*\n([\s\S]*)$/);
+  if (!match) return { selectionText: '', remainder: raw };
+
+  const afterPrefix = (match[1] ?? '').trim();
+  if (!afterPrefix) return { selectionText: '', remainder: '' };
+
+  const tokenHintMarker = '\n\nOpenAI API Token未設定の場合は、';
+  const markerIndex = afterPrefix.indexOf(tokenHintMarker);
+  if (markerIndex < 0) return { selectionText: afterPrefix, remainder: '' };
+
+  const selectionText = afterPrefix.slice(0, markerIndex).trim();
+  const remainder = afterPrefix.slice(markerIndex + 2).trim();
+  return { selectionText, remainder };
 }
 
 export function OverlayApp(props: Props): React.JSX.Element | null {
@@ -168,13 +186,9 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
     props.viewModel.status === 'loading' ? '処理中...' : props.viewModel.status === 'error' ? 'エラー' : '';
 
   const isReadyEvent = props.viewModel.mode === 'event' && props.viewModel.status === 'ready' && props.viewModel.event;
-  const quoteText = isReadyEvent
-    ? (() => {
-        const raw = props.viewModel.secondary.trim();
-        const match = raw.match(/^選択範囲:\s*\n([\s\S]*)$/);
-        return match?.[1]?.trim() ?? '';
-      })()
-    : '';
+  const selectionSplit = splitSelectionSecondary(props.viewModel.secondary);
+  const selectionText = selectionSplit.selectionText;
+  const secondaryText = selectionText ? selectionSplit.remainder : props.viewModel.secondary.trim();
 
   return (
     <div className="mbu-overlay-surface">
@@ -283,15 +297,14 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
                   ) : null}
                 </tbody>
               </table>
-              {quoteText ? <blockquote className="mbu-overlay-quote">{quoteText}</blockquote> : null}
+              <AuxTextDisclosure summary="選択したテキスト（確認用）" text={selectionText} />
             </>
           ) : (
             <>
               {statusLabel ? <div className="mbu-overlay-status">{statusLabel}</div> : null}
               <pre className="mbu-overlay-primary-text">{props.viewModel.primary}</pre>
-              {props.viewModel.secondary ? (
-                <pre className="mbu-overlay-secondary-text">{props.viewModel.secondary}</pre>
-              ) : null}
+              {secondaryText ? <pre className="mbu-overlay-secondary-text">{secondaryText}</pre> : null}
+              <AuxTextDisclosure summary="選択したテキスト（確認用）" text={selectionText} />
             </>
           )}
         </div>
