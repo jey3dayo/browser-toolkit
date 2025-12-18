@@ -24,9 +24,6 @@ jobs:
 
       - name: Setup Node environment
         uses: ./.github/actions/setup-node-env
-        with:
-          node-version-file: package.json
-          pnpm-version: 10.26.0
 
       - name: Run lint
         run: pnpm lint
@@ -42,9 +39,6 @@ jobs:
 
       - name: Setup Node environment
         uses: ./.github/actions/setup-node-env
-        with:
-          node-version-file: package.json
-          pnpm-version: 10.26.0
 
       - name: Run tests
         run: pnpm test
@@ -60,9 +54,6 @@ jobs:
 
       - name: Setup Node environment
         uses: ./.github/actions/setup-node-env
-        with:
-          node-version-file: package.json
-          pnpm-version: 10.26.0
 
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
