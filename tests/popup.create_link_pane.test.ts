@@ -22,27 +22,18 @@ describe("popup create link pane", () => {
     dom = createPopupDom("chrome-extension://test/popup.html#pane-create-link");
     chromeStub = createPopupChromeStub();
 
-    chromeStub.tabs.query
-      .mockImplementationOnce(
-        (_queryInfo: unknown, callback: (tabs: unknown[]) => void) => {
-          chromeStub.runtime.lastError = null;
-          callback([
-            {
-              id: 1,
-              title: "Example Title",
-              url: "https://example.com/path?q=1",
-            },
-          ]);
-        }
-      )
-      .mockImplementationOnce(
-        (_queryInfo: unknown, callback: (tabs: unknown[]) => void) => {
-          chromeStub.runtime.lastError = null;
-          callback([
-            { id: 1, title: "Next Title", url: "https://example.com/next" },
-          ]);
-        }
-      );
+    chromeStub.tabs.query.mockImplementationOnce(
+      (_queryInfo: unknown, callback: (tabs: unknown[]) => void) => {
+        chromeStub.runtime.lastError = null;
+        callback([
+          {
+            id: 1,
+            title: "Example Title",
+            url: "https://example.com/path?q=1",
+          },
+        ]);
+      }
+    );
 
     vi.stubGlobal("window", dom.window);
     vi.stubGlobal("document", dom.window.document);
@@ -99,29 +90,10 @@ describe("popup create link pane", () => {
     expect(dom.window.document.body.textContent).toContain("コピーしました");
   });
 
-  it("refreshes from active tab", async () => {
+  it("does not show refresh button", () => {
     const refreshButton = dom.window.document.querySelector<HTMLButtonElement>(
       '[data-testid="create-link-refresh"]'
     );
-    await act(async () => {
-      refreshButton?.click();
-      await flush(dom.window);
-    });
-
-    const titleInput = dom.window.document.querySelector<HTMLInputElement>(
-      '[data-testid="create-link-title"]'
-    );
-    const urlInput = dom.window.document.querySelector<HTMLInputElement>(
-      '[data-testid="create-link-url"]'
-    );
-    const output = dom.window.document.querySelector<HTMLTextAreaElement>(
-      '[data-testid="create-link-output"]'
-    );
-    expect(titleInput?.value).toBe("Next Title");
-    expect(urlInput?.value).toBe("https://example.com/next");
-    expect(output?.value).toBe("[Next Title](<https://example.com/next>)");
-    expect(dom.window.document.body.textContent).toContain(
-      "現在のタブから更新しました"
-    );
+    expect(refreshButton).toBeNull();
   });
 });
