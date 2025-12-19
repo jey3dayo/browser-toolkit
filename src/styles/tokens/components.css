@@ -478,18 +478,15 @@
 }
 
 .mbu-overlay-primary-block {
-  position: relative;
-}
-
-.mbu-overlay-primary-block .mbu-overlay-copy {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  margin-left: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
 }
 
 .mbu-overlay-primary-block .mbu-overlay-primary-text {
-  padding-right: 44px;
+  flex: 1;
+  min-width: 0;
 }
 
 .mbu-overlay-status {
