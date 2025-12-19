@@ -156,7 +156,8 @@
   z-index: 2147483647;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  align-items: flex-end;
   pointer-events: none;
 }
 
@@ -176,61 +177,130 @@
 
 .mbu-toast-root {
   pointer-events: auto;
-  min-width: 220px;
+  width: fit-content;
   max-width: min(360px, calc(100vw - 24px));
-  border: 1px solid var(--color-border-ui);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
+  border: 1px solid color-mix(in oklab, var(--color-border-ui) 75%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in oklab, var(--color-surface) 86%, transparent);
   color: var(--color-text);
-  box-shadow: var(--shadow-elevation);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   overflow: hidden;
+  --toast-accent: var(--color-primary-2);
 }
 
-.mbu-toast-root[data-type="success"] {
-  border-color: color-mix(
-    in oklab,
-    var(--color-primary) 55%,
-    var(--color-border-ui)
-  );
+.mbu-toast-root[data-type="info"] {
+  --toast-accent: var(--color-primary-2);
 }
 
 .mbu-toast-root[data-type="error"] {
-  border-color: color-mix(
-    in oklab,
-    var(--color-danger) 55%,
-    var(--color-border-ui)
-  );
+  --toast-accent: var(--color-danger);
+}
+
+.mbu-toast-root[data-type="success"] {
+  --toast-accent: var(--color-primary);
 }
 
 .mbu-toast-content {
-  padding: 10px 12px;
-  display: grid;
-  grid-template-columns: 1fr auto;
+  padding: 8px 10px;
+  display: flex;
   gap: 10px;
-  align-items: start;
+  align-items: center;
+}
+
+.mbu-toast-root[data-has-description="true"] .mbu-toast-content {
+  align-items: flex-start;
+}
+
+.mbu-toast-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--toast-accent);
+  box-shadow: 0 0 0 3px
+    color-mix(in oklab, var(--toast-accent) 18%, transparent);
+  flex: 0 0 auto;
+}
+
+.mbu-toast-root[data-has-description="true"] .mbu-toast-indicator {
+  margin-top: 3px;
+}
+
+.mbu-toast-text {
+  min-width: 0;
+  flex: 1;
 }
 
 .mbu-toast-title {
-  font-weight: 750;
+  font-weight: 650;
   font-size: 13px;
-  line-height: 1.35;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
 }
 
 .mbu-toast-description {
-  margin-top: 4px;
+  margin-top: 2px;
   font-size: 12px;
   line-height: 1.4;
   color: var(--color-text-muted);
+  overflow-wrap: anywhere;
 }
 
 .mbu-toast-close {
   appearance: none;
-  border: 1px solid var(--color-border-ui);
-  background: color-mix(in oklab, var(--color-surface-2) 90%, transparent);
-  color: var(--color-text);
-  border-radius: var(--radius-sm);
-  padding: 6px 8px;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  border-radius: 999px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  flex: 0 0 auto;
+  line-height: 1;
+  font-size: 16px;
+  opacity: 0;
+  transition:
+    background 140ms ease,
+    color 140ms ease,
+    opacity 120ms ease;
+}
+
+.mbu-toast-root:hover .mbu-toast-close,
+.mbu-toast-root:focus-within .mbu-toast-close {
+  opacity: 1;
+}
+
+.mbu-toast-close:hover {
+  background: color-mix(in oklab, var(--color-text) 8%, transparent);
+  color: var(--color-text);
+}
+
+@media (hover: none) {
+  .mbu-toast-close {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .mbu-toast-root {
+    animation: mbu-toast-in 160ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+}
+
+@keyframes mbu-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* Overlay (content script, ShadowRoot) */

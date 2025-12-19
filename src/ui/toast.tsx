@@ -76,10 +76,19 @@ function ToastList(): React.JSX.Element {
   const rendered = useMemo(
     () =>
       toasts.map((toast) => {
+        const hasDescription =
+          typeof toast.description === "string"
+            ? toast.description.trim().length > 0
+            : Boolean(toast.description);
         const content = (
-          <Toast.Root className="mbu-toast-root" toast={toast}>
+          <Toast.Root
+            className="mbu-toast-root"
+            data-has-description={hasDescription ? "true" : "false"}
+            toast={toast}
+          >
             <Toast.Content className="mbu-toast-content">
-              <div>
+              <span aria-hidden="true" className="mbu-toast-indicator" />
+              <div className="mbu-toast-text">
                 {toast.title ? (
                   <Toast.Title className="mbu-toast-title">
                     {toast.title}
