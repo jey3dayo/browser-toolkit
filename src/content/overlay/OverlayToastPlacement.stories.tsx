@@ -3,13 +3,16 @@ import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { expect, userEvent, waitFor } from "storybook/test";
 import { ensureShadowUiBaseStyles } from "@/ui/styles";
-import { applyTheme } from "@/ui/theme";
+import { applyTheme, isTheme, type Theme } from "@/ui/theme";
 import { createNotifications, ToastHost } from "@/ui/toast";
 
 function OverlayToastPlacementStory(): React.JSX.Element {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const [shadow, setShadow] = useState<ShadowRoot | null>(null);
   const notifications = useMemo(() => createNotifications(), []);
+
+  const docTheme = document.documentElement.getAttribute("data-theme");
+  const resolvedTheme: Theme = isTheme(docTheme) ? docTheme : "auto";
 
   useLayoutEffect(() => {
     const host = hostRef.current;
@@ -20,13 +23,13 @@ function OverlayToastPlacementStory(): React.JSX.Element {
     host.id = "my-browser-utils-overlay";
     const shadowRoot = host.shadowRoot ?? host.attachShadow({ mode: "open" });
     ensureShadowUiBaseStyles(shadowRoot);
-    applyTheme("dark", shadowRoot);
+    applyTheme(resolvedTheme, shadowRoot);
 
     host.style.left = "auto";
     host.style.right = "40px";
     host.style.top = "16px";
     setShadow(shadowRoot);
-  }, []);
+  }, [resolvedTheme]);
 
   return (
     <>

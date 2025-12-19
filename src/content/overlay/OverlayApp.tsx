@@ -490,13 +490,13 @@ function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {
         <div className="mbu-overlay-status">{props.statusLabel}</div>
       ) : null}
       <div className="mbu-overlay-primary-block">
+        <pre className="mbu-overlay-primary-text">{props.primary}</pre>
         {props.mode === "event" || !props.canCopyPrimary ? null : (
           <OverlayCopyButton
             disabled={!props.canCopyPrimary}
             onCopy={props.onCopyPrimary}
           />
         )}
-        <pre className="mbu-overlay-primary-text">{props.primary}</pre>
       </div>
       {props.secondaryText ? (
         <pre className="mbu-overlay-secondary-text">{props.secondaryText}</pre>

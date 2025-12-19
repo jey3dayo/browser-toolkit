@@ -8,17 +8,51 @@ import {
   type OverlayViewModel,
 } from "@/content/overlay/OverlayApp";
 import { ensureShadowUiBaseStyles } from "@/ui/styles";
+import { applyTheme, isTheme, type Theme } from "@/ui/theme";
 
-type Props = {
-  viewModel: OverlayViewModel;
+// URLパラメータ例:
+// - Storybookの`args`はXSS対策で英数字/スペース/_/-のみが許可されます（日本語は無視されます）
+//   `?path=/story/content-overlayapp--ready&globals=theme:dark&args=primary:Hello%20world`
+// - 日本語などを渡したい場合は`mbuPrimary`を使います（preview iframeにそのまま引き継がれます）
+//   `?path=/story/content-overlayapp--ready&globals=theme:dark&mbuPrimary=要約結果（storybook）`
+const LONG_PRIMARY_TEXT = [
+  "要約結果（storybook）",
+  "",
+  "これは長文テスト用の本文です。",
+  "短文では問題にならない余白/折返し/スクロール/ボタン位置ズレが起きないことを確認します。",
+  "",
+  "- 箇条書き1: 長文でも読みやすい",
+  "- 箇条書き2: コピーボタンが本文と揃う",
+  "- 箇条書き3: 横スクロールが発生しない",
+  "",
+  "本文が長い場合は、Overlay内がスクロールしてもヘッダやアクションが崩れないことを確認してください。",
+  "",
+  ...Array.from({ length: 18 }, (_, i) => `追加行 ${i + 1}: ダミーテキスト`),
+].join("\n");
+
+type OverlayStoryArgs = {
+  status: OverlayViewModel["status"];
+  mode: OverlayViewModel["mode"];
+  source: OverlayViewModel["source"];
+  title: string;
+  primary: string;
+  secondary: string;
 };
 
-function OverlayAppStory(props: Props): React.JSX.Element {
+function OverlayAppStory(args: OverlayStoryArgs): React.JSX.Element {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const [mount, setMount] = useState<{
     shadow: ShadowRoot;
     root: HTMLDivElement;
   } | null>(null);
+
+  const urlPrimary = new URL(window.location.href).searchParams.get(
+    "mbuPrimary"
+  );
+  const primary = urlPrimary ?? args.primary;
+
+  const docTheme = document.documentElement.getAttribute("data-theme");
+  const resolvedTheme: Theme = isTheme(docTheme) ? docTheme : "auto";
 
   useLayoutEffect(() => {
     const host = hostRef.current;
@@ -51,6 +85,14 @@ function OverlayAppStory(props: Props): React.JSX.Element {
     };
   }, []);
 
+  useLayoutEffect(() => {
+    if (!mount) {
+      return;
+    }
+
+    applyTheme(resolvedTheme, mount.shadow);
+  }, [mount, resolvedTheme]);
+
   const host = hostRef.current;
 
   return (
@@ -62,7 +104,16 @@ function OverlayAppStory(props: Props): React.JSX.Element {
               host={host}
               onDismiss={fn()}
               portalContainer={mount.shadow}
-              viewModel={props.viewModel}
+              viewModel={{
+                open: true,
+                status: args.status,
+                mode: args.mode,
+                source: args.source,
+                title: args.title,
+                primary,
+                secondary: args.secondary,
+                anchorRect: null,
+              }}
             />,
             mount.root
           )
@@ -76,7 +127,16 @@ const meta = {
   component: OverlayAppStory,
   tags: ["test"],
   argTypes: {
-    viewModel: { control: false },
+    status: { control: false },
+    mode: { control: false },
+    source: { control: false },
+    title: { control: false },
+    primary: {
+      control: "text",
+    },
+    secondary: {
+      control: "text",
+    },
   },
 } satisfies Meta<typeof OverlayAppStory>;
 
@@ -85,16 +145,12 @@ type Story = StoryObj<typeof meta>;
 
 export const Loading: Story = {
   args: {
-    viewModel: {
-      open: true,
-      status: "loading",
-      mode: "text",
-      source: "selection",
-      title: "要約",
-      primary: "",
-      secondary: "処理に数秒かかることがあります。",
-      anchorRect: null,
-    },
+    status: "loading",
+    mode: "text",
+    source: "selection",
+    title: "要約",
+    primary: "",
+    secondary: "処理に数秒かかることがあります。",
   },
   play: async ({ canvasElement }) => {
     await waitFor(() => {
@@ -117,16 +173,12 @@ export const Loading: Story = {
 
 export const Ready: Story = {
   args: {
-    viewModel: {
-      open: true,
-      status: "ready",
-      mode: "text",
-      source: "selection",
-      title: "要約",
-      primary: "要約結果（storybook）",
-      secondary: "選択範囲:\n引用テキスト",
-      anchorRect: null,
-    },
+    status: "ready",
+    mode: "text",
+    source: "selection",
+    title: "要約",
+    primary: "要約結果（storybook）",
+    secondary: "選択範囲:\n引用テキスト",
   },
   play: async ({ canvasElement }) => {
     await waitFor(() => {
@@ -138,21 +190,83 @@ export const Ready: Story = {
         shadow?.querySelector('[data-testid="overlay-copy"]')
       ).toBeTruthy();
     });
+
+    const host = canvasElement.querySelector<HTMLDivElement>(
+      "#my-browser-utils-overlay"
+    );
+    const shadow = host?.shadowRoot ?? null;
+    const copyButton = shadow?.querySelector<HTMLElement>(
+      '[data-testid="overlay-copy"]'
+    );
+    const primary = shadow?.querySelector<HTMLElement>(
+      ".mbu-overlay-primary-text"
+    );
+    if (!(shadow && copyButton && primary)) {
+      throw new Error("overlay copy/primary not found");
+    }
+
+    const copyRect = copyButton.getBoundingClientRect();
+    const primaryRect = primary.getBoundingClientRect();
+    expect(copyRect.top).toBeLessThanOrEqual(primaryRect.top + 1);
+  },
+};
+
+export const ReadyLongText: Story = {
+  args: {
+    status: "ready",
+    mode: "text",
+    source: "selection",
+    title: "要約",
+    primary: LONG_PRIMARY_TEXT,
+    secondary: "選択範囲:\n引用テキスト",
+  },
+  play: async ({ canvasElement }) => {
+    await waitFor(() => {
+      const host = canvasElement.querySelector<HTMLDivElement>(
+        "#my-browser-utils-overlay"
+      );
+      const shadow = host?.shadowRoot ?? null;
+      expect(
+        shadow?.querySelector('[data-testid="overlay-copy"]')
+      ).toBeTruthy();
+    });
+
+    const host = canvasElement.querySelector<HTMLDivElement>(
+      "#my-browser-utils-overlay"
+    );
+    const shadow = host?.shadowRoot ?? null;
+    const panel = shadow?.querySelector<HTMLElement>(".mbu-overlay-panel");
+    const body = shadow?.querySelector<HTMLElement>(".mbu-overlay-body");
+    const copyButton = shadow?.querySelector<HTMLElement>(
+      '[data-testid="overlay-copy"]'
+    );
+    const primary = shadow?.querySelector<HTMLElement>(
+      ".mbu-overlay-primary-text"
+    );
+    if (!(panel && body && copyButton && primary)) {
+      throw new Error("overlay elements not found");
+    }
+
+    await waitFor(() => {
+      expect(body.scrollHeight).toBeGreaterThan(body.clientHeight);
+    });
+
+    const copyRect = copyButton.getBoundingClientRect();
+    const primaryRect = primary.getBoundingClientRect();
+    expect(copyRect.top).toBeLessThanOrEqual(primaryRect.top + 1);
+
+    expect(panel.scrollWidth).toBeLessThanOrEqual(panel.clientWidth + 1);
   },
 };
 
 export const ReadyStylesApplied: Story = {
   args: {
-    viewModel: {
-      open: true,
-      status: "ready",
-      mode: "text",
-      source: "selection",
-      title: "要約",
-      primary: "要約結果（storybook）",
-      secondary: "選択範囲:\n引用テキスト",
-      anchorRect: null,
-    },
+    status: "ready",
+    mode: "text",
+    source: "selection",
+    title: "要約",
+    primary: "要約結果（storybook）",
+    secondary: "選択範囲:\n引用テキスト",
   },
   play: async ({ canvasElement }) => {
     await waitFor(() => {

@@ -62,6 +62,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
   const [theme, setTheme] = useState<Theme>("auto");
   const tokenInputId = useId();
   const modelInputId = useId();
+  const promptInputId = useId();
 
   useEffect(() => {
     let cancelled = false;
@@ -321,6 +322,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
           </p>
 
           <Select.Root
+            name="openaiModel"
             onValueChange={(value) => {
               if (typeof value === "string") {
                 setPresetModel(value);
@@ -478,11 +480,13 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
           <Fieldset.Legend className="mbu-fieldset-legend">
             追加指示（任意）
           </Fieldset.Legend>
-          <label className="field">
+          <label className="field" htmlFor={promptInputId}>
             <span className="field-name">追加指示</span>
             <textarea
               className="prompt-input"
               data-testid="custom-prompt"
+              id={promptInputId}
+              name="openaiCustomPrompt"
               onChange={(event) => setCustomPrompt(event.currentTarget.value)}
               rows={6}
               value={customPrompt}
