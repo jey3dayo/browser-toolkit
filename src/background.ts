@@ -233,7 +233,7 @@ chrome.contextMenus.onClicked.addListener(
 
     const menuItemId = info.menuItemId;
 
-    void (async () => {
+    (async () => {
       const selection = info.selectionText?.trim() ?? "";
       const initialSource: SummarySource = selection ? "selection" : "page";
       const selectionSecondary = selection
@@ -464,7 +464,7 @@ chrome.runtime.onMessage.addListener(
     ) => void
   ) => {
     if (request.action === "summarizeTab") {
-      void (async () => {
+      (async () => {
         try {
           const target = await sendMessageToTab<
             ContentScriptMessage,
@@ -488,7 +488,7 @@ chrome.runtime.onMessage.addListener(
     }
 
     if (request.action === "summarizeText") {
-      void (async () => {
+      (async () => {
         try {
           const result = await summarizeWithOpenAI(request.target);
           sendResponse(result);
@@ -504,7 +504,7 @@ chrome.runtime.onMessage.addListener(
     }
 
     if (request.action === "runContextAction") {
-      void (async () => {
+      (async () => {
         try {
           const target = await sendMessageToTab<
             ContentScriptMessage,
@@ -548,7 +548,7 @@ chrome.runtime.onMessage.addListener(
     }
 
     if (request.action === "testOpenAiToken") {
-      void (async () => {
+      (async () => {
         try {
           const result = await testOpenAiToken(request.token);
           sendResponse(result);
@@ -566,7 +566,7 @@ chrome.runtime.onMessage.addListener(
     }
 
     if (request.action === "summarizeEvent") {
-      void (async () => {
+      (async () => {
         try {
           const result = await extractEventWithOpenAI(request.target);
           if (!result.ok) {

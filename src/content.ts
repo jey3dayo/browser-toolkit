@@ -178,7 +178,9 @@ import {
   let tableObserver: MutationObserver | null = null;
 
   function enableSingleTable(table: HTMLTableElement): void {
-    if (table.dataset.sortable) return;
+    if (table.dataset.sortable) {
+      return;
+    }
 
     table.dataset.sortable = "true";
     const headers = table.querySelectorAll<HTMLTableCellElement>("th");
@@ -242,7 +244,9 @@ import {
   // ========================================
 
   function startTableObserver(): void {
-    if (tableObserver) return;
+    if (tableObserver) {
+      return;
+    }
 
     let debounceTimer: number | undefined;
 
@@ -350,7 +354,9 @@ import {
 
   function showNotification(message: string): void {
     const text = message.trim();
-    if (!text) return;
+    if (!text) {
+      return;
+    }
     const mount = ensureToastMount();
     mount.notify.info(text);
   }
@@ -462,7 +468,9 @@ import {
 
   function closeOverlay(): void {
     const mount = globalState.overlayMount;
-    if (!mount) return;
+    if (!mount) {
+      return;
+    }
     try {
       mount.root.unmount();
     } catch {
@@ -474,7 +482,9 @@ import {
 
   function getSelectionAnchorRect(): OverlayViewModel["anchorRect"] {
     const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) return null;
+    if (!selection || selection.rangeCount === 0) {
+      return null;
+    }
 
     const range = selection.getRangeAt(0);
     const rects = Array.from(range.getClientRects());
@@ -483,7 +493,9 @@ import {
         ? rects[rects.length - 1]
         : range.getBoundingClientRect();
 
-    if (!rect || (rect.width === 0 && rect.height === 0)) return null;
+    if (!rect || (rect.width === 0 && rect.height === 0)) {
+      return null;
+    }
     return {
       left: rect.left,
       top: rect.top,
@@ -514,22 +526,36 @@ import {
   let summarizeOverlayTitleInFlight: Promise<string> | null = null;
 
   function findContextActionTitle(actions: unknown, id: string): string | null {
-    if (!Array.isArray(actions)) return null;
+    if (!Array.isArray(actions)) {
+      return null;
+    }
     for (const item of actions) {
-      if (typeof item !== "object" || item === null) continue;
+      if (typeof item !== "object" || item === null) {
+        continue;
+      }
       const record = item as Record<string, unknown>;
-      if (typeof record.id !== "string") continue;
-      if (record.id.trim() !== id) continue;
+      if (typeof record.id !== "string") {
+        continue;
+      }
+      if (record.id.trim() !== id) {
+        continue;
+      }
       const title = typeof record.title === "string" ? record.title.trim() : "";
-      if (!title) continue;
+      if (!title) {
+        continue;
+      }
       return title;
     }
     return null;
   }
 
   async function getSummarizeOverlayTitle(): Promise<string> {
-    if (summarizeOverlayTitleCache) return summarizeOverlayTitleCache;
-    if (summarizeOverlayTitleInFlight) return summarizeOverlayTitleInFlight;
+    if (summarizeOverlayTitleCache) {
+      return summarizeOverlayTitleCache;
+    }
+    if (summarizeOverlayTitleInFlight) {
+      return summarizeOverlayTitleInFlight;
+    }
 
     summarizeOverlayTitleInFlight = (async () => {
       try {
@@ -760,8 +786,9 @@ import {
           summarizeOverlayTitleInFlight = null;
         }
 
-        if (!("domainPatterns" in changes || "autoEnableSort" in changes))
+        if (!("domainPatterns" in changes || "autoEnableSort" in changes)) {
           return;
+        }
         void (async () => {
           await refreshTableConfig();
           maybeEnableTableSortFromConfig();
@@ -769,8 +796,12 @@ import {
         return;
       }
 
-      if (areaName !== "local") return;
-      if (!("theme" in changes)) return;
+      if (areaName !== "local") {
+        return;
+      }
+      if (!("theme" in changes)) {
+        return;
+      }
       const change = changes.theme as chrome.storage.StorageChange | undefined;
       currentTheme = normalizeTheme(change?.newValue);
       applyThemeToMounts(currentTheme);
@@ -780,7 +811,9 @@ import {
   let lastHref = window.location.href;
   window.setInterval(() => {
     const href = window.location.href;
-    if (href === lastHref) return;
+    if (href === lastHref) {
+      return;
+    }
     lastHref = href;
     maybeEnableTableSortFromConfig();
   }, 1000);
