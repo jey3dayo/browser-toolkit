@@ -1,7 +1,10 @@
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, expect, it } from "vitest";
-import { OverlayApp, type OverlayViewModel } from "@/content/overlay/OverlayApp";
+import {
+  OverlayApp,
+  type OverlayViewModel,
+} from "@/content/overlay/OverlayApp";
 
 // Enable React's act() behavior warnings to be handled correctly in this test suite.
 (
@@ -56,7 +59,7 @@ describe("OverlayApp positioning", () => {
       root.render(
         <OverlayApp
           host={host}
-          onDismiss={() => {}}
+          onDismiss={() => undefined}
           portalContainer={portalShadow}
           viewModel={viewModel}
         />
@@ -81,4 +84,3 @@ describe("OverlayApp positioning", () => {
     host.remove();
   });
 });
-
