@@ -39,12 +39,8 @@ export const Basic: Story = {
     });
 
     await userEvent.click(canvas.getByTestId('create-link-format'));
-    await waitFor(() => {
-      expect(canvasElement.ownerDocument.querySelector('.mbu-select-popup')).toBeTruthy();
-    });
-    const popup = canvasElement.ownerDocument.querySelector<HTMLElement>('.mbu-select-popup');
-    if (!popup) throw new Error('Select popup not found');
-    await userEvent.click(within(popup).getByRole('option', { name: 'HTML <a>' }));
+    const listbox = await within(canvasElement.ownerDocument.body).findByRole('listbox');
+    await userEvent.click(within(listbox).getByRole('option', { name: 'HTML <a>' }));
 
     await waitFor(() => {
       const output = canvas.getByTestId('create-link-output') as HTMLTextAreaElement;
