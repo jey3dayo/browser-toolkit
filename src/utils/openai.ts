@@ -1,5 +1,5 @@
 import { Result } from '@praha/byethrow';
-import { toErrorMessage } from './errors';
+import { toErrorMessage } from '@/utils/errors';
 
 export function extractChatCompletionText(json: unknown): string | null {
   if (typeof json !== 'object' || json === null) return null;

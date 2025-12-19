@@ -1,16 +1,16 @@
 // Background Service Worker
 
 import { Result } from '@praha/byethrow';
-import { type ContextAction, DEFAULT_CONTEXT_ACTIONS, normalizeContextActions } from './context_actions';
-import { parseDateOnlyToYyyyMmDd, parseDateTimeLoose } from './date_utils';
-import { computeEventDateRange } from './event_date_range';
-import { buildIcs } from './ics';
-import { loadOpenAiModel, loadOpenAiSettings } from './openai/settings';
-import type { ExtractedEvent, SummarySource } from './shared_types';
-import type { LocalStorageData } from './storage/types';
-import { toErrorMessage } from './utils/errors';
-import { safeParseJsonObject } from './utils/json';
-import { fetchOpenAiChatCompletionOk, fetchOpenAiChatCompletionText } from './utils/openai';
+import { type ContextAction, DEFAULT_CONTEXT_ACTIONS, normalizeContextActions } from '@/context_actions';
+import { parseDateOnlyToYyyyMmDd, parseDateTimeLoose } from '@/date_utils';
+import { computeEventDateRange } from '@/event_date_range';
+import { buildIcs } from '@/ics';
+import { loadOpenAiModel, loadOpenAiSettings } from '@/openai/settings';
+import type { ExtractedEvent, SummarySource } from '@/shared_types';
+import type { LocalStorageData } from '@/storage/types';
+import { toErrorMessage } from '@/utils/errors';
+import { safeParseJsonObject } from '@/utils/json';
+import { fetchOpenAiChatCompletionOk, fetchOpenAiChatCompletionText } from '@/utils/openai';
 
 type SummaryTarget = {
   text: string;

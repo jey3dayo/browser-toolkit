@@ -1,5 +1,5 @@
 import { Result } from '@praha/byethrow';
-import type { LocalStorageData } from '../storage/types';
+import type { LocalStorageData } from '@/storage/types';
 
 export type TokenGuardDeps = {
   storageLocalGet: (keys: string[]) => Promise<unknown>;

@@ -73,7 +73,7 @@ describe('content overlay (React + Shadow DOM)', () => {
   });
 
   it('mounts overlay idempotently across multiple initializations', async () => {
-    await import('../src/content.ts');
+    await import('@/content.ts');
     expect(listeners.length).toBeGreaterThan(0);
 
     const request: ContentRequest = {
@@ -92,7 +92,7 @@ describe('content overlay (React + Shadow DOM)', () => {
     expect(dom.window.document.querySelectorAll('#my-browser-utils-overlay').length).toBe(1);
 
     vi.resetModules();
-    await import('../src/content.ts');
+    await import('@/content.ts');
 
     for (const listener of listeners) {
       await dispatchMessage(listener, request, dom.window);
@@ -102,7 +102,7 @@ describe('content overlay (React + Shadow DOM)', () => {
   });
 
   it('shows an error toast in the shadow root when clipboard write fails', async () => {
-    await import('../src/content.ts');
+    await import('@/content.ts');
     const [listener] = listeners;
     if (!listener) throw new Error('missing message listener');
 
@@ -138,7 +138,7 @@ describe('content overlay (React + Shadow DOM)', () => {
   });
 
   it('hides the copy button while overlay is loading', async () => {
-    await import('../src/content.ts');
+    await import('@/content.ts');
     const [listener] = listeners;
     if (!listener) throw new Error('missing message listener');
 
@@ -163,7 +163,7 @@ describe('content overlay (React + Shadow DOM)', () => {
   });
 
   it('does not duplicate the source label in summary overlay titles', async () => {
-    await import('../src/content.ts');
+    await import('@/content.ts');
     const [listener] = listeners;
     if (!listener) throw new Error('missing message listener');
 
@@ -189,7 +189,7 @@ describe('content overlay (React + Shadow DOM)', () => {
   });
 
   it('renders event overlay with table + quote, hides link-copy, and keeps pin next to close', async () => {
-    await import('../src/content.ts');
+    await import('@/content.ts');
     const [listener] = listeners;
     if (!listener) throw new Error('missing message listener');
 
@@ -262,7 +262,7 @@ describe('content overlay (React + Shadow DOM)', () => {
   });
 
   it('renders selection text as an auxiliary collapsed section in text mode', async () => {
-    await import('../src/content.ts');
+    await import('@/content.ts');
     const [listener] = listeners;
     if (!listener) throw new Error('missing message listener');
 

@@ -2,7 +2,7 @@ import type { JSDOM } from 'jsdom';
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { PopupApp } from '../src/popup/App';
+import { PopupApp } from '@/popup/App';
 import { flush } from './helpers/async';
 import { createPopupDom } from './helpers/popupDom';
 

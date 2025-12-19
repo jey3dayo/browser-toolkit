@@ -3,9 +3,8 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { expect, fn, waitFor } from 'storybook/test';
-
-import { ensureShadowUiBaseStyles } from '../../ui/styles';
-import { OverlayApp, type OverlayViewModel } from './OverlayApp';
+import { OverlayApp, type OverlayViewModel } from '@/content/overlay/OverlayApp';
+import { ensureShadowUiBaseStyles } from '@/ui/styles';
 
 type Props = {
   viewModel: OverlayViewModel;

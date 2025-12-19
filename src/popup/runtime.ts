@@ -1,6 +1,6 @@
-import type { ContextAction } from '../context_actions';
-import type { ExtractedEvent, SummarySource } from '../shared_types';
-import type { LocalStorageData } from '../storage/types';
+import type { ContextAction } from '@/context_actions';
+import type { ExtractedEvent, SummarySource } from '@/shared_types';
+import type { LocalStorageData } from '@/storage/types';
 
 export type SyncStorageData = {
   domainPatterns?: string[];

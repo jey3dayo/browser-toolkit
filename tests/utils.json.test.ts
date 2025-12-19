@@ -1,6 +1,6 @@
 import { Result } from '@praha/byethrow';
 import { describe, expect, it } from 'vitest';
-import { safeParseJsonObject } from '../src/utils/json';
+import { safeParseJsonObject } from '@/utils/json';
 
 describe('safeParseJsonObject', () => {
   it('parses JSON object', () => {

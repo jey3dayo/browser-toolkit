@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { DEFAULT_OPENAI_MODEL, normalizeOpenAiModel } from '../src/openai/settings';
+import { DEFAULT_OPENAI_MODEL, normalizeOpenAiModel } from '@/openai/settings';
 
 describe('openai/settings', () => {
   it('normalizes the model value from storage', () => {

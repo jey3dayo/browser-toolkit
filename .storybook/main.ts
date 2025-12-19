@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import type { StorybookConfig } from '@storybook/react-vite';
 
 const dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
-
+const srcDir = path.resolve(dirname, '../src');
 const config: StorybookConfig = {
   stories: ['../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
   addons: ['@chromatic-com/storybook', '@storybook/addon-vitest', '@storybook/addon-a11y', '@storybook/addon-docs'],
@@ -13,6 +13,19 @@ const config: StorybookConfig = {
     { from: '../images', to: '/images' },
   ],
   async viteFinal(config) {
+    config.resolve ??= {};
+    const alias = config.resolve.alias;
+    if (Array.isArray(alias)) {
+      const existing = alias.find(entry => entry.find === '@');
+      if (existing) {
+        existing.replacement = srcDir;
+      } else {
+        alias.push({ find: '@', replacement: srcDir });
+      }
+    } else {
+      config.resolve.alias = { ...(alias ?? {}), '@': srcDir };
+    }
+
     config.optimizeDeps ??= {};
     const include = Array.isArray(config.optimizeDeps.include) ? config.optimizeDeps.include : [];
     config.optimizeDeps.include = Array.from(
@@ -31,15 +44,6 @@ const config: StorybookConfig = {
         '@base-ui/react/toast',
       ]),
     );
-
-    config.resolve ??= {};
-    const alias = config.resolve.alias;
-    const replacement = path.join(dirname, '..', 'src');
-    if (Array.isArray(alias)) {
-      alias.push({ find: '@', replacement });
-    } else {
-      config.resolve.alias = { ...(alias ?? {}), '@': replacement };
-    }
     return config;
   },
 };

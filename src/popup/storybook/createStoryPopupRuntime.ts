@@ -1,11 +1,11 @@
-import type { LocalStorageData } from '../../storage/types';
 import type {
   ActiveTabInfo,
   PopupRuntime,
   RunContextActionRequest,
   SyncStorageData,
   TestOpenAiTokenRequest,
-} from '../runtime';
+} from '@/popup/runtime';
+import type { LocalStorageData } from '@/storage/types';
 
 type Options = {
   sync?: Partial<SyncStorageData>;

@@ -1,6 +1,6 @@
 import { Result } from '@praha/byethrow';
 import { describe, expect, it, vi } from 'vitest';
-import { ensureOpenAiTokenConfigured } from '../src/popup/token_guard';
+import { ensureOpenAiTokenConfigured } from '@/popup/token_guard';
 
 describe('ensureOpenAiTokenConfigured', () => {
   it('returns Success when token exists', async () => {

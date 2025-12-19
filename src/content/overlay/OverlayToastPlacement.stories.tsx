@@ -2,9 +2,9 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { expect, userEvent, waitFor } from 'storybook/test';
-import { ensureShadowUiBaseStyles } from '../../ui/styles';
-import { applyTheme } from '../../ui/theme';
-import { createNotifications, ToastHost } from '../../ui/toast';
+import { ensureShadowUiBaseStyles } from '@/ui/styles';
+import { applyTheme } from '@/ui/theme';
+import { createNotifications, ToastHost } from '@/ui/toast';
 
 function OverlayToastPlacementStory(): React.JSX.Element {
   const hostRef = useRef<HTMLDivElement | null>(null);

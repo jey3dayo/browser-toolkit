@@ -6,7 +6,7 @@ import { Select } from '@base-ui/react/select';
 import { Toggle } from '@base-ui/react/toggle';
 import { ToggleGroup } from '@base-ui/react/toggle-group';
 import { useId } from 'react';
-import type { ContextAction, ContextActionKind } from '../../../context_actions';
+import type { ContextAction, ContextActionKind } from '@/context_actions';
 
 type Props = {
   actions: ContextAction[];

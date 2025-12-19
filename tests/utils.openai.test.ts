@@ -5,7 +5,7 @@ import {
   extractOpenAiApiErrorMessage,
   fetchOpenAiChatCompletionOk,
   fetchOpenAiChatCompletionText,
-} from '../src/utils/openai';
+} from '@/utils/openai';
 
 describe('extractChatCompletionText', () => {
   it('returns trimmed content', () => {

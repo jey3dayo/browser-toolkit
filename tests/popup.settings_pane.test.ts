@@ -44,7 +44,7 @@ describe('popup Settings pane', () => {
     vi.stubGlobal('chrome', chromeStub);
 
     await act(async () => {
-      await import('../src/popup.ts');
+      await import('@/popup.ts');
       await flush(dom.window);
     });
   });

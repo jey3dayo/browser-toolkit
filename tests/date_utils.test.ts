@@ -5,7 +5,7 @@ import {
   nextDateYyyyMmDd,
   parseDateOnlyToYyyyMmDd,
   parseDateTimeLoose,
-} from '../src/date_utils';
+} from '@/date_utils';
 
 describe('src/date_utils.ts', () => {
   it('parses date-only inputs to YYYYMMDD', () => {

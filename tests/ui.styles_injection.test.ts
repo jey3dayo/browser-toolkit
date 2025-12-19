@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ensurePopupUiBaseStyles, ensureShadowUiBaseStyles } from '../src/ui/styles';
+import { ensurePopupUiBaseStyles, ensureShadowUiBaseStyles } from '@/ui/styles';
 
 describe('UI base styles', () => {
   it('injects popup base styles once', () => {

@@ -9,11 +9,11 @@ import { Select } from '@base-ui/react/select';
 import { Separator } from '@base-ui/react/separator';
 import { Toggle } from '@base-ui/react/toggle';
 import { useEffect, useId, useState } from 'react';
+import { DEFAULT_OPENAI_MODEL, normalizeOpenAiModel, OPENAI_MODEL_OPTIONS } from '@/openai/settings';
+import type { PopupPaneBaseProps } from '@/popup/panes/types';
+import type { TestOpenAiTokenRequest, TestOpenAiTokenResponse } from '@/popup/runtime';
+import type { LocalStorageData } from '@/storage/types';
 import { applyTheme, isTheme, type Theme } from '@/ui/theme';
-import { DEFAULT_OPENAI_MODEL, normalizeOpenAiModel, OPENAI_MODEL_OPTIONS } from '../../openai/settings';
-import type { LocalStorageData } from '../../storage/types';
-import type { TestOpenAiTokenRequest, TestOpenAiTokenResponse } from '../runtime';
-import type { PopupPaneBaseProps } from './types';
 
 export type SettingsPaneProps = PopupPaneBaseProps & {
   tokenInputRef: React.RefObject<HTMLInputElement | null>;

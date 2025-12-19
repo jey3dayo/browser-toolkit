@@ -1,5 +1,5 @@
 import { Button } from '@base-ui/react/button';
-import type { ContextAction } from '../../../context_actions';
+import type { ContextAction } from '@/context_actions';
 
 type Props = {
   actions: ContextAction[];

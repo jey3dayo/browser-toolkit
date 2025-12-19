@@ -1,9 +1,9 @@
 import { Button } from '@base-ui/react/button';
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { AuxTextDisclosure } from '../../components/AuxTextDisclosure';
-import type { ExtractedEvent, SummarySource } from '../../shared_types';
-import { createNotifications, ToastHost } from '../../ui/toast';
-import { CopyIcon, PinIcon } from './icons';
+import { AuxTextDisclosure } from '@/components/AuxTextDisclosure';
+import { CopyIcon, PinIcon } from '@/content/overlay/icons';
+import type { ExtractedEvent, SummarySource } from '@/shared_types';
+import { createNotifications, ToastHost } from '@/ui/toast';
 
 export type OverlayViewModel = {
   open: boolean;

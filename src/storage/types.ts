@@ -1,4 +1,4 @@
-import type { Theme } from '../ui/theme';
+import type { Theme } from '@/ui/theme';
 
 export type LocalStorageData = {
   openaiApiToken?: string;

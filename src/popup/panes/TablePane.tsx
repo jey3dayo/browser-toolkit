@@ -4,8 +4,8 @@ import { Input } from '@base-ui/react/input';
 import { ScrollArea } from '@base-ui/react/scroll-area';
 import { Toggle } from '@base-ui/react/toggle';
 import { useEffect, useState } from 'react';
-import type { EnableTableSortMessage } from '../runtime';
-import type { PopupPaneBaseProps } from './types';
+import type { PopupPaneBaseProps } from '@/popup/panes/types';
+import type { EnableTableSortMessage } from '@/popup/runtime';
 
 export type TablePaneProps = PopupPaneBaseProps;
 

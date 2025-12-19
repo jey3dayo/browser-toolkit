@@ -2,10 +2,9 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useRef } from 'react';
 
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
-
-import { createStoryPopupRuntime } from '../storybook/createStoryPopupRuntime';
-import { SettingsPane } from './SettingsPane';
-import type { PopupPaneBaseProps } from './types';
+import { SettingsPane } from '@/popup/panes/SettingsPane';
+import type { PopupPaneBaseProps } from '@/popup/panes/types';
+import { createStoryPopupRuntime } from '@/popup/storybook/createStoryPopupRuntime';
 
 function SettingsPaneStory(props: PopupPaneBaseProps): React.JSX.Element {
   const tokenInputRef = useRef<HTMLInputElement | null>(null);

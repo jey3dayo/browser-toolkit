@@ -5,16 +5,16 @@ import {
   type ContextActionKind,
   DEFAULT_CONTEXT_ACTIONS,
   normalizeContextActions,
-} from '../../context_actions';
-import { buildIcs, sanitizeFileName } from '../../ics';
-import type { ExtractedEvent } from '../../shared_types';
-import type { Notifier } from '../../ui/toast';
-import type { PaneId } from '../panes';
-import type { PopupRuntime, RunContextActionRequest, RunContextActionResponse } from '../runtime';
-import { ensureOpenAiTokenConfigured } from '../token_guard';
-import { ActionButtons } from './actions/ActionButtons';
-import { ActionEditorPanel } from './actions/ActionEditorPanel';
-import { ActionOutputPanel } from './actions/ActionOutputPanel';
+} from '@/context_actions';
+import { buildIcs, sanitizeFileName } from '@/ics';
+import type { PaneId } from '@/popup/panes';
+import { ActionButtons } from '@/popup/panes/actions/ActionButtons';
+import { ActionEditorPanel } from '@/popup/panes/actions/ActionEditorPanel';
+import { ActionOutputPanel } from '@/popup/panes/actions/ActionOutputPanel';
+import type { PopupRuntime, RunContextActionRequest, RunContextActionResponse } from '@/popup/runtime';
+import { ensureOpenAiTokenConfigured } from '@/popup/token_guard';
+import type { ExtractedEvent } from '@/shared_types';
+import type { Notifier } from '@/ui/toast';
 
 type OutputState =
   | { status: 'idle' }

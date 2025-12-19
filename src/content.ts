@@ -2,11 +2,11 @@
 
 import { createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { OverlayApp, type OverlayViewModel } from './content/overlay/OverlayApp';
-import type { ExtractedEvent, SummarySource } from './shared_types';
-import { ensureShadowUiBaseStyles } from './ui/styles';
-import { applyTheme, isTheme, type Theme } from './ui/theme';
-import { createNotifications, type Notifier, ToastHost, type ToastManager } from './ui/toast';
+import { OverlayApp, type OverlayViewModel } from '@/content/overlay/OverlayApp';
+import type { ExtractedEvent, SummarySource } from '@/shared_types';
+import { ensureShadowUiBaseStyles } from '@/ui/styles';
+import { applyTheme, isTheme, type Theme } from '@/ui/theme';
+import { createNotifications, type Notifier, ToastHost, type ToastManager } from '@/ui/toast';
 
 (() => {
   type StorageData = {

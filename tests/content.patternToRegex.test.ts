@@ -39,7 +39,7 @@ describe('patternToRegex (src/content.ts)', () => {
 
     vi.stubGlobal('chrome', createChromeStub());
 
-    await import('../src/content.ts');
+    await import('@/content.ts');
 
     if (!hooks.patternToRegex) {
       throw new Error('patternToRegex was not exposed via __MBU_TEST_HOOKS__');

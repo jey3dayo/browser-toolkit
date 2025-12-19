@@ -67,7 +67,7 @@ describe('popup context actions (React UI)', () => {
     });
 
     await act(async () => {
-      await import('../src/popup.ts');
+      await import('@/popup.ts');
       await flush(dom.window);
     });
   });

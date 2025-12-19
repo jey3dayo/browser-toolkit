@@ -2,8 +2,8 @@ import { Button } from '@base-ui/react/button';
 import { Input } from '@base-ui/react/input';
 import { Select } from '@base-ui/react/select';
 import { useCallback, useEffect, useId, useMemo, useState } from 'react';
-import { formatLink, LINK_FORMAT_OPTIONS, type LinkFormat } from './create_link/format';
-import type { PopupPaneBaseProps } from './types';
+import { formatLink, LINK_FORMAT_OPTIONS, type LinkFormat } from '@/popup/panes/create_link/format';
+import type { PopupPaneBaseProps } from '@/popup/panes/types';
 
 export type CreateLinkPaneProps = PopupPaneBaseProps;
 

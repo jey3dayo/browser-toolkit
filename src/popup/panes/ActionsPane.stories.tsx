@@ -1,10 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
-
-import type { RunContextActionRequest } from '../runtime';
-import { createStoryPopupRuntime } from '../storybook/createStoryPopupRuntime';
-import { ActionsPane, type ActionsPaneProps } from './ActionsPane';
+import { ActionsPane, type ActionsPaneProps } from '@/popup/panes/ActionsPane';
+import type { RunContextActionRequest } from '@/popup/runtime';
+import { createStoryPopupRuntime } from '@/popup/storybook/createStoryPopupRuntime';
 
 function ActionsPaneStory(props: ActionsPaneProps): React.JSX.Element {
   return <ActionsPane {...props} />;

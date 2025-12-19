@@ -1,10 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
-
-import { createStoryPopupRuntime } from '../storybook/createStoryPopupRuntime';
-import { CreateLinkPane } from './CreateLinkPane';
-import type { PopupPaneBaseProps } from './types';
+import { CreateLinkPane } from '@/popup/panes/CreateLinkPane';
+import type { PopupPaneBaseProps } from '@/popup/panes/types';
+import { createStoryPopupRuntime } from '@/popup/storybook/createStoryPopupRuntime';
 
 function CreateLinkPaneStory(props: PopupPaneBaseProps): React.JSX.Element {
   return <CreateLinkPane notify={props.notify} runtime={props.runtime} />;

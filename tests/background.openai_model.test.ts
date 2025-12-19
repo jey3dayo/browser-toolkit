@@ -43,7 +43,7 @@ describe('background: OpenAI model selection', () => {
 
     vi.stubGlobal('fetch', fetchSpy as unknown as typeof fetch);
 
-    await import('../src/background.ts');
+    await import('@/background.ts');
 
     const [listener] = listeners;
     if (!listener) throw new Error('missing runtime.onMessage listener');

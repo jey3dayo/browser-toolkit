@@ -1,6 +1,6 @@
 import { Result } from '@praha/byethrow';
-import type { LocalStorageData } from '../storage/types';
-import { toErrorMessage } from '../utils/errors';
+import type { LocalStorageData } from '@/storage/types';
+import { toErrorMessage } from '@/utils/errors';
 
 export const DEFAULT_OPENAI_MODEL = 'gpt-4o-mini';
 export const OPENAI_MODEL_OPTIONS = [DEFAULT_OPENAI_MODEL, 'gpt-4o'] as const;

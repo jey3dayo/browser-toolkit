@@ -2,13 +2,13 @@ import { Dialog, Tabs } from '@base-ui/react';
 import { Button } from '@base-ui/react/button';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '@/components/icon';
+import { coercePaneId, getPaneIdFromHash, type PaneId } from '@/popup/panes';
+import { ActionsPane } from '@/popup/panes/ActionsPane';
+import { CreateLinkPane } from '@/popup/panes/CreateLinkPane';
+import { SettingsPane } from '@/popup/panes/SettingsPane';
+import { TablePane } from '@/popup/panes/TablePane';
+import { createPopupRuntime } from '@/popup/runtime';
 import { createNotifications, ToastHost } from '@/ui/toast';
-import { coercePaneId, getPaneIdFromHash, type PaneId } from './panes';
-import { ActionsPane } from './panes/ActionsPane';
-import { CreateLinkPane } from './panes/CreateLinkPane';
-import { SettingsPane } from './panes/SettingsPane';
-import { TablePane } from './panes/TablePane';
-import { createPopupRuntime } from './runtime';
 
 function replaceHash(nextHash: string): void {
   try {
