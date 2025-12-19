@@ -18,8 +18,8 @@ import type {
 import { ensureOpenAiTokenConfigured } from "@/popup/token_guard";
 import type { ExtractedEvent } from "@/shared_types";
 import type { Notifier } from "@/ui/toast";
-import { buildIcs, sanitizeFileName } from "@/utils/ics";
 import { isRecord } from "@/utils/guards";
+import { buildIcs, sanitizeFileName } from "@/utils/ics";
 
 type OutputState =
   | { status: "idle" }
