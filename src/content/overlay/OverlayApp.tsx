@@ -1,14 +1,14 @@
-import { Button } from '@base-ui/react/button';
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { AuxTextDisclosure } from '@/components/AuxTextDisclosure';
-import { CopyIcon, PinIcon } from '@/content/overlay/icons';
-import type { ExtractedEvent, SummarySource } from '@/shared_types';
-import { createNotifications, ToastHost } from '@/ui/toast';
+import { Button } from "@base-ui/react/button";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { AuxTextDisclosure } from "@/components/AuxTextDisclosure";
+import { CopyIcon, PinIcon } from "@/content/overlay/icons";
+import type { ExtractedEvent, SummarySource } from "@/shared_types";
+import { createNotifications, ToastHost } from "@/ui/toast";
 
 export type OverlayViewModel = {
   open: boolean;
-  status: 'loading' | 'ready' | 'error';
-  mode: 'text' | 'event';
+  status: "loading" | "ready" | "error";
+  mode: "text" | "event";
   source: SummarySource;
   title: string;
   primary: string;
@@ -16,7 +16,12 @@ export type OverlayViewModel = {
   event?: ExtractedEvent;
   calendarUrl?: string;
   ics?: string;
-  anchorRect: { left: number; top: number; width: number; height: number } | null;
+  anchorRect: {
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+  } | null;
 };
 
 type Props = {
@@ -32,17 +37,20 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
-function splitSelectionSecondary(secondary: string): { selectionText: string; remainder: string } {
+function splitSelectionSecondary(secondary: string): {
+  selectionText: string;
+  remainder: string;
+} {
   const raw = secondary.trim();
   const match = raw.match(/^選択範囲:\s*\n([\s\S]*)$/);
-  if (!match) return { selectionText: '', remainder: raw };
+  if (!match) return { selectionText: "", remainder: raw };
 
-  const afterPrefix = (match[1] ?? '').trim();
-  if (!afterPrefix) return { selectionText: '', remainder: '' };
+  const afterPrefix = (match[1] ?? "").trim();
+  if (!afterPrefix) return { selectionText: "", remainder: "" };
 
-  const tokenHintMarker = '\n\nOpenAI API Token未設定の場合は、';
+  const tokenHintMarker = "\n\nOpenAI API Token未設定の場合は、";
   const markerIndex = afterPrefix.indexOf(tokenHintMarker);
-  if (markerIndex < 0) return { selectionText: afterPrefix, remainder: '' };
+  if (markerIndex < 0) return { selectionText: afterPrefix, remainder: "" };
 
   const selectionText = afterPrefix.slice(0, markerIndex).trim();
   const remainder = afterPrefix.slice(markerIndex + 2).trim();
@@ -85,9 +93,18 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
       return;
     }
 
-    const preferred = { left: anchor.left, top: anchor.top + anchor.height + 10 };
+    const preferred = {
+      left: anchor.left,
+      top: anchor.top + anchor.height + 10,
+    };
     updateHostPosition(preferred);
-  }, [props.host, props.viewModel.open, props.viewModel.anchorRect, pinned, pinnedPos]);
+  }, [
+    props.host,
+    props.viewModel.open,
+    props.viewModel.anchorRect,
+    pinned,
+    pinnedPos,
+  ]);
 
   if (!props.viewModel.open) return null;
 
@@ -95,39 +112,39 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
     const text = props.viewModel.primary.trim();
     if (!text) return;
     if (!navigator.clipboard?.writeText) {
-      notify.error('コピーに失敗しました');
+      notify.error("コピーに失敗しました");
       return;
     }
     try {
       await navigator.clipboard.writeText(text);
-      notify.success('コピーしました');
+      notify.success("コピーしました");
     } catch {
-      notify.error('コピーに失敗しました');
+      notify.error("コピーに失敗しました");
     }
   };
 
   const openCalendar = (): void => {
-    const url = props.viewModel.calendarUrl?.trim() ?? '';
+    const url = props.viewModel.calendarUrl?.trim() ?? "";
     if (!url) return;
-    window.open(url, '_blank', 'noopener,noreferrer');
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const downloadIcs = (): void => {
-    const ics = props.viewModel.ics?.trim() ?? '';
+    const ics = props.viewModel.ics?.trim() ?? "";
     if (!ics) return;
     try {
-      const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+      const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.download = 'event.ics';
+      link.download = "event.ics";
       document.body.appendChild(link);
       link.click();
       link.remove();
       URL.revokeObjectURL(url);
-      notify.success('ダウンロードしました');
+      notify.success("ダウンロードしました");
     } catch {
-      notify.error('ダウンロードに失敗しました');
+      notify.error("ダウンロードに失敗しました");
     }
   };
 
@@ -135,7 +152,10 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
     if (event.button !== 0) return;
     event.preventDefault();
     const rect = props.host.getBoundingClientRect();
-    dragOffsetRef.current = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+    dragOffsetRef.current = {
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+    };
     setPinned(true);
     setDragging(true);
     setPinnedPos({ left: rect.left, top: rect.top });
@@ -154,7 +174,10 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
     const panelRect = panel?.getBoundingClientRect();
     const width = panelRect?.width || 520;
     const height = panelRect?.height || 300;
-    const next = { left: event.clientX - offset.x, top: event.clientY - offset.y };
+    const next = {
+      left: event.clientX - offset.x,
+      top: event.clientY - offset.y,
+    };
     setPinnedPos({
       left: clamp(next.left, 16, Math.max(16, window.innerWidth - width - 16)),
       top: clamp(next.top, 16, Math.max(16, window.innerHeight - height - 16)),
@@ -183,25 +206,43 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
     setPinnedPos(null);
   };
 
-  const sourceLabel = props.viewModel.source === 'selection' ? '選択範囲' : 'ページ本文';
+  const sourceLabel =
+    props.viewModel.source === "selection" ? "選択範囲" : "ページ本文";
   const statusLabel =
-    props.viewModel.status === 'loading' ? '処理中...' : props.viewModel.status === 'error' ? 'エラー' : '';
+    props.viewModel.status === "loading"
+      ? "処理中..."
+      : props.viewModel.status === "error"
+        ? "エラー"
+        : "";
 
-  const isReadyEvent = props.viewModel.mode === 'event' && props.viewModel.status === 'ready' && props.viewModel.event;
+  const isReadyEvent =
+    props.viewModel.mode === "event" &&
+    props.viewModel.status === "ready" &&
+    props.viewModel.event;
   const selectionSplit = splitSelectionSecondary(props.viewModel.secondary);
   const selectionText = selectionSplit.selectionText;
-  const secondaryText = selectionText ? selectionSplit.remainder : props.viewModel.secondary.trim();
-  const canCopyPrimary = props.viewModel.status === 'ready' && Boolean(props.viewModel.primary.trim());
+  const secondaryText = selectionText
+    ? selectionSplit.remainder
+    : props.viewModel.secondary.trim();
+  const canCopyPrimary =
+    props.viewModel.status === "ready" &&
+    Boolean(props.viewModel.primary.trim());
   const canOpenCalendar =
-    props.viewModel.mode === 'event' &&
-    props.viewModel.status === 'ready' &&
+    props.viewModel.mode === "event" &&
+    props.viewModel.status === "ready" &&
     Boolean(props.viewModel.calendarUrl?.trim());
   const canDownloadIcs =
-    props.viewModel.mode === 'event' && props.viewModel.status === 'ready' && Boolean(props.viewModel.ics?.trim());
+    props.viewModel.mode === "event" &&
+    props.viewModel.status === "ready" &&
+    Boolean(props.viewModel.ics?.trim());
 
   return (
     <div className="mbu-overlay-surface">
-      <ToastHost placement="surface" portalContainer={props.portalContainer} toastManager={toastManager} />
+      <ToastHost
+        placement="surface"
+        portalContainer={props.portalContainer}
+        toastManager={toastManager}
+      />
       <div className="mbu-overlay-panel" ref={panelRef}>
         <div className="mbu-overlay-header">
           <div className="mbu-overlay-header-left">
@@ -217,17 +258,18 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
               ⋮⋮
             </Button>
             <div className="mbu-overlay-title">
-              {props.viewModel.title} <span className="mbu-overlay-chip">{sourceLabel}</span>
+              {props.viewModel.title}{" "}
+              <span className="mbu-overlay-chip">{sourceLabel}</span>
             </div>
           </div>
           <div className="mbu-overlay-actions">
             <Button
-              aria-label={pinned ? '固定解除' : '固定'}
+              aria-label={pinned ? "固定解除" : "固定"}
               className="mbu-overlay-action mbu-overlay-icon-button"
-              data-active={pinned ? 'true' : undefined}
+              data-active={pinned ? "true" : undefined}
               data-testid="overlay-pin"
               onClick={togglePinned}
-              title={pinned ? '固定解除' : '固定'}
+              title={pinned ? "固定解除" : "固定"}
               type="button"
             >
               <PinIcon />
@@ -246,12 +288,22 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
         </div>
 
         <div className="mbu-overlay-body">
-          {props.viewModel.mode === 'event' ? (
+          {props.viewModel.mode === "event" ? (
             <div className="mbu-overlay-body-actions">
-              <Button className="mbu-overlay-action" disabled={!canOpenCalendar} onClick={openCalendar} type="button">
+              <Button
+                className="mbu-overlay-action"
+                disabled={!canOpenCalendar}
+                onClick={openCalendar}
+                type="button"
+              >
                 Googleカレンダーに登録
               </Button>
-              <Button className="mbu-overlay-action" disabled={!canDownloadIcs} onClick={downloadIcs} type="button">
+              <Button
+                className="mbu-overlay-action"
+                disabled={!canDownloadIcs}
+                onClick={downloadIcs}
+                type="button"
+              >
                 .ics
               </Button>
               {canCopyPrimary ? (
@@ -299,13 +351,18 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
                   ) : null}
                 </tbody>
               </table>
-              <AuxTextDisclosure summary="選択したテキスト（確認用）" text={selectionText} />
+              <AuxTextDisclosure
+                summary="選択したテキスト（確認用）"
+                text={selectionText}
+              />
             </>
           ) : (
             <>
-              {statusLabel ? <div className="mbu-overlay-status">{statusLabel}</div> : null}
+              {statusLabel ? (
+                <div className="mbu-overlay-status">{statusLabel}</div>
+              ) : null}
               <div className="mbu-overlay-primary-block">
-                {props.viewModel.mode === 'event' || !canCopyPrimary ? null : (
+                {props.viewModel.mode === "event" || !canCopyPrimary ? null : (
                   <Button
                     aria-label="コピー"
                     className="mbu-overlay-action mbu-overlay-icon-button mbu-overlay-copy"
@@ -318,10 +375,19 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
                     <CopyIcon />
                   </Button>
                 )}
-                <pre className="mbu-overlay-primary-text">{props.viewModel.primary}</pre>
+                <pre className="mbu-overlay-primary-text">
+                  {props.viewModel.primary}
+                </pre>
               </div>
-              {secondaryText ? <pre className="mbu-overlay-secondary-text">{secondaryText}</pre> : null}
-              <AuxTextDisclosure summary="選択したテキスト（確認用）" text={selectionText} />
+              {secondaryText ? (
+                <pre className="mbu-overlay-secondary-text">
+                  {secondaryText}
+                </pre>
+              ) : null}
+              <AuxTextDisclosure
+                summary="選択したテキスト（確認用）"
+                text={selectionText}
+              />
             </>
           )}
         </div>

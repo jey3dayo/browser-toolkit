@@ -1,41 +1,41 @@
-import { createElement } from 'react';
-import { createRoot } from 'react-dom/client';
-import { PopupApp } from '@/popup/App';
-import { createPopupRuntime } from '@/popup/runtime';
-import { ensurePopupUiBaseStyles } from '@/ui/styles';
-import { applyTheme, isTheme } from '@/ui/theme';
+import { createElement } from "react";
+import { createRoot } from "react-dom/client";
+import { PopupApp } from "@/popup/App";
+import { createPopupRuntime } from "@/popup/runtime";
+import { ensurePopupUiBaseStyles } from "@/ui/styles";
+import { applyTheme, isTheme } from "@/ui/theme";
 
 async function initTheme(): Promise<void> {
   const runtime = createPopupRuntime();
   try {
-    const { theme } = await runtime.storageLocalGet(['theme']);
-    applyTheme(isTheme(theme) ? theme : 'auto', document);
+    const { theme } = await runtime.storageLocalGet(["theme"]);
+    applyTheme(isTheme(theme) ? theme : "auto", document);
   } catch {
-    applyTheme('auto', document);
+    applyTheme("auto", document);
   }
 }
 
 (() => {
   const start = (): void => {
     ensurePopupUiBaseStyles(document);
-    applyTheme('auto', document);
+    applyTheme("auto", document);
     void initTheme();
 
-    const isExtensionPage = window.location.protocol === 'chrome-extension:';
+    const isExtensionPage = window.location.protocol === "chrome-extension:";
     if (isExtensionPage) {
-      document.body.classList.add('is-extension');
+      document.body.classList.add("is-extension");
     }
 
-    const rootEl = document.getElementById('root');
+    const rootEl = document.getElementById("root");
     if (!rootEl) {
-      throw new Error('Missing #root element in popup.html');
+      throw new Error("Missing #root element in popup.html");
     }
 
     createRoot(rootEl).render(createElement(PopupApp));
   };
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', start);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", start);
   } else {
     start();
   }

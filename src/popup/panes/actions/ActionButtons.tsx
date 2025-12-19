@@ -1,5 +1,5 @@
-import { Button } from '@base-ui/react/button';
-import type { ContextAction } from '@/context_actions';
+import { Button } from "@base-ui/react/button";
+import type { ContextAction } from "@/context_actions";
 
 type Props = {
   actions: ContextAction[];
@@ -9,7 +9,7 @@ type Props = {
 export function ActionButtons(props: Props): React.JSX.Element {
   return (
     <div className="action-buttons">
-      {props.actions.map(action => (
+      {props.actions.map((action) => (
         <Button
           className="btn btn-ghost btn-small"
           data-action-id={action.id}

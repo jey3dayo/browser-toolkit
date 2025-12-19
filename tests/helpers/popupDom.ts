@@ -1,6 +1,8 @@
-import { JSDOM } from 'jsdom';
+import { JSDOM } from "jsdom";
 
-export function createPopupDom(url = 'chrome-extension://test/popup.html#pane-actions'): JSDOM {
+export function createPopupDom(
+  url = "chrome-extension://test/popup.html#pane-actions"
+): JSDOM {
   const html = `<!doctype html>
   <html lang="ja">
     <head></head>

@@ -1,11 +1,18 @@
-export const PANE_IDS = ['pane-actions', 'pane-table', 'pane-create-link', 'pane-settings'] as const;
+export const PANE_IDS = [
+  "pane-actions",
+  "pane-table",
+  "pane-create-link",
+  "pane-settings",
+] as const;
 export type PaneId = (typeof PANE_IDS)[number];
 
 export function coercePaneId(value: unknown): PaneId {
-  return PANE_IDS.includes(value as PaneId) ? (value as PaneId) : 'pane-actions';
+  return PANE_IDS.includes(value as PaneId)
+    ? (value as PaneId)
+    : "pane-actions";
 }
 
 export function getPaneIdFromHash(hash: string): PaneId | null {
-  const value = hash.replace(/^#/, '');
+  const value = hash.replace(/^#/, "");
   return PANE_IDS.includes(value as PaneId) ? (value as PaneId) : null;
 }

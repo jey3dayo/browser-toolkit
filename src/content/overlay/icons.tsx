@@ -1,4 +1,4 @@
-import { Icon } from '@/components/icon';
+import { Icon } from "@/components/icon";
 
 export function PinIcon(): React.JSX.Element {
   return <Icon aria-hidden="true" name="pin" />;

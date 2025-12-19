@@ -1,18 +1,18 @@
-import { Button } from '@base-ui/react/button';
-import { Form } from '@base-ui/react/form';
-import { Input } from '@base-ui/react/input';
-import { ScrollArea } from '@base-ui/react/scroll-area';
-import { Toggle } from '@base-ui/react/toggle';
-import { useEffect, useState } from 'react';
-import type { PopupPaneBaseProps } from '@/popup/panes/types';
-import type { EnableTableSortMessage } from '@/popup/runtime';
+import { Button } from "@base-ui/react/button";
+import { Form } from "@base-ui/react/form";
+import { Input } from "@base-ui/react/input";
+import { ScrollArea } from "@base-ui/react/scroll-area";
+import { Toggle } from "@base-ui/react/toggle";
+import { useEffect, useState } from "react";
+import type { PopupPaneBaseProps } from "@/popup/panes/types";
+import type { EnableTableSortMessage } from "@/popup/runtime";
 
 export type TablePaneProps = PopupPaneBaseProps;
 
 function normalizePatterns(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value
-    .map(item => (typeof item === 'string' ? item.trim() : ''))
+    .map((item) => (typeof item === "string" ? item.trim() : ""))
     .filter(Boolean)
     .slice(0, 200);
 }
@@ -20,13 +20,16 @@ function normalizePatterns(value: unknown): string[] {
 export function TablePane(props: TablePaneProps): React.JSX.Element {
   const [autoEnable, setAutoEnable] = useState(false);
   const [patterns, setPatterns] = useState<string[]>([]);
-  const [patternInput, setPatternInput] = useState('');
+  const [patternInput, setPatternInput] = useState("");
 
   useEffect(() => {
     let cancelled = false;
     void (async () => {
       try {
-        const data = await props.runtime.storageSyncGet(['domainPatterns', 'autoEnableSort']);
+        const data = await props.runtime.storageSyncGet([
+          "domainPatterns",
+          "autoEnableSort",
+        ]);
         if (!cancelled) {
           setAutoEnable(Boolean(data.autoEnableSort));
           setPatterns(normalizePatterns(data.domainPatterns));
@@ -44,14 +47,21 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
     try {
       const tabId = await props.runtime.getActiveTabId();
       if (tabId === null) {
-        props.notify.error('有効なタブが見つかりません');
+        props.notify.error("有効なタブが見つかりません");
         return;
       }
 
-      await props.runtime.sendMessageToTab<EnableTableSortMessage, unknown>(tabId, { action: 'enableTableSort' });
-      props.notify.success('テーブルソートを有効化しました');
+      await props.runtime.sendMessageToTab<EnableTableSortMessage, unknown>(
+        tabId,
+        { action: "enableTableSort" }
+      );
+      props.notify.success("テーブルソートを有効化しました");
     } catch (error) {
-      props.notify.error(error instanceof Error ? error.message : 'テーブルソートの有効化に失敗しました');
+      props.notify.error(
+        error instanceof Error
+          ? error.message
+          : "テーブルソートの有効化に失敗しました"
+      );
     }
   };
 
@@ -59,9 +69,9 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
     setAutoEnable(checked);
     try {
       await props.runtime.storageSyncSet({ autoEnableSort: checked });
-      props.notify.success('保存しました');
+      props.notify.success("保存しました");
     } catch {
-      props.notify.error('保存に失敗しました');
+      props.notify.error("保存に失敗しました");
       setAutoEnable(!checked);
     }
   };
@@ -69,35 +79,35 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
   const addPattern = async (): Promise<void> => {
     const raw = patternInput.trim();
     if (!raw) {
-      props.notify.error('パターンを入力してください');
+      props.notify.error("パターンを入力してください");
       return;
     }
     if (patterns.includes(raw)) {
-      props.notify.info('既に追加されています');
-      setPatternInput('');
+      props.notify.info("既に追加されています");
+      setPatternInput("");
       return;
     }
 
     const next = [...patterns, raw];
     setPatterns(next);
-    setPatternInput('');
+    setPatternInput("");
     try {
       await props.runtime.storageSyncSet({ domainPatterns: next });
-      props.notify.success('追加しました');
+      props.notify.success("追加しました");
     } catch {
-      props.notify.error('追加に失敗しました');
+      props.notify.error("追加に失敗しました");
       setPatterns(patterns);
     }
   };
 
   const removePattern = async (pattern: string): Promise<void> => {
-    const next = patterns.filter(item => item !== pattern);
+    const next = patterns.filter((item) => item !== pattern);
     setPatterns(next);
     try {
       await props.runtime.storageSyncSet({ domainPatterns: next });
-      props.notify.success('削除しました');
+      props.notify.success("削除しました");
     } catch {
-      props.notify.error('削除に失敗しました');
+      props.notify.error("削除に失敗しました");
       setPatterns(patterns);
     }
   };
@@ -119,7 +129,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
       <Toggle
         className="mbu-toggle-inline"
         data-testid="auto-enable-sort"
-        onPressedChange={pressed => void toggleAutoEnable(pressed)}
+        onPressedChange={(pressed) => void toggleAutoEnable(pressed)}
         pressed={autoEnable}
         type="button"
       >
@@ -158,8 +168,11 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
           <ScrollArea.Root className="pattern-scrollarea">
             <ScrollArea.Viewport className="pattern-list">
               <ScrollArea.Content>
-                <ul aria-label="登録済みパターン" className="pattern-list-inner">
-                  {patterns.map(pattern => (
+                <ul
+                  aria-label="登録済みパターン"
+                  className="pattern-list-inner"
+                >
+                  {patterns.map((pattern) => (
                     <li className="pattern-item" key={pattern}>
                       <code className="pattern-text">{pattern}</code>
                       <Button

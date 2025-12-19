@@ -1,14 +1,19 @@
-import type { JSDOM } from 'jsdom';
-import { act } from 'react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { flush } from './helpers/async';
-import { inputValue, selectBaseUiOption } from './helpers/forms';
-import { createPopupChromeStub, type PopupChromeStub } from './helpers/popupChromeStub';
-import { createPopupDom } from './helpers/popupDom';
+import type { JSDOM } from "jsdom";
+import { act } from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { flush } from "./helpers/async";
+import { inputValue, selectBaseUiOption } from "./helpers/forms";
+import {
+  createPopupChromeStub,
+  type PopupChromeStub,
+} from "./helpers/popupChromeStub";
+import { createPopupDom } from "./helpers/popupDom";
 
-(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+(
+  globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }
+).IS_REACT_ACT_ENVIRONMENT = true;
 
-describe('popup Actions pane: editor', () => {
+describe("popup Actions pane: editor", () => {
   let dom: JSDOM;
   let chromeStub: PopupChromeStub;
 
@@ -18,45 +23,60 @@ describe('popup Actions pane: editor', () => {
     dom = createPopupDom();
     chromeStub = createPopupChromeStub();
 
-    chromeStub.storage.sync.get.mockImplementation((keys: string[], callback: (items: unknown) => void) => {
-      chromeStub.runtime.lastError = null;
-      const keyList = Array.isArray(keys) ? keys : [String(keys)];
-      if (keyList.includes('contextActions')) {
-        callback({
-          contextActions: [{ id: 'custom:one', title: 'テスト', kind: 'text', prompt: '{{text}}' }],
-        });
-        return;
+    chromeStub.storage.sync.get.mockImplementation(
+      (keys: string[], callback: (items: unknown) => void) => {
+        chromeStub.runtime.lastError = null;
+        const keyList = Array.isArray(keys) ? keys : [String(keys)];
+        if (keyList.includes("contextActions")) {
+          callback({
+            contextActions: [
+              {
+                id: "custom:one",
+                title: "テスト",
+                kind: "text",
+                prompt: "{{text}}",
+              },
+            ],
+          });
+          return;
+        }
+        callback({});
       }
-      callback({});
-    });
+    );
 
-    chromeStub.storage.local.get.mockImplementation((keys: string[], callback: (items: unknown) => void) => {
-      chromeStub.runtime.lastError = null;
-      const keyList = Array.isArray(keys) ? keys : [String(keys)];
-      if (keyList.includes('openaiApiToken')) {
-        callback({ openaiApiToken: 'sk-test' });
-        return;
+    chromeStub.storage.local.get.mockImplementation(
+      (keys: string[], callback: (items: unknown) => void) => {
+        chromeStub.runtime.lastError = null;
+        const keyList = Array.isArray(keys) ? keys : [String(keys)];
+        if (keyList.includes("openaiApiToken")) {
+          callback({ openaiApiToken: "sk-test" });
+          return;
+        }
+        callback({});
       }
-      callback({});
-    });
+    );
 
-    chromeStub.tabs.query.mockImplementation((_queryInfo: unknown, callback: (tabs: unknown[]) => void) => {
-      chromeStub.runtime.lastError = null;
-      callback([{ id: 1 }]);
-    });
+    chromeStub.tabs.query.mockImplementation(
+      (_queryInfo: unknown, callback: (tabs: unknown[]) => void) => {
+        chromeStub.runtime.lastError = null;
+        callback([{ id: 1 }]);
+      }
+    );
 
-    chromeStub.runtime.sendMessage.mockImplementation((_message: unknown, callback: (resp: unknown) => void) => {
-      chromeStub.runtime.lastError = null;
-      callback({ ok: true });
-    });
+    chromeStub.runtime.sendMessage.mockImplementation(
+      (_message: unknown, callback: (resp: unknown) => void) => {
+        chromeStub.runtime.lastError = null;
+        callback({ ok: true });
+      }
+    );
 
-    vi.stubGlobal('window', dom.window);
-    vi.stubGlobal('document', dom.window.document);
-    vi.stubGlobal('navigator', dom.window.navigator);
-    vi.stubGlobal('chrome', chromeStub);
+    vi.stubGlobal("window", dom.window);
+    vi.stubGlobal("document", dom.window.document);
+    vi.stubGlobal("navigator", dom.window.navigator);
+    vi.stubGlobal("chrome", chromeStub);
 
     await act(async () => {
-      await import('@/popup.ts');
+      await import("@/popup.ts");
       await flush(dom.window);
     });
   });
@@ -65,18 +85,24 @@ describe('popup Actions pane: editor', () => {
     vi.unstubAllGlobals();
   });
 
-  it('creates a new action and persists to sync storage', async () => {
-    const title = dom.window.document.querySelector<HTMLInputElement>('[data-testid="action-editor-title"]');
-    const prompt = dom.window.document.querySelector<HTMLTextAreaElement>('[data-testid="action-editor-prompt"]');
-    const save = dom.window.document.querySelector<HTMLButtonElement>('[data-testid="action-editor-save"]');
+  it("creates a new action and persists to sync storage", async () => {
+    const title = dom.window.document.querySelector<HTMLInputElement>(
+      '[data-testid="action-editor-title"]'
+    );
+    const prompt = dom.window.document.querySelector<HTMLTextAreaElement>(
+      '[data-testid="action-editor-prompt"]'
+    );
+    const save = dom.window.document.querySelector<HTMLButtonElement>(
+      '[data-testid="action-editor-save"]'
+    );
 
     expect(title).not.toBeNull();
     expect(prompt).not.toBeNull();
     expect(save).not.toBeNull();
 
     await act(async () => {
-      inputValue(dom.window, title as HTMLInputElement, 'カスタム');
-      inputValue(dom.window, prompt as HTMLTextAreaElement, '{{text}}');
+      inputValue(dom.window, title as HTMLInputElement, "カスタム");
+      inputValue(dom.window, prompt as HTMLTextAreaElement, "{{text}}");
       save?.click();
       await flush(dom.window);
     });
@@ -85,58 +111,86 @@ describe('popup Actions pane: editor', () => {
     expect(setCalls.length).toBeGreaterThan(0);
     expect(setCalls.at(-1)?.[0]).toEqual(
       expect.objectContaining({
-        contextActions: expect.arrayContaining([expect.objectContaining({ title: 'カスタム', kind: 'text' })]),
-      }),
+        contextActions: expect.arrayContaining([
+          expect.objectContaining({ title: "カスタム", kind: "text" }),
+        ]),
+      })
     );
 
-    expect(dom.window.document.body.textContent).toContain('カスタム');
+    expect(dom.window.document.body.textContent).toContain("カスタム");
   });
 
-  it('edits an existing action and persists changes', async () => {
-    const selector = dom.window.document.querySelector<HTMLButtonElement>('[data-testid="action-editor-select"]');
-    const title = dom.window.document.querySelector<HTMLInputElement>('[data-testid="action-editor-title"]');
-    const save = dom.window.document.querySelector<HTMLButtonElement>('[data-testid="action-editor-save"]');
+  it("edits an existing action and persists changes", async () => {
+    const selector = dom.window.document.querySelector<HTMLButtonElement>(
+      '[data-testid="action-editor-select"]'
+    );
+    const title = dom.window.document.querySelector<HTMLInputElement>(
+      '[data-testid="action-editor-title"]'
+    );
+    const save = dom.window.document.querySelector<HTMLButtonElement>(
+      '[data-testid="action-editor-save"]'
+    );
 
     expect(selector).not.toBeNull();
     expect(title).not.toBeNull();
 
     await act(async () => {
-      await selectBaseUiOption(dom.window, selector as HTMLButtonElement, 'テスト');
-      inputValue(dom.window, title as HTMLInputElement, 'テスト更新');
+      await selectBaseUiOption(
+        dom.window,
+        selector as HTMLButtonElement,
+        "テスト"
+      );
+      inputValue(dom.window, title as HTMLInputElement, "テスト更新");
       save?.click();
       await flush(dom.window);
     });
 
     expect(chromeStub.storage.sync.set).toHaveBeenCalledWith(
       expect.objectContaining({
-        contextActions: expect.arrayContaining([expect.objectContaining({ id: 'custom:one', title: 'テスト更新' })]),
+        contextActions: expect.arrayContaining([
+          expect.objectContaining({ id: "custom:one", title: "テスト更新" }),
+        ]),
       }),
-      expect.any(Function),
+      expect.any(Function)
     );
 
-    const button = dom.window.document.querySelector('button[data-action-id="custom:one"]');
-    expect(button?.textContent).toContain('テスト更新');
+    const button = dom.window.document.querySelector(
+      'button[data-action-id="custom:one"]'
+    );
+    expect(button?.textContent).toContain("テスト更新");
   });
 
-  it('deletes an existing action and removes it from the list', async () => {
-    const selector = dom.window.document.querySelector<HTMLButtonElement>('[data-testid="action-editor-select"]');
-    const deleteButton = dom.window.document.querySelector<HTMLButtonElement>('[data-testid="action-editor-delete"]');
+  it("deletes an existing action and removes it from the list", async () => {
+    const selector = dom.window.document.querySelector<HTMLButtonElement>(
+      '[data-testid="action-editor-select"]'
+    );
+    const deleteButton = dom.window.document.querySelector<HTMLButtonElement>(
+      '[data-testid="action-editor-delete"]'
+    );
 
     expect(selector).not.toBeNull();
     expect(deleteButton).not.toBeNull();
 
     await act(async () => {
-      await selectBaseUiOption(dom.window, selector as HTMLButtonElement, 'テスト');
+      await selectBaseUiOption(
+        dom.window,
+        selector as HTMLButtonElement,
+        "テスト"
+      );
       deleteButton?.click();
       await flush(dom.window);
     });
 
-    const button = dom.window.document.querySelector('button[data-action-id="custom:one"]');
+    const button = dom.window.document.querySelector(
+      'button[data-action-id="custom:one"]'
+    );
     expect(button).toBeNull();
   });
 
-  it('resets actions to defaults and persists them', async () => {
-    const resetButton = dom.window.document.querySelector<HTMLButtonElement>('[data-testid="action-editor-reset"]');
+  it("resets actions to defaults and persists them", async () => {
+    const resetButton = dom.window.document.querySelector<HTMLButtonElement>(
+      '[data-testid="action-editor-reset"]'
+    );
     expect(resetButton).not.toBeNull();
 
     await act(async () => {
@@ -146,9 +200,9 @@ describe('popup Actions pane: editor', () => {
 
     expect(chromeStub.storage.sync.set).toHaveBeenCalledWith(
       expect.objectContaining({ contextActions: expect.any(Array) }),
-      expect.any(Function),
+      expect.any(Function)
     );
 
-    expect(dom.window.document.body.textContent).toContain('要約');
+    expect(dom.window.document.body.textContent).toContain("要約");
   });
 });

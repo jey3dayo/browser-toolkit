@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { vi } from "vitest";
 
 export type PopupChromeStub = {
   runtime: {
@@ -26,10 +26,12 @@ export type PopupChromeStub = {
 export function createPopupChromeStub(): PopupChromeStub {
   const runtime = {
     lastError: null as { message: string } | null,
-    sendMessage: vi.fn((_message: unknown, callback?: (resp: unknown) => void) => {
-      runtime.lastError = null;
-      callback?.({ ok: true });
-    }),
+    sendMessage: vi.fn(
+      (_message: unknown, callback?: (resp: unknown) => void) => {
+        runtime.lastError = null;
+        callback?.({ ok: true });
+      }
+    ),
   };
 
   const clearError = (): void => {
@@ -65,14 +67,16 @@ export function createPopupChromeStub(): PopupChromeStub {
       },
     },
     tabs: {
-      query: vi.fn((_queryInfo: unknown, callback?: (tabs: unknown[]) => void) => {
-        clearError();
-        callback?.([]);
-      }),
+      query: vi.fn(
+        (_queryInfo: unknown, callback?: (tabs: unknown[]) => void) => {
+          clearError();
+          callback?.([]);
+        }
+      ),
       sendMessage: vi.fn((...args: unknown[]) => {
         clearError();
         const last = args.at(-1);
-        if (typeof last === 'function') {
+        if (typeof last === "function") {
           (last as (resp: unknown) => void)({ ok: true });
         }
       }),

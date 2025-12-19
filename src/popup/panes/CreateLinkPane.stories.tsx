@@ -1,18 +1,18 @@
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
-import { CreateLinkPane } from '@/popup/panes/CreateLinkPane';
-import type { PopupPaneBaseProps } from '@/popup/panes/types';
-import { createStoryPopupRuntime } from '@/popup/storybook/createStoryPopupRuntime';
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
+import { CreateLinkPane } from "@/popup/panes/CreateLinkPane";
+import type { PopupPaneBaseProps } from "@/popup/panes/types";
+import { createStoryPopupRuntime } from "@/popup/storybook/createStoryPopupRuntime";
 
 function CreateLinkPaneStory(props: PopupPaneBaseProps): React.JSX.Element {
   return <CreateLinkPane notify={props.notify} runtime={props.runtime} />;
 }
 
 const meta = {
-  title: 'Popup/CreateLinkPane',
+  title: "Popup/CreateLinkPane",
   component: CreateLinkPaneStory,
-  tags: ['test'],
+  tags: ["test"],
   argTypes: {
     runtime: { control: false },
     notify: { control: false },
@@ -25,7 +25,11 @@ type Story = StoryObj<typeof meta>;
 export const Basic: Story = {
   args: {
     runtime: createStoryPopupRuntime({
-      activeTab: { id: 1, title: 'Example', url: 'https://example.com/path?q=1' },
+      activeTab: {
+        id: 1,
+        title: "Example",
+        url: "https://example.com/path?q=1",
+      },
     }),
     notify: { info: fn(), success: fn(), error: fn() },
   },
@@ -33,17 +37,27 @@ export const Basic: Story = {
     const canvas = within(canvasElement);
 
     await waitFor(() => {
-      const output = canvas.getByTestId('create-link-output') as HTMLTextAreaElement;
-      expect(output.value).toBe('[Example](<https://example.com/path?q=1>)');
+      const output = canvas.getByTestId(
+        "create-link-output"
+      ) as HTMLTextAreaElement;
+      expect(output.value).toBe("[Example](<https://example.com/path?q=1>)");
     });
 
-    await userEvent.click(canvas.getByTestId('create-link-format'));
-    const listbox = await within(canvasElement.ownerDocument.body).findByRole('listbox');
-    await userEvent.click(within(listbox).getByRole('option', { name: 'HTML <a>' }));
+    await userEvent.click(canvas.getByTestId("create-link-format"));
+    const listbox = await within(canvasElement.ownerDocument.body).findByRole(
+      "listbox"
+    );
+    await userEvent.click(
+      within(listbox).getByRole("option", { name: "HTML <a>" })
+    );
 
     await waitFor(() => {
-      const output = canvas.getByTestId('create-link-output') as HTMLTextAreaElement;
-      expect(output.value).toBe('<a href="https://example.com/path?q=1">Example</a>');
+      const output = canvas.getByTestId(
+        "create-link-output"
+      ) as HTMLTextAreaElement;
+      expect(output.value).toBe(
+        '<a href="https://example.com/path?q=1">Example</a>'
+      );
     });
   },
 };

@@ -1,12 +1,12 @@
-import { Button } from '@base-ui/react/button';
-import { Fieldset } from '@base-ui/react/fieldset';
-import { Form } from '@base-ui/react/form';
-import { Input } from '@base-ui/react/input';
-import { Select } from '@base-ui/react/select';
-import { Toggle } from '@base-ui/react/toggle';
-import { ToggleGroup } from '@base-ui/react/toggle-group';
-import { useId } from 'react';
-import type { ContextAction, ContextActionKind } from '@/context_actions';
+import { Button } from "@base-ui/react/button";
+import { Fieldset } from "@base-ui/react/fieldset";
+import { Form } from "@base-ui/react/form";
+import { Input } from "@base-ui/react/input";
+import { Select } from "@base-ui/react/select";
+import { Toggle } from "@base-ui/react/toggle";
+import { ToggleGroup } from "@base-ui/react/toggle-group";
+import { useId } from "react";
+import type { ContextAction, ContextActionKind } from "@/context_actions";
 
 type Props = {
   actions: ContextAction[];
@@ -29,8 +29,11 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
   const actionLabelId = useId();
 
   const actions = [
-    { label: '新規作成', value: null as string | null },
-    ...props.actions.map(action => ({ label: action.title, value: action.id })),
+    { label: "新規作成", value: null as string | null },
+    ...props.actions.map((action) => ({
+      label: action.title,
+      value: action.id,
+    })),
   ];
 
   return (
@@ -41,7 +44,9 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
         }}
       >
         <Fieldset.Root className="editor-form mbu-fieldset">
-          <Fieldset.Legend className="editor-title">アクション編集</Fieldset.Legend>
+          <Fieldset.Legend className="editor-title">
+            アクション編集
+          </Fieldset.Legend>
 
           <div className="field">
             <span className="field-name" id={actionLabelId}>
@@ -49,8 +54,8 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
             </span>
             <Select.Root
               items={actions}
-              onValueChange={value => {
-                props.onSelectActionId(typeof value === 'string' ? value : '');
+              onValueChange={(value) => {
+                props.onSelectActionId(typeof value === "string" ? value : "");
               }}
               value={props.editorId || null}
             >
@@ -64,13 +69,22 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
                 <Select.Icon className="mbu-select-icon">▾</Select.Icon>
               </Select.Trigger>
               <Select.Portal>
-                <Select.Positioner className="mbu-select-positioner" sideOffset={6}>
+                <Select.Positioner
+                  className="mbu-select-positioner"
+                  sideOffset={6}
+                >
                   <Select.Popup className="mbu-select-popup">
                     <Select.List className="mbu-select-list">
-                      {actions.map(item => (
-                        <Select.Item className="mbu-select-item" key={item.value ?? 'new'} value={item.value}>
+                      {actions.map((item) => (
+                        <Select.Item
+                          className="mbu-select-item"
+                          key={item.value ?? "new"}
+                          value={item.value}
+                        >
                           <Select.ItemText>{item.label}</Select.ItemText>
-                          <Select.ItemIndicator className="mbu-select-indicator">✓</Select.ItemIndicator>
+                          <Select.ItemIndicator className="mbu-select-indicator">
+                            ✓
+                          </Select.ItemIndicator>
                         </Select.Item>
                       ))}
                     </Select.List>
@@ -97,9 +111,9 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
             <ToggleGroup
               className="mbu-toggle-group"
               data-testid="action-editor-kind"
-              onValueChange={groupValue => {
+              onValueChange={(groupValue) => {
                 const next = groupValue[0];
-                props.onChangeKind(next === 'event' ? 'event' : 'text');
+                props.onChangeKind(next === "event" ? "event" : "text");
               }}
               value={[props.editorKind]}
             >
@@ -117,7 +131,7 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
             <textarea
               className="prompt-input"
               data-testid="action-editor-prompt"
-              onChange={event => {
+              onChange={(event) => {
                 props.onChangePrompt(event.currentTarget.value);
               }}
               rows={6}

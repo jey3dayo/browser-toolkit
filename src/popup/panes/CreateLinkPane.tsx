@@ -1,16 +1,20 @@
-import { Button } from '@base-ui/react/button';
-import { Input } from '@base-ui/react/input';
-import { Select } from '@base-ui/react/select';
-import { useCallback, useEffect, useId, useMemo, useState } from 'react';
-import { formatLink, LINK_FORMAT_OPTIONS, type LinkFormat } from '@/popup/panes/create_link/format';
-import type { PopupPaneBaseProps } from '@/popup/panes/types';
+import { Button } from "@base-ui/react/button";
+import { Input } from "@base-ui/react/input";
+import { Select } from "@base-ui/react/select";
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
+import {
+  formatLink,
+  LINK_FORMAT_OPTIONS,
+  type LinkFormat,
+} from "@/popup/panes/create_link/format";
+import type { PopupPaneBaseProps } from "@/popup/panes/types";
 
 export type CreateLinkPaneProps = PopupPaneBaseProps;
 
 export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
-  const [title, setTitle] = useState('');
-  const [url, setUrl] = useState('');
-  const [format, setFormat] = useState<LinkFormat>('markdown');
+  const [title, setTitle] = useState("");
+  const [url, setUrl] = useState("");
+  const [format, setFormat] = useState<LinkFormat>("markdown");
   const [loading, setLoading] = useState(false);
 
   const titleInputId = useId();
@@ -18,7 +22,10 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
   const formatLabelId = useId();
   const formatTriggerId = useId();
 
-  const output = useMemo(() => formatLink({ title, url }, format), [format, title, url]);
+  const output = useMemo(
+    () => formatLink({ title, url }, format),
+    [format, title, url]
+  );
   const canCopy = Boolean(output.trim());
 
   const loadFromActiveTab = useCallback(
@@ -27,19 +34,22 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
       try {
         const activeTab = await props.runtime.getActiveTab();
         if (!activeTab) {
-          if (showToast) props.notify.error('有効なタブが見つかりません');
+          if (showToast) props.notify.error("有効なタブが見つかりません");
           return;
         }
-        setTitle(activeTab.title ?? '');
-        setUrl(activeTab.url ?? '');
-        if (showToast) props.notify.success('現在のタブから更新しました');
+        setTitle(activeTab.title ?? "");
+        setUrl(activeTab.url ?? "");
+        if (showToast) props.notify.success("現在のタブから更新しました");
       } catch (error) {
-        if (showToast) props.notify.error(error instanceof Error ? error.message : '取得に失敗しました');
+        if (showToast)
+          props.notify.error(
+            error instanceof Error ? error.message : "取得に失敗しました"
+          );
       } finally {
         setLoading(false);
       }
     },
-    [props.notify, props.runtime],
+    [props.notify, props.runtime]
   );
 
   useEffect(() => {
@@ -49,19 +59,21 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
   const copyOutput = async (): Promise<void> => {
     const text = output.trim();
     if (!text) {
-      props.notify.error(url.trim() ? 'コピーする内容がありません' : 'URLが空です');
+      props.notify.error(
+        url.trim() ? "コピーする内容がありません" : "URLが空です"
+      );
       return;
     }
 
     try {
       if (!navigator.clipboard?.writeText) {
-        props.notify.error('この環境ではクリップボードにコピーできません');
+        props.notify.error("この環境ではクリップボードにコピーできません");
         return;
       }
       await navigator.clipboard.writeText(text);
-      props.notify.success('コピーしました');
+      props.notify.success("コピーしました");
     } catch {
-      props.notify.error('コピーに失敗しました');
+      props.notify.error("コピーに失敗しました");
     }
   };
 
@@ -91,7 +103,9 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
         </div>
       </div>
 
-      <p className="hint">現在のタブのURLを各形式でコピーします（タイトル/URLは編集できます）。</p>
+      <p className="hint">
+        現在のタブのURLを各形式でコピーします（タイトル/URLは編集できます）。
+      </p>
 
       <div className="stack">
         <label className="field" htmlFor={titleInputId}>
@@ -117,13 +131,19 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
         </label>
 
         <div className="field">
-          <label className="field-name" htmlFor={formatTriggerId} id={formatLabelId}>
+          <label
+            className="field-name"
+            htmlFor={formatTriggerId}
+            id={formatLabelId}
+          >
             形式
           </label>
           <Select.Root
-            onValueChange={value => {
-              if (typeof value !== 'string') return;
-              const next = LINK_FORMAT_OPTIONS.find(option => option.value === value)?.value;
+            onValueChange={(value) => {
+              if (typeof value !== "string") return;
+              const next = LINK_FORMAT_OPTIONS.find(
+                (option) => option.value === value
+              )?.value;
               if (!next) return;
               setFormat(next);
             }}
@@ -140,13 +160,22 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
               <Select.Icon className="mbu-select-icon">▾</Select.Icon>
             </Select.Trigger>
             <Select.Portal>
-              <Select.Positioner className="mbu-select-positioner" sideOffset={6}>
+              <Select.Positioner
+                className="mbu-select-positioner"
+                sideOffset={6}
+              >
                 <Select.Popup className="mbu-select-popup">
                   <Select.List className="mbu-select-list">
-                    {LINK_FORMAT_OPTIONS.map(option => (
-                      <Select.Item className="mbu-select-item" key={option.value} value={option.value}>
+                    {LINK_FORMAT_OPTIONS.map((option) => (
+                      <Select.Item
+                        className="mbu-select-item"
+                        key={option.value}
+                        value={option.value}
+                      >
                         <Select.ItemText>{option.label}</Select.ItemText>
-                        <Select.ItemIndicator className="mbu-select-indicator">✓</Select.ItemIndicator>
+                        <Select.ItemIndicator className="mbu-select-indicator">
+                          ✓
+                        </Select.ItemIndicator>
                       </Select.Item>
                     ))}
                   </Select.List>

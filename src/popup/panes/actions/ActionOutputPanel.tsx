@@ -1,4 +1,4 @@
-import { Button } from '@base-ui/react/button';
+import { Button } from "@base-ui/react/button";
 
 type Props = {
   title: string;

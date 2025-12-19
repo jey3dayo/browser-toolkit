@@ -1,18 +1,18 @@
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
-import { ActionsPane, type ActionsPaneProps } from '@/popup/panes/ActionsPane';
-import type { RunContextActionRequest } from '@/popup/runtime';
-import { createStoryPopupRuntime } from '@/popup/storybook/createStoryPopupRuntime';
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
+import { ActionsPane, type ActionsPaneProps } from "@/popup/panes/ActionsPane";
+import type { RunContextActionRequest } from "@/popup/runtime";
+import { createStoryPopupRuntime } from "@/popup/storybook/createStoryPopupRuntime";
 
 function ActionsPaneStory(props: ActionsPaneProps): React.JSX.Element {
   return <ActionsPane {...props} />;
 }
 
 const meta = {
-  title: 'Popup/ActionsPane',
+  title: "Popup/ActionsPane",
   component: ActionsPaneStory,
-  tags: ['test'],
+  tags: ["test"],
   argTypes: {
     runtime: { control: false },
     notify: { control: false },
@@ -27,13 +27,18 @@ type Story = StoryObj<typeof meta>;
 export const Basic: Story = {
   args: {
     runtime: createStoryPopupRuntime({
-      local: { openaiApiToken: 'sk-storybook' },
+      local: { openaiApiToken: "sk-storybook" },
       background: {
         runContextAction: (message: RunContextActionRequest) => {
-          if (message.actionId === 'builtin:summarize') {
-            return { ok: true, resultType: 'text', text: '要約結果（storybook）', source: 'selection' };
+          if (message.actionId === "builtin:summarize") {
+            return {
+              ok: true,
+              resultType: "text",
+              text: "要約結果（storybook）",
+              source: "selection",
+            };
           }
-          return { ok: false, error: 'storybook: unknown action' };
+          return { ok: false, error: "storybook: unknown action" };
         },
       },
     }),
@@ -45,26 +50,39 @@ export const Basic: Story = {
     const canvas = within(canvasElement);
 
     await waitFor(() => {
-      expect(canvas.getByRole('button', { name: '要約' })).toBeTruthy();
+      expect(canvas.getByRole("button", { name: "要約" })).toBeTruthy();
     });
 
-    await userEvent.click(canvas.getByRole('button', { name: '要約' }));
+    await userEvent.click(canvas.getByRole("button", { name: "要約" }));
     await waitFor(() => {
-      expect(args.notify.success).toHaveBeenCalledWith('完了しました');
-      expect((canvas.getByTestId('action-output') as HTMLTextAreaElement).value).toContain('要約結果（storybook）');
-      expect(canvas.getByTestId('action-source').textContent).toContain('選択範囲');
+      expect(args.notify.success).toHaveBeenCalledWith("完了しました");
+      expect(
+        (canvas.getByTestId("action-output") as HTMLTextAreaElement).value
+      ).toContain("要約結果（storybook）");
+      expect(canvas.getByTestId("action-source").textContent).toContain(
+        "選択範囲"
+      );
     });
 
-    await userEvent.click(canvas.getByTestId('action-editor-select'));
-    const listbox = await within(canvasElement.ownerDocument.body).findByRole('listbox');
-    await userEvent.click(within(listbox).getByRole('option', { name: '要約' }));
-    await userEvent.clear(canvas.getByTestId('action-editor-title'));
-    await userEvent.type(canvas.getByTestId('action-editor-title'), '要約（編集テスト）');
-    await userEvent.click(canvas.getByTestId('action-editor-save'));
+    await userEvent.click(canvas.getByTestId("action-editor-select"));
+    const listbox = await within(canvasElement.ownerDocument.body).findByRole(
+      "listbox"
+    );
+    await userEvent.click(
+      within(listbox).getByRole("option", { name: "要約" })
+    );
+    await userEvent.clear(canvas.getByTestId("action-editor-title"));
+    await userEvent.type(
+      canvas.getByTestId("action-editor-title"),
+      "要約（編集テスト）"
+    );
+    await userEvent.click(canvas.getByTestId("action-editor-save"));
 
     await waitFor(() => {
-      expect(args.notify.success).toHaveBeenCalledWith('保存しました');
-      expect(canvas.getByRole('button', { name: '要約（編集テスト）' })).toBeTruthy();
+      expect(args.notify.success).toHaveBeenCalledWith("保存しました");
+      expect(
+        canvas.getByRole("button", { name: "要約（編集テスト）" })
+      ).toBeTruthy();
     });
   },
 };

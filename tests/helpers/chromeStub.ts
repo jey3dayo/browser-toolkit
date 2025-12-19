@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { vi } from "vitest";
 
 export type ChromeStub = {
   runtime: {
@@ -37,8 +37,12 @@ type Options = {
 };
 
 export function createChromeStub(options: Options = {}): ChromeStub {
-  const runtimeSendMessageResponse = options.runtimeSendMessageResponse ?? { ok: true };
-  const tabsSendMessageResponse = options.tabsSendMessageResponse ?? { ok: true };
+  const runtimeSendMessageResponse = options.runtimeSendMessageResponse ?? {
+    ok: true,
+  };
+  const tabsSendMessageResponse = options.tabsSendMessageResponse ?? {
+    ok: true,
+  };
 
   const runtime = {
     lastError: null as { message: string } | null,
@@ -49,10 +53,12 @@ export function createChromeStub(options: Options = {}): ChromeStub {
         options.listeners?.push(listener);
       }),
     },
-    sendMessage: vi.fn((_message: unknown, callback?: (resp: unknown) => void) => {
-      runtime.lastError = null;
-      callback?.(runtimeSendMessageResponse);
-    }),
+    sendMessage: vi.fn(
+      (_message: unknown, callback?: (resp: unknown) => void) => {
+        runtime.lastError = null;
+        callback?.(runtimeSendMessageResponse);
+      }
+    ),
   };
 
   const clearError = (): void => {
@@ -107,7 +113,7 @@ export function createChromeStub(options: Options = {}): ChromeStub {
       sendMessage: vi.fn((...args: unknown[]) => {
         clearError();
         const last = args.at(-1);
-        if (typeof last === 'function') {
+        if (typeof last === "function") {
           (last as (resp: unknown) => void)(tabsSendMessageResponse);
         }
       }),

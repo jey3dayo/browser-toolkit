@@ -1,6 +1,6 @@
-import type { ContextAction } from '@/context_actions';
-import type { ExtractedEvent, SummarySource } from '@/shared_types';
-import type { LocalStorageData } from '@/storage/types';
+import type { ContextAction } from "@/context_actions";
+import type { ExtractedEvent, SummarySource } from "@/shared_types";
+import type { LocalStorageData } from "@/storage/types";
 
 export type SyncStorageData = {
   domainPatterns?: string[];
@@ -8,15 +8,19 @@ export type SyncStorageData = {
   contextActions?: ContextAction[];
 };
 
-export type EnableTableSortMessage = { action: 'enableTableSort' };
+export type EnableTableSortMessage = { action: "enableTableSort" };
 export type EnableTableSortResponse = { success: boolean };
 
-export type RunContextActionRequest = { action: 'runContextAction'; tabId: number; actionId: string };
+export type RunContextActionRequest = {
+  action: "runContextAction";
+  tabId: number;
+  actionId: string;
+};
 export type RunContextActionResponse =
-  | { ok: true; resultType: 'text'; text: string; source: SummarySource }
+  | { ok: true; resultType: "text"; text: string; source: SummarySource }
   | {
       ok: true;
-      resultType: 'event';
+      resultType: "event";
       event: ExtractedEvent;
       eventText: string;
       calendarUrl: string;
@@ -24,8 +28,13 @@ export type RunContextActionResponse =
     }
   | { ok: false; error: string };
 
-export type TestOpenAiTokenRequest = { action: 'testOpenAiToken'; token?: string };
-export type TestOpenAiTokenResponse = { ok: true } | { ok: false; error: string };
+export type TestOpenAiTokenRequest = {
+  action: "testOpenAiToken";
+  token?: string;
+};
+export type TestOpenAiTokenResponse =
+  | { ok: true }
+  | { ok: false; error: string };
 
 export type ActiveTabInfo = {
   id: number;
@@ -35,26 +44,42 @@ export type ActiveTabInfo = {
 
 export type PopupRuntime = {
   isExtensionPage: boolean;
-  storageSyncGet: (keys: (keyof SyncStorageData)[]) => Promise<Partial<SyncStorageData>>;
+  storageSyncGet: (
+    keys: (keyof SyncStorageData)[]
+  ) => Promise<Partial<SyncStorageData>>;
   storageSyncSet: (items: Partial<SyncStorageData>) => Promise<void>;
-  storageLocalGet: (keys: (keyof LocalStorageData)[]) => Promise<Partial<LocalStorageData>>;
+  storageLocalGet: (
+    keys: (keyof LocalStorageData)[]
+  ) => Promise<Partial<LocalStorageData>>;
   storageLocalSet: (items: Partial<LocalStorageData>) => Promise<void>;
-  storageLocalRemove: (keys: (keyof LocalStorageData)[] | keyof LocalStorageData) => Promise<void>;
+  storageLocalRemove: (
+    keys: (keyof LocalStorageData)[] | keyof LocalStorageData
+  ) => Promise<void>;
   getActiveTab: () => Promise<ActiveTabInfo | null>;
   getActiveTabId: () => Promise<number | null>;
-  sendMessageToBackground: <TRequest, TResponse>(message: TRequest) => Promise<TResponse>;
-  sendMessageToTab: <TRequest, TResponse>(tabId: number, message: TRequest) => Promise<TResponse>;
+  sendMessageToBackground: <TRequest, TResponse>(
+    message: TRequest
+  ) => Promise<TResponse>;
+  sendMessageToTab: <TRequest, TResponse>(
+    tabId: number,
+    message: TRequest
+  ) => Promise<TResponse>;
   openUrl: (url: string) => void;
 };
 
-const FALLBACK_STORAGE_PREFIX = 'mbu:popup:';
+const FALLBACK_STORAGE_PREFIX = "mbu:popup:";
 
-function fallbackStorageGet(scope: 'sync' | 'local', keys: string[]): Record<string, unknown> {
+function fallbackStorageGet(
+  scope: "sync" | "local",
+  keys: string[]
+): Record<string, unknown> {
   const data: Record<string, unknown> = {};
-  keys.forEach(key => {
+  keys.forEach((key) => {
     let raw: string | null = null;
     try {
-      raw = window.localStorage.getItem(`${FALLBACK_STORAGE_PREFIX}${scope}:${key}`);
+      raw = window.localStorage.getItem(
+        `${FALLBACK_STORAGE_PREFIX}${scope}:${key}`
+      );
     } catch {
       raw = null;
     }
@@ -68,21 +93,32 @@ function fallbackStorageGet(scope: 'sync' | 'local', keys: string[]): Record<str
   return data;
 }
 
-function fallbackStorageSet(scope: 'sync' | 'local', items: Record<string, unknown>): void {
+function fallbackStorageSet(
+  scope: "sync" | "local",
+  items: Record<string, unknown>
+): void {
   Object.entries(items).forEach(([key, value]) => {
     try {
-      window.localStorage.setItem(`${FALLBACK_STORAGE_PREFIX}${scope}:${key}`, JSON.stringify(value));
+      window.localStorage.setItem(
+        `${FALLBACK_STORAGE_PREFIX}${scope}:${key}`,
+        JSON.stringify(value)
+      );
     } catch {
       // no-op
     }
   });
 }
 
-function fallbackStorageRemove(scope: 'sync' | 'local', keys: string[] | string): void {
+function fallbackStorageRemove(
+  scope: "sync" | "local",
+  keys: string[] | string
+): void {
   const list = Array.isArray(keys) ? keys : [keys];
-  list.forEach(key => {
+  list.forEach((key) => {
     try {
-      window.localStorage.removeItem(`${FALLBACK_STORAGE_PREFIX}${scope}:${key}`);
+      window.localStorage.removeItem(
+        `${FALLBACK_STORAGE_PREFIX}${scope}:${key}`
+      );
     } catch {
       // no-op
     }
@@ -90,14 +126,19 @@ function fallbackStorageRemove(scope: 'sync' | 'local', keys: string[] | string)
 }
 
 export function createPopupRuntime(): PopupRuntime {
-  const isExtensionPage = window.location.protocol === 'chrome-extension:';
+  const isExtensionPage = window.location.protocol === "chrome-extension:";
 
-  const storageSyncGet: PopupRuntime['storageSyncGet'] = async keys => {
-    if (!(isExtensionPage && (chrome as unknown as { storage?: unknown }).storage)) {
-      return fallbackStorageGet('sync', keys.map(String)) as Partial<SyncStorageData>;
+  const storageSyncGet: PopupRuntime["storageSyncGet"] = async (keys) => {
+    if (
+      !(isExtensionPage && (chrome as unknown as { storage?: unknown }).storage)
+    ) {
+      return fallbackStorageGet(
+        "sync",
+        keys.map(String)
+      ) as Partial<SyncStorageData>;
     }
     return await new Promise<Partial<SyncStorageData>>((resolve, reject) => {
-      chrome.storage.sync.get(keys as string[], items => {
+      chrome.storage.sync.get(keys as string[], (items) => {
         const err = chrome.runtime.lastError;
         if (err) {
           reject(new Error(err.message));
@@ -108,9 +149,11 @@ export function createPopupRuntime(): PopupRuntime {
     });
   };
 
-  const storageSyncSet: PopupRuntime['storageSyncSet'] = async items => {
-    if (!(isExtensionPage && (chrome as unknown as { storage?: unknown }).storage)) {
-      fallbackStorageSet('sync', items as Record<string, unknown>);
+  const storageSyncSet: PopupRuntime["storageSyncSet"] = async (items) => {
+    if (
+      !(isExtensionPage && (chrome as unknown as { storage?: unknown }).storage)
+    ) {
+      fallbackStorageSet("sync", items as Record<string, unknown>);
       return;
     }
     await new Promise<void>((resolve, reject) => {
@@ -125,12 +168,17 @@ export function createPopupRuntime(): PopupRuntime {
     });
   };
 
-  const storageLocalGet: PopupRuntime['storageLocalGet'] = async keys => {
-    if (!(isExtensionPage && (chrome as unknown as { storage?: unknown }).storage)) {
-      return fallbackStorageGet('local', keys.map(String)) as Partial<LocalStorageData>;
+  const storageLocalGet: PopupRuntime["storageLocalGet"] = async (keys) => {
+    if (
+      !(isExtensionPage && (chrome as unknown as { storage?: unknown }).storage)
+    ) {
+      return fallbackStorageGet(
+        "local",
+        keys.map(String)
+      ) as Partial<LocalStorageData>;
     }
     return await new Promise<Partial<LocalStorageData>>((resolve, reject) => {
-      chrome.storage.local.get(keys as string[], items => {
+      chrome.storage.local.get(keys as string[], (items) => {
         const err = chrome.runtime.lastError;
         if (err) {
           reject(new Error(err.message));
@@ -141,9 +189,11 @@ export function createPopupRuntime(): PopupRuntime {
     });
   };
 
-  const storageLocalSet: PopupRuntime['storageLocalSet'] = async items => {
-    if (!(isExtensionPage && (chrome as unknown as { storage?: unknown }).storage)) {
-      fallbackStorageSet('local', items as Record<string, unknown>);
+  const storageLocalSet: PopupRuntime["storageLocalSet"] = async (items) => {
+    if (
+      !(isExtensionPage && (chrome as unknown as { storage?: unknown }).storage)
+    ) {
+      fallbackStorageSet("local", items as Record<string, unknown>);
       return;
     }
     await new Promise<void>((resolve, reject) => {
@@ -158,9 +208,13 @@ export function createPopupRuntime(): PopupRuntime {
     });
   };
 
-  const storageLocalRemove: PopupRuntime['storageLocalRemove'] = async keys => {
-    if (!(isExtensionPage && (chrome as unknown as { storage?: unknown }).storage)) {
-      fallbackStorageRemove('local', keys as string[] | string);
+  const storageLocalRemove: PopupRuntime["storageLocalRemove"] = async (
+    keys
+  ) => {
+    if (
+      !(isExtensionPage && (chrome as unknown as { storage?: unknown }).storage)
+    ) {
+      fallbackStorageRemove("local", keys as string[] | string);
       return;
     }
     await new Promise<void>((resolve, reject) => {
@@ -175,7 +229,7 @@ export function createPopupRuntime(): PopupRuntime {
     });
   };
 
-  const getActiveTab: PopupRuntime['getActiveTab'] = async () => {
+  const getActiveTab: PopupRuntime["getActiveTab"] = async () => {
     if (!(isExtensionPage && (chrome as unknown as { tabs?: unknown }).tabs)) {
       return null;
     }
@@ -185,14 +239,14 @@ export function createPopupRuntime(): PopupRuntime {
           active: true,
           currentWindow: true,
         },
-        result => {
+        (result) => {
           const err = chrome.runtime.lastError;
           if (err) {
             reject(new Error(err.message));
             return;
           }
           resolve(result);
-        },
+        }
       );
     });
     const [tab] = tabs;
@@ -201,35 +255,45 @@ export function createPopupRuntime(): PopupRuntime {
     return { id, title: tab?.title, url: tab?.url };
   };
 
-  const getActiveTabId: PopupRuntime['getActiveTabId'] = async () => (await getActiveTab())?.id ?? null;
+  const getActiveTabId: PopupRuntime["getActiveTabId"] = async () =>
+    (await getActiveTab())?.id ?? null;
 
-  const sendMessageToBackground: PopupRuntime['sendMessageToBackground'] = async <TRequest, TResponse>(
-    message: TRequest,
-  ): Promise<TResponse> => {
-    if (!(isExtensionPage && (chrome as unknown as { runtime?: unknown }).runtime)) {
-      throw new Error('拡張機能として開いてください（chrome-extension://...）');
-    }
-    return await new Promise<TResponse>((resolve, reject) => {
-      chrome.runtime.sendMessage(message, response => {
-        const err = chrome.runtime.lastError;
-        if (err) {
-          reject(new Error(err.message));
-          return;
-        }
-        resolve(response as TResponse);
+  const sendMessageToBackground: PopupRuntime["sendMessageToBackground"] =
+    async <TRequest, TResponse>(message: TRequest): Promise<TResponse> => {
+      if (
+        !(
+          isExtensionPage &&
+          (chrome as unknown as { runtime?: unknown }).runtime
+        )
+      ) {
+        throw new Error(
+          "拡張機能として開いてください（chrome-extension://...）"
+        );
+      }
+      return await new Promise<TResponse>((resolve, reject) => {
+        chrome.runtime.sendMessage(message, (response) => {
+          const err = chrome.runtime.lastError;
+          if (err) {
+            reject(new Error(err.message));
+            return;
+          }
+          resolve(response as TResponse);
+        });
       });
-    });
-  };
+    };
 
-  const sendMessageToTab: PopupRuntime['sendMessageToTab'] = async <TRequest, TResponse>(
+  const sendMessageToTab: PopupRuntime["sendMessageToTab"] = async <
+    TRequest,
+    TResponse,
+  >(
     tabId: number,
-    message: TRequest,
+    message: TRequest
   ): Promise<TResponse> => {
     if (!(isExtensionPage && (chrome as unknown as { tabs?: unknown }).tabs)) {
-      throw new Error('拡張機能として開いてください（chrome-extension://...）');
+      throw new Error("拡張機能として開いてください（chrome-extension://...）");
     }
     return await new Promise<TResponse>((resolve, reject) => {
-      chrome.tabs.sendMessage(tabId, message, response => {
+      chrome.tabs.sendMessage(tabId, message, (response) => {
         const err = chrome.runtime.lastError;
         if (err) {
           reject(new Error(err.message));
@@ -240,14 +304,14 @@ export function createPopupRuntime(): PopupRuntime {
     });
   };
 
-  const openUrl: PopupRuntime['openUrl'] = url => {
+  const openUrl: PopupRuntime["openUrl"] = (url) => {
     const trimmed = url.trim();
     if (!trimmed) return;
     if (isExtensionPage && (chrome as unknown as { tabs?: unknown }).tabs) {
       void chrome.tabs.create({ url: trimmed });
       return;
     }
-    window.open(trimmed, '_blank', 'noopener,noreferrer');
+    window.open(trimmed, "_blank", "noopener,noreferrer");
   };
 
   return {

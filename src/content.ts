@@ -1,12 +1,20 @@
 // Content Script - Webページに注入される
 
-import { createElement } from 'react';
-import { createRoot, type Root } from 'react-dom/client';
-import { OverlayApp, type OverlayViewModel } from '@/content/overlay/OverlayApp';
-import type { ExtractedEvent, SummarySource } from '@/shared_types';
-import { ensureShadowUiBaseStyles } from '@/ui/styles';
-import { applyTheme, isTheme, type Theme } from '@/ui/theme';
-import { createNotifications, type Notifier, ToastHost, type ToastManager } from '@/ui/toast';
+import { createElement } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import {
+  OverlayApp,
+  type OverlayViewModel,
+} from "@/content/overlay/OverlayApp";
+import type { ExtractedEvent, SummarySource } from "@/shared_types";
+import { ensureShadowUiBaseStyles } from "@/ui/styles";
+import { applyTheme, isTheme, type Theme } from "@/ui/theme";
+import {
+  createNotifications,
+  type Notifier,
+  ToastHost,
+  type ToastManager,
+} from "@/ui/toast";
 
 (() => {
   type StorageData = {
@@ -15,20 +23,20 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
   };
 
   type ContentRequest =
-    | { action: 'enableTableSort' }
-    | { action: 'showNotification'; message: string }
-    | { action: 'getSummaryTargetText'; ignoreSelection?: boolean }
+    | { action: "enableTableSort" }
+    | { action: "showNotification"; message: string }
+    | { action: "getSummaryTargetText"; ignoreSelection?: boolean }
     | {
-        action: 'showSummaryOverlay';
-        status: 'loading' | 'ready' | 'error';
+        action: "showSummaryOverlay";
+        status: "loading" | "ready" | "error";
         source: SummarySource;
         summary?: string;
         error?: string;
       }
     | {
-        action: 'showActionOverlay';
-        status: 'loading' | 'ready' | 'error';
-        mode: 'text' | 'event';
+        action: "showActionOverlay";
+        status: "loading" | "ready" | "error";
+        mode: "text" | "event";
         source: SummarySource;
         title: string;
         primary?: string;
@@ -45,11 +53,11 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
     url: string;
   };
 
-  const OVERLAY_HOST_ID = 'my-browser-utils-overlay';
-  const OVERLAY_ROOT_ID = 'mbu-overlay-react-root';
+  const OVERLAY_HOST_ID = "my-browser-utils-overlay";
+  const OVERLAY_ROOT_ID = "mbu-overlay-react-root";
 
-  const TOAST_HOST_ID = 'my-browser-utils-toast-host';
-  const TOAST_ROOT_ID = 'mbu-toast-react-root';
+  const TOAST_HOST_ID = "my-browser-utils-toast-host";
+  const TOAST_ROOT_ID = "mbu-toast-react-root";
 
   type OverlayMount = {
     host: HTMLDivElement;
@@ -71,7 +79,9 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
     toastMount: ToastMount | null;
   };
 
-  const globalContainer = globalThis as unknown as { __MBU_CONTENT_STATE__?: GlobalContentState };
+  const globalContainer = globalThis as unknown as {
+    __MBU_CONTENT_STATE__?: GlobalContentState;
+  };
   if (!globalContainer.__MBU_CONTENT_STATE__) {
     globalContainer.__MBU_CONTENT_STATE__ = {
       initialized: false,
@@ -81,10 +91,10 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
   }
   const globalState = globalContainer.__MBU_CONTENT_STATE__;
 
-  let currentTheme: Theme = 'auto';
+  let currentTheme: Theme = "auto";
 
   function normalizeTheme(value: unknown): Theme {
-    return isTheme(value) ? value : 'auto';
+    return isTheme(value) ? value : "auto";
   }
 
   function applyThemeToMounts(theme: Theme): void {
@@ -98,10 +108,10 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
 
   async function refreshThemeFromStorage(): Promise<void> {
     try {
-      const data = (await storageLocalGet(['theme'])) as { theme?: unknown };
+      const data = (await storageLocalGet(["theme"])) as { theme?: unknown };
       currentTheme = normalizeTheme(data.theme);
     } catch {
-      currentTheme = 'auto';
+      currentTheme = "auto";
     }
     applyThemeToMounts(currentTheme);
   }
@@ -111,22 +121,31 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
   // ========================================
 
   function patternToRegex(pattern: string): RegExp {
-    const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
+    const escaped = pattern
+      .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
+      .replace(/\*/g, ".*");
 
     const shouldAllowQueryHashSuffix = !/[?#]/.test(pattern);
-    const allowOptionalTrailingSlash = shouldAllowQueryHashSuffix && !pattern.endsWith('/') && !pattern.includes('*');
+    const allowOptionalTrailingSlash =
+      shouldAllowQueryHashSuffix &&
+      !pattern.endsWith("/") &&
+      !pattern.includes("*");
 
-    const optionalTrailingSlash = allowOptionalTrailingSlash ? '(?:/)?' : '';
-    const optionalQueryHashSuffix = shouldAllowQueryHashSuffix ? '(?:[?#].*)?' : '';
+    const optionalTrailingSlash = allowOptionalTrailingSlash ? "(?:/)?" : "";
+    const optionalQueryHashSuffix = shouldAllowQueryHashSuffix
+      ? "(?:[?#].*)?"
+      : "";
 
-    return new RegExp(`^${escaped}${optionalTrailingSlash}${optionalQueryHashSuffix}$`);
+    return new RegExp(
+      `^${escaped}${optionalTrailingSlash}${optionalQueryHashSuffix}$`
+    );
   }
 
   function matchesAnyPattern(patterns: string[]): boolean {
-    const urlWithoutProtocol = window.location.href.replace(/^https?:\/\//, '');
+    const urlWithoutProtocol = window.location.href.replace(/^https?:\/\//, "");
 
-    return patterns.some(pattern => {
-      const patternWithoutProtocol = pattern.replace(/^https?:\/\//, '');
+    return patterns.some((pattern) => {
+      const patternWithoutProtocol = pattern.replace(/^https?:\/\//, "");
       const regex = patternToRegex(patternWithoutProtocol);
       return regex.test(urlWithoutProtocol);
     });
@@ -137,7 +156,9 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
     matchesAnyPattern?: (patterns: string[]) => boolean;
   };
 
-  const testHooks = (globalThis as unknown as { __MBU_TEST_HOOKS__?: ContentTestHooks }).__MBU_TEST_HOOKS__;
+  const testHooks = (
+    globalThis as unknown as { __MBU_TEST_HOOKS__?: ContentTestHooks }
+  ).__MBU_TEST_HOOKS__;
   if (testHooks) {
     testHooks.patternToRegex = patternToRegex;
     testHooks.matchesAnyPattern = matchesAnyPattern;
@@ -159,24 +180,24 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
   function enableSingleTable(table: HTMLTableElement): void {
     if (table.dataset.sortable) return;
 
-    table.dataset.sortable = 'true';
-    const headers = table.querySelectorAll<HTMLTableCellElement>('th');
+    table.dataset.sortable = "true";
+    const headers = table.querySelectorAll<HTMLTableCellElement>("th");
 
     headers.forEach((header, index) => {
-      header.style.cursor = 'pointer';
-      header.style.userSelect = 'none';
-      header.title = 'クリックでソート';
+      header.style.cursor = "pointer";
+      header.style.userSelect = "none";
+      header.title = "クリックでソート";
 
-      header.addEventListener('click', () => {
+      header.addEventListener("click", () => {
         sortTable(table, index);
       });
     });
   }
 
   function enableTableSort(): void {
-    const tables = document.querySelectorAll<HTMLTableElement>('table');
+    const tables = document.querySelectorAll<HTMLTableElement>("table");
 
-    tables.forEach(table => {
+    tables.forEach((table) => {
       enableSingleTable(table);
     });
 
@@ -186,18 +207,20 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
   }
 
   function sortTable(table: HTMLTableElement, columnIndex: number): void {
-    const tbody = table.querySelector('tbody') as HTMLTableSectionElement | null;
+    const tbody = table.querySelector(
+      "tbody"
+    ) as HTMLTableSectionElement | null;
     const targetBody = tbody ?? table;
-    const rows = Array.from(targetBody.querySelectorAll<HTMLTableRowElement>('tr')).filter(
-      row => row.parentNode === targetBody,
-    );
+    const rows = Array.from(
+      targetBody.querySelectorAll<HTMLTableRowElement>("tr")
+    ).filter((row) => row.parentNode === targetBody);
 
-    const isAscending = table.dataset.sortOrder !== 'asc';
-    table.dataset.sortOrder = isAscending ? 'asc' : 'desc';
+    const isAscending = table.dataset.sortOrder !== "asc";
+    table.dataset.sortOrder = isAscending ? "asc" : "desc";
 
     rows.sort((a, b) => {
-      const aCell = a.cells[columnIndex]?.textContent?.trim() ?? '';
-      const bCell = b.cells[columnIndex]?.textContent?.trim() ?? '';
+      const aCell = a.cells[columnIndex]?.textContent?.trim() ?? "";
+      const bCell = b.cells[columnIndex]?.textContent?.trim() ?? "";
 
       const aNum = Number.parseFloat(aCell);
       const bNum = Number.parseFloat(bCell);
@@ -206,10 +229,12 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
         return isAscending ? aNum - bNum : bNum - aNum;
       }
 
-      return isAscending ? aCell.localeCompare(bCell, 'ja') : bCell.localeCompare(aCell, 'ja');
+      return isAscending
+        ? aCell.localeCompare(bCell, "ja")
+        : bCell.localeCompare(aCell, "ja");
     });
 
-    rows.forEach(row => targetBody.appendChild(row));
+    rows.forEach((row) => targetBody.appendChild(row));
   }
 
   // ========================================
@@ -237,14 +262,18 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
   }
 
   function checkForNewTables(): void {
-    const tables = document.querySelectorAll<HTMLTableElement>('table:not([data-sortable])');
+    const tables = document.querySelectorAll<HTMLTableElement>(
+      "table:not([data-sortable])"
+    );
 
     if (tables.length > 0) {
-      tables.forEach(table => {
+      tables.forEach((table) => {
         enableSingleTable(table);
       });
 
-      showNotification(`${tables.length}個の新しいテーブルでソートを有効化しました`);
+      showNotification(
+        `${tables.length}個の新しいテーブルでソートを有効化しました`
+      );
     }
   }
 
@@ -255,16 +284,19 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
     }
   }
 
-  window.addEventListener('pagehide', stopTableObserver);
+  window.addEventListener("pagehide", stopTableObserver);
 
   // ========================================
   // 4. 通知・選択範囲キャッシュ
   // ========================================
 
-  document.addEventListener('mouseup', () => {
-    const selectedText = window.getSelection()?.toString().trim() ?? '';
+  document.addEventListener("mouseup", () => {
+    const selectedText = window.getSelection()?.toString().trim() ?? "";
     if (selectedText) {
-      void storageLocalSet({ selectedText, selectedTextUpdatedAt: Date.now() }).catch(() => {
+      void storageLocalSet({
+        selectedText,
+        selectedTextUpdatedAt: Date.now(),
+      }).catch(() => {
         // no-op
       });
     }
@@ -275,17 +307,19 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
       return globalState.toastMount;
     }
 
-    const existing = document.getElementById(TOAST_HOST_ID) as HTMLDivElement | null;
-    const host = existing || document.createElement('div');
+    const existing = document.getElementById(
+      TOAST_HOST_ID
+    ) as HTMLDivElement | null;
+    const host = existing || document.createElement("div");
     host.id = TOAST_HOST_ID;
 
-    const shadow = host.shadowRoot ?? host.attachShadow({ mode: 'open' });
+    const shadow = host.shadowRoot ?? host.attachShadow({ mode: "open" });
     ensureShadowUiBaseStyles(shadow);
     applyTheme(currentTheme, shadow);
 
     let rootEl = shadow.getElementById(TOAST_ROOT_ID) as HTMLDivElement | null;
     if (!rootEl) {
-      rootEl = document.createElement('div');
+      rootEl = document.createElement("div");
       rootEl.id = TOAST_ROOT_ID;
       shadow.appendChild(rootEl);
     }
@@ -295,9 +329,9 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
     root.render(
       createElement(ToastHost, {
         toastManager: notifications.toastManager,
-        placement: 'screen',
+        placement: "screen",
         portalContainer: shadow,
-      }),
+      })
     );
 
     if (!host.isConnected) {
@@ -321,58 +355,68 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
     mount.notify.info(text);
   }
 
-  async function getSummaryTargetText(options?: { ignoreSelection?: boolean }): Promise<SummaryTarget> {
+  async function getSummaryTargetText(options?: {
+    ignoreSelection?: boolean;
+  }): Promise<SummaryTarget> {
     if (!options?.ignoreSelection) {
-      const selection = window.getSelection()?.toString().trim() ?? '';
+      const selection = window.getSelection()?.toString().trim() ?? "";
       if (selection) {
         return {
           text: selection,
-          source: 'selection',
-          title: document.title ?? '',
+          source: "selection",
+          title: document.title ?? "",
           url: window.location.href,
         };
       }
 
-      let storedSelection: { selectedText?: string; selectedTextUpdatedAt?: number } = {};
+      let storedSelection: {
+        selectedText?: string;
+        selectedTextUpdatedAt?: number;
+      } = {};
       try {
-        storedSelection = (await storageLocalGet(['selectedText', 'selectedTextUpdatedAt'])) as {
+        storedSelection = (await storageLocalGet([
+          "selectedText",
+          "selectedTextUpdatedAt",
+        ])) as {
           selectedText?: string;
           selectedTextUpdatedAt?: number;
         };
       } catch {
         storedSelection = {};
       }
-      const fallbackSelection = storedSelection.selectedText?.trim() ?? '';
+      const fallbackSelection = storedSelection.selectedText?.trim() ?? "";
       const updatedAt = storedSelection.selectedTextUpdatedAt ?? 0;
       const isFresh = Date.now() - updatedAt <= 30_000;
 
       if (isFresh && fallbackSelection) {
         return {
           text: fallbackSelection,
-          source: 'selection',
-          title: document.title ?? '',
+          source: "selection",
+          title: document.title ?? "",
           url: window.location.href,
         };
       }
     }
 
-    const bodyText = document.body?.innerText ?? '';
+    const bodyText = document.body?.innerText ?? "";
     const MAX_RETURN_CHARS = 60_000;
     const normalized = normalizeText(bodyText);
     const clipped =
-      normalized.length > MAX_RETURN_CHARS ? `${normalized.slice(0, MAX_RETURN_CHARS)}\n\n(以下略)` : normalized;
+      normalized.length > MAX_RETURN_CHARS
+        ? `${normalized.slice(0, MAX_RETURN_CHARS)}\n\n(以下略)`
+        : normalized;
     return {
       text: clipped,
-      source: 'page',
-      title: document.title ?? '',
+      source: "page",
+      title: document.title ?? "",
       url: window.location.href,
     };
   }
 
   function normalizeText(text: string): string {
     return text
-      .replace(/\r\n/g, '\n')
-      .replace(/\n{3,}/g, '\n\n')
+      .replace(/\r\n/g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
       .trim();
   }
 
@@ -387,17 +431,21 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
       return globalState.overlayMount;
     }
 
-    const existing = document.getElementById(OVERLAY_HOST_ID) as HTMLDivElement | null;
-    const host = existing || document.createElement('div');
+    const existing = document.getElementById(
+      OVERLAY_HOST_ID
+    ) as HTMLDivElement | null;
+    const host = existing || document.createElement("div");
     host.id = OVERLAY_HOST_ID;
 
-    const shadow = host.shadowRoot ?? host.attachShadow({ mode: 'open' });
+    const shadow = host.shadowRoot ?? host.attachShadow({ mode: "open" });
     ensureShadowUiBaseStyles(shadow);
     applyTheme(currentTheme, shadow);
 
-    let rootEl = shadow.getElementById(OVERLAY_ROOT_ID) as HTMLDivElement | null;
+    let rootEl = shadow.getElementById(
+      OVERLAY_ROOT_ID
+    ) as HTMLDivElement | null;
     if (!rootEl) {
-      rootEl = document.createElement('div');
+      rootEl = document.createElement("div");
       rootEl.id = OVERLAY_ROOT_ID;
       shadow.appendChild(rootEl);
     }
@@ -424,16 +472,24 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
     globalState.overlayMount = null;
   }
 
-  function getSelectionAnchorRect(): OverlayViewModel['anchorRect'] {
+  function getSelectionAnchorRect(): OverlayViewModel["anchorRect"] {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return null;
 
     const range = selection.getRangeAt(0);
     const rects = Array.from(range.getClientRects());
-    const rect = rects.length > 0 ? rects[rects.length - 1] : range.getBoundingClientRect();
+    const rect =
+      rects.length > 0
+        ? rects[rects.length - 1]
+        : range.getBoundingClientRect();
 
     if (!rect || (rect.width === 0 && rect.height === 0)) return null;
-    return { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+    return {
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height,
+    };
   }
 
   function renderOverlay(viewModel: OverlayViewModel): void {
@@ -446,12 +502,12 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
         onDismiss: () => {
           closeOverlay();
         },
-      }),
+      })
     );
   }
 
   function stripSourceSuffix(title: string): string {
-    return title.replace(/（(?:選択範囲|ページ本文)）\s*$/, '').trim();
+    return title.replace(/（(?:選択範囲|ページ本文)）\s*$/, "").trim();
   }
 
   let summarizeOverlayTitleCache: string | null = null;
@@ -460,11 +516,11 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
   function findContextActionTitle(actions: unknown, id: string): string | null {
     if (!Array.isArray(actions)) return null;
     for (const item of actions) {
-      if (typeof item !== 'object' || item === null) continue;
+      if (typeof item !== "object" || item === null) continue;
       const record = item as Record<string, unknown>;
-      if (typeof record.id !== 'string') continue;
+      if (typeof record.id !== "string") continue;
       if (record.id.trim() !== id) continue;
-      const title = typeof record.title === 'string' ? record.title.trim() : '';
+      const title = typeof record.title === "string" ? record.title.trim() : "";
       if (!title) continue;
       return title;
     }
@@ -477,11 +533,16 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
 
     summarizeOverlayTitleInFlight = (async () => {
       try {
-        const stored = (await storageSyncGet(['contextActions'])) as { contextActions?: unknown };
-        const title = findContextActionTitle(stored.contextActions, 'builtin:summarize');
-        summarizeOverlayTitleCache = stripSourceSuffix(title ?? '') || '要約';
+        const stored = (await storageSyncGet(["contextActions"])) as {
+          contextActions?: unknown;
+        };
+        const title = findContextActionTitle(
+          stored.contextActions,
+          "builtin:summarize"
+        );
+        summarizeOverlayTitleCache = stripSourceSuffix(title ?? "") || "要約";
       } catch {
-        summarizeOverlayTitleCache = '要約';
+        summarizeOverlayTitleCache = "要約";
       } finally {
         summarizeOverlayTitleInFlight = null;
       }
@@ -491,14 +552,17 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
     return summarizeOverlayTitleInFlight;
   }
 
-  function showActionOverlay(request: Extract<ContentRequest, { action: 'showActionOverlay' }>): void {
-    const primary = request.primary?.trim() ?? '';
-    const secondary = request.secondary?.trim() ?? '';
-    const calendarUrl = request.calendarUrl?.trim() ?? '';
-    const ics = request.ics?.trim() ?? '';
+  function showActionOverlay(
+    request: Extract<ContentRequest, { action: "showActionOverlay" }>
+  ): void {
+    const primary = request.primary?.trim() ?? "";
+    const secondary = request.secondary?.trim() ?? "";
+    const calendarUrl = request.calendarUrl?.trim() ?? "";
+    const ics = request.ics?.trim() ?? "";
     const event = request.event;
 
-    const anchorRect = request.source === 'selection' ? getSelectionAnchorRect() : null;
+    const anchorRect =
+      request.source === "selection" ? getSelectionAnchorRect() : null;
 
     renderOverlay({
       open: true,
@@ -507,44 +571,53 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
       source: request.source,
       title: stripSourceSuffix(request.title),
       primary:
-        request.status === 'loading'
-          ? ''
-          : request.status === 'ready'
-            ? primary || '結果が空でした'
-            : primary || '処理に失敗しました',
-      secondary: request.status === 'loading' ? secondary || '処理に数秒かかることがあります。' : secondary,
-      event: request.mode === 'event' && request.status === 'ready' && event ? event : undefined,
+        request.status === "loading"
+          ? ""
+          : request.status === "ready"
+            ? primary || "結果が空でした"
+            : primary || "処理に失敗しました",
+      secondary:
+        request.status === "loading"
+          ? secondary || "処理に数秒かかることがあります。"
+          : secondary,
+      event:
+        request.mode === "event" && request.status === "ready" && event
+          ? event
+          : undefined,
       calendarUrl: calendarUrl || undefined,
       ics: ics || undefined,
       anchorRect,
     });
   }
 
-  function showSummaryOverlay(request: Extract<ContentRequest, { action: 'showSummaryOverlay' }>): void {
-    const fallbackTitle = summarizeOverlayTitleCache ?? '要約';
-    const summary = request.summary?.trim() ?? '';
-    const error = request.error?.trim() ?? '';
+  function showSummaryOverlay(
+    request: Extract<ContentRequest, { action: "showSummaryOverlay" }>
+  ): void {
+    const fallbackTitle = summarizeOverlayTitleCache ?? "要約";
+    const summary = request.summary?.trim() ?? "";
+    const error = request.error?.trim() ?? "";
 
-    const anchorRect = request.source === 'selection' ? getSelectionAnchorRect() : null;
+    const anchorRect =
+      request.source === "selection" ? getSelectionAnchorRect() : null;
 
     renderOverlay({
       open: true,
       status: request.status,
-      mode: 'text',
+      mode: "text",
       source: request.source,
       title: fallbackTitle,
       primary:
-        request.status === 'ready'
-          ? summary || '要約結果が空でした'
-          : request.status === 'error'
-            ? error || '要約に失敗しました'
-            : '',
+        request.status === "ready"
+          ? summary || "要約結果が空でした"
+          : request.status === "error"
+            ? error || "要約に失敗しました"
+            : "",
       secondary:
-        request.status === 'loading'
-          ? '処理に数秒かかることがあります。'
-          : request.status === 'error'
-            ? 'OpenAI API Token未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。'
-            : '',
+        request.status === "loading"
+          ? "処理に数秒かかることがあります。"
+          : request.status === "error"
+            ? "OpenAI API Token未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。"
+            : "",
       anchorRect,
     });
 
@@ -554,21 +627,21 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
       renderOverlay({
         open: true,
         status: request.status,
-        mode: 'text',
+        mode: "text",
         source: request.source,
         title,
         primary:
-          request.status === 'ready'
-            ? summary || '要約結果が空でした'
-            : request.status === 'error'
-              ? error || '要約に失敗しました'
-              : '',
+          request.status === "ready"
+            ? summary || "要約結果が空でした"
+            : request.status === "error"
+              ? error || "要約に失敗しました"
+              : "",
         secondary:
-          request.status === 'loading'
-            ? '処理に数秒かかることがあります。'
-            : request.status === 'error'
-              ? 'OpenAI API Token未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。'
-              : '',
+          request.status === "loading"
+            ? "処理に数秒かかることがあります。"
+            : request.status === "error"
+              ? "OpenAI API Token未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。"
+              : "",
         anchorRect,
       });
     })();
@@ -579,47 +652,53 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
   // ========================================
 
   chrome.runtime.onMessage.addListener(
-    (request: ContentRequest, _sender: chrome.runtime.MessageSender, sendResponse) => {
+    (
+      request: ContentRequest,
+      _sender: chrome.runtime.MessageSender,
+      sendResponse
+    ) => {
       switch (request.action) {
-        case 'enableTableSort': {
+        case "enableTableSort": {
           enableTableSort();
           startTableObserver();
           sendResponse({ success: true });
           return;
         }
-        case 'showNotification': {
+        case "showNotification": {
           showNotification(request.message);
           sendResponse({ ok: true });
           return;
         }
-        case 'getSummaryTargetText': {
+        case "getSummaryTargetText": {
           void (async () => {
             try {
-              const target = await getSummaryTargetText({ ignoreSelection: request.ignoreSelection });
+              const target = await getSummaryTargetText({
+                ignoreSelection: request.ignoreSelection,
+              });
               sendResponse(target);
             } catch {
               sendResponse({
-                text: '',
-                source: 'page',
-                title: document.title ?? '',
+                text: "",
+                source: "page",
+                title: document.title ?? "",
                 url: window.location.href,
               } satisfies SummaryTarget);
             }
           })();
           return true;
         }
-        case 'showSummaryOverlay': {
+        case "showSummaryOverlay": {
           showSummaryOverlay(request);
           sendResponse({ ok: true });
           return;
         }
-        case 'showActionOverlay': {
+        case "showActionOverlay": {
           showActionOverlay(request);
           sendResponse({ ok: true });
           return;
         }
       }
-    },
+    }
   );
 
   // ========================================
@@ -633,7 +712,9 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
 
   function normalizePatterns(value: unknown): string[] {
     if (!Array.isArray(value)) return [];
-    return value.map(item => (typeof item === 'string' ? item.trim() : '')).filter(Boolean);
+    return value
+      .map((item) => (typeof item === "string" ? item.trim() : ""))
+      .filter(Boolean);
   }
 
   function maybeEnableTableSortFromConfig(): void {
@@ -642,7 +723,10 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
       startTableObserver();
       return;
     }
-    if (tableConfig.domainPatterns.length > 0 && matchesAnyPattern(tableConfig.domainPatterns)) {
+    if (
+      tableConfig.domainPatterns.length > 0 &&
+      matchesAnyPattern(tableConfig.domainPatterns)
+    ) {
       enableTableSort();
       startTableObserver();
     }
@@ -650,7 +734,10 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
 
   async function refreshTableConfig(): Promise<void> {
     try {
-      const data = (await storageSyncGet(['domainPatterns', 'autoEnableSort'])) as StorageData;
+      const data = (await storageSyncGet([
+        "domainPatterns",
+        "autoEnableSort",
+      ])) as StorageData;
       tableConfig = {
         domainPatterns: normalizePatterns(data.domainPatterns),
         autoEnableSort: Boolean(data.autoEnableSort),
@@ -667,13 +754,14 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
 
   if (chrome.storage?.onChanged) {
     chrome.storage.onChanged.addListener((changes, areaName) => {
-      if (areaName === 'sync') {
-        if ('contextActions' in changes) {
+      if (areaName === "sync") {
+        if ("contextActions" in changes) {
           summarizeOverlayTitleCache = null;
           summarizeOverlayTitleInFlight = null;
         }
 
-        if (!('domainPatterns' in changes || 'autoEnableSort' in changes)) return;
+        if (!("domainPatterns" in changes || "autoEnableSort" in changes))
+          return;
         void (async () => {
           await refreshTableConfig();
           maybeEnableTableSortFromConfig();
@@ -681,8 +769,8 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
         return;
       }
 
-      if (areaName !== 'local') return;
-      if (!('theme' in changes)) return;
+      if (areaName !== "local") return;
+      if (!("theme" in changes)) return;
       const change = changes.theme as chrome.storage.StorageChange | undefined;
       currentTheme = normalizeTheme(change?.newValue);
       applyThemeToMounts(currentTheme);
@@ -708,7 +796,7 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
         return;
       }
 
-      chrome.storage.sync.get(keys, items => {
+      chrome.storage.sync.get(keys, (items) => {
         const err = chrome.runtime.lastError;
         if (err) {
           reject(new Error(err.message));
@@ -726,7 +814,7 @@ import { createNotifications, type Notifier, ToastHost, type ToastManager } from
         return;
       }
 
-      chrome.storage.local.get(keys, items => {
+      chrome.storage.local.get(keys, (items) => {
         const err = chrome.runtime.lastError;
         if (err) {
           reject(new Error(err.message));

@@ -1,4 +1,4 @@
-export type SummarySource = 'selection' | 'page';
+export type SummarySource = "selection" | "page";
 
 export type ExtractedEvent = {
   title: string;

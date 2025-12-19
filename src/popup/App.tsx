@@ -1,26 +1,29 @@
-import { Dialog, Tabs } from '@base-ui/react';
-import { Button } from '@base-ui/react/button';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Icon } from '@/components/icon';
-import { coercePaneId, getPaneIdFromHash, type PaneId } from '@/popup/panes';
-import { ActionsPane } from '@/popup/panes/ActionsPane';
-import { CreateLinkPane } from '@/popup/panes/CreateLinkPane';
-import { SettingsPane } from '@/popup/panes/SettingsPane';
-import { TablePane } from '@/popup/panes/TablePane';
-import { createPopupRuntime } from '@/popup/runtime';
-import { createNotifications, ToastHost } from '@/ui/toast';
+import { Dialog, Tabs } from "@base-ui/react";
+import { Button } from "@base-ui/react/button";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Icon } from "@/components/icon";
+import { coercePaneId, getPaneIdFromHash, type PaneId } from "@/popup/panes";
+import { ActionsPane } from "@/popup/panes/ActionsPane";
+import { CreateLinkPane } from "@/popup/panes/CreateLinkPane";
+import { SettingsPane } from "@/popup/panes/SettingsPane";
+import { TablePane } from "@/popup/panes/TablePane";
+import { createPopupRuntime } from "@/popup/runtime";
+import { createNotifications, ToastHost } from "@/ui/toast";
 
 function replaceHash(nextHash: string): void {
   try {
     if (window.location.hash === nextHash) return;
-    window.history.replaceState(null, '', nextHash);
+    window.history.replaceState(null, "", nextHash);
   } catch {
     window.location.hash = nextHash;
   }
 }
 
 export function PopupApp(): React.JSX.Element {
-  const initialValue = useMemo<PaneId>(() => getPaneIdFromHash(window.location.hash) ?? 'pane-actions', []);
+  const initialValue = useMemo<PaneId>(
+    () => getPaneIdFromHash(window.location.hash) ?? "pane-actions",
+    []
+  );
   const [tabValue, setTabValue] = useState<PaneId>(initialValue);
   const [menuOpen, setMenuOpen] = useState(false);
   const tokenInputRef = useRef<HTMLInputElement | null>(null);
@@ -50,9 +53,9 @@ export function PopupApp(): React.JSX.Element {
   }, []);
 
   useEffect(() => {
-    window.addEventListener('hashchange', syncFromHash);
+    window.addEventListener("hashchange", syncFromHash);
     return () => {
-      window.removeEventListener('hashchange', syncFromHash);
+      window.removeEventListener("hashchange", syncFromHash);
     };
   }, [syncFromHash]);
 
@@ -61,27 +64,37 @@ export function PopupApp(): React.JSX.Element {
   }, [tabValue]);
 
   useEffect(() => {
-    document.body.classList.toggle('menu-open', menuOpen);
+    document.body.classList.toggle("menu-open", menuOpen);
     return () => {
-      document.body.classList.remove('menu-open');
+      document.body.classList.remove("menu-open");
     };
   }, [menuOpen]);
 
   return (
     <Tabs.Root
-      onValueChange={value => {
+      onValueChange={(value) => {
         setTabValue(coercePaneId(value));
         setMenuOpen(false);
       }}
       value={tabValue}
     >
       <div className="app-shell mbu-surface">
-        <ToastHost placement="surface" portalContainer={document.body} toastManager={notifications.toastManager} />
+        <ToastHost
+          placement="surface"
+          portalContainer={document.body}
+          toastManager={notifications.toastManager}
+        />
         <main className="content">
           <header className="content-header">
             <div className="title-block">
               <div className="hero-logo-wrap">
-                <img alt="My Browser Utils" className="hero-logo" height={32} src="icons/icon48.png" width={32} />
+                <img
+                  alt="My Browser Utils"
+                  className="hero-logo"
+                  height={32}
+                  src="icons/icon48.png"
+                  width={32}
+                />
               </div>
               <div className="title-text">
                 <div className="title-row">
@@ -107,7 +120,11 @@ export function PopupApp(): React.JSX.Element {
               <CreateLinkPane notify={notifications.notify} runtime={runtime} />
             </Tabs.Panel>
             <Tabs.Panel data-pane="pane-settings" value="pane-settings">
-              <SettingsPane notify={notifications.notify} runtime={runtime} tokenInputRef={tokenInputRef} />
+              <SettingsPane
+                notify={notifications.notify}
+                runtime={runtime}
+                tokenInputRef={tokenInputRef}
+              />
             </Tabs.Panel>
           </div>
         </main>
@@ -173,15 +190,26 @@ export function PopupApp(): React.JSX.Element {
               <Dialog.Popup aria-label="メニュー" className="menu-drawer">
                 <div className="menu-drawer-header">
                   <h2 className="menu-drawer-title">メニュー</h2>
-                  <Button aria-label="閉じる" className="menu-close" onClick={() => setMenuOpen(false)} type="button">
+                  <Button
+                    aria-label="閉じる"
+                    className="menu-close"
+                    onClick={() => setMenuOpen(false)}
+                    type="button"
+                  >
                     <Icon aria-hidden="true" name="close" />
                   </Button>
                 </div>
                 <nav className="menu-drawer-nav">
                   <Button
-                    aria-current={tabValue === 'pane-actions' ? 'page' : undefined}
-                    className={tabValue === 'pane-actions' ? 'menu-item active' : 'menu-item'}
-                    onClick={() => navigateToPane('pane-actions')}
+                    aria-current={
+                      tabValue === "pane-actions" ? "page" : undefined
+                    }
+                    className={
+                      tabValue === "pane-actions"
+                        ? "menu-item active"
+                        : "menu-item"
+                    }
+                    onClick={() => navigateToPane("pane-actions")}
                     type="button"
                   >
                     <span aria-hidden="true" className="menu-icon">
@@ -190,9 +218,15 @@ export function PopupApp(): React.JSX.Element {
                     アクション
                   </Button>
                   <Button
-                    aria-current={tabValue === 'pane-table' ? 'page' : undefined}
-                    className={tabValue === 'pane-table' ? 'menu-item active' : 'menu-item'}
-                    onClick={() => navigateToPane('pane-table')}
+                    aria-current={
+                      tabValue === "pane-table" ? "page" : undefined
+                    }
+                    className={
+                      tabValue === "pane-table"
+                        ? "menu-item active"
+                        : "menu-item"
+                    }
+                    onClick={() => navigateToPane("pane-table")}
                     type="button"
                   >
                     <span aria-hidden="true" className="menu-icon">
@@ -201,9 +235,15 @@ export function PopupApp(): React.JSX.Element {
                     テーブルソート
                   </Button>
                   <Button
-                    aria-current={tabValue === 'pane-create-link' ? 'page' : undefined}
-                    className={tabValue === 'pane-create-link' ? 'menu-item active' : 'menu-item'}
-                    onClick={() => navigateToPane('pane-create-link')}
+                    aria-current={
+                      tabValue === "pane-create-link" ? "page" : undefined
+                    }
+                    className={
+                      tabValue === "pane-create-link"
+                        ? "menu-item active"
+                        : "menu-item"
+                    }
+                    onClick={() => navigateToPane("pane-create-link")}
                     type="button"
                   >
                     <span aria-hidden="true" className="menu-icon">
@@ -212,9 +252,15 @@ export function PopupApp(): React.JSX.Element {
                     リンク作成
                   </Button>
                   <Button
-                    aria-current={tabValue === 'pane-settings' ? 'page' : undefined}
-                    className={tabValue === 'pane-settings' ? 'menu-item active' : 'menu-item'}
-                    onClick={() => navigateToPane('pane-settings')}
+                    aria-current={
+                      tabValue === "pane-settings" ? "page" : undefined
+                    }
+                    className={
+                      tabValue === "pane-settings"
+                        ? "menu-item active"
+                        : "menu-item"
+                    }
+                    onClick={() => navigateToPane("pane-settings")}
                     type="button"
                   >
                     <span aria-hidden="true" className="menu-icon">
