@@ -16,6 +16,16 @@
   "background": {
     "service_worker": "dist/background.js"
   },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "src/styles/tokens/primitives.css",
+        "src/styles/tokens/semantic.css",
+        "src/styles/tokens/components.css"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
