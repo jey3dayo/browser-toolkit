@@ -9,7 +9,10 @@ import {
 } from "@/popup/panes/create_link/format";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 
-export type CreateLinkPaneProps = PopupPaneBaseProps;
+export type CreateLinkPaneProps = PopupPaneBaseProps & {
+  initialLink?: { title: string; url: string };
+  initialFormat?: LinkFormat;
+};
 
 export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
   const [title, setTitle] = useState("");
@@ -53,10 +56,20 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
   );
 
   useEffect(() => {
-    loadFromActiveTab({ showToast: false }).catch(() => {
-      // no-op
-    });
-  }, [loadFromActiveTab]);
+    if (props.initialLink) {
+      setTitle(props.initialLink.title);
+      setUrl(props.initialLink.url);
+    } else {
+      loadFromActiveTab({ showToast: false }).catch(() => {
+        // no-op
+      });
+    }
+  }, [loadFromActiveTab, props.initialLink]);
+
+  useEffect(() => {
+    if (!props.initialFormat) return;
+    setFormat(props.initialFormat);
+  }, [props.initialFormat]);
 
   const copyOutput = async (): Promise<void> => {
     const text = output.trim();

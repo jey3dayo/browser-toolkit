@@ -11,7 +11,7 @@ import { computeEventDateRange } from "@/event_date_range";
 import { buildIcs } from "@/ics";
 import { loadOpenAiModel, loadOpenAiSettings } from "@/openai/settings";
 import type { ExtractedEvent, SummarySource } from "@/shared_types";
-import type { LocalStorageData } from "@/storage/types";
+import type { CopyTitleLinkFailure, LocalStorageData } from "@/storage/types";
 import { toErrorMessage } from "@/utils/errors";
 import { safeParseJsonObject } from "@/utils/json";
 import {
@@ -205,7 +205,9 @@ async function handleCopyTitleLinkContextMenuClick(params: {
   tabId: number;
   tab?: chrome.tabs.Tab;
 }): Promise<void> {
-  const text = buildTitleLinkCopyText(params.tab);
+  const title = params.tab?.title?.trim() ?? "";
+  const url = params.tab?.url?.trim() ?? "";
+  const text = title && url ? `${title}\n${url}` : url || title;
   if (!text.trim()) {
     await sendMessageToTab(params.tabId, {
       action: "showNotification",
@@ -217,6 +219,8 @@ async function handleCopyTitleLinkContextMenuClick(params: {
   }
 
   try {
+    await clearCopyTitleLinkFailureIndicator(params.tabId);
+
     const result: { ok: true } | { ok: false; error: string } =
       await sendMessageToTab(params.tabId, {
         action: "copyToClipboard",
@@ -234,16 +238,27 @@ async function handleCopyTitleLinkContextMenuClick(params: {
       secondary: buildCopyTitleLinkFallbackSecondary(result.error),
     });
   } catch (error) {
-    console.error("copy title/link failed:", error);
-    const message =
-      error instanceof Error ? error.message : "コピーに失敗しました";
-    await showCopyTitleLinkOverlay({
+    const errorMessage = toErrorMessage(error, "コピーに失敗しました");
+    console.error("copy title/link failed:", { title, url }, error);
+
+    const overlayShown = await showCopyTitleLinkOverlay({
       tabId: params.tabId,
       text,
-      secondary: message,
-    }).catch(() => {
-      // no-op
-    });
+      secondary: errorMessage,
+    })
+      .then(() => true)
+      .catch(() => false);
+
+    if (!overlayShown) {
+      await showCopyTitleLinkFailureIndicator(params.tabId, {
+        occurredAt: Date.now(),
+        tabId: params.tabId,
+        pageTitle: title,
+        pageUrl: url,
+        text,
+        error: errorMessage,
+      });
+    }
   }
 }
 
@@ -872,6 +887,60 @@ function sendMessageToTab<TRequest, TResponse>(
   });
 }
 
+async function showCopyTitleLinkFailureIndicator(
+  tabId: number,
+  failure: CopyTitleLinkFailure
+): Promise<void> {
+  await storageLocalSet({ lastCopyTitleLinkFailure: failure }).catch(() => {
+    // no-op
+  });
+
+  const pageLabel = failure.pageUrl || failure.pageTitle || "このページ";
+  try {
+    chrome.action.setBadgeText({ text: "!", tabId });
+    chrome.action.setBadgeBackgroundColor({ color: "#e5484d", tabId });
+    chrome.action.setTitle({
+      title: `My Browser Utils: このページではコピーできません\n${pageLabel}\n（ポップアップ「リンク作成」からコピーできます）`,
+      tabId,
+    });
+  } catch {
+    // no-op
+  }
+}
+
+async function clearCopyTitleLinkFailureIndicator(
+  tabId: number
+): Promise<void> {
+  const stored = await storageLocalGet(["lastCopyTitleLinkFailure"]).catch(
+    () => null
+  );
+  const storedFailure =
+    stored && typeof stored === "object"
+      ? (
+          stored as {
+            lastCopyTitleLinkFailure?: { tabId?: unknown } | null;
+          }
+        ).lastCopyTitleLinkFailure
+      : null;
+
+  if (
+    storedFailure &&
+    typeof storedFailure.tabId === "number" &&
+    storedFailure.tabId === tabId
+  ) {
+    await storageLocalRemove("lastCopyTitleLinkFailure").catch(() => {
+      // no-op
+    });
+  }
+
+  try {
+    chrome.action.setBadgeText({ text: "", tabId });
+    chrome.action.setTitle({ title: "My Browser Utils", tabId });
+  } catch {
+    // no-op
+  }
+}
+
 function storageLocalGetTyped(
   keys: (keyof LocalStorageData)[]
 ): Promise<Partial<LocalStorageData>> {
@@ -1231,6 +1300,32 @@ function storageLocalGet(keys: string[]): Promise<unknown> {
         return;
       }
       resolve(items);
+    });
+  });
+}
+
+function storageLocalSet(items: Record<string, unknown>): Promise<void> {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.set(items, () => {
+      const err = chrome.runtime.lastError;
+      if (err) {
+        reject(new Error(err.message));
+        return;
+      }
+      resolve();
+    });
+  });
+}
+
+function storageLocalRemove(keys: string[] | string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.remove(keys, () => {
+      const err = chrome.runtime.lastError;
+      if (err) {
+        reject(new Error(err.message));
+        return;
+      }
+      resolve();
     });
   });
 }

@@ -1,13 +1,16 @@
 import { Dialog, Tabs } from "@base-ui/react";
 import { Button } from "@base-ui/react/button";
+import { Result } from "@praha/byethrow";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/icon";
 import { coercePaneId, getPaneIdFromHash, type PaneId } from "@/popup/panes";
 import { ActionsPane } from "@/popup/panes/ActionsPane";
 import { CreateLinkPane } from "@/popup/panes/CreateLinkPane";
+import type { LinkFormat } from "@/popup/panes/create_link/format";
 import { SettingsPane } from "@/popup/panes/SettingsPane";
 import { TablePane } from "@/popup/panes/TablePane";
 import { createPopupRuntime } from "@/popup/runtime";
+import type { CopyTitleLinkFailure } from "@/storage/types";
 import { createNotifications, ToastHost } from "@/ui/toast";
 
 function replaceHash(nextHash: string): void {
@@ -21,6 +24,22 @@ function replaceHash(nextHash: string): void {
   }
 }
 
+function coerceCopyTitleLinkFailure(
+  value: unknown
+): Result.Result<CopyTitleLinkFailure, "invalid"> {
+  if (typeof value !== "object" || value === null) {
+    return Result.fail("invalid" as const);
+  }
+  const v = value as Record<string, unknown>;
+  if (typeof v.occurredAt !== "number") return Result.fail("invalid" as const);
+  if (typeof v.tabId !== "number") return Result.fail("invalid" as const);
+  if (typeof v.pageTitle !== "string") return Result.fail("invalid" as const);
+  if (typeof v.pageUrl !== "string") return Result.fail("invalid" as const);
+  if (typeof v.text !== "string") return Result.fail("invalid" as const);
+  if (typeof v.error !== "string") return Result.fail("invalid" as const);
+  return Result.succeed(value as CopyTitleLinkFailure);
+}
+
 export function PopupApp(): React.JSX.Element {
   const initialValue = useMemo<PaneId>(
     () => getPaneIdFromHash(window.location.hash) ?? "pane-actions",
@@ -32,6 +51,13 @@ export function PopupApp(): React.JSX.Element {
 
   const runtime = useMemo(() => createPopupRuntime(), []);
   const notifications = useMemo(() => createNotifications(), []);
+
+  const [createLinkInitialLink, setCreateLinkInitialLink] = useState<{
+    title: string;
+    url: string;
+  } | null>(null);
+  const [createLinkInitialFormat, setCreateLinkInitialFormat] =
+    useState<LinkFormat | null>(null);
 
   const focusTokenInput = useCallback(() => {
     window.setTimeout(() => {
@@ -73,6 +99,101 @@ export function PopupApp(): React.JSX.Element {
       document.body.classList.remove("menu-open");
     };
   }, [menuOpen]);
+
+  useEffect(() => {
+    void (async () => {
+      const MAX_AGE_MS = 2 * 60 * 1000;
+      const canUseChromeAction =
+        runtime.isExtensionPage &&
+        typeof chrome !== "undefined" &&
+        Boolean((chrome as unknown as { action?: unknown }).action);
+
+      const failureResult = Result.pipe(
+        Result.try({
+          immediate: true,
+          try: () => runtime.storageLocalGet(["lastCopyTitleLinkFailure"]),
+          catch: () => "storage-error" as const,
+        }),
+        Result.map(
+          (data) =>
+            (data as { lastCopyTitleLinkFailure?: unknown })
+              .lastCopyTitleLinkFailure
+        ),
+        Result.andThen((value) => coerceCopyTitleLinkFailure(value))
+      );
+
+      const failureLoaded = await failureResult;
+      if (Result.isFailure(failureLoaded)) {
+        if (failureLoaded.error === "invalid") {
+          await runtime
+            .storageLocalRemove("lastCopyTitleLinkFailure")
+            .catch(() => {
+              // no-op
+            });
+        }
+        return;
+      }
+
+      const failure = failureLoaded.value;
+      if (Date.now() - failure.occurredAt > MAX_AGE_MS) {
+        await runtime
+          .storageLocalRemove("lastCopyTitleLinkFailure")
+          .catch(() => {
+            // no-op
+          });
+        if (canUseChromeAction) {
+          try {
+            chrome.action.setBadgeText({ text: "", tabId: failure.tabId });
+            chrome.action.setTitle({
+              title: "My Browser Utils",
+              tabId: failure.tabId,
+            });
+          } catch {
+            // no-op
+          }
+        }
+        return;
+      }
+
+      const activeTabId = await runtime.getActiveTabId().catch(() => null);
+      if (activeTabId === null) return;
+      if (activeTabId !== failure.tabId) return;
+
+      await runtime.storageLocalRemove("lastCopyTitleLinkFailure").catch(() => {
+        // no-op
+      });
+      if (canUseChromeAction) {
+        try {
+          chrome.action.setBadgeText({ text: "", tabId: failure.tabId });
+          chrome.action.setTitle({
+            title: "My Browser Utils",
+            tabId: failure.tabId,
+          });
+        } catch {
+          // no-op
+        }
+      }
+
+      setCreateLinkInitialLink({
+        title: failure.pageTitle,
+        url: failure.pageUrl,
+      });
+      setCreateLinkInitialFormat("text");
+      setTabValue("pane-create-link");
+
+      notifications.notify.error(
+        [
+          "このページでは自動コピーできませんでした。",
+          failure.pageTitle ? `タイトル: ${failure.pageTitle}` : null,
+          failure.pageUrl ? `URL: ${failure.pageUrl}` : null,
+          "",
+          "このポップアップ「リンク作成」からコピーできます。",
+        ]
+          .filter(Boolean)
+          .join("\n")
+      );
+    })();
+  }, [notifications.notify, runtime]);
 
   return (
     <Tabs.Root
@@ -121,7 +242,12 @@ export function PopupApp(): React.JSX.Element {
               <TablePane notify={notifications.notify} runtime={runtime} />
             </Tabs.Panel>
             <Tabs.Panel data-pane="pane-create-link" value="pane-create-link">
-              <CreateLinkPane notify={notifications.notify} runtime={runtime} />
+              <CreateLinkPane
+                initialFormat={createLinkInitialFormat ?? undefined}
+                initialLink={createLinkInitialLink ?? undefined}
+                notify={notifications.notify}
+                runtime={runtime}
+              />
             </Tabs.Panel>
             <Tabs.Panel data-pane="pane-settings" value="pane-settings">
               <SettingsPane
