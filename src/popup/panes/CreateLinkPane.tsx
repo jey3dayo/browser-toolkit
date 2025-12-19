@@ -19,7 +19,6 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
   const [format, setFormat] = useState<LinkFormat>("markdown");
-  const [loading, setLoading] = useState(false);
 
   const titleInputId = useId();
   const urlInputId = useId();
@@ -32,37 +31,29 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
   );
   const canCopy = Boolean(output.trim());
 
-  const loadFromActiveTab = useCallback(
-    async ({ showToast }: { showToast: boolean }): Promise<void> => {
-      const notify = showToast ? props.notify : null;
-      setLoading(true);
-      try {
-        const activeTab = await props.runtime.getActiveTab();
-        if (Result.isFailure(activeTab)) {
-          notify?.error(activeTab.error);
-          return;
-        }
-
-        if (!activeTab.value) {
-          notify?.error("有効なタブが見つかりません");
-          return;
-        }
-        setTitle(activeTab.value.title ?? "");
-        setUrl(activeTab.value.url ?? "");
-        notify?.success("現在のタブから更新しました");
-      } finally {
-        setLoading(false);
+  const loadFromActiveTab = useCallback(async (): Promise<void> => {
+    try {
+      const activeTab = await props.runtime.getActiveTab();
+      if (Result.isFailure(activeTab)) {
+        return;
       }
-    },
-    [props.notify, props.runtime]
-  );
+
+      if (!activeTab.value) {
+        return;
+      }
+      setTitle(activeTab.value.title ?? "");
+      setUrl(activeTab.value.url ?? "");
+    } finally {
+      // no-op
+    }
+  }, [props.runtime]);
 
   useEffect(() => {
     if (props.initialLink) {
       setTitle(props.initialLink.title);
       setUrl(props.initialLink.url);
     } else {
-      loadFromActiveTab({ showToast: false }).catch(() => {
+      loadFromActiveTab().catch(() => {
         // no-op
       });
     }
@@ -101,19 +92,6 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
       <div className="row-between">
         <h2 className="pane-title">リンク作成</h2>
         <div className="button-row">
-          <Button
-            className="btn btn-ghost btn-small"
-            data-testid="create-link-refresh"
-            disabled={loading}
-            onClick={() => {
-              loadFromActiveTab({ showToast: true }).catch(() => {
-                // no-op
-              });
-            }}
-            type="button"
-          >
-            更新
-          </Button>
           <Button
             className="btn btn-primary btn-small"
             data-testid="create-link-copy"
