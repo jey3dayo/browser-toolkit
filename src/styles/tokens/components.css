@@ -934,6 +934,69 @@ body.no-js:has(.pane:target) .pane.active:not(:target) {
   gap: 10px;
 }
 
+.mbu-accordion {
+  display: grid;
+  gap: 8px;
+}
+
+.mbu-accordion-item {
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.mbu-accordion-header {
+  margin: 0;
+}
+
+.mbu-accordion-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.mbu-accordion-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.mbu-accordion-icon {
+  font-size: 12px;
+  transition: transform 0.2s ease;
+}
+
+.mbu-accordion-trigger[aria-expanded="true"] .mbu-accordion-icon {
+  transform: rotate(180deg);
+}
+
+.mbu-accordion-panel {
+  padding: 0 12px 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.mbu-accordion-meta,
+.mbu-accordion-note {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-sub);
+  line-height: 1.4;
+}
+
+.mbu-accordion-text {
+  min-height: 96px;
+}
+
 .editor-panel {
   margin-top: 18px;
   padding-top: 14px;
@@ -1364,6 +1427,79 @@ body.no-js:has(.pane:target) .pane.active:not(:target) {
     transparent
   );
   color: var(--text);
+}
+
+.mbu-switch-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--color-text) 4%, transparent);
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+}
+
+.mbu-switch-text {
+  color: inherit;
+  font-weight: 500;
+}
+
+.mbu-switch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 44px;
+  height: 24px;
+  padding: 2px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: color-mix(in oklab, var(--color-text) 8%, transparent);
+  transition:
+    background 160ms ease,
+    border-color 160ms ease;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.mbu-switch[data-checked] {
+  background: color-mix(
+    in oklab,
+    var(--color-primary) var(--accent-mix-18),
+    transparent
+  );
+  border-color: color-mix(
+    in oklab,
+    var(--color-primary) var(--accent-mix-40),
+    var(--line)
+  );
+}
+
+.mbu-switch[data-disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mbu-switch[data-focused] {
+  box-shadow: 0 0 0 2px
+    color-mix(in oklab, var(--color-primary) 35%, transparent);
+}
+
+.mbu-switch-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--color-surface);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transform: translateX(0);
+  transition: transform 160ms ease;
+}
+
+.mbu-switch[data-checked] .mbu-switch-thumb {
+  transform: translateX(22px);
 }
 
 .pattern-list {
