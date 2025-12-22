@@ -197,46 +197,35 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
       <Form
         className="stack"
         onFormSubmit={() => {
-          saveToken().catch(() => {
+          savePrompt().catch(() => {
             // no-op
           });
         }}
       >
         <Fieldset.Root className="mbu-fieldset stack">
           <Fieldset.Legend className="mbu-fieldset-legend">
-            OpenAI API トークン
+            追加指示（任意）
           </Fieldset.Legend>
-
-          <label className="field" htmlFor={tokenInputId}>
-            <span className="field-name">トークン</span>
-            <Input
-              className="token-input"
-              data-testid="openai-token"
-              id={tokenInputId}
-              onValueChange={setToken}
-              ref={props.tokenInputRef}
-              type={showToken ? "text" : "password"}
-              value={token}
+          <label className="field" htmlFor={promptInputId}>
+            <span className="field-name">追加指示</span>
+            <textarea
+              className="prompt-input"
+              data-testid="custom-prompt"
+              id={promptInputId}
+              name="openaiCustomPrompt"
+              onChange={(event) => setCustomPrompt(event.currentTarget.value)}
+              rows={6}
+              value={customPrompt}
             />
           </label>
-
-          <Toggle
-            className="mbu-toggle"
-            data-testid="token-visible"
-            onPressedChange={setShowToken}
-            pressed={showToken}
-            type="button"
-          >
-            表示する
-          </Toggle>
         </Fieldset.Root>
 
         <div className="button-row">
           <Button
             className="btn btn-primary btn-small"
-            data-testid="token-save"
+            data-testid="prompt-save"
             onClick={() => {
-              saveToken().catch(() => {
+              savePrompt().catch(() => {
                 // no-op
               });
             }}
@@ -246,27 +235,15 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
           </Button>
           <Button
             className="btn-delete"
-            data-testid="token-clear"
+            data-testid="prompt-clear"
             onClick={() => {
-              clearToken().catch(() => {
+              clearPrompt().catch(() => {
                 // no-op
               });
             }}
             type="button"
           >
             削除
-          </Button>
-          <Button
-            className="btn btn-ghost btn-small"
-            data-testid="token-test"
-            onClick={() => {
-              testToken().catch(() => {
-                // no-op
-              });
-            }}
-            type="button"
-          >
-            トークン確認
           </Button>
         </div>
       </Form>
@@ -438,35 +415,46 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
       <Form
         className="stack"
         onFormSubmit={() => {
-          savePrompt().catch(() => {
+          saveToken().catch(() => {
             // no-op
           });
         }}
       >
         <Fieldset.Root className="mbu-fieldset stack">
           <Fieldset.Legend className="mbu-fieldset-legend">
-            追加指示（任意）
+            OpenAI API トークン
           </Fieldset.Legend>
-          <label className="field" htmlFor={promptInputId}>
-            <span className="field-name">追加指示</span>
-            <textarea
-              className="prompt-input"
-              data-testid="custom-prompt"
-              id={promptInputId}
-              name="openaiCustomPrompt"
-              onChange={(event) => setCustomPrompt(event.currentTarget.value)}
-              rows={6}
-              value={customPrompt}
+
+          <label className="field" htmlFor={tokenInputId}>
+            <span className="field-name">トークン</span>
+            <Input
+              className="token-input"
+              data-testid="openai-token"
+              id={tokenInputId}
+              onValueChange={setToken}
+              ref={props.tokenInputRef}
+              type={showToken ? "text" : "password"}
+              value={token}
             />
           </label>
+
+          <Toggle
+            className="mbu-toggle"
+            data-testid="token-visible"
+            onPressedChange={setShowToken}
+            pressed={showToken}
+            type="button"
+          >
+            表示する
+          </Toggle>
         </Fieldset.Root>
 
         <div className="button-row">
           <Button
             className="btn btn-primary btn-small"
-            data-testid="prompt-save"
+            data-testid="token-save"
             onClick={() => {
-              savePrompt().catch(() => {
+              saveToken().catch(() => {
                 // no-op
               });
             }}
@@ -476,15 +464,27 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
           </Button>
           <Button
             className="btn-delete"
-            data-testid="prompt-clear"
+            data-testid="token-clear"
             onClick={() => {
-              clearPrompt().catch(() => {
+              clearToken().catch(() => {
                 // no-op
               });
             }}
             type="button"
           >
             削除
+          </Button>
+          <Button
+            className="btn btn-ghost btn-small"
+            data-testid="token-test"
+            onClick={() => {
+              testToken().catch(() => {
+                // no-op
+              });
+            }}
+            type="button"
+          >
+            トークン確認
           </Button>
         </div>
       </Form>
