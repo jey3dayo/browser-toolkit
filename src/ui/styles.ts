@@ -1,7 +1,3 @@
-import componentsCss from "@/styles/tokens/components.css?raw";
-import primitivesCss from "@/styles/tokens/primitives.css?raw";
-import semanticCss from "@/styles/tokens/semantic.css?raw";
-
 const TOKEN_PRIMITIVES_ID = "mbu-ui-token-primitives";
 const TOKEN_SEMANTIC_ID = "mbu-ui-token-semantic";
 const STYLE_ID = "mbu-ui-base-styles";
@@ -48,61 +44,68 @@ function resolvePopupStylePath(doc: Document, relativePath: string): string {
   return `${getPopupStyleRoot(doc)}/${relativePath}`;
 }
 
-type ConstructableSheets = {
-  primitives: CSSStyleSheet;
-  semantic: CSSStyleSheet;
-  components: CSSStyleSheet;
-};
-
-function createConstructableSheets(): ConstructableSheets | null {
-  if (typeof CSSStyleSheet === "undefined") {
-    return null;
-  }
-  if (!("replaceSync" in CSSStyleSheet.prototype)) {
-    return null;
-  }
+function getShadowStyleRoot(): string {
   try {
-    const primitives = new CSSStyleSheet();
-    primitives.replaceSync(primitivesCss);
-    const semantic = new CSSStyleSheet();
-    semantic.replaceSync(semanticCss);
-    const components = new CSSStyleSheet();
-    components.replaceSync(componentsCss);
-    return { primitives, semantic, components };
+    const runtime = (
+      chrome as unknown as { runtime?: { getURL?: (input: string) => string } }
+    ).runtime;
+    if (runtime?.getURL) {
+      return POPUP_STYLE_ROOT_DIST;
+    }
   } catch {
-    return null;
+    // non-extension contexts (tests/storybook)
   }
+  return POPUP_STYLE_ROOT_DEV;
 }
 
-const shadowConstructedSheets = createConstructableSheets();
+function resolveShadowStylePath(relativePath: string): string {
+  return `${getShadowStyleRoot()}/${relativePath}`;
+}
 
 function ensureDocumentStylesheet(
   doc: Document,
   id: string,
   path: string
 ): void {
-  if (doc.getElementById(id)) {
+  const href = resolveStyleHref(path);
+  const existing = doc.getElementById(id);
+  if (existing) {
+    if (
+      existing instanceof HTMLLinkElement &&
+      existing.getAttribute("href") !== href
+    ) {
+      existing.setAttribute("href", href);
+    }
     return;
   }
   const link = doc.createElement("link");
   link.id = id;
   link.rel = "stylesheet";
-  link.href = resolveStyleHref(path);
+  link.href = href;
   (doc.head ?? doc.documentElement).appendChild(link);
 }
 
-function ensureShadowStyleText(
+function ensureShadowStylesheet(
   shadowRoot: ShadowRoot,
   id: string,
-  cssText: string
+  path: string
 ): void {
-  if (shadowRoot.querySelector(`#${id}`)) {
+  const href = resolveStyleHref(path);
+  const existing = shadowRoot.querySelector(`#${id}`);
+  if (existing) {
+    if (
+      existing instanceof HTMLLinkElement &&
+      existing.getAttribute("href") !== href
+    ) {
+      existing.setAttribute("href", href);
+    }
     return;
   }
-  const style = shadowRoot.ownerDocument.createElement("style");
-  style.id = id;
-  style.textContent = cssText;
-  shadowRoot.appendChild(style);
+  const link = shadowRoot.ownerDocument.createElement("link");
+  link.id = id;
+  link.rel = "stylesheet";
+  link.href = href;
+  shadowRoot.appendChild(link);
 }
 
 export function ensurePopupUiBaseStyles(doc: Document): void {
@@ -139,31 +142,19 @@ export function ensurePopupUiBaseStyles(doc: Document): void {
 }
 
 export function ensureShadowUiBaseStyles(shadowRoot: ShadowRoot): void {
-  if (
-    shadowConstructedSheets &&
-    "adoptedStyleSheets" in shadowRoot &&
-    Array.isArray(shadowRoot.adoptedStyleSheets)
-  ) {
-    const existing = shadowRoot.adoptedStyleSheets;
-    const next = [...existing];
-    let changed = false;
-    for (const sheet of [
-      shadowConstructedSheets.primitives,
-      shadowConstructedSheets.semantic,
-      shadowConstructedSheets.components,
-    ]) {
-      if (!existing.includes(sheet)) {
-        next.push(sheet);
-        changed = true;
-      }
-    }
-    if (changed) {
-      shadowRoot.adoptedStyleSheets = next;
-    }
-    return;
-  }
-
-  ensureShadowStyleText(shadowRoot, TOKEN_PRIMITIVES_ID, primitivesCss);
-  ensureShadowStyleText(shadowRoot, TOKEN_SEMANTIC_ID, semanticCss);
-  ensureShadowStyleText(shadowRoot, STYLE_ID, componentsCss);
+  ensureShadowStylesheet(
+    shadowRoot,
+    TOKEN_PRIMITIVES_ID,
+    resolveShadowStylePath(TOKEN_PRIMITIVES_PATH)
+  );
+  ensureShadowStylesheet(
+    shadowRoot,
+    TOKEN_SEMANTIC_ID,
+    resolveShadowStylePath(TOKEN_SEMANTIC_PATH)
+  );
+  ensureShadowStylesheet(
+    shadowRoot,
+    STYLE_ID,
+    resolveShadowStylePath(TOKEN_COMPONENTS_PATH)
+  );
 }

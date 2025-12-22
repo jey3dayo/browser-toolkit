@@ -19,9 +19,9 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "src/styles/tokens/primitives.css",
-        "src/styles/tokens/semantic.css",
-        "src/styles/tokens/components.css"
+        "dist/styles/tokens/primitives.css",
+        "dist/styles/tokens/semantic.css",
+        "dist/styles/tokens/components.css"
       ],
       "matches": ["<all_urls>"]
     }

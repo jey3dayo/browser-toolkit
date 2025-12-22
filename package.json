@@ -11,7 +11,7 @@
   },
   "scripts": {
     "build": "pnpm run clean && pnpm run typecheck && pnpm run bundle && pnpm run copy:styles",
-    "bundle": "esbuild src/background.ts src/content.ts src/popup.ts --bundle --format=iife --platform=browser --target=es2020 --alias:@=./src --define:process.env.NODE_ENV=\\\"production\\\" --loader:.toml=text --loader:.css=text --outdir=dist --sourcemap",
+    "bundle": "esbuild src/background.ts src/content.ts src/popup.ts --bundle --format=iife --platform=browser --target=es2020 --alias:@=./src --define:process.env.NODE_ENV=\\\"production\\\" --loader:.toml=text --loader:.css=css --outdir=dist --sourcemap",
     "copy:styles": "mkdir -p dist/styles && cp -R src/styles/* dist/styles/",
     "typecheck": "tsc --noEmit",
     "watch": "pnpm run copy:styles && pnpm run bundle --watch",
