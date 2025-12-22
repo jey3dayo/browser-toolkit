@@ -19,6 +19,11 @@ import { computeEventDateRange } from "@/utils/event_date_range";
 import { buildIcs } from "@/utils/ics";
 import { safeParseJsonObject } from "@/utils/json";
 import {
+  coerceLinkFormat,
+  formatLink,
+  type LinkFormat,
+} from "@/utils/link_format";
+import {
   fetchOpenAiChatCompletionOk,
   fetchOpenAiChatCompletionText,
 } from "@/utils/openai";
@@ -76,6 +81,7 @@ type RunContextActionResponse =
 
 type SyncStorageData = {
   contextActions?: ContextAction[];
+  linkFormat?: LinkFormat;
 };
 
 const CONTEXT_MENU_ROOT_ID = "mbu-root";
@@ -189,6 +195,8 @@ type ContextMenuTargetParams = ContextMenuTabParams & {
   selection: string;
 };
 
+const DEFAULT_LINK_FORMAT: LinkFormat = "text";
+
 async function showCopyTitleLinkOverlay(params: {
   tabId: number;
   text: string;
@@ -205,12 +213,25 @@ async function showCopyTitleLinkOverlay(params: {
   } satisfies ContentScriptMessage);
 }
 
+async function loadLinkFormatPreference(): Promise<LinkFormat> {
+  try {
+    const stored = (await storageSyncGet(["linkFormat"])) as SyncStorageData;
+    const format = coerceLinkFormat(stored.linkFormat);
+    return format ?? DEFAULT_LINK_FORMAT;
+  } catch {
+    return DEFAULT_LINK_FORMAT;
+  }
+}
+
 async function handleCopyTitleLinkContextMenuClick(
   params: ContextMenuTabParams
 ): Promise<void> {
   const title = params.tab?.title?.trim() ?? "";
   const url = params.tab?.url?.trim() ?? "";
-  const text = title && url ? `${title}\n${url}` : url || title;
+  const format = await loadLinkFormatPreference();
+  const formatted = formatLink({ title, url }, format);
+  const fallback = title && url ? `${title}\n${url}` : url || title;
+  const text = formatted || fallback;
   if (!text.trim()) {
     await sendMessageToTab(params.tabId, {
       action: "showNotification",
@@ -260,6 +281,7 @@ async function handleCopyTitleLinkContextMenuClick(
         pageUrl: url,
         text,
         error: errorMessage,
+        format,
       });
     }
   }

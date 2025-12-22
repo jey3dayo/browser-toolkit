@@ -45,23 +45,13 @@ function isTestOpenAiTokenResponse(
   return typeof (value as { error?: unknown }).error === "string";
 }
 
-function isPresetModelOption(value: string): value is OpenAiModelOption {
-  return OPENAI_MODEL_OPTIONS.includes(value as OpenAiModelOption);
-}
-
-function resolvePresetModel(value: string): OpenAiModelOption {
-  return isPresetModelOption(value) ? value : DEFAULT_OPENAI_MODEL;
-}
-
 export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
   const [token, setToken] = useState("");
   const [showToken, setShowToken] = useState(false);
   const [customPrompt, setCustomPrompt] = useState("");
-  const [model, setModel] = useState(DEFAULT_OPENAI_MODEL);
-  const [presetModel, setPresetModel] = useState(DEFAULT_OPENAI_MODEL);
+  const [model, setModel] = useState<OpenAiModelOption>(DEFAULT_OPENAI_MODEL);
   const [theme, setTheme] = useState<Theme>("auto");
   const tokenInputId = useId();
-  const modelInputId = useId();
   const promptInputId = useId();
 
   useEffect(() => {
@@ -79,9 +69,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
       const raw: Partial<LocalStorageData> = loaded.value;
       setToken(raw.openaiApiToken ?? "");
       setCustomPrompt(raw.openaiCustomPrompt ?? "");
-      const normalizedModel = normalizeOpenAiModel(raw.openaiModel);
-      setModel(normalizedModel);
-      setPresetModel(resolvePresetModel(normalizedModel));
+      setModel(normalizeOpenAiModel(raw.openaiModel));
       const resolvedTheme: Theme = isTheme(raw.theme) ? raw.theme : "auto";
       setTheme(resolvedTheme);
       applyTheme(resolvedTheme, document);
@@ -171,7 +159,6 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
     });
     if (Result.isSuccess(saved)) {
       setModel(normalized);
-      setPresetModel(resolvePresetModel(normalized));
       props.notify.success("保存しました");
       return;
     }
@@ -182,7 +169,6 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
     const removed = await props.runtime.storageLocalRemove("openaiModel");
     if (Result.isSuccess(removed)) {
       setModel(DEFAULT_OPENAI_MODEL);
-      setPresetModel(DEFAULT_OPENAI_MODEL);
       props.notify.success("デフォルトに戻しました");
       return;
     }
@@ -300,70 +286,51 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
             モデル
           </Fieldset.Legend>
 
-          <label className="field" htmlFor={modelInputId}>
-            <span className="field-name">モデルID</span>
-            <Input
-              className="token-input"
-              data-testid="openai-model-id"
-              id={modelInputId}
+          <label className="field">
+            <span className="field-name">モデル</span>
+            <Select.Root
+              name="openaiModel"
               onValueChange={(value) => {
-                setModel(value);
-                if (isPresetModelOption(value)) {
-                  setPresetModel(value);
+                if (typeof value === "string") {
+                  setModel(normalizeOpenAiModel(value));
                 }
               }}
               value={model}
-            />
-          </label>
-
-          <p className="hint">
-            値はそのままOpenAI
-            APIへ渡されます。プリセットから選ぶ場合は下の一覧を使ってください。
-          </p>
-
-          <Select.Root
-            name="openaiModel"
-            onValueChange={(value) => {
-              if (typeof value === "string") {
-                setPresetModel(value);
-                setModel(value);
-              }
-            }}
-            value={presetModel}
-          >
-            <Select.Trigger
-              aria-label="モデル"
-              className="token-input mbu-select-trigger"
-              data-testid="openai-model"
-              type="button"
             >
-              <Select.Value className="mbu-select-value" />
-              <Select.Icon className="mbu-select-icon">▾</Select.Icon>
-            </Select.Trigger>
-            <Select.Portal>
-              <Select.Positioner
-                className="mbu-select-positioner"
-                sideOffset={6}
+              <Select.Trigger
+                aria-label="モデル"
+                className="token-input mbu-select-trigger"
+                data-testid="openai-model"
+                type="button"
               >
-                <Select.Popup className="mbu-select-popup">
-                  <Select.List className="mbu-select-list">
-                    {OPENAI_MODEL_OPTIONS.map((option) => (
-                      <Select.Item
-                        className="mbu-select-item"
-                        key={option}
-                        value={option}
-                      >
-                        <Select.ItemText>{option}</Select.ItemText>
-                        <Select.ItemIndicator className="mbu-select-indicator">
-                          ✓
-                        </Select.ItemIndicator>
-                      </Select.Item>
-                    ))}
-                  </Select.List>
-                </Select.Popup>
-              </Select.Positioner>
-            </Select.Portal>
-          </Select.Root>
+                <Select.Value className="mbu-select-value" />
+                <Select.Icon className="mbu-select-icon">▾</Select.Icon>
+              </Select.Trigger>
+              <Select.Portal>
+                <Select.Positioner
+                  className="mbu-select-positioner"
+                  sideOffset={6}
+                >
+                  <Select.Popup className="mbu-select-popup">
+                    <Select.List className="mbu-select-list">
+                      {OPENAI_MODEL_OPTIONS.map((option) => (
+                        <Select.Item
+                          className="mbu-select-item"
+                          key={option}
+                          value={option}
+                        >
+                          <Select.ItemText>{option}</Select.ItemText>
+                          <Select.ItemIndicator className="mbu-select-indicator">
+                            ✓
+                          </Select.ItemIndicator>
+                        </Select.Item>
+                      ))}
+                    </Select.List>
+                  </Select.Popup>
+                </Select.Positioner>
+              </Select.Portal>
+            </Select.Root>
+          </label>
         </Fieldset.Root>
 
         <div className="button-row">
