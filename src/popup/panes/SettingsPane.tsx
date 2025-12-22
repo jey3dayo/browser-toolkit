@@ -204,7 +204,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
       >
         <Fieldset.Root className="mbu-fieldset stack">
           <Fieldset.Legend className="mbu-fieldset-legend">
-            追加指示（任意）
+            追加指示（オプション）
           </Fieldset.Legend>
           <label className="field" htmlFor={promptInputId}>
             <span className="field-name">追加指示</span>
