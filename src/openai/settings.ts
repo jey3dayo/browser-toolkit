@@ -15,15 +15,20 @@ export type OpenAiModelOption = (typeof OPENAI_MODEL_OPTIONS)[number];
 export type OpenAiSettings = {
   token: string;
   customPrompt: string;
-  model: string;
+  model: OpenAiModelOption;
 };
 
-export function normalizeOpenAiModel(value: unknown): string {
+export function normalizeOpenAiModel(value: unknown): OpenAiModelOption {
   if (typeof value !== "string") {
     return DEFAULT_OPENAI_MODEL;
   }
   const model = value.trim();
-  return model || DEFAULT_OPENAI_MODEL;
+  if (!model) {
+    return DEFAULT_OPENAI_MODEL;
+  }
+  return OPENAI_MODEL_OPTIONS.includes(model as OpenAiModelOption)
+    ? (model as OpenAiModelOption)
+    : DEFAULT_OPENAI_MODEL;
 }
 
 export function loadOpenAiSettings(
@@ -62,7 +67,7 @@ export async function loadOpenAiModel(
   storageLocalGet: (
     keys: (keyof LocalStorageData)[]
   ) => Promise<Partial<LocalStorageData>>
-): Promise<string> {
+): Promise<OpenAiModelOption> {
   try {
     const data = await storageLocalGet(["openaiModel"]);
     return normalizeOpenAiModel(data.openaiModel);
