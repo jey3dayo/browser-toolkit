@@ -9,14 +9,16 @@ const dirname =
     ? __dirname
     : path.dirname(fileURLToPath(import.meta.url));
 const srcDir = path.resolve(dirname, "../src");
+const stripQuery = (id: string) => id.split("?", 1)[0];
 const tomlAsText = (): Plugin => ({
   name: "toml-as-text",
   enforce: "pre",
   load(id: string) {
-    if (!id.endsWith(".toml")) {
+    const cleanId = stripQuery(id);
+    if (!cleanId.endsWith(".toml")) {
       return null;
     }
-    const code = fs.readFileSync(id, "utf8");
+    const code = fs.readFileSync(cleanId, "utf8");
     return {
       code: `export default ${JSON.stringify(code)};`,
       map: null,
