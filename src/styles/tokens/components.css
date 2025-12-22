@@ -767,6 +767,67 @@ body.no-js:has(.pane:target) .pane.active:not(:target) {
   color: var(--text-sub);
 }
 
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mbu-popover-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: color-mix(in oklab, var(--panel) 70%, transparent);
+  color: var(--text-sub);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.mbu-popover-trigger:hover {
+  background: color-mix(in oklab, var(--panel) 85%, transparent);
+  color: var(--text);
+}
+
+.mbu-popover-trigger:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--color-primary) 70%, white);
+  outline-offset: 2px;
+}
+
+.mbu-popover-positioner {
+  z-index: 20;
+}
+
+.mbu-popover {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 10px 12px;
+  display: grid;
+  gap: 6px;
+  width: min(260px, 70vw);
+}
+
+.mbu-popover-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.mbu-popover-description {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-sub);
+}
+
 .output-panel {
   display: grid;
   gap: 10px;

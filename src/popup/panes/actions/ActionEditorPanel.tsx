@@ -2,6 +2,7 @@ import { Button } from "@base-ui/react/button";
 import { Fieldset } from "@base-ui/react/fieldset";
 import { Form } from "@base-ui/react/form";
 import { Input } from "@base-ui/react/input";
+import { Popover } from "@base-ui/react/popover";
 import { Select } from "@base-ui/react/select";
 import { Toggle } from "@base-ui/react/toggle";
 import { ToggleGroup } from "@base-ui/react/toggle-group";
@@ -107,7 +108,34 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
           </label>
 
           <div className="field">
-            <span className="field-name">種類</span>
+            <div className="field-row">
+              <span className="field-name">種類</span>
+              <Popover.Root>
+                <Popover.Trigger
+                  aria-label="eventとは"
+                  className="mbu-popover-trigger"
+                  type="button"
+                >
+                  ?
+                </Popover.Trigger>
+                <Popover.Portal>
+                  <Popover.Positioner
+                    className="mbu-popover-positioner"
+                    sideOffset={6}
+                  >
+                    <Popover.Popup className="mbu-popover">
+                      <Popover.Title className="mbu-popover-title">
+                        event とは
+                      </Popover.Title>
+                      <Popover.Description className="mbu-popover-description">
+                        event は日時・場所・概要などを抽出してイベント形式で返すモードです。
+                        text はプロンプトに従って要約/翻訳などを行います。
+                      </Popover.Description>
+                    </Popover.Popup>
+                  </Popover.Positioner>
+                </Popover.Portal>
+              </Popover.Root>
+            </div>
             <ToggleGroup
               className="mbu-toggle-group"
               data-testid="action-editor-kind"
