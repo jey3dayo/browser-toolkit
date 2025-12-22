@@ -191,6 +191,28 @@ function buildCopyTitleLinkFallbackSecondary(errorMessage: string): string {
   ].join("\n");
 }
 
+function formatCopyTitleLinkErrorLog(params: {
+  tabId: number;
+  title: string;
+  url: string;
+  format: LinkFormat;
+  errorMessage: string;
+  error: unknown;
+}): string {
+  const details = {
+    tabId: params.tabId,
+    title: params.title,
+    url: params.url,
+    format: params.format,
+    error: params.errorMessage,
+    stack:
+      params.error instanceof Error && params.error.stack
+        ? params.error.stack
+        : undefined,
+  };
+  return `copy title/link failed: ${JSON.stringify(details)}`;
+}
+
 type ContextMenuTabParams = {
   tabId: number;
   tab?: chrome.tabs.Tab;
@@ -268,7 +290,16 @@ async function handleCopyTitleLinkContextMenuClick(
     });
   } catch (error) {
     const errorMessage = toErrorMessage(error, "コピーに失敗しました");
-    console.error("copy title/link failed:", { title, url }, error);
+    console.error(
+      formatCopyTitleLinkErrorLog({
+        tabId: params.tabId,
+        title,
+        url,
+        format,
+        errorMessage,
+        error,
+      })
+    );
 
     const overlayShown = await showCopyTitleLinkOverlay({
       tabId: params.tabId,
