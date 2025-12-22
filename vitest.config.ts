@@ -1,7 +1,9 @@
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { storybookTest } from "@storybook/addon-vitest/vitest-plugin";
 import { playwright } from "@vitest/browser-playwright";
+import type { Plugin } from "vite";
 import { defineConfig } from "vitest/config";
 
 const dirname =
@@ -10,7 +12,23 @@ const dirname =
     : path.dirname(fileURLToPath(import.meta.url));
 const alias = { "@": path.join(dirname, "src") };
 
+const tomlAsText = (): Plugin => ({
+  name: "toml-as-text",
+  enforce: "pre",
+  load(id: string) {
+    if (!id.endsWith(".toml")) {
+      return null;
+    }
+    const code = fs.readFileSync(id, "utf8");
+    return {
+      code: `export default ${JSON.stringify(code)};`,
+      map: null,
+    };
+  },
+});
+
 export default defineConfig({
+  plugins: [tomlAsText()],
   resolve: {
     alias,
   },
@@ -20,6 +38,7 @@ export default defineConfig({
         resolve: {
           alias,
         },
+        plugins: [tomlAsText()],
         test: {
           name: "unit",
           environment: "jsdom",
@@ -32,6 +51,7 @@ export default defineConfig({
           alias,
         },
         plugins: [
+          tomlAsText(),
           storybookTest({
             configDir: path.join(dirname, ".storybook"),
             storybookScript: "pnpm storybook --no-open --port 6006",

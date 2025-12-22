@@ -11,7 +11,7 @@
   },
   "scripts": {
     "build": "pnpm run clean && pnpm run typecheck && pnpm run bundle",
-    "bundle": "esbuild src/background.ts src/content.ts src/popup.ts --bundle --format=iife --platform=browser --target=es2020 --alias:@=./src --define:process.env.NODE_ENV=\\\"production\\\" --outdir=dist --sourcemap",
+    "bundle": "esbuild src/background.ts src/content.ts src/popup.ts --bundle --format=iife --platform=browser --target=es2020 --alias:@=./src --define:process.env.NODE_ENV=\\\"production\\\" --loader:.toml=text --outdir=dist --sourcemap",
     "typecheck": "tsc --noEmit",
     "watch": "pnpm run bundle --watch",
     "clean": "rm -rf dist",
@@ -35,7 +35,8 @@
     "date-fns": "^4.1.0",
     "lucide-react": "^0.562.0",
     "react": "^19.2.3",
-    "react-dom": "^19.2.3"
+    "react-dom": "^19.2.3",
+    "smol-toml": "^1.2.1"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.10",
