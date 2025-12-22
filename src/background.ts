@@ -19,7 +19,7 @@ import {
   parseDateOnlyToYyyyMmDd,
   parseDateTimeLoose,
 } from "@/utils/date_utils";
-import { toErrorMessage } from "@/utils/errors";
+import { formatErrorLog, toErrorMessage } from "@/utils/errors";
 import { computeEventDateRange } from "@/utils/event_date_range";
 import { buildIcs } from "@/utils/ics";
 import { safeParseJsonObject } from "@/utils/json";
@@ -191,28 +191,6 @@ function buildCopyTitleLinkFallbackSecondary(errorMessage: string): string {
   ].join("\n");
 }
 
-function formatCopyTitleLinkErrorLog(params: {
-  tabId: number;
-  title: string;
-  url: string;
-  format: LinkFormat;
-  errorMessage: string;
-  error: unknown;
-}): string {
-  const details = {
-    tabId: params.tabId,
-    title: params.title,
-    url: params.url,
-    format: params.format,
-    error: params.errorMessage,
-    stack:
-      params.error instanceof Error && params.error.stack
-        ? params.error.stack
-        : undefined,
-  };
-  return `copy title/link failed: ${JSON.stringify(details)}`;
-}
-
 type ContextMenuTabParams = {
   tabId: number;
   tab?: chrome.tabs.Tab;
@@ -291,14 +269,11 @@ async function handleCopyTitleLinkContextMenuClick(
   } catch (error) {
     const errorMessage = toErrorMessage(error, "コピーに失敗しました");
     console.error(
-      formatCopyTitleLinkErrorLog({
-        tabId: params.tabId,
-        title,
-        url,
-        format,
-        errorMessage,
-        error,
-      })
+      formatErrorLog(
+        "copy title/link failed",
+        { tabId: params.tabId, title, url, format, errorMessage },
+        error
+      )
     );
 
     const overlayShown = await showCopyTitleLinkOverlay({
@@ -755,7 +730,7 @@ async function refreshContextMenus(): Promise<void> {
       });
     }
   } catch (error) {
-    console.error("refreshContextMenus failed:", error);
+    console.error(formatErrorLog("refreshContextMenus failed", {}, error));
   }
 }
 
