@@ -2,6 +2,7 @@ import { Dialog, Tabs } from "@base-ui/react";
 import { Button } from "@base-ui/react/button";
 import { Result } from "@praha/byethrow";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { APP_NAME } from "@/app_meta";
 import { Icon } from "@/components/icon";
 import { coercePaneId, getPaneIdFromHash, type PaneId } from "@/popup/panes";
 import { ActionsPane } from "@/popup/panes/ActionsPane";
@@ -36,7 +37,7 @@ function clearActionBadgeForTab(tabId: number): void {
   try {
     chrome.action.setBadgeText({ text: "", tabId });
     chrome.action.setTitle({
-      title: "My Browser Utils",
+      title: APP_NAME,
       tabId,
     });
   } catch {
@@ -221,6 +222,10 @@ export function PopupApp(): React.JSX.Element {
   }, [tabValue]);
 
   useEffect(() => {
+    document.title = APP_NAME;
+  }, [APP_NAME]);
+
+  useEffect(() => {
     document.body.classList.toggle("menu-open", menuOpen);
     return () => {
       document.body.classList.remove("menu-open");
@@ -258,7 +263,7 @@ export function PopupApp(): React.JSX.Element {
             <div className="title-block">
               <div className="hero-logo-wrap">
                 <img
-                  alt="My Browser Utils"
+                  alt={APP_NAME}
                   className="hero-logo"
                   height={32}
                   src="icons/icon48.png"
@@ -267,7 +272,7 @@ export function PopupApp(): React.JSX.Element {
               </div>
               <div className="title-text">
                 <div className="title-row">
-                  <h1>ブラウザ作業を整える相棒</h1>
+                  <h1>{APP_NAME}</h1>
                 </div>
               </div>
             </div>

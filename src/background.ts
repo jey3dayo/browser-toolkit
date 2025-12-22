@@ -1,6 +1,7 @@
 // Background Service Worker
 
 import { Result } from "@praha/byethrow";
+import { APP_NAME } from "@/app_meta";
 import {
   type ContextAction,
   DEFAULT_CONTEXT_ACTIONS,
@@ -98,7 +99,7 @@ const DATE_PREFIX_REGEX =
 const TIME_ONLY_REGEX = /^(\d{1,2}:\d{2}(?::\d{2})?)$/;
 
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("My Browser Utils installed");
+  console.log(`${APP_NAME} installed`);
   scheduleRefreshContextMenus();
 });
 
@@ -299,7 +300,7 @@ async function showContextActionNotFoundOverlay(
     status: "error",
     mode: "text",
     source,
-    title: "My Browser Utils",
+    title: APP_NAME,
     primary: "アクションが見つかりません（ポップアップで再保存してください）",
   });
 }
@@ -357,7 +358,7 @@ async function showContextMenuUnexpectedErrorOverlay(
     status: "error",
     mode: "text",
     source,
-    title: "My Browser Utils",
+    title: APP_NAME,
     primary: message,
   }).catch(() => {
     // コンテンツスクリプトに送れないページでは、黙って諦める
@@ -558,7 +559,7 @@ async function refreshContextMenus(): Promise<void> {
       chrome.contextMenus.create(
         {
           id: CONTEXT_MENU_ROOT_ID,
-          title: "My Browser Utils",
+          title: APP_NAME,
           contexts: ["page", "selection"],
         },
         () => {
@@ -914,7 +915,7 @@ async function showCopyTitleLinkFailureIndicator(
     chrome.action.setBadgeText({ text: "!", tabId });
     chrome.action.setBadgeBackgroundColor({ color: "#e5484d", tabId });
     chrome.action.setTitle({
-      title: `My Browser Utils: このページではコピーできません\n${pageLabel}\n（ポップアップ「リンク作成」からコピーできます）`,
+      title: `${APP_NAME}: このページではコピーできません\n${pageLabel}\n（ポップアップ「リンク作成」からコピーできます）`,
       tabId,
     });
   } catch {
@@ -949,7 +950,7 @@ async function clearCopyTitleLinkFailureIndicator(
 
   try {
     chrome.action.setBadgeText({ text: "", tabId });
-    chrome.action.setTitle({ title: "My Browser Utils", tabId });
+    chrome.action.setTitle({ title: APP_NAME, tabId });
   } catch {
     // no-op
   }
