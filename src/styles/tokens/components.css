@@ -366,6 +366,51 @@
   justify-content: flex-end;
 }
 
+.mbu-overlay-popover {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.mbu-overlay-popover-content {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 180px;
+  max-width: min(240px, 70vw);
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--mbu-border);
+  background: color-mix(in oklab, var(--mbu-surface) 94%, transparent);
+  color: var(--mbu-text);
+  box-shadow: var(--mbu-shadow);
+  font-size: 11px;
+  line-height: 1.4;
+  opacity: 0;
+  transform: translateY(-4px) scale(0.98);
+  pointer-events: none;
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease;
+  z-index: 2;
+}
+
+.mbu-overlay-popover-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.mbu-overlay-popover-text {
+  color: var(--mbu-text-muted);
+}
+
+.mbu-overlay-popover:hover .mbu-overlay-popover-content,
+.mbu-overlay-popover:focus-within .mbu-overlay-popover-content {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
 .mbu-overlay-action {
   appearance: none;
   border: 1px solid var(--mbu-border);

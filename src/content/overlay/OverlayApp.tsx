@@ -1,5 +1,5 @@
 import { Button } from "@base-ui/react/button";
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AuxTextDisclosure } from "@/components/AuxTextDisclosure";
 import { CopyIcon, PinIcon } from "@/content/overlay/icons";
 import type { ExtractedEvent, SummarySource } from "@/shared_types";
@@ -40,6 +40,7 @@ function clamp(value: number, min: number, max: number): number {
 const OVERLAY_TOAST_GAP_PX = 8;
 const OVERLAY_TOAST_ESTIMATED_HEIGHT_PX = 52;
 const OVERLAY_TOAST_SAFE_MARGIN_PX = 16;
+const OVERLAY_PINNED_MARGIN_PX = 16;
 const OVERLAY_TOAST_SURFACE_INSET_BELOW = `calc(100% + ${OVERLAY_TOAST_GAP_PX}px) 12px auto 12px`;
 const OVERLAY_TOAST_SURFACE_INSET_ABOVE = `auto 12px calc(100% + ${OVERLAY_TOAST_GAP_PX}px) 12px`;
 const OVERLAY_TOAST_SURFACE_INSET_INSIDE = "auto 12px 12px 12px";
@@ -187,13 +188,20 @@ function updateHostPosition(
   size: PanelSize,
   point: Point
 ): void {
-  const margin = 16;
+  const margin = OVERLAY_PINNED_MARGIN_PX;
   const maxLeft = Math.max(margin, window.innerWidth - size.width - margin);
   const maxTop = Math.max(margin, window.innerHeight - size.height - margin);
   const left = clamp(point.left, margin, maxLeft);
   const top = clamp(point.top, margin, maxTop);
   host.style.left = `${Math.round(left)}px`;
   host.style.top = `${Math.round(top)}px`;
+}
+
+function getPinnedCornerPoint(size: PanelSize): Point {
+  return {
+    left: window.innerWidth - size.width - OVERLAY_PINNED_MARGIN_PX,
+    top: OVERLAY_PINNED_MARGIN_PX,
+  };
 }
 
 function positionOverlayHost(params: {
@@ -210,8 +218,9 @@ function positionOverlayHost(params: {
 
   const size = params.size;
 
-  if (params.pinned && params.pinnedPos) {
-    updateHostPosition(params.host, size, params.pinnedPos);
+  if (params.pinned) {
+    const point = params.pinnedPos ?? getPinnedCornerPoint(size);
+    updateHostPosition(params.host, size, point);
     return;
   }
 
@@ -352,14 +361,12 @@ function endOverlayDrag(params: {
 
 function toggleOverlayPinned(params: {
   pinned: boolean;
-  host: HTMLDivElement;
   setPinned: StateSetter<boolean>;
   setPinnedPos: StateSetter<Point | null>;
 }): void {
   if (!params.pinned) {
-    const rect = params.host.getBoundingClientRect();
     params.setPinned(true);
-    params.setPinnedPos({ left: rect.left, top: rect.top });
+    params.setPinnedPos(null);
     return;
   }
   params.setPinned(false);
@@ -566,6 +573,7 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
   const { toastManager, notify } = useMemo(() => createNotifications(), []);
   const viewModel = props.viewModel;
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const pinPopoverId = useId();
   const [panelSize, setPanelSize] = useState<PanelSize>({
     width: 520,
     height: 300,
@@ -701,7 +709,7 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
   };
 
   const togglePinned = (): void => {
-    toggleOverlayPinned({ pinned, host: props.host, setPinned, setPinnedPos });
+    toggleOverlayPinned({ pinned, setPinned, setPinnedPos });
   };
 
   const sourceLabel = sourceLabelFromSource(viewModel.source);
@@ -741,17 +749,30 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
             </div>
           </div>
           <div className="mbu-overlay-actions">
-            <Button
-              aria-label={pinned ? "固定解除" : "固定"}
-              className="mbu-overlay-action mbu-overlay-icon-button"
-              data-active={pinned ? "true" : undefined}
-              data-testid="overlay-pin"
-              onClick={togglePinned}
-              title={pinned ? "固定解除" : "固定"}
-              type="button"
-            >
-              <PinIcon />
-            </Button>
+            <div className="mbu-overlay-popover">
+              <Button
+                aria-describedby={pinPopoverId}
+                aria-label={pinned ? "右上固定を解除" : "右上に固定"}
+                className="mbu-overlay-action mbu-overlay-icon-button"
+                data-active={pinned ? "true" : undefined}
+                data-testid="overlay-pin"
+                onClick={togglePinned}
+                title={pinned ? "右上固定を解除" : "右上に固定"}
+                type="button"
+              >
+                <PinIcon />
+              </Button>
+              <div
+                className="mbu-overlay-popover-content"
+                id={pinPopoverId}
+                role="tooltip"
+              >
+                <div className="mbu-overlay-popover-title">ピン留め</div>
+                <div className="mbu-overlay-popover-text">
+                  右上に固定します。もう一度クリックで解除。
+                </div>
+              </div>
+            </div>
             <Button
               aria-label="閉じる"
               className="mbu-overlay-action mbu-overlay-icon-button"
