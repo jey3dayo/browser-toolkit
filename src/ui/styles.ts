@@ -6,16 +6,18 @@ const TOKEN_PRIMITIVES_ID = "mbu-ui-token-primitives";
 const TOKEN_SEMANTIC_ID = "mbu-ui-token-semantic";
 const STYLE_ID = "mbu-ui-base-styles";
 
-const TOKEN_PRIMITIVES_PATH = "src/styles/tokens/primitives.css";
-const TOKEN_SEMANTIC_PATH = "src/styles/tokens/semantic.css";
-const TOKEN_COMPONENTS_PATH = "src/styles/tokens/components.css";
+const TOKEN_PRIMITIVES_PATH = "tokens/primitives.css";
+const TOKEN_SEMANTIC_PATH = "tokens/semantic.css";
+const TOKEN_COMPONENTS_PATH = "tokens/components.css";
 const POPUP_BASE_ID = "mbu-style-base";
 const POPUP_LAYOUT_ID = "mbu-style-layout";
 const POPUP_UTILITIES_ID = "mbu-style-utilities";
 
-const POPUP_BASE_PATH = "src/styles/base.css";
-const POPUP_LAYOUT_PATH = "src/styles/layout.css";
-const POPUP_UTILITIES_PATH = "src/styles/utilities.css";
+const POPUP_BASE_PATH = "base.css";
+const POPUP_LAYOUT_PATH = "layout.css";
+const POPUP_UTILITIES_PATH = "utilities.css";
+const POPUP_STYLE_ROOT_DEV = "src/styles";
+const POPUP_STYLE_ROOT_DIST = "dist/styles";
 
 function resolveStyleHref(path: string): string {
   try {
@@ -29,6 +31,21 @@ function resolveStyleHref(path: string): string {
     // non-extension contexts (tests/storybook)
   }
   return path;
+}
+
+function getPopupStyleRoot(doc: Document): string {
+  try {
+    if (doc.location?.protocol === "chrome-extension:") {
+      return POPUP_STYLE_ROOT_DIST;
+    }
+  } catch {
+    // ignore non-browser contexts
+  }
+  return POPUP_STYLE_ROOT_DEV;
+}
+
+function resolvePopupStylePath(doc: Document, relativePath: string): string {
+  return `${getPopupStyleRoot(doc)}/${relativePath}`;
 }
 
 type ConstructableSheets = {
@@ -89,12 +106,36 @@ function ensureShadowStyleText(
 }
 
 export function ensurePopupUiBaseStyles(doc: Document): void {
-  ensureDocumentStylesheet(doc, TOKEN_PRIMITIVES_ID, TOKEN_PRIMITIVES_PATH);
-  ensureDocumentStylesheet(doc, TOKEN_SEMANTIC_ID, TOKEN_SEMANTIC_PATH);
-  ensureDocumentStylesheet(doc, POPUP_BASE_ID, POPUP_BASE_PATH);
-  ensureDocumentStylesheet(doc, POPUP_LAYOUT_ID, POPUP_LAYOUT_PATH);
-  ensureDocumentStylesheet(doc, POPUP_UTILITIES_ID, POPUP_UTILITIES_PATH);
-  ensureDocumentStylesheet(doc, STYLE_ID, TOKEN_COMPONENTS_PATH);
+  ensureDocumentStylesheet(
+    doc,
+    TOKEN_PRIMITIVES_ID,
+    resolvePopupStylePath(doc, TOKEN_PRIMITIVES_PATH)
+  );
+  ensureDocumentStylesheet(
+    doc,
+    TOKEN_SEMANTIC_ID,
+    resolvePopupStylePath(doc, TOKEN_SEMANTIC_PATH)
+  );
+  ensureDocumentStylesheet(
+    doc,
+    POPUP_BASE_ID,
+    resolvePopupStylePath(doc, POPUP_BASE_PATH)
+  );
+  ensureDocumentStylesheet(
+    doc,
+    POPUP_LAYOUT_ID,
+    resolvePopupStylePath(doc, POPUP_LAYOUT_PATH)
+  );
+  ensureDocumentStylesheet(
+    doc,
+    POPUP_UTILITIES_ID,
+    resolvePopupStylePath(doc, POPUP_UTILITIES_PATH)
+  );
+  ensureDocumentStylesheet(
+    doc,
+    STYLE_ID,
+    resolvePopupStylePath(doc, TOKEN_COMPONENTS_PATH)
+  );
 }
 
 export function ensureShadowUiBaseStyles(shadowRoot: ShadowRoot): void {
