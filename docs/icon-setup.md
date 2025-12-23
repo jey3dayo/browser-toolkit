@@ -6,11 +6,10 @@
 
 ```
 browser-toolkit/
-├── icons/              # 拡張機能のアイコン（manifest.json用）
-│   ├── icon16.png     # ツールバー用（16x16）
-│   ├── icon48.png     # 拡張機能管理画面用（48x48）
-│   └── icon128.png    # Chromeウェブストア用（128x128）
-└── images/             # ポップアップUI用の画像
+└── images/             # ロゴ/拡張機能アイコン
+    ├── icon16.png     # ツールバー用（16x16）
+    ├── icon48.png     # 拡張機能管理画面用（48x48）
+    ├── icon128.png    # Chromeウェブストア用（128x128）
     └── logo.png       # ポップアップヘッダーロゴ（透過PNG）
 ```
 
@@ -54,27 +53,27 @@ magick logo-source.jpg -fuzz 10% -transparent white images/logo.png
 
 ```bash
 # 16x16アイコン
-magick images/logo.png -fuzz 10% -transparent white -resize 16x16 icons/icon16.png
+magick images/logo.png -fuzz 10% -transparent white -resize 16x16 images/icon16.png
 
 # 48x48アイコン
-magick images/logo.png -fuzz 10% -transparent white -resize 48x48 icons/icon48.png
+magick images/logo.png -fuzz 10% -transparent white -resize 48x48 images/icon48.png
 
 # 128x128アイコン
-magick images/logo.png -fuzz 10% -transparent white -resize 128x128 icons/icon128.png
+magick images/logo.png -fuzz 10% -transparent white -resize 128x128 images/icon128.png
 ```
 
 ### 手順4: 生成されたファイルの確認
 
 ```bash
 # ファイルサイズとフォーマットを確認
-ls -lh icons/*.png images/logo.png
+ls -lh images/icon*.png images/logo.png
 
 # 画像情報を詳細確認
-file icons/icon16.png
+file images/icon16.png
 
 # ImageMagickで詳細確認（透過チャンネル含む）
-identify icons/icon16.png
-# 出力例: icons/icon16.png PNG 16x16 16x16+0+0 8-bit sRGB 3329B
+identify images/icon16.png
+# 出力例: images/icon16.png PNG 16x16 16x16+0+0 8-bit sRGB 3329B
 ```
 
 **確認ポイント:**
@@ -89,14 +88,13 @@ identify icons/icon16.png
 
 ```bash
 # バックアップ作成（推奨）
-cp -r icons/ icons_backup/
 cp -r images/ images_backup/
 
 # 新しいロゴから再生成
 magick new-logo.jpg -fuzz 10% -transparent white images/logo.png
-magick images/logo.png -resize 16x16 icons/icon16.png
-magick images/logo.png -resize 48x48 icons/icon48.png
-magick images/logo.png -resize 128x128 icons/icon128.png
+magick images/logo.png -resize 16x16 images/icon16.png
+magick images/logo.png -resize 48x48 images/icon48.png
+magick images/logo.png -resize 128x128 images/icon128.png
 
 # Chrome拡張機能をリロード
 # chrome://extensions/ で「更新」ボタンをクリック
@@ -129,10 +127,10 @@ magick logo.jpg -fuzz 10% -transparent '#F0F0F0' output.png
 
 ```bash
 # シャープなリサイズ（ランチョス法）
-magick images/logo.png -filter Lanczos -resize 16x16 icons/icon16.png
+magick images/logo.png -filter Lanczos -resize 16x16 images/icon16.png
 
 # よりシャープに（アンシャープマスク適用）
-magick images/logo.png -resize 16x16 -unsharp 0x1 icons/icon16.png
+magick images/logo.png -resize 16x16 -unsharp 0x1 images/icon16.png
 ```
 
 ### 問題: ファイルサイズが大きすぎる
@@ -143,10 +141,10 @@ magick images/logo.png -resize 16x16 -unsharp 0x1 icons/icon16.png
 
 ```bash
 # 高圧縮で保存
-magick images/logo.png -quality 95 -define png:compression-level=9 icons/icon16.png
+magick images/logo.png -quality 95 -define png:compression-level=9 images/icon16.png
 
 # または、既存ファイルを最適化
-optipng -o7 icons/*.png
+optipng -o7 images/icon*.png
 ```
 
 ## 📊 推奨サイズとフォーマット

@@ -2,7 +2,7 @@
 
 ## High-level Organization
 
-- Root contains extension assets (`manifest.json`, `popup.html`, `content.css`, icons/images).
+- Root contains extension assets (`manifest.json`, `popup.html`, `content.css`, images).
 - `popup_bootstrap.js` loads the bundled popup script (`dist/popup.js`) and shows a clear banner when build output is missing (dev ergonomics).
 - `src/` contains TypeScript/React source for each runtime surface (background/content/popup) plus shared utilities.
 - `src/components/` contains small reusable React components shared between popup and in-page overlays.
