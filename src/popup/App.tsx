@@ -257,7 +257,7 @@ export function PopupApp(): React.JSX.Element {
                   alt={APP_NAME}
                   className="hero-logo"
                   height={32}
-                  src="icons/icon48.png"
+                  src="images/icon48.png"
                   width={32}
                 />
               </div>

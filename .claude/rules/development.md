@@ -20,8 +20,7 @@ browser-toolkit/
 │   └── rules/          # 開発ルール（このディレクトリ）
 ├── dist/               # ビルド出力（自動生成）
 ├── docs/               # プロジェクトドキュメント
-├── icons/              # 拡張機能アイコン（manifest.json用）
-├── images/             # ポップアップUI用画像
+├── images/             # ロゴ/拡張機能アイコン
 ├── manifest.json       # 拡張機能マニフェスト
 ├── content.css         # コンテンツスクリプト用スタイル
 ├── popup.html          # ポップアップUI
@@ -166,7 +165,7 @@ chrome://extensions/
 
 #### "Could not load icon"
 
-→ `icons/` ディレクトリにアイコンファイルが存在するか確認
+→ `images/` ディレクトリにアイコンファイルが存在するか確認
 
 #### "Extension context invalidated"
 
@@ -184,9 +183,9 @@ chrome://extensions/
 
 ```bash
 # 透過アイコン生成
-magick images/logo.png -fuzz 10% -transparent white -resize 16x16 icons/icon16.png
-magick images/logo.png -fuzz 10% -transparent white -resize 48x48 icons/icon48.png
-magick images/logo.png -fuzz 10% -transparent white -resize 128x128 icons/icon128.png
+magick images/logo.png -fuzz 10% -transparent white -resize 16x16 images/icon16.png
+magick images/logo.png -fuzz 10% -transparent white -resize 48x48 images/icon48.png
+magick images/logo.png -fuzz 10% -transparent white -resize 128x128 images/icon128.png
 ```
 
 ## 📚 参考リンク
