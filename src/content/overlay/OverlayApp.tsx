@@ -876,6 +876,7 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
               title="テーマ切り替え"
             >
               <ThemeCycleButton
+                active={false}
                 className="mbu-overlay-action mbu-overlay-icon-button"
                 describedById={themePopoverId}
                 onToggle={toggleTheme}
