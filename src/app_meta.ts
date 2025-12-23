@@ -1,4 +1,4 @@
-const FALLBACK_APP_NAME = "browser-utils";
+const FALLBACK_APP_NAME = "My Toolkit";
 
 export function resolveAppName(): string {
   try {
