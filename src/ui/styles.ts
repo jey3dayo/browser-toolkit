@@ -150,7 +150,6 @@ function ensureShadowFallbackTokens(shadowRoot: ShadowRoot): void {
     }
   }
 }
-
 export function ensurePopupUiBaseStyles(doc: Document): void {
   ensureDocumentStylesheet(
     doc,
@@ -198,7 +197,6 @@ export function ensureShadowUiBaseStyles(shadowRoot: ShadowRoot): void {
       .trim();
     return value.length > 0;
   };
-
   if (
     shadowConstructedSheets &&
     "adoptedStyleSheets" in shadowRoot &&
