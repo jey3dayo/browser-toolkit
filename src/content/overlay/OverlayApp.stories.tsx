@@ -30,6 +30,14 @@ const PROMPT_PRIMARY_TEXT = [
   "- 場所: Google Meet",
   "- 目的: 進捗共有と課題確認",
 ].join("\n");
+const MARKDOWN_PRIMARY_TEXT = [
+  "要約結果（Markdown）",
+  "",
+  "- ポイントA",
+  "- ポイントB",
+  "",
+  "`inline-code` を含む例です。",
+].join("\n");
 
 const meta = {
   title: "Content/Overlay/App/要約・プロンプト",
@@ -207,6 +215,57 @@ export const ThemeToggle: Story = {
     await waitFor(() => {
       expect(themeButton.getAttribute("aria-label")).toContain("自動");
     });
+  },
+};
+
+export const MarkdownToggle: Story = {
+  args: {
+    status: "ready",
+    mode: "text",
+    source: "selection",
+    title: "要約",
+    primary: MARKDOWN_PRIMARY_TEXT,
+    secondary: CONTEXT_SELECTION_SECONDARY,
+  },
+  play: async ({ canvasElement }) => {
+    await waitFor(() => {
+      const host = canvasElement.querySelector<HTMLDivElement>(
+        "#my-browser-utils-overlay"
+      );
+      const shadow = host?.shadowRoot ?? null;
+      expect(
+        shadow?.querySelector('[data-testid="overlay-markdown"]')
+      ).toBeTruthy();
+    });
+
+    const host = canvasElement.querySelector<HTMLDivElement>(
+      "#my-browser-utils-overlay"
+    );
+    const shadow = host?.shadowRoot ?? null;
+    const markdownButton = shadow?.querySelector<HTMLButtonElement>(
+      '[data-testid="overlay-markdown"]'
+    );
+    if (!markdownButton) {
+      throw new Error("overlay markdown button not found");
+    }
+
+    expect(markdownButton.getAttribute("aria-label")).toContain(
+      "Markdown表示に切り替え"
+    );
+    expect(shadow?.querySelector(".mbu-overlay-primary-markdown")).toBeNull();
+
+    await userEvent.click(markdownButton);
+    await waitFor(() => {
+      expect(markdownButton.getAttribute("aria-label")).toContain(
+        "シンプル表示に切り替え"
+      );
+    });
+
+    const markdownRoot = shadow?.querySelector<HTMLElement>(
+      ".mbu-overlay-primary-markdown"
+    );
+    expect(markdownRoot).not.toBeNull();
+    expect(markdownRoot?.querySelector("ul")).not.toBeNull();
   },
 };
 
