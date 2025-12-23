@@ -57,9 +57,9 @@ const OVERLAY_TOAST_GAP_PX = 8;
 const OVERLAY_TOAST_ESTIMATED_HEIGHT_PX = 52;
 const OVERLAY_TOAST_SAFE_MARGIN_PX = 16;
 const OVERLAY_PINNED_MARGIN_PX = 16;
-const OVERLAY_TOAST_SURFACE_INSET_BELOW = `calc(100% + ${OVERLAY_TOAST_GAP_PX}px) 12px auto 12px`;
-const OVERLAY_TOAST_SURFACE_INSET_ABOVE = `auto 12px calc(100% + ${OVERLAY_TOAST_GAP_PX}px) 12px`;
-const OVERLAY_TOAST_SURFACE_INSET_INSIDE = "auto 12px 12px 12px";
+const OVERLAY_TOAST_SURFACE_INSET_BELOW = `calc(100% + ${OVERLAY_TOAST_GAP_PX}px) 0 auto 12px`;
+const OVERLAY_TOAST_SURFACE_INSET_ABOVE = `auto 0 calc(100% + ${OVERLAY_TOAST_GAP_PX}px) 12px`;
+const OVERLAY_TOAST_SURFACE_INSET_INSIDE = "auto 0 12px 12px";
 
 // Regex patterns at module level for performance (lint/performance/useTopLevelRegex)
 const SELECTION_SECONDARY_REGEX = /^選択範囲:\s*\n([\s\S]*)$/;
