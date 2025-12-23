@@ -13,12 +13,24 @@ type WebAccessibleEntry = { resources?: string[] };
 type Manifest = { web_accessible_resources?: WebAccessibleEntry[] };
 
 const SHADOW_UI_STYLESHEETS = [
+  "dist/styles/tokens/primitives.css",
+  "dist/styles/tokens/semantic.css",
+  "dist/styles/tokens/components.css",
+] as const;
+
+const SHADOW_UI_SOURCE_STYLESHEETS = [
   "src/styles/tokens/primitives.css",
   "src/styles/tokens/semantic.css",
   "src/styles/tokens/components.css",
 ] as const;
 
 const POPUP_UI_STYLESHEETS = [
+  "dist/styles/base.css",
+  "dist/styles/layout.css",
+  "dist/styles/utilities.css",
+] as const;
+
+const POPUP_UI_SOURCE_STYLESHEETS = [
   "src/styles/base.css",
   "src/styles/layout.css",
   "src/styles/utilities.css",
@@ -43,6 +55,17 @@ describe("UI styles wiring", () => {
   });
 
   it("keeps stylesheet assets present on disk", () => {
+    for (const cssPath of [
+      ...SHADOW_UI_SOURCE_STYLESHEETS,
+      ...POPUP_UI_SOURCE_STYLESHEETS,
+    ]) {
+      expect(fs.existsSync(path.join(projectRoot, cssPath))).toBe(true);
+    }
+
+    const distStylesRoot = path.join(projectRoot, "dist/styles");
+    if (!fs.existsSync(distStylesRoot)) {
+      return;
+    }
     for (const cssPath of [...SHADOW_UI_STYLESHEETS, ...POPUP_UI_STYLESHEETS]) {
       expect(fs.existsSync(path.join(projectRoot, cssPath))).toBe(true);
     }

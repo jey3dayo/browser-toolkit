@@ -81,13 +81,21 @@ function ensureDocumentStylesheet(
   id: string,
   path: string
 ): void {
-  if (doc.getElementById(id)) {
+  const href = resolveStyleHref(path);
+  const existing = doc.getElementById(id);
+  if (existing) {
+    if (
+      existing instanceof HTMLLinkElement &&
+      existing.getAttribute("href") !== href
+    ) {
+      existing.setAttribute("href", href);
+    }
     return;
   }
   const link = doc.createElement("link");
   link.id = id;
   link.rel = "stylesheet";
-  link.href = resolveStyleHref(path);
+  link.href = href;
   (doc.head ?? doc.documentElement).appendChild(link);
 }
 
