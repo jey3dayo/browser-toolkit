@@ -113,68 +113,6 @@ function ensureShadowStyleText(
   shadowRoot.appendChild(style);
 }
 
-function shouldDebugStyles(shadowRoot: ShadowRoot): boolean {
-  const doc = shadowRoot.ownerDocument;
-  const datasetFlag = doc.documentElement?.dataset?.mbuDebugStyles;
-  if (
-    typeof datasetFlag === "string" &&
-    datasetFlag !== "" &&
-    datasetFlag !== "0" &&
-    datasetFlag !== "false"
-  ) {
-    return true;
-  }
-  try {
-    return doc.defaultView?.localStorage?.getItem("mbu-debug-styles") === "1";
-  } catch {
-    return false;
-  }
-}
-
-function describeStyleNode(node: Element): {
-  id: string | null;
-  type: string;
-  href?: string | null;
-  hasSheet: boolean;
-  ruleCount: number | null | "blocked";
-} {
-  if (node instanceof HTMLLinkElement) {
-    return {
-      id: node.id || null,
-      type: "link",
-      href: node.href || node.getAttribute("href"),
-      hasSheet: Boolean(node.sheet),
-      ruleCount: (() => {
-        try {
-          return node.sheet?.cssRules?.length ?? 0;
-        } catch {
-          return "blocked";
-        }
-      })(),
-    };
-  }
-  if (node instanceof HTMLStyleElement) {
-    return {
-      id: node.id || null,
-      type: "style",
-      hasSheet: Boolean(node.sheet),
-      ruleCount: (() => {
-        try {
-          return node.sheet?.cssRules?.length ?? 0;
-        } catch {
-          return "blocked";
-        }
-      })(),
-    };
-  }
-  return {
-    id: node.id || null,
-    type: node.tagName.toLowerCase(),
-    hasSheet: false,
-    ruleCount: null,
-  };
-}
-
 const FALLBACK_MBU_TOKENS: Record<string, string> = {
   "--mbu-bg": "var(--color-bg, #0f1724)",
   "--mbu-surface": "var(--color-surface, #1b2334)",
@@ -211,47 +149,6 @@ function ensureShadowFallbackTokens(shadowRoot: ShadowRoot): void {
       host.style.setProperty(name, value);
     }
   }
-}
-
-function logShadowStyleDebug(shadowRoot: ShadowRoot): void {
-  if (!shouldDebugStyles(shadowRoot)) {
-    return;
-  }
-  const host = shadowRoot.host;
-  const doc = shadowRoot.ownerDocument;
-  const adoptedCount =
-    "adoptedStyleSheets" in shadowRoot
-      ? shadowRoot.adoptedStyleSheets.length
-      : null;
-  const styleNodes = Array.from(shadowRoot.querySelectorAll("style,link"));
-  const styles = styleNodes.map(describeStyleNode);
-
-  const schedule = doc.defaultView?.requestAnimationFrame ?? ((cb) => {
-    setTimeout(cb, 0);
-    return 0;
-  });
-
-  schedule(() => {
-    const computed = doc.defaultView?.getComputedStyle?.(host) ?? null;
-    const vars = computed
-      ? {
-          "--mbu-surface": computed.getPropertyValue("--mbu-surface").trim(),
-          "--mbu-surface-2": computed
-            .getPropertyValue("--mbu-surface-2")
-            .trim(),
-          "--mbu-text": computed.getPropertyValue("--mbu-text").trim(),
-          "--color-bg": computed.getPropertyValue("--color-bg").trim(),
-        }
-      : null;
-    console.info("[mbu][styles] shadow", {
-      hostId: host?.id ?? null,
-      adoptedCount,
-      styleCount: styleNodes.length,
-      styles,
-      vars,
-      href: doc.location?.href ?? null,
-    });
-  });
 }
 
 export function ensurePopupUiBaseStyles(doc: Document): void {
@@ -333,5 +230,4 @@ export function ensureShadowUiBaseStyles(shadowRoot: ShadowRoot): void {
   ensureShadowStyleText(shadowRoot, STYLE_ID, componentsCss);
 
   ensureShadowFallbackTokens(shadowRoot);
-  logShadowStyleDebug(shadowRoot);
 }
