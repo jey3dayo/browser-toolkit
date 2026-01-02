@@ -28,6 +28,7 @@ import {
   formatLink,
   type LinkFormat,
 } from "@/utils/link_format";
+import { showErrorNotification } from "@/utils/notifications";
 import {
   fetchOpenAiChatCompletionOk,
   fetchOpenAiChatCompletionText,
@@ -98,6 +99,8 @@ const CONTEXT_MENU_ACTION_PREFIX = "mbu-action:";
 const CONTEXT_MENU_COPY_TITLE_LINK_ID = "mbu-copy-title-link";
 const CONTEXT_MENU_CALENDAR_ID = "mbu-calendar-register";
 const CONTEXT_MENU_BUILTIN_SEPARATOR_ID = "mbu-separator:builtins";
+const CONTEXT_MENU_CUSTOM_SEPARATOR_ID = "mbu-separator:custom";
+const CONTEXT_MENU_SETTINGS_ID = "mbu-settings";
 
 // Regex patterns at module level for performance (lint/performance/useTopLevelRegex)
 const WAVE_SEPARATOR_REGEX = /^(.*?)\s*(?:〜|~|–|—)\s*(.*?)$/;
@@ -289,6 +292,20 @@ async function handleCopyTitleLinkContextMenuClick(
       )
     );
 
+    await showErrorNotification({
+      title: "コピーに失敗しました",
+      errorMessage: [
+        errorMessage,
+        "",
+        title ? `タイトル: ${title}` : null,
+        url ? `URL: ${url}` : null,
+        "",
+        "ポップアップの「リンク作成」タブからコピーできます。",
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    });
+
     const overlayShown = await showCopyTitleLinkOverlay({
       tabId: params.tabId,
       text,
@@ -416,6 +433,12 @@ async function handleCalendarContextMenuClick(
 
   const result = await extractEventWithOpenAI(target);
   if (!result.ok) {
+    await showErrorNotification({
+      title: "カレンダー登録に失敗しました",
+      errorMessage: result.error,
+      hint: "OpenAI API Tokenが未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。",
+    });
+
     await sendMessageToTab(params.tabId, {
       action: "showActionOverlay",
       status: "error",
@@ -424,7 +447,9 @@ async function handleCalendarContextMenuClick(
       title: resolvedTitle,
       primary: result.error,
       secondary: context.tokenHintSecondary,
-    } satisfies ContentScriptMessage);
+    } satisfies ContentScriptMessage).catch(() => {
+      // no-op
+    });
     return;
   }
 
@@ -517,6 +542,12 @@ async function handleEventAction(context: OverlayContext): Promise<void> {
   const result = await extractEventWithOpenAI(target, extraInstruction);
 
   if (!result.ok) {
+    await showErrorNotification({
+      title: `${action.title}に失敗しました`,
+      errorMessage: result.error,
+      hint: "OpenAI API Tokenが未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。",
+    });
+
     await sendMessageToTab(tabId, {
       action: "showActionOverlay",
       status: "error",
@@ -525,6 +556,8 @@ async function handleEventAction(context: OverlayContext): Promise<void> {
       title: resolvedTitle,
       primary: result.error,
       secondary: tokenHintSecondary,
+    }).catch(() => {
+      // no-op
     });
     return;
   }
@@ -568,6 +601,12 @@ async function handlePromptAction(context: OverlayContext): Promise<void> {
 
   const result = await runPromptActionWithOpenAI(target, prompt);
   if (!result.ok) {
+    await showErrorNotification({
+      title: `${action.title}に失敗しました`,
+      errorMessage: result.error,
+      hint: "OpenAI API Tokenが未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。",
+    });
+
     await sendMessageToTab(tabId, {
       action: "showActionOverlay",
       status: "error",
@@ -576,6 +615,8 @@ async function handlePromptAction(context: OverlayContext): Promise<void> {
       title: resolvedTitle,
       primary: result.error,
       secondary: tokenHintSecondary,
+    }).catch(() => {
+      // no-op
     });
     return;
   }
@@ -613,6 +654,15 @@ chrome.contextMenus.onClicked.addListener(
 
     if (menuItemId === CONTEXT_MENU_CALENDAR_ID) {
       handleCalendarContextMenuClick({ tabId, info, tab }).catch(() => {
+        // no-op
+      });
+      return;
+    }
+
+    if (menuItemId === CONTEXT_MENU_SETTINGS_ID) {
+      chrome.tabs.create({
+        url: chrome.runtime.getURL("popup.html#pane-settings"),
+      }).catch(() => {
         // no-op
       });
       return;
@@ -737,6 +787,44 @@ async function refreshContextMenus(): Promise<void> {
         );
       });
     }
+
+    await new Promise<void>((resolve, reject) => {
+      chrome.contextMenus.create(
+        {
+          id: CONTEXT_MENU_CUSTOM_SEPARATOR_ID,
+          parentId: CONTEXT_MENU_ROOT_ID,
+          type: "separator",
+          contexts: ["page", "selection"],
+        },
+        () => {
+          const err = chrome.runtime.lastError;
+          if (err) {
+            reject(new Error(err.message));
+            return;
+          }
+          resolve();
+        }
+      );
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      chrome.contextMenus.create(
+        {
+          id: CONTEXT_MENU_SETTINGS_ID,
+          parentId: CONTEXT_MENU_ROOT_ID,
+          title: "設定",
+          contexts: ["page", "selection"],
+        },
+        () => {
+          const err = chrome.runtime.lastError;
+          if (err) {
+            reject(new Error(err.message));
+            return;
+          }
+          resolve();
+        }
+      );
+    });
   } catch (error) {
     console.error(formatErrorLog("refreshContextMenus failed", {}, error));
   }

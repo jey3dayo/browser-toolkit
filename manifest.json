@@ -3,7 +3,7 @@
   "name": "Browser Toolkit",
   "version": "0.1.0",
   "description": "個人用のブラウザユーティリティ集（テーブルソート、AI連携など）",
-  "permissions": ["activeTab", "contextMenus", "storage"],
+  "permissions": ["activeTab", "contextMenus", "storage", "notifications"],
   "host_permissions": ["https://api.openai.com/*"],
   "action": {
     "default_popup": "popup.html",
