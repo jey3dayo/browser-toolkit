@@ -1,3 +1,4 @@
+import { Result } from "@praha/byethrow";
 import type {
   CalendarRegistrationTarget,
   ExtractedEvent,
@@ -32,6 +33,11 @@ type NormalizedEventRange = {
   allDay?: true;
 };
 
+type NormalizeEventRangeResult = Result.Result<
+  NormalizedEventRange,
+  NormalizedEventRange
+>;
+
 function splitTextRange(value: string): [string, string] | null {
   const normalized = value.trim();
   if (!normalized) {
@@ -56,22 +62,25 @@ function normalizeEventRange(
   start: string,
   end: string | undefined,
   allDay: true | undefined
-): NormalizedEventRange {
+): NormalizeEventRangeResult {
+  const baseRange: NormalizedEventRange = { start, end, allDay };
+
   // モデルが `start: "2025-12-16 14:00〜15:00"` のようにレンジを一つの文字列に詰めるケースがあるため補正する。
   if (end || !start) {
-    return { start, end, allDay };
+    // 正規化が不要なケースは failure にして呼び出し元で元の値に戻す。
+    return Result.fail(baseRange);
   }
 
   const parts = splitTextRange(start);
   if (!parts) {
-    return { start, end, allDay };
+    return Result.fail(baseRange);
   }
 
   const [left, right] = parts;
 
   // date-only range: "2025-12-16〜2025-12-17"
   if (parseDateOnlyToYyyyMmDd(left) && parseDateOnlyToYyyyMmDd(right)) {
-    return { start: left, end: right, allDay: allDay ?? true };
+    return Result.succeed({ start: left, end: right, allDay: allDay ?? true });
   }
 
   // datetime range with time-only end: "2025-12-16 14:00〜15:00"
@@ -79,13 +88,17 @@ function normalizeEventRange(
   const rightTimeOnly = right.match(TIME_ONLY_REGEX)?.[1];
 
   if (leftDatePrefix && rightTimeOnly) {
-    return { start: left, end: `${leftDatePrefix} ${rightTimeOnly}`, allDay };
+    return Result.succeed({
+      start: left,
+      end: `${leftDatePrefix} ${rightTimeOnly}`,
+      allDay,
+    });
   }
   if (parseDateTimeLoose(right)) {
-    return { start: left, end: right, allDay };
+    return Result.succeed({ start: left, end: right, allDay });
   }
 
-  return { start: left, end, allDay };
+  return Result.succeed({ start: left, end, allDay });
 }
 
 export function normalizeEvent(event: ExtractedEvent): ExtractedEvent {
@@ -96,11 +109,10 @@ export function normalizeEvent(event: ExtractedEvent): ExtractedEvent {
   const location = normalizeOptionalText(event.location);
   const description = normalizeOptionalText(event.description);
 
-  const { start, end, allDay } = normalizeEventRange(
-    rawStart,
-    rawEnd,
-    rawAllDay
-  );
+  const rangeResult = normalizeEventRange(rawStart, rawEnd, rawAllDay);
+  const { start, end, allDay } = Result.isFailure(rangeResult)
+    ? rangeResult.error
+    : rangeResult.value;
   return { title, start, end, allDay, location, description };
 }
 
