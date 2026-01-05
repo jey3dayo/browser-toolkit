@@ -659,6 +659,22 @@
   min-width: 0;
 }
 
+.mbu-overlay-primary-block--copy {
+  position: relative;
+}
+
+.mbu-overlay-primary-block--copy .mbu-overlay-primary-text {
+  padding-right: 36px;
+}
+
+.mbu-overlay-primary-block--copy .mbu-overlay-copy {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin-left: 0;
+  z-index: 1;
+}
+
 .mbu-overlay-status {
   font-size: 12px;
   font-weight: 750;

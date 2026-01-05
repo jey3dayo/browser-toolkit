@@ -563,14 +563,21 @@ function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {
       });
   };
 
+  const showCopyButton = props.mode !== "event" && props.canCopyPrimary;
+  const primaryBlockClassName = [
+    "mbu-overlay-primary-block",
+    showCopyButton ? "mbu-overlay-primary-block--copy" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
   return (
     <>
       {props.statusLabel ? (
         <div className="mbu-overlay-status">{props.statusLabel}</div>
       ) : null}
-      <div className="mbu-overlay-primary-block">
+      <div className={primaryBlockClassName}>
         {props.markdownView ? (
-          <div className="mbu-overlay-primary-text mbu-overlay-primary-markdown">
+          <div className="mbu-overlay-primary-markdown mbu-overlay-primary-text">
             <ReactMarkdown
               components={{
                 a: ({ node: _node, ...linkProps }) => (
@@ -585,12 +592,12 @@ function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {
         ) : (
           <pre className="mbu-overlay-primary-text">{props.primary}</pre>
         )}
-        {props.mode === "event" || !props.canCopyPrimary ? null : (
+        {showCopyButton ? (
           <OverlayCopyButton
             disabled={!props.canCopyPrimary}
             onCopy={props.onCopyPrimary}
           />
-        )}
+        ) : null}
       </div>
       {isTokenError ? (
         <Button
