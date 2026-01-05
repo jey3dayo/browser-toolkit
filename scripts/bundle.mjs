@@ -75,6 +75,8 @@ const buildOptions = {
   format: "iife",
   platform: "browser",
   target: "es2020",
+  jsx: "automatic",
+  charset: "utf8",
   alias: {
     "@": "./src",
   },
