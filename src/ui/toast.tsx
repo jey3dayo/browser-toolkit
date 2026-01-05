@@ -1,10 +1,15 @@
 import { Toast } from "@base-ui/react/toast";
 import { cloneElement, useMemo } from "react";
 
+export type NotifyOptions = {
+  title: string;
+  description?: React.ReactNode;
+};
+
 export type Notifier = {
   info: (message: string) => void;
   success: (message: string) => void;
-  error: (message: string) => void;
+  error: (message: string | NotifyOptions) => void;
 };
 
 export type ToastManager = ReturnType<typeof Toast.createToastManager>;
@@ -35,9 +40,15 @@ export function createNotifications(): {
         priority: "low",
       });
     },
-    error: (message) => {
+    error: (messageOrOptions) => {
+      const options =
+        typeof messageOrOptions === "string"
+          ? { title: messageOrOptions }
+          : messageOrOptions;
+
       toastManager.add({
-        title: message,
+        title: options.title,
+        description: options.description,
         type: "error",
         timeout: 3500,
         priority: "high",

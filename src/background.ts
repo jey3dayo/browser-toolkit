@@ -72,6 +72,7 @@ type BackgroundRequest =
       tabId: number;
       actionId: string;
       target?: SummaryTarget;
+      source?: "popup" | "contextMenu";
     };
 
 type BackgroundResponse =
@@ -152,14 +153,12 @@ type OverlayContext = {
   target: SummaryTarget;
   resolvedTitle: string;
   selectionSecondary: string | undefined;
-  tokenHintSecondary: string;
 };
 
 type ContextMenuSelectionContext = {
   selection: string;
   initialSource: SummarySource;
   selectionSecondary: string | undefined;
-  tokenHintSecondary: string;
 };
 
 function buildSelectionSecondary(selection: string): string | undefined {
@@ -179,12 +178,7 @@ function buildContextMenuSelectionContext(
   const selection = info.selectionText?.trim() ?? "";
   const initialSource: SummarySource = selection ? "selection" : "page";
   const selectionSecondary = buildSelectionSecondary(selection);
-  const tokenHintBase =
-    "OpenAI API Token未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。";
-  const tokenHintSecondary = selectionSecondary
-    ? `${selectionSecondary}\n\n${tokenHintBase}`
-    : tokenHintBase;
-  return { selection, initialSource, selectionSecondary, tokenHintSecondary };
+  return { selection, initialSource, selectionSecondary };
 }
 
 function buildCopyTitleLinkOverlayTitle(): string {
@@ -436,7 +430,6 @@ async function handleCalendarContextMenuClick(
     await showErrorNotification({
       title: "カレンダー登録に失敗しました",
       errorMessage: result.error,
-      hint: "OpenAI API Tokenが未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。",
     });
 
     await sendMessageToTab(params.tabId, {
@@ -446,7 +439,7 @@ async function handleCalendarContextMenuClick(
       source: target.source,
       title: resolvedTitle,
       primary: result.error,
-      secondary: context.tokenHintSecondary,
+      secondary: context.selectionSecondary,
     } satisfies ContentScriptMessage).catch(() => {
       // no-op
     });
@@ -516,7 +509,6 @@ async function handleContextMenuClick(
     target,
     resolvedTitle,
     selectionSecondary: context.selectionSecondary,
-    tokenHintSecondary: context.tokenHintSecondary,
   };
 
   if (action.kind === "event") {
@@ -527,14 +519,7 @@ async function handleContextMenuClick(
 }
 
 async function handleEventAction(context: OverlayContext): Promise<void> {
-  const {
-    tabId,
-    action,
-    target,
-    resolvedTitle,
-    selectionSecondary,
-    tokenHintSecondary,
-  } = context;
+  const { tabId, action, target, resolvedTitle, selectionSecondary } = context;
 
   const extraInstruction = action.prompt?.trim()
     ? renderInstructionTemplate(action.prompt, target)
@@ -545,7 +530,6 @@ async function handleEventAction(context: OverlayContext): Promise<void> {
     await showErrorNotification({
       title: `${action.title}に失敗しました`,
       errorMessage: result.error,
-      hint: "OpenAI API Tokenが未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。",
     });
 
     await sendMessageToTab(tabId, {
@@ -555,7 +539,7 @@ async function handleEventAction(context: OverlayContext): Promise<void> {
       source: target.source,
       title: resolvedTitle,
       primary: result.error,
-      secondary: tokenHintSecondary,
+      secondary: selectionSecondary,
     }).catch(() => {
       // no-op
     });
@@ -576,14 +560,7 @@ async function handleEventAction(context: OverlayContext): Promise<void> {
 }
 
 async function handlePromptAction(context: OverlayContext): Promise<void> {
-  const {
-    tabId,
-    action,
-    target,
-    resolvedTitle,
-    selectionSecondary,
-    tokenHintSecondary,
-  } = context;
+  const { tabId, action, target, resolvedTitle, selectionSecondary } = context;
 
   const prompt = action.prompt.trim();
   if (!prompt) {
@@ -604,7 +581,6 @@ async function handlePromptAction(context: OverlayContext): Promise<void> {
     await showErrorNotification({
       title: `${action.title}に失敗しました`,
       errorMessage: result.error,
-      hint: "OpenAI API Tokenが未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。",
     });
 
     await sendMessageToTab(tabId, {
@@ -614,7 +590,7 @@ async function handlePromptAction(context: OverlayContext): Promise<void> {
       source: target.source,
       title: resolvedTitle,
       primary: result.error,
-      secondary: tokenHintSecondary,
+      secondary: selectionSecondary,
     }).catch(() => {
       // no-op
     });
@@ -849,10 +825,11 @@ async function loadCalendarTargets(): Promise<CalendarRegistrationTarget[]> {
 
 // Helper function for handling event actions in message listener
 async function handleEventActionInMessage(
-  _tabId: number,
+  tabId: number,
   target: SummaryTarget,
   action: ContextAction,
-  sendResponse: (response: RunContextActionResponse) => void
+  sendResponse: (response: RunContextActionResponse) => void,
+  source?: "popup" | "contextMenu"
 ): Promise<void> {
   const extraInstruction = action.prompt?.trim()
     ? renderInstructionTemplate(action.prompt, target)
@@ -860,6 +837,29 @@ async function handleEventActionInMessage(
   const result = await extractEventWithOpenAI(target, extraInstruction);
 
   if (!result.ok) {
+    // コンテキストメニューからの実行の場合はOS通知を表示
+    if (source === "contextMenu") {
+      await showErrorNotification({
+        title: `${action.title}に失敗しました`,
+        errorMessage: result.error,
+        hint: "OpenAI API Tokenが未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。",
+      });
+
+      const tokenHintBase =
+        "OpenAI API Token未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。";
+      await sendMessageToTab(tabId, {
+        action: "showActionOverlay",
+        status: "error",
+        mode: "event",
+        source: target.source,
+        title: action.title,
+        primary: result.error,
+        secondary: tokenHintBase,
+      }).catch(() => {
+        // no-op
+      });
+    }
+
     sendResponse(result);
     return;
   }
@@ -877,7 +877,8 @@ async function handleEventActionInMessage(
 async function handlePromptActionInMessage(
   target: SummaryTarget,
   action: ContextAction,
-  sendResponse: (response: RunContextActionResponse) => void
+  sendResponse: (response: RunContextActionResponse) => void,
+  source?: "popup" | "contextMenu"
 ): Promise<void> {
   const prompt = action.prompt.trim();
   if (!prompt) {
@@ -939,7 +940,8 @@ chrome.runtime.onMessage.addListener(
       | BackgroundRequest
       | { action: "summarizeText"; target: SummaryTarget }
       | { action: "testOpenAiToken"; token?: string }
-      | { action: "summarizeEvent"; target: SummaryTarget },
+      | { action: "summarizeEvent"; target: SummaryTarget }
+      | { action: "openPopupSettings" },
     _sender: chrome.runtime.MessageSender,
     sendResponse: (
       response?:
@@ -1024,10 +1026,16 @@ chrome.runtime.onMessage.addListener(
               request.tabId,
               target,
               action,
-              sendResponse
+              sendResponse,
+              request.source
             );
           } else {
-            await handlePromptActionInMessage(target, action, sendResponse);
+            await handlePromptActionInMessage(
+              target,
+              action,
+              sendResponse,
+              request.source
+            );
           }
         } catch (error) {
           sendResponse({
@@ -1072,6 +1080,20 @@ chrome.runtime.onMessage.addListener(
           });
         }
       );
+      return true;
+    }
+
+    if (request.action === "openPopupSettings") {
+      chrome.tabs
+        .create({
+          url: chrome.runtime.getURL("popup.html#pane-settings"),
+        })
+        .then(() => {
+          sendResponse({ ok: true });
+        })
+        .catch(() => {
+          sendResponse({ ok: false, error: "設定画面を開けませんでした" });
+        });
       return true;
     }
 

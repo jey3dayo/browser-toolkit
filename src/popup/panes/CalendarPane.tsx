@@ -8,7 +8,10 @@ import type {
   SummarizeEventResponse,
   SummaryTarget,
 } from "@/popup/runtime";
-import { ensureOpenAiTokenConfigured } from "@/popup/token_guard";
+import {
+  ensureOpenAiTokenConfigured,
+  type NotificationOptions,
+} from "@/popup/token_guard";
 import { coerceSummarySourceLabel } from "@/popup/utils/summary_source_label";
 import { fetchSummaryTargetForActiveTab } from "@/popup/utils/summary_target";
 import type {
@@ -125,12 +128,35 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
   const ensureTokenReady = async (): Promise<boolean> => {
     const tokenConfigured = await ensureOpenAiTokenConfigured({
       storageLocalGet: (keys) => props.runtime.storageLocalGet(keys),
-      showNotification: (message, type) => {
-        if (type === "error") {
-          props.notify.error(message);
+      showNotification: (messageOrOptions, type) => {
+        if (typeof messageOrOptions === "string") {
+          const message: string = messageOrOptions;
+          if (type === "error") {
+            props.notify.error(message);
+            return;
+          }
+          props.notify.info(message);
           return;
         }
-        props.notify.info(message);
+
+        // NotificationOptions with action
+        const options: NotificationOptions = messageOrOptions;
+        if (type === "error") {
+          props.notify.error({
+            title: options.message,
+            description: options.action ? (
+              <button
+                className="mbu-toast-action-link"
+                onClick={options.action.onClick}
+                type="button"
+              >
+                {options.action.label}
+              </button>
+            ) : undefined,
+          });
+          return;
+        }
+        props.notify.info(options.message);
       },
       navigateToPane: (paneId) => {
         props.navigateToPane(paneId as PaneId);
@@ -142,7 +168,31 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
   };
 
   const reportError = (message: string): void => {
-    props.notify.error(message);
+    // トークン関連エラーの場合は「→ 設定を開く」リンク付きで表示
+    if (
+      message.includes("Token") ||
+      message.includes("トークン") ||
+      message.includes("未設定") ||
+      message.includes("API Key")
+    ) {
+      props.notify.error({
+        title: message,
+        description: (
+          <button
+            className="mbu-toast-action-link"
+            onClick={() => {
+              props.navigateToPane("pane-settings");
+              props.focusTokenInput();
+            }}
+            type="button"
+          >
+            → 設定を開く
+          </button>
+        ),
+      });
+    } else {
+      props.notify.error(message);
+    }
     setOutput({ status: "idle" });
   };
 

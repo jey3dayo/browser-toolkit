@@ -25,6 +25,7 @@ export type RunContextActionRequest = {
   tabId: number;
   actionId: string;
   target?: SummaryTarget;
+  source?: "popup" | "contextMenu";
 };
 export type RunContextActionResponse =
   | { ok: true; resultType: "text"; text: string; source: SummarySource }
