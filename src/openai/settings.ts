@@ -56,9 +56,7 @@ export function loadOpenAiSettings(
     Result.andThen((settings) =>
       settings.token
         ? Result.succeed(settings)
-        : Result.fail(
-            "OpenAI API Tokenが未設定です（ポップアップの「設定」タブで設定してください）"
-          )
+        : Result.fail("OpenAI API Tokenが未設定です")
     )
   );
 }

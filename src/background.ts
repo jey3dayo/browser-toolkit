@@ -153,14 +153,12 @@ type OverlayContext = {
   target: SummaryTarget;
   resolvedTitle: string;
   selectionSecondary: string | undefined;
-  tokenHintSecondary: string;
 };
 
 type ContextMenuSelectionContext = {
   selection: string;
   initialSource: SummarySource;
   selectionSecondary: string | undefined;
-  tokenHintSecondary: string;
 };
 
 function buildSelectionSecondary(selection: string): string | undefined {
@@ -180,12 +178,7 @@ function buildContextMenuSelectionContext(
   const selection = info.selectionText?.trim() ?? "";
   const initialSource: SummarySource = selection ? "selection" : "page";
   const selectionSecondary = buildSelectionSecondary(selection);
-  const tokenHintBase =
-    "OpenAI API Token未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。";
-  const tokenHintSecondary = selectionSecondary
-    ? `${selectionSecondary}\n\n${tokenHintBase}`
-    : tokenHintBase;
-  return { selection, initialSource, selectionSecondary, tokenHintSecondary };
+  return { selection, initialSource, selectionSecondary };
 }
 
 function buildCopyTitleLinkOverlayTitle(): string {
@@ -437,7 +430,6 @@ async function handleCalendarContextMenuClick(
     await showErrorNotification({
       title: "カレンダー登録に失敗しました",
       errorMessage: result.error,
-      hint: "OpenAI API Tokenが未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。",
     });
 
     await sendMessageToTab(params.tabId, {
@@ -447,7 +439,7 @@ async function handleCalendarContextMenuClick(
       source: target.source,
       title: resolvedTitle,
       primary: result.error,
-      secondary: context.tokenHintSecondary,
+      secondary: context.selectionSecondary,
     } satisfies ContentScriptMessage).catch(() => {
       // no-op
     });
@@ -517,7 +509,6 @@ async function handleContextMenuClick(
     target,
     resolvedTitle,
     selectionSecondary: context.selectionSecondary,
-    tokenHintSecondary: context.tokenHintSecondary,
   };
 
   if (action.kind === "event") {
@@ -528,14 +519,7 @@ async function handleContextMenuClick(
 }
 
 async function handleEventAction(context: OverlayContext): Promise<void> {
-  const {
-    tabId,
-    action,
-    target,
-    resolvedTitle,
-    selectionSecondary,
-    tokenHintSecondary,
-  } = context;
+  const { tabId, action, target, resolvedTitle, selectionSecondary } = context;
 
   const extraInstruction = action.prompt?.trim()
     ? renderInstructionTemplate(action.prompt, target)
@@ -546,7 +530,6 @@ async function handleEventAction(context: OverlayContext): Promise<void> {
     await showErrorNotification({
       title: `${action.title}に失敗しました`,
       errorMessage: result.error,
-      hint: "OpenAI API Tokenが未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。",
     });
 
     await sendMessageToTab(tabId, {
@@ -556,7 +539,7 @@ async function handleEventAction(context: OverlayContext): Promise<void> {
       source: target.source,
       title: resolvedTitle,
       primary: result.error,
-      secondary: tokenHintSecondary,
+      secondary: selectionSecondary,
     }).catch(() => {
       // no-op
     });
@@ -577,14 +560,7 @@ async function handleEventAction(context: OverlayContext): Promise<void> {
 }
 
 async function handlePromptAction(context: OverlayContext): Promise<void> {
-  const {
-    tabId,
-    action,
-    target,
-    resolvedTitle,
-    selectionSecondary,
-    tokenHintSecondary,
-  } = context;
+  const { tabId, action, target, resolvedTitle, selectionSecondary } = context;
 
   const prompt = action.prompt.trim();
   if (!prompt) {
@@ -605,7 +581,6 @@ async function handlePromptAction(context: OverlayContext): Promise<void> {
     await showErrorNotification({
       title: `${action.title}に失敗しました`,
       errorMessage: result.error,
-      hint: "OpenAI API Tokenが未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。",
     });
 
     await sendMessageToTab(tabId, {
@@ -615,7 +590,7 @@ async function handlePromptAction(context: OverlayContext): Promise<void> {
       source: target.source,
       title: resolvedTitle,
       primary: result.error,
-      secondary: tokenHintSecondary,
+      secondary: selectionSecondary,
     }).catch(() => {
       // no-op
     });
