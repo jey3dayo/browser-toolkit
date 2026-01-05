@@ -16,9 +16,11 @@ export async function showNotification(
   params: NotificationParams
 ): Promise<void> {
   try {
+    const iconUrl =
+      params.iconUrl ?? chrome.runtime.getURL("images/icon128.png");
     await chrome.notifications.create({
       type: "basic",
-      iconUrl: params.iconUrl ?? "images/icon128.png",
+      iconUrl,
       title: params.title,
       message: params.message,
       priority: params.priority ?? 1,
