@@ -12,6 +12,7 @@ import {
   ensureOpenAiTokenConfigured,
   type NotificationOptions,
 } from "@/popup/token_guard";
+import { persistWithRollback } from "@/popup/utils/persist";
 import { coerceSummarySourceLabel } from "@/popup/utils/summary_source_label";
 import { fetchSummaryTargetForActiveTab } from "@/popup/utils/summary_target";
 import type {
@@ -102,16 +103,24 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
 
   const saveTargets = useCallback(
     async (next: CalendarRegistrationTarget[]): Promise<void> => {
-      setTargets(next);
-      const saved = await props.runtime.storageSyncSet({
-        calendarTargets: next,
+      await persistWithRollback({
+        applyNext: () => {
+          setTargets(next);
+        },
+        rollback: () => {
+          setTargets(targets);
+        },
+        persist: () =>
+          props.runtime.storageSyncSet({
+            calendarTargets: next,
+          }),
+        onSuccess: () => {
+          props.notify.success("保存しました");
+        },
+        onFailure: () => {
+          props.notify.error("保存に失敗しました");
+        },
       });
-      if (Result.isSuccess(saved)) {
-        props.notify.success("保存しました");
-        return;
-      }
-      props.notify.error("保存に失敗しました");
-      setTargets(targets);
     },
     [props.notify, props.runtime, targets]
   );

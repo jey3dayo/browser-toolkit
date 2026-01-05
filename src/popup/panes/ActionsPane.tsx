@@ -21,6 +21,7 @@ import {
   ensureOpenAiTokenConfigured,
   type NotificationOptions,
 } from "@/popup/token_guard";
+import { persistWithRollback } from "@/popup/utils/persist";
 import { coerceSummarySourceLabel } from "@/popup/utils/summary_source_label";
 import { fetchSummaryTargetForTab } from "@/popup/utils/summary_target";
 import type { Notifier } from "@/ui/toast";
@@ -281,18 +282,25 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
     failureMessage: string
   ): Promise<void> => {
     const previous = actions;
-    setActions(nextActions);
-    resetEditorState();
-
-    const saved = await props.runtime.storageSyncSet({
-      contextActions: nextActions,
+    await persistWithRollback({
+      applyNext: () => {
+        setActions(nextActions);
+        resetEditorState();
+      },
+      rollback: () => {
+        setActions(previous);
+      },
+      persist: () =>
+        props.runtime.storageSyncSet({
+          contextActions: nextActions,
+        }),
+      onSuccess: () => {
+        props.notify.success(successMessage);
+      },
+      onFailure: () => {
+        props.notify.error(failureMessage);
+      },
     });
-    if (Result.isSuccess(saved)) {
-      props.notify.success(successMessage);
-      return;
-    }
-    setActions(previous);
-    props.notify.error(failureMessage);
   };
 
   const deleteEditor = async (): Promise<void> => {

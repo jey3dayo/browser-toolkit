@@ -4,6 +4,7 @@ import { Select } from "@base-ui/react/select";
 import { Result } from "@praha/byethrow";
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
+import { persistWithRollback } from "@/popup/utils/persist";
 import {
   coerceLinkFormat,
   formatLink,
@@ -100,12 +101,18 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
         return;
       }
       const prev = format;
-      setFormat(next);
-      const saved = await props.runtime.storageSyncSet({ linkFormat: next });
-      if (Result.isFailure(saved)) {
-        setFormat(prev);
-        props.notify.error("形式の保存に失敗しました");
-      }
+      await persistWithRollback({
+        applyNext: () => {
+          setFormat(next);
+        },
+        rollback: () => {
+          setFormat(prev);
+        },
+        persist: () => props.runtime.storageSyncSet({ linkFormat: next }),
+        onFailure: () => {
+          props.notify.error("形式の保存に失敗しました");
+        },
+      });
     },
     [format, props.notify, props.runtime]
   );
