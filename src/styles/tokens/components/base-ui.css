@@ -1,0 +1,21 @@
+/* ========================================
+ * Shared Component Styles (Base UI)
+ * ====================================== */
+
+/* Focus states */
+:where(
+    a,
+    button,
+    input,
+    textarea,
+    select,
+    [role="button"],
+    [tabindex]
+  ):focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.mbu-surface {
+  isolation: isolate;
+}

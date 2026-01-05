@@ -1,0 +1,187 @@
+/* ========================================
+ * Component Tokens (component-specific)
+ * ====================================== */
+
+:root,
+:host {
+  /* Buttons */
+  --button-radius: var(--radius-md);
+  --button-padding: 10px 14px;
+  --button-padding-sm: 6px 10px;
+  --button-radius-sm: var(--radius-sm);
+  --button-font-weight: 700;
+
+  --button-bg-primary: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-primary-2)
+  );
+  --button-text-primary: var(--color-bg);
+  --button-shadow-primary: 0 10px 30px
+    color-mix(in oklab, var(--color-primary) 25%, transparent);
+
+  --button-bg-ghost: color-mix(in oklab, var(--color-text) 4%, transparent);
+  --button-text-ghost: var(--color-text);
+  --button-border-ghost: 1px solid var(--color-border);
+
+  /* Inputs */
+  --input-padding: 10px 12px;
+  --input-radius: var(--radius-md);
+  --input-border: 1px solid var(--color-border);
+  --input-bg: var(--color-surface-2);
+  --input-text: var(--color-text);
+  --input-placeholder: color-mix(
+    in oklab,
+    var(--color-text-muted) 70%,
+    transparent
+  );
+
+  /* Cards */
+  --card-bg: var(--color-surface);
+  --card-border: 1px solid var(--color-border);
+  --card-radius: var(--radius-lg);
+  --card-shadow: var(--shadow-elevation);
+  --card-padding: 16px;
+
+  /* Overlays */
+  --overlay-shadow: var(--shadow-elevation);
+}
+
+@layer fallback {
+  :where(:root),
+  :where(:host) {
+    --bg: #0f1724;
+    --bg-2: #1a2334;
+    --panel: #1b2334;
+    --panel-soft: #232d42;
+    --line: rgba(255, 255, 255, 0.12);
+    --text: #f6f7fb;
+    --text-sub: #c8d0e5;
+    --accent: #3ecf8e;
+    --accent-2: #7bdcf7;
+    --danger: #e57373;
+    --shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    --radius: 14px;
+
+    --popup-width: 800px;
+    --popup-height: 600px;
+    --rail: 76px;
+    --drawer: 284px;
+
+    --mbu-bg: #0f1724;
+    --mbu-surface: #1b2334;
+    --mbu-surface-2: #232d42;
+    --mbu-border: rgba(255, 255, 255, 0.12);
+    --mbu-text: #f6f7fb;
+    --mbu-text-muted: #c8d0e5;
+    --mbu-accent: #3ecf8e;
+    --mbu-danger: #e57373;
+    --mbu-radius: 14px;
+    --mbu-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    --mbu-focus-ring: 2px solid rgba(123, 220, 247, 0.55);
+    --mbu-focus-ring-offset: 2px;
+    --mbu-toast-screen-inset: 12px 12px auto auto;
+    --mbu-toast-surface-inset: 12px 12px auto auto;
+  }
+
+  :where(:root[data-theme="light"]),
+  :where(:host([data-theme="light"])) {
+    --bg: #ffffff;
+    --bg-2: #f3f4f6;
+    --panel: #ffffff;
+    --panel-soft: #f3f4f6;
+    --line: rgba(0, 0, 0, 0.12);
+    --text: #111827;
+    --text-sub: rgba(17, 24, 39, 0.7);
+    --accent: #4285f4;
+    --accent-2: #7bdcf7;
+    --danger: #e53935;
+    --shadow: 0 16px 44px rgba(0, 0, 0, 0.28);
+    --radius: 14px;
+
+    --mbu-bg: #ffffff;
+    --mbu-surface: #ffffff;
+    --mbu-surface-2: #f3f4f6;
+    --mbu-border: rgba(0, 0, 0, 0.12);
+    --mbu-text: #111827;
+    --mbu-text-muted: rgba(17, 24, 39, 0.7);
+    --mbu-accent: #4285f4;
+    --mbu-danger: #e53935;
+    --mbu-radius: 14px;
+    --mbu-shadow: 0 16px 44px rgba(0, 0, 0, 0.28);
+    --mbu-focus-ring: 2px solid rgba(66, 133, 244, 0.65);
+    --mbu-focus-ring-offset: 2px;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :where(:root:not([data-theme])),
+    :where(:host:not([data-theme])) {
+      --bg: #ffffff;
+      --bg-2: #f3f4f6;
+      --panel: #ffffff;
+      --panel-soft: #f3f4f6;
+      --line: rgba(0, 0, 0, 0.12);
+      --text: #111827;
+      --text-sub: rgba(17, 24, 39, 0.7);
+      --accent: #4285f4;
+      --accent-2: #7bdcf7;
+      --danger: #e53935;
+      --shadow: 0 16px 44px rgba(0, 0, 0, 0.28);
+      --radius: 14px;
+
+      --mbu-bg: #ffffff;
+      --mbu-surface: #ffffff;
+      --mbu-surface-2: #f3f4f6;
+      --mbu-border: rgba(0, 0, 0, 0.12);
+      --mbu-text: #111827;
+      --mbu-text-muted: rgba(17, 24, 39, 0.7);
+      --mbu-accent: #4285f4;
+      --mbu-danger: #e53935;
+      --mbu-radius: 14px;
+      --mbu-shadow: 0 16px 44px rgba(0, 0, 0, 0.28);
+      --mbu-focus-ring: 2px solid rgba(66, 133, 244, 0.65);
+      --mbu-focus-ring-offset: 2px;
+    }
+  }
+}
+
+:host {
+  position: fixed;
+  z-index: 2147483647;
+  display: block;
+  --toast-surface-inset: auto 12px 12px auto;
+}
+
+:host:not([data-theme]),
+:host([data-theme="dark"]) {
+  color-scheme: dark;
+}
+
+:host([data-theme="light"]) {
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: light) {
+  :host:not([data-theme]) {
+    color-scheme: light;
+  }
+}
+
+:host(#browser-toolkit-toast-host) {
+  top: 0;
+  left: 0;
+}
+
+:host(#browser-toolkit-overlay) {
+  top: 16px;
+  left: 16px;
+  --toast-surface-inset: calc(100% + 8px) 0 auto 12px;
+}
+
+:host,
+:host *,
+:host *::before,
+:host *::after {
+  box-sizing: border-box;
+  font-family: var(--primitive-font-sans);
+}

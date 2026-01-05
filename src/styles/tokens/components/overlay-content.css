@@ -1,0 +1,268 @@
+/* Overlay primary content block */
+.mbu-overlay-primary-block {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.mbu-overlay-primary-block .mbu-overlay-primary-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.mbu-overlay-primary-block.mbu-overlay-primary-block--copy {
+  position: relative;
+  display: block;
+}
+
+.mbu-overlay-primary-block--copy .mbu-overlay-primary-text {
+  padding-right: 0;
+}
+
+.mbu-overlay-primary-block--copy .mbu-overlay-copy {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin-left: 0;
+  display: block;
+  z-index: 1;
+}
+
+.mbu-overlay-status {
+  font-size: 12px;
+  font-weight: 750;
+  color: var(--mbu-text-muted);
+}
+
+.mbu-overlay-primary-text,
+.mbu-overlay-secondary-text {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.mbu-overlay-primary-markdown {
+  white-space: normal;
+}
+
+.mbu-overlay-primary-markdown > :first-child {
+  margin-top: 0;
+}
+
+.mbu-overlay-primary-markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.mbu-overlay-primary-markdown p {
+  margin: 0 0 8px;
+}
+
+.mbu-overlay-primary-markdown ul,
+.mbu-overlay-primary-markdown ol {
+  margin: 0 0 8px;
+  padding-left: 18px;
+}
+
+.mbu-overlay-primary-markdown li + li {
+  margin-top: 4px;
+}
+
+.mbu-overlay-primary-markdown a {
+  color: var(--mbu-accent);
+  text-decoration: underline;
+}
+
+.mbu-overlay-primary-markdown code {
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  font-size: 12px;
+  word-break: normal;
+  background: color-mix(in oklab, var(--mbu-surface) 75%, transparent);
+  border: 1px solid var(--mbu-border);
+  padding: 1px 4px;
+  border-radius: 6px;
+}
+
+.mbu-overlay-primary-markdown pre {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--mbu-border);
+  background: color-mix(in oklab, var(--mbu-surface) 85%, transparent);
+  overflow: auto;
+  white-space: pre;
+  word-break: normal;
+}
+
+.mbu-overlay-primary-markdown pre code {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 12px;
+}
+
+.mbu-overlay-primary-markdown blockquote {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  border-left: 3px solid
+    color-mix(in oklab, var(--mbu-accent) 55%, var(--mbu-border));
+  background: color-mix(in oklab, var(--mbu-accent) 8%, var(--mbu-surface));
+  border-radius: 10px;
+}
+
+.mbu-overlay-primary-markdown hr {
+  margin: 8px 0;
+  border: none;
+  border-top: 1px solid var(--mbu-border);
+}
+
+.mbu-overlay-primary-markdown table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 0 0 8px;
+  border: 1px solid var(--mbu-border);
+  border-radius: 10px;
+  overflow: hidden;
+  font-size: 12px;
+}
+
+.mbu-overlay-primary-markdown th,
+.mbu-overlay-primary-markdown td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--mbu-border);
+  text-align: left;
+}
+
+.mbu-overlay-primary-markdown tr:last-child th,
+.mbu-overlay-primary-markdown tr:last-child td {
+  border-bottom: none;
+}
+
+.mbu-overlay-secondary-text {
+  color: var(--mbu-text-muted);
+  font-size: 12px;
+}
+
+.mbu-overlay-settings-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 8px 16px;
+  border-radius: var(--primitive-radius-10);
+  background: var(--primitive-color-blue-500);
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.mbu-overlay-settings-link:hover {
+  background: var(--primitive-color-blue-600);
+}
+
+.mbu-overlay-settings-link:active {
+  background: var(--primitive-color-blue-700);
+}
+
+.mbu-overlay-event-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--mbu-border);
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--mbu-surface) 92%, transparent);
+  overflow: hidden;
+  font-size: 12px;
+}
+
+.mbu-overlay-event-table th,
+.mbu-overlay-event-table td {
+  padding: 8px 10px;
+  vertical-align: top;
+  border-bottom: 1px solid var(--mbu-border);
+  text-align: left;
+}
+
+.mbu-overlay-event-table tr:last-child th,
+.mbu-overlay-event-table tr:last-child td {
+  border-bottom: none;
+}
+
+.mbu-overlay-event-table th {
+  width: 84px;
+  color: var(--mbu-text-muted);
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.mbu-overlay-event-table td {
+  color: var(--mbu-text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.mbu-overlay-quote {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--mbu-border);
+  border-left: 4px solid
+    color-mix(in oklab, var(--mbu-accent) 60%, var(--mbu-border));
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--mbu-surface) 84%, transparent);
+  color: var(--mbu-text-muted);
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.mbu-overlay-aux {
+  border: 1px solid var(--mbu-border);
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--mbu-surface) 92%, transparent);
+  overflow: hidden;
+}
+
+.mbu-overlay-aux-summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 750;
+  color: var(--mbu-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mbu-overlay-aux-summary::-webkit-details-marker {
+  display: none;
+}
+
+.mbu-overlay-aux-summary::after {
+  content: "⌄";
+  font-size: 12px;
+  opacity: 0.8;
+  transform: translateY(-1px);
+  transition: transform 140ms ease;
+}
+
+.mbu-overlay-aux[open] > .mbu-overlay-aux-summary::after {
+  transform: rotate(180deg) translateY(1px);
+}
+
+.mbu-overlay-aux .mbu-overlay-quote {
+  border: none;
+  border-top: 1px solid var(--mbu-border);
+  border-left: 4px solid
+    color-mix(in oklab, var(--mbu-accent) 60%, var(--mbu-border));
+  border-radius: 0 0 12px 12px;
+  background: transparent;
+}
