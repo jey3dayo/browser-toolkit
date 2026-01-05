@@ -124,16 +124,16 @@ export async function summarizeWithOpenAI(
 export async function runPromptActionWithOpenAI(
   target: SummaryTarget,
   promptTemplate: string
-): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
+): Promise<Result.Result<string, string>> {
   const settingsResult = await loadOpenAiSettings(storageLocalGetTyped);
   if (Result.isFailure(settingsResult)) {
-    return { ok: false, error: settingsResult.error };
+    return Result.fail(settingsResult.error);
   }
   const settings = settingsResult.value;
 
   const clippedText = clipInputText(target.text);
   if (!clippedText) {
-    return { ok: false, error: "対象のテキストが見つかりませんでした" };
+    return Result.fail("対象のテキストが見つかりませんでした");
   }
 
   const meta = buildTitleUrlMeta(target);
@@ -184,11 +184,7 @@ export async function runPromptActionWithOpenAI(
     body,
     "結果の取得に失敗しました"
   );
-  if (Result.isFailure(textResult)) {
-    return { ok: false, error: textResult.error };
-  }
-
-  return { ok: true, text: textResult.value };
+  return textResult;
 }
 
 export function renderInstructionTemplate(

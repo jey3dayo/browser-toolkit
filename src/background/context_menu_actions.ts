@@ -1,3 +1,4 @@
+import { Result } from "@praha/byethrow";
 import { APP_NAME } from "@/app_meta";
 import { buildCalendarArtifacts, formatEventText } from "@/background/calendar";
 import { sendMessageToTab } from "@/background/messaging";
@@ -322,10 +323,11 @@ async function handlePromptAction(context: OverlayContext): Promise<void> {
   }
 
   const result = await runPromptActionWithOpenAI(target, prompt);
-  if (!result.ok) {
+  if (Result.isFailure(result)) {
+    const errorMessage = result.error;
     await showErrorNotification({
       title: `${action.title}に失敗しました`,
-      errorMessage: result.error,
+      errorMessage,
     });
 
     await sendMessageToTab(tabId, {
@@ -334,7 +336,7 @@ async function handlePromptAction(context: OverlayContext): Promise<void> {
       mode: "text",
       source: target.source,
       title: resolvedTitle,
-      primary: result.error,
+      primary: errorMessage,
       secondary: selectionSecondary,
     }).catch(() => {
       // no-op
@@ -348,7 +350,7 @@ async function handlePromptAction(context: OverlayContext): Promise<void> {
     mode: "text",
     source: target.source,
     title: resolvedTitle,
-    primary: result.text,
+    primary: result.value,
     secondary: selectionSecondary,
   });
 }

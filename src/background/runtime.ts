@@ -1,3 +1,4 @@
+import { Result } from "@praha/byethrow";
 import {
   buildGoogleCalendarUrl,
   buildGoogleCalendarUrlFailureMessage,
@@ -87,7 +88,7 @@ async function handlePromptActionInMessage(
   }
 
   const result = await runPromptActionWithOpenAI(target, prompt);
-  if (!result.ok) {
+  if (Result.isFailure(result)) {
     sendResponse({ ok: false, error: result.error });
     return;
   }
@@ -95,7 +96,7 @@ async function handlePromptActionInMessage(
   sendResponse({
     ok: true,
     resultType: "text",
-    text: result.text,
+    text: result.value,
     source: target.source,
   });
 }
