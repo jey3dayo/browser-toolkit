@@ -7,6 +7,7 @@ import { Result } from "@praha/byethrow";
 import { useEffect, useId, useState } from "react";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import type { EnableTableSortMessage } from "@/popup/runtime";
+import { persistWithRollback } from "@/popup/utils/persist";
 
 export type TablePaneProps = PopupPaneBaseProps;
 
@@ -99,27 +100,41 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
     }
 
     const next = [...patterns, raw];
-    setPatterns(next);
-    setPatternInput("");
-    const saved = await props.runtime.storageSyncSet({ domainPatterns: next });
-    if (Result.isSuccess(saved)) {
-      props.notify.success("追加しました");
-      return;
-    }
-    props.notify.error("追加に失敗しました");
-    setPatterns(patterns);
+    await persistWithRollback({
+      applyNext: () => {
+        setPatterns(next);
+        setPatternInput("");
+      },
+      rollback: () => {
+        setPatterns(patterns);
+      },
+      persist: () => props.runtime.storageSyncSet({ domainPatterns: next }),
+      onSuccess: () => {
+        props.notify.success("追加しました");
+      },
+      onFailure: () => {
+        props.notify.error("追加に失敗しました");
+      },
+    });
   };
 
   const removePattern = async (pattern: string): Promise<void> => {
     const next = patterns.filter((item) => item !== pattern);
-    setPatterns(next);
-    const saved = await props.runtime.storageSyncSet({ domainPatterns: next });
-    if (Result.isSuccess(saved)) {
-      props.notify.success("削除しました");
-      return;
-    }
-    props.notify.error("削除に失敗しました");
-    setPatterns(patterns);
+    await persistWithRollback({
+      applyNext: () => {
+        setPatterns(next);
+      },
+      rollback: () => {
+        setPatterns(patterns);
+      },
+      persist: () => props.runtime.storageSyncSet({ domainPatterns: next }),
+      onSuccess: () => {
+        props.notify.success("削除しました");
+      },
+      onFailure: () => {
+        props.notify.error("削除に失敗しました");
+      },
+    });
   };
 
   return (

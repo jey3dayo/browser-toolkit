@@ -311,13 +311,22 @@ function downloadIcsFile(notify: OverlayNotify, ics: string): void {
   }
 }
 
-function startOverlayDrag(params: {
+type OverlayDragBaseParams = {
   event: React.PointerEvent<HTMLElement>;
-  host: HTMLDivElement;
   dragOffsetRef: React.MutableRefObject<DragOffset | null>;
   setDragging: StateSetter<boolean>;
+};
+
+type OverlayDragStartParams = OverlayDragBaseParams & {
+  host: HTMLDivElement;
   setPinnedPos: StateSetter<Point | null>;
-}): void {
+};
+
+type OverlayDragEndParams = OverlayDragBaseParams & {
+  dragging: boolean;
+};
+
+function startOverlayDrag(params: OverlayDragStartParams): void {
   if (params.event.button !== 0) {
     return;
   }
@@ -370,12 +379,7 @@ function moveOverlayDrag(params: {
   });
 }
 
-function endOverlayDrag(params: {
-  event: React.PointerEvent<HTMLElement>;
-  dragging: boolean;
-  dragOffsetRef: React.MutableRefObject<DragOffset | null>;
-  setDragging: StateSetter<boolean>;
-}): void {
+function endOverlayDrag(params: OverlayDragEndParams): void {
   if (!params.dragging) {
     return;
   }
