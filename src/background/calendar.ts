@@ -8,6 +8,7 @@ import {
 } from "@/utils/date_utils";
 import { computeEventDateRange } from "@/utils/event_date_range";
 import { buildIcs } from "@/utils/ics";
+import { normalizeOptionalText } from "@/utils/text";
 
 // Regex patterns at module level for performance (lint/performance/useTopLevelRegex)
 const WAVE_SEPARATOR_REGEX = /^(.*?)\s*(?:〜|~|–|—)\s*(.*?)$/;
@@ -30,14 +31,6 @@ type NormalizedEventRange = {
   end?: string;
   allDay?: true;
 };
-
-function normalizeOptionalText(value: unknown): string | undefined {
-  if (typeof value !== "string") {
-    return;
-  }
-  const trimmed = value.trim();
-  return trimmed ? trimmed : undefined;
-}
 
 function splitTextRange(value: string): [string, string] | null {
   const normalized = value.trim();
