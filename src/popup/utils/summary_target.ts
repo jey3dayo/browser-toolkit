@@ -38,10 +38,10 @@ export async function fetchSummaryTargetForTab(params: {
   return targetResult.value;
 }
 
-export async function fetchSummaryTargetForActiveTab(params: {
-  runtime: Pick<PopupRuntime, "getActiveTabId" | "sendMessageToTab">;
+export async function resolveActiveTabId(params: {
+  runtime: Pick<PopupRuntime, "getActiveTabId">;
   onError: ErrorHandler;
-}): Promise<SummaryTarget | null> {
+}): Promise<number | null> {
   const tabIdResult = await params.runtime.getActiveTabId();
   if (Result.isFailure(tabIdResult)) {
     params.onError(tabIdResult.error);
@@ -51,9 +51,23 @@ export async function fetchSummaryTargetForActiveTab(params: {
     params.onError("有効なタブが見つかりません");
     return null;
   }
+  return tabIdResult.value;
+}
+
+export async function fetchSummaryTargetForActiveTab(params: {
+  runtime: Pick<PopupRuntime, "getActiveTabId" | "sendMessageToTab">;
+  onError: ErrorHandler;
+}): Promise<SummaryTarget | null> {
+  const tabId = await resolveActiveTabId({
+    runtime: params.runtime,
+    onError: params.onError,
+  });
+  if (tabId === null) {
+    return null;
+  }
   return await fetchSummaryTargetForTab({
     runtime: params.runtime,
-    tabId: tabIdResult.value,
+    tabId,
     onError: params.onError,
   });
 }

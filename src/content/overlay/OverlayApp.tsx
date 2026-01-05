@@ -326,6 +326,12 @@ type OverlayDragEndParams = OverlayDragBaseParams & {
   dragging: boolean;
 };
 
+type OverlayPinnedParams = {
+  pinned: boolean;
+  setPinned: StateSetter<boolean>;
+  setPinnedPos: StateSetter<Point | null>;
+};
+
 function startOverlayDrag(params: OverlayDragStartParams): void {
   if (params.event.button !== 0) {
     return;
@@ -349,15 +355,14 @@ function startOverlayDrag(params: OverlayDragStartParams): void {
   }
 }
 
-function moveOverlayDrag(params: {
-  event: React.PointerEvent<HTMLElement>;
-  pinned: boolean;
-  panel: HTMLDivElement | null;
-  dragging: boolean;
-  dragOffsetRef: React.MutableRefObject<DragOffset | null>;
-  setPinned: StateSetter<boolean>;
-  setPinnedPos: StateSetter<Point | null>;
-}): void {
+function moveOverlayDrag(
+  params: {
+    event: React.PointerEvent<HTMLElement>;
+    panel: HTMLDivElement | null;
+    dragging: boolean;
+    dragOffsetRef: React.MutableRefObject<DragOffset | null>;
+  } & OverlayPinnedParams
+): void {
   if (!params.dragging) {
     return;
   }
@@ -392,11 +397,7 @@ function endOverlayDrag(params: OverlayDragEndParams): void {
   }
 }
 
-function toggleOverlayPinned(params: {
-  pinned: boolean;
-  setPinned: StateSetter<boolean>;
-  setPinnedPos: StateSetter<Point | null>;
-}): void {
+function toggleOverlayPinned(params: OverlayPinnedParams): void {
   if (!params.pinned) {
     params.setPinned(true);
     params.setPinnedPos(null);
@@ -537,7 +538,7 @@ function OverlayEventDetails(
   );
 }
 
-type OverlayTextContentProps = {
+type OverlayTextBaseProps = {
   mode: OverlayViewModel["mode"];
   status: OverlayViewModel["status"];
   statusLabel: string;
@@ -549,7 +550,7 @@ type OverlayTextContentProps = {
   onCopyPrimary: () => void;
 };
 
-type OverlayTextDetailsProps = OverlayTextContentProps;
+type OverlayTextDetailsProps = OverlayTextBaseProps;
 
 function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {
   const isTokenError =
@@ -627,16 +628,7 @@ function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {
   );
 }
 
-type OverlayBodyProps = {
-  mode: OverlayViewModel["mode"];
-  status: OverlayViewModel["status"];
-  statusLabel: string;
-  canCopyPrimary: boolean;
-  primary: string;
-  secondaryText: string;
-  selectionText: string;
-  markdownView: boolean;
-  onCopyPrimary: () => void;
+type OverlayBodyProps = OverlayTextBaseProps & {
   readyEvent: ExtractedEvent | null;
   canOpenCalendar: boolean;
   canDownloadIcs: boolean;

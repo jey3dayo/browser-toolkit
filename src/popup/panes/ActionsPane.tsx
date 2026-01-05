@@ -23,7 +23,10 @@ import {
 } from "@/popup/token_guard";
 import { persistWithRollback } from "@/popup/utils/persist";
 import { coerceSummarySourceLabel } from "@/popup/utils/summary_source_label";
-import { fetchSummaryTargetForTab } from "@/popup/utils/summary_target";
+import {
+  fetchSummaryTargetForTab,
+  resolveActiveTabId,
+} from "@/popup/utils/summary_target";
 import type { Notifier } from "@/ui/toast";
 import { isRecord } from "@/utils/guards";
 
@@ -412,14 +415,11 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
     setOutput({ status: "running", title: action.title });
     setTarget(null);
 
-    const tabIdResult = await props.runtime.getActiveTabId();
-    if (Result.isFailure(tabIdResult)) {
-      reportError(tabIdResult.error);
-      return;
-    }
-    const tabId = tabIdResult.value;
+    const tabId = await resolveActiveTabId({
+      runtime: props.runtime,
+      onError: reportError,
+    });
     if (tabId === null) {
-      reportError("有効なタブが見つかりません");
       return;
     }
 
