@@ -680,6 +680,7 @@
 
 .mbu-overlay-primary-block--copy {
   position: relative;
+  display: block;
 }
 
 .mbu-overlay-primary-block--copy .mbu-overlay-primary-text {
