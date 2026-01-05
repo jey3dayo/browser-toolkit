@@ -539,6 +539,7 @@ function OverlayEventDetails(
 
 type OverlayTextContentProps = {
   mode: OverlayViewModel["mode"];
+  status: OverlayViewModel["status"];
   statusLabel: string;
   canCopyPrimary: boolean;
   primary: string;
@@ -551,14 +552,36 @@ type OverlayTextContentProps = {
 type OverlayTextDetailsProps = OverlayTextContentProps;
 
 function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {
+  const isTokenError =
+    props.status === "error" &&
+    (props.primary.includes("Token") ||
+      props.primary.includes("トークン") ||
+      props.primary.includes("未設定") ||
+      props.primary.includes("API Key"));
+
+  const openSettings = (): void => {
+    chrome.runtime
+      .sendMessage({ action: "openPopupSettings" })
+      .catch((error) => {
+        console.error("Failed to open settings:", error);
+      });
+  };
+
+  const showCopyButton = props.mode !== "event" && props.canCopyPrimary;
+  const primaryBlockClassName = [
+    "mbu-overlay-primary-block",
+    showCopyButton ? "mbu-overlay-primary-block--copy" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
   return (
     <>
       {props.statusLabel ? (
         <div className="mbu-overlay-status">{props.statusLabel}</div>
       ) : null}
-      <div className="mbu-overlay-primary-block">
+      <div className={primaryBlockClassName}>
         {props.markdownView ? (
-          <div className="mbu-overlay-primary-text mbu-overlay-primary-markdown">
+          <div className="mbu-overlay-primary-markdown mbu-overlay-primary-text">
             <ReactMarkdown
               components={{
                 a: ({ node: _node, ...linkProps }) => (
@@ -573,13 +596,25 @@ function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {
         ) : (
           <pre className="mbu-overlay-primary-text">{props.primary}</pre>
         )}
-        {props.mode === "event" || !props.canCopyPrimary ? null : (
+        {showCopyButton ? (
           <OverlayCopyButton
             disabled={!props.canCopyPrimary}
             onCopy={props.onCopyPrimary}
           />
-        )}
+        ) : null}
       </div>
+      {isTokenError ? (
+        <Button
+          aria-label="設定を開く"
+          className="mbu-overlay-action mbu-overlay-settings-link"
+          onClick={openSettings}
+          title="設定を開く"
+          type="button"
+        >
+          <Icon name="settings" size={16} />
+          設定を開く
+        </Button>
+      ) : null}
       {props.secondaryText ? (
         <pre className="mbu-overlay-secondary-text">{props.secondaryText}</pre>
       ) : null}
@@ -592,7 +627,16 @@ function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {
   );
 }
 
-type OverlayBodyProps = OverlayTextContentProps & {
+type OverlayBodyProps = {
+  mode: OverlayViewModel["mode"];
+  status: OverlayViewModel["status"];
+  statusLabel: string;
+  canCopyPrimary: boolean;
+  primary: string;
+  secondaryText: string;
+  selectionText: string;
+  markdownView: boolean;
+  onCopyPrimary: () => void;
   readyEvent: ExtractedEvent | null;
   canOpenCalendar: boolean;
   canDownloadIcs: boolean;
@@ -628,6 +672,7 @@ function OverlayBody(props: OverlayBodyProps): React.JSX.Element {
           primary={props.primary}
           secondaryText={props.secondaryText}
           selectionText={props.selectionText}
+          status={props.status}
           statusLabel={props.statusLabel}
         />
       )}
@@ -979,6 +1024,7 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
           readyEvent={readyEvent}
           secondaryText={secondaryText}
           selectionText={selectionText}
+          status={viewModel.status}
           statusLabel={statusLabel}
         />
       </div>

@@ -38,7 +38,8 @@ body {
         transparent
       ),
       transparent 28%
-    ), var(--color-bg);
+    ),
+    var(--color-bg);
 }
 
 body.is-extension {

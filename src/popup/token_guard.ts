@@ -1,11 +1,22 @@
 import { Result } from "@praha/byethrow";
 import type { LocalStorageData } from "@/storage/types";
 
+export type NotificationOptions = {
+  message: string;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
+};
+
 export type TokenGuardDeps = {
   storageLocalGet: (
     keys: (keyof LocalStorageData)[]
   ) => Result.ResultAsync<Partial<LocalStorageData>, string>;
-  showNotification: (message: string, type?: "info" | "error") => void;
+  showNotification: (
+    messageOrOptions: string | NotificationOptions,
+    type?: "info" | "error"
+  ) => void;
   navigateToPane: (paneId: string) => void;
   focusTokenInput: () => void;
 };
@@ -40,11 +51,18 @@ export async function ensureOpenAiTokenConfigured(
 
   if (Result.isFailure(tokenConfigured)) {
     deps.showNotification(
-      "OpenAI API Tokenが未設定です。「設定」タブで保存してください。",
+      {
+        message: "OpenAI API Tokenが未設定です",
+        action: {
+          label: "→ 設定を開く",
+          onClick: () => {
+            deps.navigateToPane("pane-settings");
+            deps.focusTokenInput();
+          },
+        },
+      },
       "error"
     );
-    deps.navigateToPane("pane-settings");
-    deps.focusTokenInput();
   }
 
   return tokenConfigured;
