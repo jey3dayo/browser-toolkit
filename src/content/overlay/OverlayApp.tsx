@@ -601,11 +601,14 @@ function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {
       </div>
       {isTokenError ? (
         <Button
+          aria-label="設定を開く"
           className="mbu-overlay-action mbu-overlay-settings-link"
           onClick={openSettings}
+          title="設定を開く"
           type="button"
         >
-          → 設定を開く
+          <Icon name="settings" size={16} />
+          設定を開く
         </Button>
       ) : null}
       {props.secondaryText ? (

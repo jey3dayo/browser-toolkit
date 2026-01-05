@@ -795,6 +795,10 @@
 }
 
 .mbu-overlay-settings-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   margin-top: 12px;
   padding: 8px 16px;
   border-radius: var(--primitive-radius-10);
@@ -802,7 +806,6 @@
   color: white;
   font-size: 13px;
   font-weight: 500;
-  text-align: center;
   transition: background 0.2s ease;
 }
 
