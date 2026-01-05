@@ -660,11 +660,13 @@ chrome.contextMenus.onClicked.addListener(
     }
 
     if (menuItemId === CONTEXT_MENU_SETTINGS_ID) {
-      chrome.tabs.create({
-        url: chrome.runtime.getURL("popup.html#pane-settings"),
-      }).catch(() => {
-        // no-op
-      });
+      chrome.tabs
+        .create({
+          url: chrome.runtime.getURL("popup.html#pane-settings"),
+        })
+        .catch(() => {
+          // no-op
+        });
       return;
     }
 
