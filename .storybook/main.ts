@@ -9,6 +9,11 @@ const dirname =
     ? __dirname
     : path.dirname(fileURLToPath(import.meta.url));
 const srcDir = path.resolve(dirname, "../src");
+const iconsDir = path.resolve(dirname, "../icons");
+const staticDirs = [{ from: "../images", to: "/images" }];
+if (fs.existsSync(iconsDir)) {
+  staticDirs.unshift({ from: "../icons", to: "/icons" });
+}
 const tomlAsText = (): Plugin => ({
   name: "toml-as-text",
   enforce: "pre",
@@ -32,10 +37,7 @@ const config: StorybookConfig = {
     "@storybook/addon-docs",
   ],
   framework: "@storybook/react-vite",
-  staticDirs: [
-    { from: "../icons", to: "/icons" },
-    { from: "../images", to: "/images" },
-  ],
+  staticDirs,
   viteFinal(viteConfig) {
     const plugins: Plugin[] = [];
     if (Array.isArray(viteConfig.plugins)) {

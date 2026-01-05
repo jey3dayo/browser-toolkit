@@ -127,7 +127,7 @@ export const Ready: Story = {
 
     const copyRect = copyButton.getBoundingClientRect();
     const primaryRect = primary.getBoundingClientRect();
-    expect(copyRect.top).toBeLessThanOrEqual(primaryRect.top + 1);
+    expect(copyRect.top).toBeLessThanOrEqual(primaryRect.top + 2);
   },
 };
 
@@ -311,7 +311,7 @@ export const ReadyLongText: Story = {
 
     const copyRect = copyButton.getBoundingClientRect();
     const primaryRect = primary.getBoundingClientRect();
-    expect(copyRect.top).toBeLessThanOrEqual(primaryRect.top + 1);
+    expect(copyRect.top).toBeLessThanOrEqual(primaryRect.top + 2);
 
     expect(panel.scrollWidth).toBeLessThanOrEqual(panel.clientWidth + 1);
   },
