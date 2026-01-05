@@ -878,7 +878,7 @@ async function handlePromptActionInMessage(
   target: SummaryTarget,
   action: ContextAction,
   sendResponse: (response: RunContextActionResponse) => void,
-  source?: "popup" | "contextMenu"
+  _source?: "popup" | "contextMenu"
 ): Promise<void> {
   const prompt = action.prompt.trim();
   if (!prompt) {
