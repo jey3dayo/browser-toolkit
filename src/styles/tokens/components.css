@@ -778,6 +778,26 @@
   font-size: 12px;
 }
 
+.mbu-overlay-settings-link {
+  margin-top: 12px;
+  padding: 8px 16px;
+  border-radius: var(--primitive-radius-10);
+  background: var(--primitive-color-blue-500);
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+  transition: background 0.2s ease;
+}
+
+.mbu-overlay-settings-link:hover {
+  background: var(--primitive-color-blue-600);
+}
+
+.mbu-overlay-settings-link:active {
+  background: var(--primitive-color-blue-700);
+}
+
 .mbu-overlay-event-table {
   width: 100%;
   border-collapse: separate;

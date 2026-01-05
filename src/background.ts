@@ -940,7 +940,8 @@ chrome.runtime.onMessage.addListener(
       | BackgroundRequest
       | { action: "summarizeText"; target: SummaryTarget }
       | { action: "testOpenAiToken"; token?: string }
-      | { action: "summarizeEvent"; target: SummaryTarget },
+      | { action: "summarizeEvent"; target: SummaryTarget }
+      | { action: "openPopupSettings" },
     _sender: chrome.runtime.MessageSender,
     sendResponse: (
       response?:
@@ -1079,6 +1080,20 @@ chrome.runtime.onMessage.addListener(
           });
         }
       );
+      return true;
+    }
+
+    if (request.action === "openPopupSettings") {
+      chrome.tabs
+        .create({
+          url: chrome.runtime.getURL("popup.html#pane-settings"),
+        })
+        .then(() => {
+          sendResponse({ ok: true });
+        })
+        .catch(() => {
+          sendResponse({ ok: false, error: "設定画面を開けませんでした" });
+        });
       return true;
     }
 

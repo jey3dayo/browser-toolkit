@@ -535,6 +535,7 @@ function OverlayEventDetails(
 
 type OverlayTextContentProps = {
   mode: OverlayViewModel["mode"];
+  status: OverlayViewModel["status"];
   statusLabel: string;
   canCopyPrimary: boolean;
   primary: string;
@@ -547,6 +548,21 @@ type OverlayTextContentProps = {
 type OverlayTextDetailsProps = OverlayTextContentProps;
 
 function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {
+  const isTokenError =
+    props.status === "error" &&
+    (props.primary.includes("Token") ||
+      props.primary.includes("トークン") ||
+      props.primary.includes("未設定") ||
+      props.primary.includes("API Key"));
+
+  const openSettings = (): void => {
+    chrome.runtime
+      .sendMessage({ action: "openPopupSettings" })
+      .catch((error) => {
+        console.error("Failed to open settings:", error);
+      });
+  };
+
   return (
     <>
       {props.statusLabel ? (
@@ -576,6 +592,15 @@ function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {
           />
         )}
       </div>
+      {isTokenError ? (
+        <Button
+          className="mbu-overlay-action mbu-overlay-settings-link"
+          onClick={openSettings}
+          type="button"
+        >
+          → 設定を開く
+        </Button>
+      ) : null}
       {props.secondaryText ? (
         <pre className="mbu-overlay-secondary-text">{props.secondaryText}</pre>
       ) : null}
@@ -588,7 +613,16 @@ function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {
   );
 }
 
-type OverlayBodyProps = OverlayTextContentProps & {
+type OverlayBodyProps = {
+  mode: OverlayViewModel["mode"];
+  status: OverlayViewModel["status"];
+  statusLabel: string;
+  canCopyPrimary: boolean;
+  primary: string;
+  secondaryText: string;
+  selectionText: string;
+  markdownView: boolean;
+  onCopyPrimary: () => void;
   readyEvent: ExtractedEvent | null;
   canOpenCalendar: boolean;
   canDownloadIcs: boolean;
@@ -624,6 +658,7 @@ function OverlayBody(props: OverlayBodyProps): React.JSX.Element {
           primary={props.primary}
           secondaryText={props.secondaryText}
           selectionText={props.selectionText}
+          status={props.status}
           statusLabel={props.statusLabel}
         />
       )}
@@ -975,6 +1010,7 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
           readyEvent={readyEvent}
           secondaryText={secondaryText}
           selectionText={selectionText}
+          status={viewModel.status}
           statusLabel={statusLabel}
         />
       </div>
