@@ -24,5 +24,5 @@ export function cleanupPopupTestHooks(): void {
   if (typeof hooks.unmount === "function") {
     hooks.unmount();
   }
-  delete hooks.unmount;
+  hooks.unmount = undefined;
 }
