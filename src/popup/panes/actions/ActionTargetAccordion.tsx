@@ -19,9 +19,7 @@ export function ActionTargetAccordion(props: Props): React.JSX.Element | null {
   }
 
   const label =
-    props.target.source === "selection"
-      ? "選択したテキスト（確認用）"
-      : "ページ本文（確認用）";
+    props.target.source === "selection" ? "選択したテキスト" : "ページ本文";
   const isTruncated = trimmed.length > MAX_PREVIEW_CHARS;
   const previewText = isTruncated
     ? `${trimmed.slice(0, MAX_PREVIEW_CHARS)}\n\n(以下省略)`

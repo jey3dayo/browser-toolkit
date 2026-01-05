@@ -531,7 +531,7 @@ function OverlayEventDetails(
       </table>
       <AuxTextDisclosure
         storageKey="overlaySelectionDisclosureOpen"
-        summary="選択したテキスト（確認用）"
+        summary="選択したテキスト"
         text={props.selectionText}
       />
     </>
@@ -621,7 +621,7 @@ function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {
       ) : null}
       <AuxTextDisclosure
         storageKey="overlaySelectionDisclosureOpen"
-        summary="選択したテキスト（確認用）"
+        summary="選択したテキスト"
         text={props.selectionText}
       />
     </>
