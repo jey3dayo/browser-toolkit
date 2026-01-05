@@ -573,16 +573,35 @@
   margin-left: auto;
   color: var(--mbu-text-muted);
   background: color-mix(in oklab, var(--mbu-surface) 96%, transparent);
+  opacity: 0.4;
   transition:
     background 140ms ease,
     border-color 140ms ease,
-    color 140ms ease;
+    color 140ms ease,
+    opacity 140ms ease,
+    width 140ms ease;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .mbu-overlay-copy:hover:not(:disabled) {
   border-color: color-mix(in oklab, var(--mbu-accent) 45%, var(--mbu-border));
   background: color-mix(in oklab, var(--mbu-accent) 10%, var(--mbu-surface));
   color: var(--mbu-text);
+  opacity: 1;
+  width: auto;
+  padding: 0 8px;
+}
+
+.mbu-overlay-copy::after {
+  content: "";
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.mbu-overlay-copy:hover:not(:disabled)::after {
+  content: "コピー";
 }
 
 .mbu-overlay-icon-button svg {
