@@ -44,9 +44,25 @@ describe("ensureOpenAiTokenConfigured", () => {
     }
 
     expect(showNotification).toHaveBeenCalledWith(
-      "OpenAI API Tokenが未設定です。「設定」タブで保存してください。",
+      {
+        message: "OpenAI API Tokenが未設定です",
+        action: {
+          label: "→ 設定を開く",
+          onClick: expect.any(Function),
+        },
+      },
       "error"
     );
+
+    // onClick が呼ばれる前は、navigateToPane と focusTokenInput は呼ばれていない
+    expect(navigateToPane).not.toHaveBeenCalled();
+    expect(focusTokenInput).not.toHaveBeenCalled();
+
+    // onClick を実行すると、navigateToPane と focusTokenInput が呼ばれる
+    const callArgs = showNotification.mock.calls[0][0];
+    if (typeof callArgs !== "string" && callArgs.action) {
+      callArgs.action.onClick();
+    }
     expect(navigateToPane).toHaveBeenCalledWith("pane-settings");
     expect(focusTokenInput).toHaveBeenCalled();
   });
