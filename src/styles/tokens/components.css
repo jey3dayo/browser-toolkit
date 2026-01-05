@@ -678,7 +678,7 @@
   min-width: 0;
 }
 
-.mbu-overlay-primary-block--copy {
+.mbu-overlay-primary-block.mbu-overlay-primary-block--copy {
   position: relative;
   display: block;
 }
