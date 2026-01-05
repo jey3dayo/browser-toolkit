@@ -669,8 +669,8 @@
 
 .mbu-overlay-primary-block--copy .mbu-overlay-copy {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 2px;
+  right: 2px;
   margin-left: 0;
   z-index: 1;
 }
