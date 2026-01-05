@@ -345,6 +345,27 @@
   overflow-wrap: anywhere;
 }
 
+.mbu-toast-action-link {
+  background: none;
+  border: none;
+  color: var(--primitive-color-blue-400);
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.mbu-toast-action-link:hover {
+  color: var(--primitive-color-blue-300);
+  text-decoration: none;
+}
+
+.mbu-toast-action-link:active {
+  color: var(--primitive-color-blue-500);
+}
+
 .mbu-toast-close {
   appearance: none;
   border: 0;

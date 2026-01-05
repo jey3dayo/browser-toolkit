@@ -17,7 +17,10 @@ import type {
   RunContextActionResponse,
   SummaryTarget,
 } from "@/popup/runtime";
-import { ensureOpenAiTokenConfigured } from "@/popup/token_guard";
+import {
+  ensureOpenAiTokenConfigured,
+  type NotificationOptions,
+} from "@/popup/token_guard";
 import { coerceSummarySourceLabel } from "@/popup/utils/summary_source_label";
 import { fetchSummaryTargetForTab } from "@/popup/utils/summary_target";
 import type { Notifier } from "@/ui/toast";
@@ -316,12 +319,35 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
   const ensureTokenReady = async (): Promise<boolean> => {
     const tokenConfigured = await ensureOpenAiTokenConfigured({
       storageLocalGet: (keys) => props.runtime.storageLocalGet(keys),
-      showNotification: (message, type) => {
-        if (type === "error") {
-          props.notify.error(message);
+      showNotification: (messageOrOptions, type) => {
+        if (typeof messageOrOptions === "string") {
+          const message: string = messageOrOptions;
+          if (type === "error") {
+            props.notify.error(message);
+            return;
+          }
+          props.notify.info(message);
           return;
         }
-        props.notify.info(message);
+
+        // NotificationOptions with action
+        const options: NotificationOptions = messageOrOptions;
+        if (type === "error") {
+          props.notify.error({
+            title: options.message,
+            description: options.action ? (
+              <button
+                className="mbu-toast-action-link"
+                onClick={options.action.onClick}
+                type="button"
+              >
+                {options.action.label}
+              </button>
+            ) : undefined,
+          });
+          return;
+        }
+        props.notify.info(options.message);
       },
       navigateToPane: (paneId) => {
         props.navigateToPane(paneId as PaneId);
