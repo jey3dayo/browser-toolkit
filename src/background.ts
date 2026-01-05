@@ -72,6 +72,7 @@ type BackgroundRequest =
       tabId: number;
       actionId: string;
       target?: SummaryTarget;
+      source?: "popup" | "contextMenu";
     };
 
 type BackgroundResponse =
@@ -849,10 +850,11 @@ async function loadCalendarTargets(): Promise<CalendarRegistrationTarget[]> {
 
 // Helper function for handling event actions in message listener
 async function handleEventActionInMessage(
-  _tabId: number,
+  tabId: number,
   target: SummaryTarget,
   action: ContextAction,
-  sendResponse: (response: RunContextActionResponse) => void
+  sendResponse: (response: RunContextActionResponse) => void,
+  source?: "popup" | "contextMenu"
 ): Promise<void> {
   const extraInstruction = action.prompt?.trim()
     ? renderInstructionTemplate(action.prompt, target)
@@ -860,6 +862,29 @@ async function handleEventActionInMessage(
   const result = await extractEventWithOpenAI(target, extraInstruction);
 
   if (!result.ok) {
+    // コンテキストメニューからの実行の場合はOS通知を表示
+    if (source === "contextMenu") {
+      await showErrorNotification({
+        title: `${action.title}に失敗しました`,
+        errorMessage: result.error,
+        hint: "OpenAI API Tokenが未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。",
+      });
+
+      const tokenHintBase =
+        "OpenAI API Token未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。";
+      await sendMessageToTab(tabId, {
+        action: "showActionOverlay",
+        status: "error",
+        mode: "event",
+        source: target.source,
+        title: action.title,
+        primary: result.error,
+        secondary: tokenHintBase,
+      }).catch(() => {
+        // no-op
+      });
+    }
+
     sendResponse(result);
     return;
   }
@@ -877,7 +902,8 @@ async function handleEventActionInMessage(
 async function handlePromptActionInMessage(
   target: SummaryTarget,
   action: ContextAction,
-  sendResponse: (response: RunContextActionResponse) => void
+  sendResponse: (response: RunContextActionResponse) => void,
+  source?: "popup" | "contextMenu"
 ): Promise<void> {
   const prompt = action.prompt.trim();
   if (!prompt) {
@@ -1024,10 +1050,16 @@ chrome.runtime.onMessage.addListener(
               request.tabId,
               target,
               action,
-              sendResponse
+              sendResponse,
+              request.source
             );
           } else {
-            await handlePromptActionInMessage(target, action, sendResponse);
+            await handlePromptActionInMessage(
+              target,
+              action,
+              sendResponse,
+              request.source
+            );
           }
         } catch (error) {
           sendResponse({

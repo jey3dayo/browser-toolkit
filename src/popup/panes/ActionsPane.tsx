@@ -359,7 +359,31 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
   };
 
   const reportError = (message: string): void => {
-    props.notify.error(message);
+    // トークン関連エラーの場合は「→ 設定を開く」リンク付きで表示
+    if (
+      message.includes("Token") ||
+      message.includes("トークン") ||
+      message.includes("未設定") ||
+      message.includes("API Key")
+    ) {
+      props.notify.error({
+        title: message,
+        description: (
+          <button
+            className="mbu-toast-action-link"
+            onClick={() => {
+              props.navigateToPane("pane-settings");
+              props.focusTokenInput();
+            }}
+            type="button"
+          >
+            → 設定を開く
+          </button>
+        ),
+      });
+    } else {
+      props.notify.error(message);
+    }
     setOutput({ status: "idle" });
   };
 
@@ -409,6 +433,7 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
       tabId,
       actionId,
       target: summaryTarget,
+      source: "popup",
     });
     if (Result.isFailure(responseUnknown)) {
       reportError(responseUnknown.error);
