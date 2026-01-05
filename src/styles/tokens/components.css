@@ -664,7 +664,7 @@
 }
 
 .mbu-overlay-primary-block--copy .mbu-overlay-primary-text {
-  padding-right: 34px;
+  padding-right: 0;
 }
 
 .mbu-overlay-primary-block--copy .mbu-overlay-copy {
