@@ -5,7 +5,7 @@ import { ScrollArea } from "@base-ui/react/scroll-area";
 import { Switch } from "@base-ui/react/switch";
 import { Tooltip } from "@base-ui/react/tooltip";
 import { Result } from "@praha/byethrow";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useState } from "react";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import type {
   DomainPatternConfig,
@@ -80,21 +80,16 @@ function normalizeDomainPatternConfigsForPopup(
 }
 
 export function TablePane(props: TablePaneProps): React.JSX.Element {
-  const [autoEnable, setAutoEnable] = useState(false);
   const [patterns, setPatterns] = useState<DomainPatternConfig[]>([]);
   const [patternInput, setPatternInput] = useState("");
-  const autoEnableLabelId = useId();
   const rowFilterTooltip =
     "0円・ハイフン・空白・N/A の行を非表示にします";
-  const autoEnableTooltip =
-    "URLパターンに一致したページで自動的にテーブルソートを有効化します";
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const data = await props.runtime.storageSyncGet([
         "domainPatternConfigs",
-        "autoEnableSort",
       ]);
       if (Result.isFailure(data)) {
         return;
@@ -102,7 +97,6 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
       if (cancelled) {
         return;
       }
-      setAutoEnable(Boolean(data.value.autoEnableSort));
       const configsResult = normalizeDomainPatternConfigsForPopup(data.value);
       if (Result.isSuccess(configsResult)) {
         setPatterns(configsResult.value);
@@ -137,18 +131,6 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
     }
 
     props.notify.success("テーブルソートを有効化しました");
-  };
-
-  const toggleAutoEnable = async (checked: boolean): Promise<void> => {
-    setAutoEnable(checked);
-    const saved = await props.runtime.storageSyncSet({
-      autoEnableSort: checked,
-    });
-    if (Result.isSuccess(saved)) {
-      return;
-    }
-    props.notify.error("保存に失敗しました");
-    setAutoEnable(!checked);
   };
 
   const togglePatternRowFilter = async (
@@ -246,27 +228,6 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
         >
           このタブで有効化
         </Button>
-      </div>
-
-      <div className="mbu-switch-field">
-        <span className="mbu-switch-text" id={autoEnableLabelId}>
-          自動で有効化する
-        </span>
-        <TooltipSwitch tooltip={autoEnableTooltip}>
-          <Switch.Root
-            aria-labelledby={autoEnableLabelId}
-            checked={autoEnable}
-            className="mbu-switch"
-            data-testid="auto-enable-sort"
-            onCheckedChange={(checked) => {
-              toggleAutoEnable(checked).catch(() => {
-                // no-op
-              });
-            }}
-          >
-            <Switch.Thumb className="mbu-switch-thumb" />
-          </Switch.Root>
-        </TooltipSwitch>
       </div>
 
       <div className="stack">

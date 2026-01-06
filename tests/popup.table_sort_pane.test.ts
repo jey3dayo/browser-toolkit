@@ -37,9 +37,6 @@ describe("popup Table Sort pane", () => {
             { pattern: "example.com/foo*", enableRowFilter: false },
           ];
         }
-        if (keyList.includes("autoEnableSort")) {
-          items.autoEnableSort = false;
-        }
         callback(items);
       }
     );
@@ -97,23 +94,6 @@ describe("popup Table Sort pane", () => {
     );
     expect(dom.window.document.body.textContent).toContain(
       "テーブルソートを有効化"
-    );
-  });
-
-  it("persists auto-enable toggle in sync storage", async () => {
-    const toggle = dom.window.document.querySelector<HTMLButtonElement>(
-      '[data-testid="auto-enable-sort"]'
-    );
-    expect(toggle).not.toBeNull();
-
-    await act(async () => {
-      toggle?.click();
-      await flush(dom.window);
-    });
-
-    expect(chromeStub.storage.sync.set).toHaveBeenCalledWith(
-      expect.objectContaining({ autoEnableSort: true }),
-      expect.any(Function)
     );
   });
 

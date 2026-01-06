@@ -19,7 +19,6 @@ export type DomainPatternConfig = {
 
 export type SyncStorageData = {
   domainPatternConfigs?: DomainPatternConfig[];
-  autoEnableSort?: boolean;
   contextActions?: ContextAction[];
   linkFormat?: LinkFormat;
   calendarTargets?: CalendarRegistrationTarget[];

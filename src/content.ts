@@ -28,7 +28,6 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
 (() => {
   type StorageData = {
     domainPatternConfigs?: DomainPatternConfig[];
-    autoEnableSort?: boolean;
   };
 
   type ContentRequest =
@@ -889,10 +888,8 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
 
   let tableConfig: {
     domainPatternConfigs: DomainPatternConfig[];
-    autoEnableSort: boolean;
   } = {
     domainPatternConfigs: [],
-    autoEnableSort: false,
   };
 
   /**
@@ -961,11 +958,6 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
   }
 
   function maybeEnableTableSortFromConfig(): void {
-    if (tableConfig.autoEnableSort) {
-      enableTableSort();
-      startTableObserver();
-      return;
-    }
     if (tableConfig.domainPatternConfigs.length > 0) {
       const patterns = tableConfig.domainPatternConfigs.map(
         (config) => config.pattern
@@ -981,7 +973,6 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
     try {
       const data = (await storageSyncGet([
         "domainPatternConfigs",
-        "autoEnableSort",
       ])) as StorageData;
 
       const configsResult = normalizeDomainPatternConfigs(data);
@@ -989,12 +980,10 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
         domainPatternConfigs: Result.isSuccess(configsResult)
           ? configsResult.value
           : [],
-        autoEnableSort: Boolean(data.autoEnableSort),
       };
     } catch {
       tableConfig = {
         domainPatternConfigs: [],
-        autoEnableSort: false,
       };
     }
   }
@@ -1017,7 +1006,7 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
     }
 
     const hasTableConfigChange =
-      "domainPatternConfigs" in changes || "autoEnableSort" in changes;
+      "domainPatternConfigs" in changes;
     if (!hasTableConfigChange) {
       return;
     }
