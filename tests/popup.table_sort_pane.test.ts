@@ -32,8 +32,10 @@ describe("popup Table Sort pane", () => {
         chromeStub.runtime.lastError = null;
         const keyList = Array.isArray(keys) ? keys : [String(keys)];
         const items: Record<string, unknown> = {};
-        if (keyList.includes("domainPatterns")) {
-          items.domainPatterns = ["example.com/foo*"];
+        if (keyList.includes("domainPatternConfigs")) {
+          items.domainPatternConfigs = [
+            { pattern: "example.com/foo*", enableRowFilter: false },
+          ];
         }
         if (keyList.includes("autoEnableSort")) {
           items.autoEnableSort = false;
@@ -135,9 +137,9 @@ describe("popup Table Sort pane", () => {
 
     expect(chromeStub.storage.sync.set).toHaveBeenCalledWith(
       expect.objectContaining({
-        domainPatterns: expect.arrayContaining([
-          "example.com/foo*",
-          "foo.com/*",
+        domainPatternConfigs: expect.arrayContaining([
+          { pattern: "example.com/foo*", enableRowFilter: false },
+          { pattern: "foo.com/*", enableRowFilter: false },
         ]),
       }),
       expect.any(Function)
@@ -154,8 +156,38 @@ describe("popup Table Sort pane", () => {
     });
 
     const lastCall = chromeStub.storage.sync.set.mock.calls.at(-1)?.[0] as
-      | { domainPatterns?: string[] }
+      | {
+          domainPatternConfigs?: Array<{
+            pattern: string;
+            enableRowFilter: boolean;
+          }>;
+        }
       | undefined;
-    expect(lastCall?.domainPatterns).toEqual(["foo.com/*"]);
+    expect(lastCall?.domainPatternConfigs).toEqual([
+      { pattern: "foo.com/*", enableRowFilter: false },
+    ]);
+  });
+
+  it("toggles row filter per pattern", async () => {
+    expect(dom.window.document.body.textContent).toContain("example.com/foo*");
+
+    const filterToggle = dom.window.document.querySelector<HTMLButtonElement>(
+      '[data-testid="row-filter-example.com/foo*"]'
+    );
+    expect(filterToggle).not.toBeNull();
+
+    await act(async () => {
+      filterToggle?.click();
+      await flush(dom.window);
+    });
+
+    expect(chromeStub.storage.sync.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        domainPatternConfigs: expect.arrayContaining([
+          { pattern: "example.com/foo*", enableRowFilter: true },
+        ]),
+      }),
+      expect.any(Function)
+    );
   });
 });

@@ -6,33 +6,84 @@ import { Switch } from "@base-ui/react/switch";
 import { Result } from "@praha/byethrow";
 import { useEffect, useId, useState } from "react";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
-import type { EnableTableSortMessage } from "@/popup/runtime";
+import type {
+  DomainPatternConfig,
+  EnableTableSortMessage,
+  SyncStorageData,
+} from "@/popup/runtime";
 import { persistWithRollback } from "@/popup/utils/persist";
 
 export type TablePaneProps = PopupPaneBaseProps;
 
-function normalizePatterns(value: unknown): string[] {
-  if (!Array.isArray(value)) {
-    return [];
+/**
+ * ストレージデータからDomainPatternConfig配列を正規化する（後方互換性対応）
+ * @param data - ストレージデータ
+ * @returns 成功時はDomainPatternConfig配列、失敗時はエラーメッセージ
+ */
+function normalizeDomainPatternConfigsForPopup(
+  data: Partial<SyncStorageData>
+): Result.Result<DomainPatternConfig[], string> {
+  // 1. domainPatternConfigsが存在する場合はバリデーション
+  if (data.domainPatternConfigs) {
+    if (!Array.isArray(data.domainPatternConfigs)) {
+      return Result.fail("domainPatternConfigs must be an array");
+    }
+
+    const configs: DomainPatternConfig[] = [];
+    for (const item of data.domainPatternConfigs) {
+      if (
+        typeof item !== "object" ||
+        item === null ||
+        typeof item.pattern !== "string" ||
+        typeof item.enableRowFilter !== "boolean"
+      ) {
+        return Result.fail("Invalid domainPatternConfig item format");
+      }
+      const pattern = item.pattern.trim();
+      if (!pattern) {
+        continue;
+      }
+      configs.push({
+        pattern,
+        enableRowFilter: item.enableRowFilter,
+      });
+    }
+    return Result.succeed(configs.slice(0, 200));
   }
-  return value
-    .map((item) => (typeof item === "string" ? item.trim() : ""))
-    .filter(Boolean)
-    .slice(0, 200);
+
+  // 2. 旧形式（domainPatterns）からの変換
+  if (data.domainPatterns) {
+    if (!Array.isArray(data.domainPatterns)) {
+      return Result.succeed([]);
+    }
+    const patterns = data.domainPatterns
+      .map((item) => (typeof item === "string" ? item.trim() : ""))
+      .filter(Boolean)
+      .slice(0, 200);
+    const enableRowFilter = Boolean(data.enableRowFilter);
+    return Result.succeed(
+      patterns.map((pattern) => ({
+        pattern,
+        enableRowFilter,
+      }))
+    );
+  }
+
+  // 3. 両方なし → 空配列
+  return Result.succeed([]);
 }
 
 export function TablePane(props: TablePaneProps): React.JSX.Element {
   const [autoEnable, setAutoEnable] = useState(false);
-  const [enableRowFilter, setEnableRowFilter] = useState(false);
-  const [patterns, setPatterns] = useState<string[]>([]);
+  const [patterns, setPatterns] = useState<DomainPatternConfig[]>([]);
   const [patternInput, setPatternInput] = useState("");
   const autoEnableLabelId = useId();
-  const rowFilterLabelId = useId();
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const data = await props.runtime.storageSyncGet([
+        "domainPatternConfigs",
         "domainPatterns",
         "autoEnableSort",
         "enableRowFilter",
@@ -44,8 +95,10 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
         return;
       }
       setAutoEnable(Boolean(data.value.autoEnableSort));
-      setEnableRowFilter(Boolean(data.value.enableRowFilter));
-      setPatterns(normalizePatterns(data.value.domainPatterns));
+      const configsResult = normalizeDomainPatternConfigsForPopup(data.value);
+      if (Result.isSuccess(configsResult)) {
+        setPatterns(configsResult.value);
+      }
     })().catch(() => {
       // no-op
     });
@@ -91,17 +144,31 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
     setAutoEnable(!checked);
   };
 
-  const toggleRowFilter = async (checked: boolean): Promise<void> => {
-    setEnableRowFilter(checked);
-    const saved = await props.runtime.storageSyncSet({
-      enableRowFilter: checked,
+  const togglePatternRowFilter = async (
+    pattern: string,
+    checked: boolean
+  ): Promise<void> => {
+    const next = patterns.map((config) =>
+      config.pattern === pattern
+        ? { ...config, enableRowFilter: checked }
+        : config
+    );
+    await persistWithRollback({
+      applyNext: () => {
+        setPatterns(next);
+      },
+      rollback: () => {
+        setPatterns(patterns);
+      },
+      persist: () =>
+        props.runtime.storageSyncSet({ domainPatternConfigs: next }),
+      onSuccess: () => {
+        props.notify.success("保存しました");
+      },
+      onFailure: () => {
+        props.notify.error("保存に失敗しました");
+      },
     });
-    if (Result.isSuccess(saved)) {
-      props.notify.success("保存しました");
-      return;
-    }
-    props.notify.error("保存に失敗しました");
-    setEnableRowFilter(!checked);
   };
 
   const addPattern = async (): Promise<void> => {
@@ -110,13 +177,16 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
       props.notify.error("パターンを入力してください");
       return;
     }
-    if (patterns.includes(raw)) {
+    if (patterns.some((config) => config.pattern === raw)) {
       props.notify.info("既に追加されています");
       setPatternInput("");
       return;
     }
 
-    const next = [...patterns, raw];
+    const next: DomainPatternConfig[] = [
+      ...patterns,
+      { pattern: raw, enableRowFilter: false },
+    ];
     await persistWithRollback({
       applyNext: () => {
         setPatterns(next);
@@ -125,7 +195,8 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
       rollback: () => {
         setPatterns(patterns);
       },
-      persist: () => props.runtime.storageSyncSet({ domainPatterns: next }),
+      persist: () =>
+        props.runtime.storageSyncSet({ domainPatternConfigs: next }),
       onSuccess: () => {
         props.notify.success("追加しました");
       },
@@ -136,7 +207,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
   };
 
   const removePattern = async (pattern: string): Promise<void> => {
-    const next = patterns.filter((item) => item !== pattern);
+    const next = patterns.filter((config) => config.pattern !== pattern);
     await persistWithRollback({
       applyNext: () => {
         setPatterns(next);
@@ -144,7 +215,8 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
       rollback: () => {
         setPatterns(patterns);
       },
-      persist: () => props.runtime.storageSyncSet({ domainPatterns: next }),
+      persist: () =>
+        props.runtime.storageSyncSet({ domainPatternConfigs: next }),
       onSuccess: () => {
         props.notify.success("削除しました");
       },
@@ -191,32 +263,12 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
         </Switch.Root>
       </div>
 
-      <div className="mbu-switch-field">
-        <span className="mbu-switch-text" id={rowFilterLabelId}>
-          行フィルタリングを有効化
-        </span>
-        <Switch.Root
-          aria-labelledby={rowFilterLabelId}
-          checked={enableRowFilter}
-          className="mbu-switch"
-          data-testid="enable-row-filter"
-          onCheckedChange={(checked) => {
-            toggleRowFilter(checked).catch(() => {
-              // no-op
-            });
-          }}
-        >
-          <Switch.Thumb className="mbu-switch-thumb" />
-        </Switch.Root>
-      </div>
-
-      <div className="hint">
-        ソート時に0円、ハイフン（-）、空白、N/A の行を自動的に非表示にします
-      </div>
-
       <div className="stack">
         <div className="hint">
           URLパターン（<code>*</code>ワイルドカード対応 / protocolは無視）
+        </div>
+        <div className="hint">
+          各パターンごとに行フィルタリング（0円、ハイフン、空白、N/Aを非表示）を有効化できます
         </div>
         <Form
           className="pattern-input-group"
@@ -256,23 +308,42 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
                   aria-label="登録済みパターン"
                   className="pattern-list-inner"
                 >
-                  {patterns.map((pattern) => (
-                    <li className="pattern-item" key={pattern}>
-                      <code className="pattern-text">{pattern}</code>
-                      <Button
-                        className="btn-delete"
-                        data-pattern-remove={pattern}
-                        onClick={() => {
-                          removePattern(pattern).catch(() => {
-                            // no-op
-                          });
-                        }}
-                        type="button"
-                      >
-                        削除
-                      </Button>
-                    </li>
-                  ))}
+                  {patterns.map((config) => {
+                    const filterLabelId = `filter-${config.pattern}`;
+                    return (
+                      <li className="pattern-item" key={config.pattern}>
+                        <code className="pattern-text">{config.pattern}</code>
+                        <Switch.Root
+                          aria-label={`${config.pattern}の行フィルタリング`}
+                          checked={config.enableRowFilter}
+                          className="mbu-switch"
+                          data-testid={`row-filter-${config.pattern}`}
+                          onCheckedChange={(checked) => {
+                            togglePatternRowFilter(
+                              config.pattern,
+                              checked
+                            ).catch(() => {
+                              // no-op
+                            });
+                          }}
+                        >
+                          <Switch.Thumb className="mbu-switch-thumb" />
+                        </Switch.Root>
+                        <Button
+                          className="btn-delete"
+                          data-pattern-remove={config.pattern}
+                          onClick={() => {
+                            removePattern(config.pattern).catch(() => {
+                              // no-op
+                            });
+                          }}
+                          type="button"
+                        >
+                          削除
+                        </Button>
+                      </li>
+                    );
+                  })}
                 </ul>
               </ScrollArea.Content>
             </ScrollArea.Viewport>

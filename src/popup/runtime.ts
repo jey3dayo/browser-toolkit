@@ -9,10 +9,19 @@ import type { LocalStorageData } from "@/storage/types";
 import { toErrorMessage } from "@/utils/errors";
 import type { LinkFormat } from "@/utils/link_format";
 
+/**
+ * URLパターンとその設定
+ */
+export type DomainPatternConfig = {
+  pattern: string;
+  enableRowFilter: boolean;
+};
+
 export type SyncStorageData = {
-  domainPatterns?: string[];
+  domainPatternConfigs?: DomainPatternConfig[];
+  domainPatterns?: string[]; // 後方互換性
   autoEnableSort?: boolean;
-  enableRowFilter?: boolean;
+  enableRowFilter?: boolean; // 後方互換性
   contextActions?: ContextAction[];
   linkFormat?: LinkFormat;
   calendarTargets?: CalendarRegistrationTarget[];
