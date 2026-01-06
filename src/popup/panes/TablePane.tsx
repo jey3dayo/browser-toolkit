@@ -16,7 +16,7 @@ import { persistWithRollback } from "@/popup/utils/persist";
 export type TablePaneProps = PopupPaneBaseProps;
 
 /**
- * ストレージデータからDomainPatternConfig配列を正規化する（後方互換性対応）
+ * ストレージデータからDomainPatternConfig配列を正規化する
  * @param data - ストレージデータ
  * @returns 成功時はDomainPatternConfig配列、失敗時はエラーメッセージ
  */
@@ -51,25 +51,7 @@ function normalizeDomainPatternConfigsForPopup(
     return Result.succeed(configs.slice(0, 200));
   }
 
-  // 2. 旧形式（domainPatterns）からの変換
-  if (data.domainPatterns) {
-    if (!Array.isArray(data.domainPatterns)) {
-      return Result.succeed([]);
-    }
-    const patterns = data.domainPatterns
-      .map((item) => (typeof item === "string" ? item.trim() : ""))
-      .filter(Boolean)
-      .slice(0, 200);
-    const enableRowFilter = Boolean(data.enableRowFilter);
-    return Result.succeed(
-      patterns.map((pattern) => ({
-        pattern,
-        enableRowFilter,
-      }))
-    );
-  }
-
-  // 3. 両方なし → 空配列
+  // 2. 未設定 → 空配列
   return Result.succeed([]);
 }
 
@@ -84,9 +66,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
     (async () => {
       const data = await props.runtime.storageSyncGet([
         "domainPatternConfigs",
-        "domainPatterns",
         "autoEnableSort",
-        "enableRowFilter",
       ]);
       if (Result.isFailure(data)) {
         return;
@@ -308,42 +288,38 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
                   aria-label="登録済みパターン"
                   className="pattern-list-inner"
                 >
-                  {patterns.map((config) => {
-                    const filterLabelId = `filter-${config.pattern}`;
-                    return (
-                      <li className="pattern-item" key={config.pattern}>
-                        <code className="pattern-text">{config.pattern}</code>
-                        <Switch.Root
-                          aria-label={`${config.pattern}の行フィルタリング`}
-                          checked={config.enableRowFilter}
-                          className="mbu-switch"
-                          data-testid={`row-filter-${config.pattern}`}
-                          onCheckedChange={(checked) => {
-                            togglePatternRowFilter(
-                              config.pattern,
-                              checked
-                            ).catch(() => {
+                  {patterns.map((config) => (
+                    <li className="pattern-item" key={config.pattern}>
+                      <code className="pattern-text">{config.pattern}</code>
+                      <Switch.Root
+                        aria-label={`${config.pattern}の行フィルタリング`}
+                        checked={config.enableRowFilter}
+                        className="mbu-switch"
+                        data-testid={`row-filter-${config.pattern}`}
+                        onCheckedChange={(checked) => {
+                          togglePatternRowFilter(config.pattern, checked).catch(
+                            () => {
                               // no-op
-                            });
-                          }}
-                        >
-                          <Switch.Thumb className="mbu-switch-thumb" />
-                        </Switch.Root>
-                        <Button
-                          className="btn-delete"
-                          data-pattern-remove={config.pattern}
-                          onClick={() => {
-                            removePattern(config.pattern).catch(() => {
-                              // no-op
-                            });
-                          }}
-                          type="button"
-                        >
-                          削除
-                        </Button>
-                      </li>
-                    );
-                  })}
+                            }
+                          );
+                        }}
+                      >
+                        <Switch.Thumb className="mbu-switch-thumb" />
+                      </Switch.Root>
+                      <Button
+                        className="btn-delete"
+                        data-pattern-remove={config.pattern}
+                        onClick={() => {
+                          removePattern(config.pattern).catch(() => {
+                            // no-op
+                          });
+                        }}
+                        type="button"
+                      >
+                        削除
+                      </Button>
+                    </li>
+                  ))}
                 </ul>
               </ScrollArea.Content>
             </ScrollArea.Viewport>

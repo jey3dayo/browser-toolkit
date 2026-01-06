@@ -19,9 +19,7 @@ export type DomainPatternConfig = {
 
 export type SyncStorageData = {
   domainPatternConfigs?: DomainPatternConfig[];
-  domainPatterns?: string[]; // 後方互換性
   autoEnableSort?: boolean;
-  enableRowFilter?: boolean; // 後方互換性
   contextActions?: ContextAction[];
   linkFormat?: LinkFormat;
   calendarTargets?: CalendarRegistrationTarget[];

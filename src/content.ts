@@ -28,9 +28,7 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
 (() => {
   type StorageData = {
     domainPatternConfigs?: DomainPatternConfig[];
-    domainPatterns?: string[]; // 後方互換性
     autoEnableSort?: boolean;
-    enableRowFilter?: boolean; // 後方互換性（グローバル設定）
   };
 
   type ContentRequest =
@@ -897,17 +895,8 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
     autoEnableSort: false,
   };
 
-  function normalizePatterns(value: unknown): string[] {
-    if (!Array.isArray(value)) {
-      return [];
-    }
-    return value
-      .map((item) => (typeof item === "string" ? item.trim() : ""))
-      .filter(Boolean);
-  }
-
   /**
-   * ストレージデータからDomainPatternConfig配列を正規化する（後方互換性対応）
+   * ストレージデータからDomainPatternConfig配列を正規化する
    * @param data - ストレージデータ
    * @returns 成功時はDomainPatternConfig配列、失敗時はエラーメッセージ
    */
@@ -942,19 +931,7 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
       return Result.succeed(configs);
     }
 
-    // 2. 旧形式（domainPatterns）からの変換
-    if (data.domainPatterns) {
-      const patterns = normalizePatterns(data.domainPatterns);
-      const enableRowFilter = Boolean(data.enableRowFilter);
-      return Result.succeed(
-        patterns.map((pattern) => ({
-          pattern,
-          enableRowFilter,
-        }))
-      );
-    }
-
-    // 3. 両方なし → 空配列
+    // 2. 未設定 → 空配列
     return Result.succeed([]);
   }
 
@@ -1004,9 +981,7 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
     try {
       const data = (await storageSyncGet([
         "domainPatternConfigs",
-        "domainPatterns",
         "autoEnableSort",
-        "enableRowFilter",
       ])) as StorageData;
 
       const configsResult = normalizeDomainPatternConfigs(data);
@@ -1042,10 +1017,7 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
     }
 
     const hasTableConfigChange =
-      "domainPatternConfigs" in changes ||
-      "domainPatterns" in changes ||
-      "autoEnableSort" in changes ||
-      "enableRowFilter" in changes;
+      "domainPatternConfigs" in changes || "autoEnableSort" in changes;
     if (!hasTableConfigChange) {
       return;
     }

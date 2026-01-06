@@ -25,7 +25,7 @@ type Story = StoryObj<typeof meta>;
 export const Basic: Story = {
   args: {
     runtime: createStoryPopupRuntime({
-      sync: { autoEnableSort: false, domainPatterns: [] },
+      sync: { autoEnableSort: false, domainPatternConfigs: [] },
       activeTabId: 1,
     }),
     notify: { info: fn(), success: fn(), error: fn() },
