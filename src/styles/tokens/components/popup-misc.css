@@ -1,0 +1,196 @@
+.pattern-list {
+  max-height: 240px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  margin: 0;
+  position: relative;
+}
+
+.pattern-scrollarea {
+  position: relative;
+}
+
+.pattern-list-inner {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pattern-scrollbar {
+  display: flex;
+  justify-content: center;
+  width: 0.35rem;
+  border-radius: 999px;
+  margin: 0.5rem;
+  opacity: 0;
+  transition: opacity 150ms;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.pattern-scrollbar[data-scrolling] {
+  transition-duration: 0ms;
+}
+
+.pattern-scrollbar[data-hovering],
+.pattern-scrollbar[data-scrolling] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.pattern-thumb {
+  width: 100%;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.38);
+}
+
+.pattern-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  margin-bottom: 8px;
+  background: var(--panel-soft);
+  border-radius: 10px;
+}
+
+.pattern-item:last-child {
+  margin-bottom: 0;
+}
+
+.pattern-text {
+  word-break: break-all;
+}
+
+.btn-delete {
+  border: none;
+  background: color-mix(
+    in oklab,
+    var(--color-danger) var(--accent-mix-14),
+    transparent
+  );
+  color: color-mix(in oklab, var(--color-danger) 65%, var(--color-text));
+  padding: var(--button-padding-sm);
+  border-radius: var(--button-radius-sm);
+  cursor: pointer;
+}
+
+.btn-delete:disabled,
+.btn-delete[data-disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-delete:hover:not(:disabled):not([data-disabled]) {
+  background: color-mix(in oklab, var(--color-danger) 25%, transparent);
+}
+
+.bullet-list {
+  margin: 0;
+  padding-left: 16px;
+  color: var(--text-sub);
+  line-height: 1.6;
+}
+
+.token-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 8px 0 6px;
+}
+
+.token-row-main {
+  flex-wrap: nowrap;
+}
+
+.token-row-actions {
+  margin-top: 10px;
+}
+
+.prompt-input {
+  width: 100%;
+  min-height: 110px;
+  padding: 12px;
+  border-radius: var(--input-radius);
+  border: var(--input-border);
+  background: var(--input-bg);
+  color: var(--input-text);
+  font: inherit;
+  resize: vertical;
+  line-height: 1.5;
+  font-size: 13px;
+}
+
+.prompt-input::placeholder {
+  color: var(--input-placeholder);
+}
+
+.summary-output {
+  width: 100%;
+  min-height: 160px;
+  padding: 12px;
+  border-radius: var(--input-radius);
+  border: var(--input-border);
+  background: var(--input-bg);
+  color: var(--input-text);
+  font: inherit;
+  resize: vertical;
+  line-height: 1.5;
+  font-size: 13px;
+}
+
+.summary-output--sm {
+  min-height: 120px;
+}
+
+.summary-output::placeholder {
+  color: var(--input-placeholder);
+}
+
+.field-label {
+  display: block;
+  margin-top: 8px;
+  margin-bottom: 4px;
+  color: var(--text-sub);
+}
+
+.hint {
+  margin: 0;
+  color: var(--text-sub);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+input[type="checkbox"] {
+  accent-color: var(--color-primary);
+}
+
+.btn-delete:active {
+  background-color: var(--color-danger);
+}
+
+.empty-message {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-sub);
+  line-height: 1.5;
+}
+
+.mbu-build-error {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 2147483647;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(229, 57, 53, 0.92);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+}
