@@ -1,0 +1,250 @@
+/* ========================================
+ * Overlay Component (Content Script)
+ * ====================================== */
+
+/* Overlay panel */
+.mbu-overlay-panel {
+  width: min(520px, calc(100vw - 32px));
+  max-height: min(60vh, 720px);
+  background: var(--mbu-surface);
+  color: var(--mbu-text);
+  border: 1px solid var(--mbu-border);
+  border-radius: var(--mbu-radius);
+  box-shadow: var(--mbu-shadow);
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.mbu-overlay-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  background: color-mix(in oklab, var(--mbu-surface-2) 75%, transparent);
+  border-bottom: 1px solid var(--mbu-border);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.mbu-overlay-header[data-dragging="true"] {
+  cursor: grabbing;
+}
+
+.mbu-overlay-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.mbu-overlay-title {
+  font-size: 13px;
+  font-weight: 750;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mbu-overlay-chip {
+  margin-left: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--mbu-border);
+  background: color-mix(in oklab, var(--mbu-surface) 60%, transparent);
+  color: var(--mbu-text-muted);
+  font-weight: 650;
+}
+
+.mbu-overlay-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.mbu-overlay-popover {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.mbu-overlay-popover-content {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 180px;
+  max-width: min(240px, 70vw);
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--mbu-border);
+  background: color-mix(in oklab, var(--mbu-surface) 94%, transparent);
+  color: var(--mbu-text);
+  box-shadow: var(--mbu-shadow);
+  font-size: 11px;
+  line-height: 1.4;
+  opacity: 0;
+  transform: translateY(-4px) scale(0.98);
+  pointer-events: none;
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease;
+  z-index: 2;
+}
+
+.mbu-overlay-popover-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.mbu-overlay-popover-text {
+  color: var(--mbu-text-muted);
+}
+
+.mbu-overlay-popover:hover .mbu-overlay-popover-content,
+.mbu-overlay-popover:focus-within .mbu-overlay-popover-content {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.mbu-overlay-action {
+  appearance: none;
+  border: 1px solid var(--mbu-border);
+  background: color-mix(in oklab, var(--mbu-surface) 92%, transparent);
+  color: var(--mbu-text);
+  border-radius: 10px;
+  height: 32px;
+  padding: 0 10px;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.mbu-overlay-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Overlay icon buttons */
+.mbu-overlay-icon-button {
+  width: 32px;
+  padding: 0;
+  flex: 0 0 auto;
+}
+
+/* Overlay copy button */
+.mbu-overlay-copy {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  margin-left: auto;
+  padding-left: 4px; /* Visual centering for copy icon */
+  color: var(--mbu-text-muted);
+  background: color-mix(in oklab, var(--mbu-surface) 96%, transparent);
+  opacity: 0.4;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    opacity 140ms ease,
+    width 140ms ease;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.mbu-overlay-copy:hover:not(:disabled) {
+  border-color: color-mix(in oklab, var(--mbu-accent) 45%, var(--mbu-border));
+  background: color-mix(in oklab, var(--mbu-accent) 10%, var(--mbu-surface));
+  color: var(--mbu-text);
+  opacity: 1;
+  width: auto;
+  padding: 0 8px;
+}
+
+.mbu-overlay-copy::after {
+  content: "";
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.mbu-overlay-copy:hover:not(:disabled)::after {
+  content: "コピー";
+}
+
+.mbu-overlay-icon-button svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mbu-overlay-icon-button.mbu-overlay-copy svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2;
+}
+
+.mbu-overlay-icon-button[data-active="true"] {
+  border-color: color-mix(in oklab, var(--mbu-accent) 55%, var(--mbu-border));
+  background: color-mix(in oklab, var(--mbu-accent) 14%, var(--mbu-surface));
+}
+
+.mbu-overlay-primary {
+  border-color: color-mix(in oklab, var(--mbu-accent) 55%, var(--mbu-border));
+  background: color-mix(in oklab, var(--mbu-accent) 14%, var(--mbu-surface));
+}
+
+.mbu-overlay-drag {
+  appearance: none;
+  border: 1px solid var(--mbu-border);
+  background: color-mix(in oklab, var(--mbu-surface) 85%, transparent);
+  color: var(--mbu-text);
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 10px;
+  cursor: grab;
+  touch-action: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.mbu-overlay-drag:active {
+  cursor: grabbing;
+}
+
+.mbu-overlay-body {
+  padding: 12px;
+  overflow: auto;
+  display: grid;
+  gap: 10px;
+}
+
+.mbu-overlay-body-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}

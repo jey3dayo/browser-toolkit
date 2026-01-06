@@ -1,4 +1,13 @@
-import componentsCss from "@/styles/tokens/components.css?raw";
+import componentAccordionCss from "@/styles/tokens/components/accordion.css?raw";
+import componentBaseCss from "@/styles/tokens/components/base-ui.css?raw";
+import componentOverlayContentCss from "@/styles/tokens/components/overlay-content.css?raw";
+import componentOverlayShellCss from "@/styles/tokens/components/overlay-shell.css?raw";
+import componentPopupCss from "@/styles/tokens/components/popup.css?raw";
+import componentPopupControlsCss from "@/styles/tokens/components/popup-controls.css?raw";
+import componentPopupLayoutCss from "@/styles/tokens/components/popup-layout.css?raw";
+import componentPopupMiscCss from "@/styles/tokens/components/popup-misc.css?raw";
+import componentToastCss from "@/styles/tokens/components/toast.css?raw";
+import componentTokensCss from "@/styles/tokens/components/tokens.css?raw";
 import primitivesCss from "@/styles/tokens/primitives.css?raw";
 import semanticCss from "@/styles/tokens/semantic.css?raw";
 
@@ -18,6 +27,19 @@ const POPUP_LAYOUT_PATH = "layout.css";
 const POPUP_UTILITIES_PATH = "utilities.css";
 const POPUP_STYLE_ROOT_DEV = "src/styles";
 const POPUP_STYLE_ROOT_DIST = "dist/styles";
+
+const componentsCss = [
+  componentTokensCss,
+  componentBaseCss,
+  componentToastCss,
+  componentOverlayShellCss,
+  componentOverlayContentCss,
+  componentPopupCss,
+  componentAccordionCss,
+  componentPopupLayoutCss,
+  componentPopupControlsCss,
+  componentPopupMiscCss,
+].join("\n");
 
 function resolveStyleHref(path: string): string {
   try {

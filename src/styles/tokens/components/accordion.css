@@ -1,0 +1,136 @@
+/* ========================================
+ * Accordion Component
+ * ====================================== */
+
+.mbu-accordion {
+  display: grid;
+  gap: 8px;
+}
+
+.mbu-accordion-item {
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.mbu-accordion-header {
+  margin: 0;
+}
+
+.mbu-accordion-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.mbu-accordion-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.mbu-accordion-icon {
+  font-size: 12px;
+  transition: transform 0.2s ease;
+}
+
+.mbu-accordion-trigger[aria-expanded="true"] .mbu-accordion-icon {
+  transform: rotate(180deg);
+}
+
+.mbu-accordion-panel {
+  padding: 0 12px 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.mbu-accordion-meta,
+.mbu-accordion-note {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-sub);
+  line-height: 1.4;
+}
+
+.mbu-accordion-text {
+  min-height: 96px;
+}
+
+/* Accordion text wrapper (position: relative container) */
+.mbu-accordion-text-wrapper {
+  position: relative;
+}
+
+/* Copy button */
+.mbu-accordion-copy-btn {
+  /* Positioning */
+  position: absolute;
+  top: 8px;
+  right: 8px;
+
+  /* Layout */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+
+  /* Appearance */
+  border: none;
+  border-radius: var(--primitive-radius-10);
+  background: color-mix(in oklab, var(--panel) 90%, transparent);
+  backdrop-filter: blur(8px);
+  color: var(--text-sub);
+
+  /* Shadow */
+  box-shadow:
+    0 0 0 1px var(--line),
+    0 2px 8px rgba(0, 0, 0, 0.08);
+
+  /* Interaction */
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.2s ease,
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.08s ease;
+}
+
+/* Show button on wrapper hover */
+.mbu-accordion-text-wrapper:hover .mbu-accordion-copy-btn {
+  opacity: 1;
+}
+
+/* Button hover state */
+.mbu-accordion-copy-btn:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--panel) 100%, transparent);
+  color: var(--text);
+  transform: scale(1.05);
+}
+
+/* Button active state */
+.mbu-accordion-copy-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Button focus state (keyboard navigation) */
+.mbu-accordion-copy-btn:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--primitive-color-blue-500);
+  outline-offset: 2px;
+}
+
+/* Button disabled state */
+.mbu-accordion-copy-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}

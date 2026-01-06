@@ -1,0 +1,338 @@
+import { Result } from "@praha/byethrow";
+import { normalizeEvent } from "@/background/calendar";
+import { storageLocalGet, storageLocalGetTyped } from "@/background/storage";
+import type { BackgroundResponse, SummaryTarget } from "@/background/types";
+import { loadOpenAiModel, loadOpenAiSettings } from "@/openai/settings";
+import type { ExtractedEvent } from "@/shared_types";
+import type { LocalStorageData } from "@/storage/types";
+import { toErrorMessage } from "@/utils/errors";
+import { safeParseJsonObject } from "@/utils/json";
+import {
+  fetchOpenAiChatCompletionOk,
+  fetchOpenAiChatCompletionText,
+} from "@/utils/openai";
+
+const MAX_INPUT_CHARS = 20_000;
+
+function clipInputText(rawText: string): string {
+  const trimmed = rawText.trim();
+  if (!trimmed) {
+    return "";
+  }
+  if (trimmed.length <= MAX_INPUT_CHARS) {
+    return trimmed;
+  }
+  return `${trimmed.slice(0, MAX_INPUT_CHARS)}\n\n(以下略)`;
+}
+
+function buildTitleUrlMeta(
+  target: SummaryTarget,
+  options?: { includeMissing?: boolean }
+): string {
+  const title = target.title?.trim() || "";
+  const url = target.url?.trim() || "";
+
+  if (!(title || url)) {
+    return "";
+  }
+
+  if (options?.includeMissing) {
+    return `\n\n---\nタイトル: ${title || "-"}\nURL: ${url || "-"}`;
+  }
+
+  const metaLines: string[] = [];
+  if (title) {
+    metaLines.push(`タイトル: ${title}`);
+  }
+  if (url) {
+    metaLines.push(`URL: ${url}`);
+  }
+  return metaLines.length > 0 ? `\n\n---\n${metaLines.join("\n")}` : "";
+}
+
+function applyTemplateVariables(
+  template: string,
+  variables: Record<string, string>
+): string {
+  let rendered = template;
+  for (const [key, value] of Object.entries(variables)) {
+    rendered = rendered.split(`{{${key}}}`).join(value);
+  }
+  return rendered;
+}
+
+export async function summarizeWithOpenAI(
+  target: SummaryTarget
+): Promise<BackgroundResponse> {
+  const settingsResult = await loadOpenAiSettings(storageLocalGetTyped);
+  if (Result.isFailure(settingsResult)) {
+    return { ok: false, error: settingsResult.error };
+  }
+  const settings = settingsResult.value;
+
+  const clippedText = clipInputText(target.text);
+  if (!clippedText) {
+    return { ok: false, error: "要約対象のテキストが見つかりませんでした" };
+  }
+
+  const meta = buildTitleUrlMeta(target, { includeMissing: true });
+
+  const body = {
+    model: settings.model,
+    temperature: 0.2,
+    messages: [
+      {
+        role: "system",
+        content: [
+          "あなたは日本語の要約アシスタントです。入力テキストを読み、要点を短く整理して出力してください。",
+          settings.customPrompt
+            ? `\n\nユーザーの追加指示:\n${settings.customPrompt}`
+            : "",
+        ]
+          .join("")
+          .trim(),
+      },
+      {
+        role: "user",
+        content: [
+          "次のテキストを日本語で要約してください。",
+          "",
+          "要件:",
+          "- 重要ポイントを箇条書き(3〜7個)",
+          "- 最後に一文で結論/要約",
+          "- 事実と推測を混同しない",
+          "",
+          clippedText + meta,
+        ].join("\n"),
+      },
+    ],
+  };
+
+  const summaryResult = await fetchOpenAiChatCompletionText(
+    fetch,
+    settings.token,
+    body,
+    "要約結果の取得に失敗しました"
+  );
+  if (Result.isFailure(summaryResult)) {
+    return { ok: false, error: summaryResult.error };
+  }
+
+  return { ok: true, summary: summaryResult.value, source: target.source };
+}
+
+export async function runPromptActionWithOpenAI(
+  target: SummaryTarget,
+  promptTemplate: string
+): Promise<Result.Result<string, string>> {
+  const settingsResult = await loadOpenAiSettings(storageLocalGetTyped);
+  if (Result.isFailure(settingsResult)) {
+    return Result.fail(settingsResult.error);
+  }
+  const settings = settingsResult.value;
+
+  const clippedText = clipInputText(target.text);
+  if (!clippedText) {
+    return Result.fail("対象のテキストが見つかりませんでした");
+  }
+
+  const meta = buildTitleUrlMeta(target);
+
+  const variables: Record<string, string> = {
+    text: clippedText,
+    title: target.title ?? "",
+    url: target.url ?? "",
+    source: target.source,
+  };
+
+  const rendered = applyTemplateVariables(promptTemplate, variables);
+
+  const needsText = !promptTemplate.includes("{{text}}");
+  const needsMeta = !(
+    promptTemplate.includes("{{title}}") || promptTemplate.includes("{{url}}")
+  );
+  const userContent = [
+    rendered.trim(),
+    needsText ? `\n\n${clippedText}` : "",
+    needsMeta ? meta : "",
+  ]
+    .join("")
+    .trim();
+
+  const body = {
+    model: settings.model,
+    temperature: 0.2,
+    messages: [
+      {
+        role: "system",
+        content: [
+          "あなたはユーザーの「Context Action」を実行するアシスタントです。指示に従い、必要な結果だけを簡潔に出力してください。",
+          settings.customPrompt
+            ? `\n\nユーザーの追加指示:\n${settings.customPrompt}`
+            : "",
+        ]
+          .join("")
+          .trim(),
+      },
+      { role: "user", content: userContent },
+    ],
+  };
+
+  const textResult = await fetchOpenAiChatCompletionText(
+    fetch,
+    settings.token,
+    body,
+    "結果の取得に失敗しました"
+  );
+  return textResult;
+}
+
+export function renderInstructionTemplate(
+  template: string,
+  target: SummaryTarget
+): string {
+  const raw = template.trim();
+  if (!raw) {
+    return "";
+  }
+  const shortText = target.text.trim().slice(0, 1200);
+  const variables: Record<string, string> = {
+    text: shortText,
+    title: target.title ?? "",
+    url: target.url ?? "",
+    source: target.source,
+  };
+
+  return applyTemplateVariables(raw, variables).trim();
+}
+
+async function resolveOpenAiToken(
+  tokenOverride?: string
+): Promise<Result.Result<string, string>> {
+  const overrideToken = tokenOverride?.trim() ?? "";
+  if (overrideToken) {
+    return Result.succeed(overrideToken);
+  }
+
+  try {
+    const data = (await storageLocalGet([
+      "openaiApiToken",
+    ])) as LocalStorageData;
+    const storedToken = data.openaiApiToken?.trim() ?? "";
+    if (!storedToken) {
+      return Result.fail(
+        "OpenAI API Tokenが未設定です（ポップアップの「設定」タブで設定してください）"
+      );
+    }
+    return Result.succeed(storedToken);
+  } catch (error) {
+    return Result.fail(
+      toErrorMessage(error, "OpenAI設定の読み込みに失敗しました")
+    );
+  }
+}
+
+export async function testOpenAiToken(
+  tokenOverride?: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const tokenResult = await resolveOpenAiToken(tokenOverride);
+  if (Result.isFailure(tokenResult)) {
+    return { ok: false, error: tokenResult.error };
+  }
+
+  const checkResult = await fetchOpenAiChatCompletionOk(
+    fetch,
+    tokenResult.value,
+    {
+      model: await loadOpenAiModel(storageLocalGetTyped),
+      max_completion_tokens: 5,
+      temperature: 0,
+      messages: [
+        { role: "system", content: "You are a health check bot." },
+        { role: "user", content: "Reply with OK." },
+      ],
+    }
+  );
+
+  if (Result.isFailure(checkResult)) {
+    return { ok: false, error: checkResult.error };
+  }
+
+  return { ok: true };
+}
+
+export async function extractEventWithOpenAI(
+  target: SummaryTarget,
+  extraInstruction?: string
+): Promise<{ ok: true; event: ExtractedEvent } | { ok: false; error: string }> {
+  const settingsResult = await loadOpenAiSettings(storageLocalGetTyped);
+  if (Result.isFailure(settingsResult)) {
+    return { ok: false, error: settingsResult.error };
+  }
+  const settings = settingsResult.value;
+
+  const clippedText = clipInputText(target.text);
+  if (!clippedText) {
+    return { ok: false, error: "要約対象のテキストが見つかりませんでした" };
+  }
+
+  const meta = buildTitleUrlMeta(target, { includeMissing: true });
+
+  const body = {
+    model: settings.model,
+    temperature: 0.2,
+    response_format: { type: "json_object" },
+    messages: [
+      {
+        role: "system",
+        content: [
+          "あなたはイベント抽出アシスタントです。入力テキストから、カレンダー登録に必要な情報を抽出してください。",
+          "出力は必ずJSONのみ。コードフェンス禁止。キーは title,start,end,allDay,location,description を使う。",
+          "start/end はISO 8601 (例: 2025-01-31T19:00:00+09:00) を優先。難しければ YYYY-MM-DD HH:mm でもOK。",
+          "YYYY/MM/DD や「2025年1月31日 19:00」のような表記は避けてください。",
+          "日付しか不明な場合は YYYY-MM-DD でOK。",
+          "end が不明なら省略可。allDay は終日なら true、それ以外は false または省略。",
+          "description はイベントの概要を日本語で短くまとめる。",
+          settings.customPrompt
+            ? `\n\nユーザーの追加指示（descriptionの文体に反映）:\n${settings.customPrompt}`
+            : "",
+          extraInstruction?.trim()
+            ? `\n\nこのアクションの追加指示:\n${extraInstruction.trim()}`
+            : "",
+        ]
+          .join("\n")
+          .trim(),
+      },
+      {
+        role: "user",
+        content: [
+          "次のテキストからイベント情報を抽出し、JSONで返してください。",
+          "",
+          clippedText + meta,
+        ].join("\n"),
+      },
+    ],
+  };
+
+  const contentResult = await fetchOpenAiChatCompletionText(
+    fetch,
+    settings.token,
+    body,
+    "イベント要約結果の取得に失敗しました"
+  );
+  if (Result.isFailure(contentResult)) {
+    return { ok: false, error: contentResult.error };
+  }
+
+  const eventResult = safeParseJsonObject<ExtractedEvent>(contentResult.value);
+  if (Result.isFailure(eventResult)) {
+    return { ok: false, error: "イベント情報の解析に失敗しました" };
+  }
+
+  const event = eventResult.value;
+  if (typeof event.title !== "string" || typeof event.start !== "string") {
+    return { ok: false, error: "イベント情報の解析に失敗しました" };
+  }
+
+  return { ok: true, event: normalizeEvent(event) };
+}

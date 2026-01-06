@@ -1,0 +1,181 @@
+/* ========================================
+ * Popup Component Styles
+ * ====================================== */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+}
+
+.chip-outline {
+  border: 1px solid color-mix(in oklab, var(--color-primary) 60%, transparent);
+  color: var(--color-primary);
+  background: color-mix(
+    in oklab,
+    var(--color-primary) var(--accent-mix-8),
+    transparent
+  );
+}
+
+.chip-soft {
+  background: color-mix(
+    in oklab,
+    var(--color-primary-2) var(--accent-mix-15),
+    transparent
+  );
+  color: color-mix(in oklab, var(--color-primary-2) 65%, var(--color-text));
+}
+
+.cta-pill {
+  font: inherit;
+  padding: var(--button-padding);
+  border-radius: var(--button-radius);
+  background: var(--button-bg-primary);
+  color: var(--button-text-primary);
+  font-weight: var(--button-font-weight);
+  letter-spacing: 0.4px;
+  border: none;
+  cursor: pointer;
+  appearance: none;
+}
+
+.cta-pill:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.cta-pill:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.pane {
+  display: none;
+  gap: 14px;
+  flex-direction: column;
+  flex: 0 0 auto;
+}
+
+.pane.active {
+  display: flex;
+}
+
+body.no-js .pane:target {
+  display: flex;
+}
+
+body.no-js:has(.pane:target) .pane.active:not(:target) {
+  display: none;
+}
+
+.pane-title {
+  margin: 0;
+  font-size: 16px;
+}
+
+.mbu-fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
+}
+
+.mbu-fieldset > legend {
+  padding: 0;
+}
+
+.mbu-fieldset-legend {
+  padding: 0;
+  margin: 0 0 6px;
+  font-size: 12px;
+  opacity: 0.9;
+  color: var(--text-sub);
+}
+
+.mbu-separator {
+  width: 100%;
+  height: 1px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field-name {
+  font-size: 12px;
+  opacity: 0.9;
+  color: var(--text-sub);
+}
+
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mbu-popover-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: color-mix(in oklab, var(--panel) 70%, transparent);
+  color: var(--text-sub);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.mbu-popover-trigger:hover {
+  background: color-mix(in oklab, var(--panel) 85%, transparent);
+  color: var(--text);
+}
+
+.mbu-popover-trigger:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--color-primary) 70%, white);
+  outline-offset: 2px;
+}
+
+.mbu-popover-positioner {
+  z-index: 20;
+}
+
+.mbu-popover {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 10px 12px;
+  display: grid;
+  gap: 6px;
+  width: min(260px, 70vw);
+}
+
+.mbu-popover-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.mbu-popover-description {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-sub);
+}
+
+.output-panel {
+  display: grid;
+  gap: 10px;
+}
