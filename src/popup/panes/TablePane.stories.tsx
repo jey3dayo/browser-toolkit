@@ -41,9 +41,6 @@ export const Basic: Story = {
     });
 
     await userEvent.click(canvas.getByTestId("auto-enable-sort"));
-    await waitFor(() => {
-      expect(args.notify.success).toHaveBeenCalledWith("保存しました");
-    });
 
     await userEvent.type(
       canvas.getByTestId("pattern-input"),

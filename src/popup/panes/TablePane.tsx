@@ -3,6 +3,7 @@ import { Form } from "@base-ui/react/form";
 import { Input } from "@base-ui/react/input";
 import { ScrollArea } from "@base-ui/react/scroll-area";
 import { Switch } from "@base-ui/react/switch";
+import { Tooltip } from "@base-ui/react/tooltip";
 import { Result } from "@praha/byethrow";
 import { useEffect, useId, useState } from "react";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
@@ -14,6 +15,29 @@ import type {
 import { persistWithRollback } from "@/popup/utils/persist";
 
 export type TablePaneProps = PopupPaneBaseProps;
+
+type TooltipSwitchProps = {
+  tooltip: string;
+  children: React.ReactElement;
+};
+
+function TooltipSwitch(props: TooltipSwitchProps): React.JSX.Element {
+  return (
+    <Tooltip.Root>
+      <Tooltip.Trigger render={props.children} />
+      <Tooltip.Portal>
+        <Tooltip.Positioner
+          className="mbu-tooltip-positioner"
+          sideOffset={6}
+        >
+          <Tooltip.Popup className="mbu-tooltip">
+            {props.tooltip}
+          </Tooltip.Popup>
+        </Tooltip.Positioner>
+      </Tooltip.Portal>
+    </Tooltip.Root>
+  );
+}
 
 /**
  * ストレージデータからDomainPatternConfig配列を正規化する
@@ -60,6 +84,10 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
   const [patterns, setPatterns] = useState<DomainPatternConfig[]>([]);
   const [patternInput, setPatternInput] = useState("");
   const autoEnableLabelId = useId();
+  const rowFilterTooltip =
+    "0円・ハイフン・空白・N/A の行を非表示にします";
+  const autoEnableTooltip =
+    "URLパターンに一致したページで自動的にテーブルソートを有効化します";
 
   useEffect(() => {
     let cancelled = false;
@@ -117,7 +145,6 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
       autoEnableSort: checked,
     });
     if (Result.isSuccess(saved)) {
-      props.notify.success("保存しました");
       return;
     }
     props.notify.error("保存に失敗しました");
@@ -142,9 +169,6 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
       },
       persist: () =>
         props.runtime.storageSyncSet({ domainPatternConfigs: next }),
-      onSuccess: () => {
-        props.notify.success("保存しました");
-      },
       onFailure: () => {
         props.notify.error("保存に失敗しました");
       },
@@ -228,19 +252,21 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
         <span className="mbu-switch-text" id={autoEnableLabelId}>
           自動で有効化する
         </span>
-        <Switch.Root
-          aria-labelledby={autoEnableLabelId}
-          checked={autoEnable}
-          className="mbu-switch"
-          data-testid="auto-enable-sort"
-          onCheckedChange={(checked) => {
-            toggleAutoEnable(checked).catch(() => {
-              // no-op
-            });
-          }}
-        >
-          <Switch.Thumb className="mbu-switch-thumb" />
-        </Switch.Root>
+        <TooltipSwitch tooltip={autoEnableTooltip}>
+          <Switch.Root
+            aria-labelledby={autoEnableLabelId}
+            checked={autoEnable}
+            className="mbu-switch"
+            data-testid="auto-enable-sort"
+            onCheckedChange={(checked) => {
+              toggleAutoEnable(checked).catch(() => {
+                // no-op
+              });
+            }}
+          >
+            <Switch.Thumb className="mbu-switch-thumb" />
+          </Switch.Root>
+        </TooltipSwitch>
       </div>
 
       <div className="stack">
@@ -291,21 +317,24 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
                   {patterns.map((config) => (
                     <li className="pattern-item" key={config.pattern}>
                       <code className="pattern-text">{config.pattern}</code>
-                      <Switch.Root
-                        aria-label={`${config.pattern}の行フィルタリング`}
-                        checked={config.enableRowFilter}
-                        className="mbu-switch"
-                        data-testid={`row-filter-${config.pattern}`}
-                        onCheckedChange={(checked) => {
-                          togglePatternRowFilter(config.pattern, checked).catch(
-                            () => {
+                      <TooltipSwitch tooltip={rowFilterTooltip}>
+                        <Switch.Root
+                          aria-label={`${config.pattern}の行フィルタリング`}
+                          checked={config.enableRowFilter}
+                          className="mbu-switch"
+                          data-testid={`row-filter-${config.pattern}`}
+                          onCheckedChange={(checked) => {
+                            togglePatternRowFilter(
+                              config.pattern,
+                              checked
+                            ).catch(() => {
                               // no-op
-                            }
-                          );
-                        }}
-                      >
-                        <Switch.Thumb className="mbu-switch-thumb" />
-                      </Switch.Root>
+                            });
+                          }}
+                        >
+                          <Switch.Thumb className="mbu-switch-thumb" />
+                        </Switch.Root>
+                      </TooltipSwitch>
                       <Button
                         className="btn-delete"
                         data-pattern-remove={config.pattern}
