@@ -12,6 +12,7 @@ import type { LinkFormat } from "@/utils/link_format";
 export type SyncStorageData = {
   domainPatterns?: string[];
   autoEnableSort?: boolean;
+  enableRowFilter?: boolean;
   contextActions?: ContextAction[];
   linkFormat?: LinkFormat;
   calendarTargets?: CalendarRegistrationTarget[];

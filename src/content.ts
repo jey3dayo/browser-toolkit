@@ -16,6 +16,7 @@ import {
   type ToastManager,
 } from "@/ui/toast";
 import { parseNumericValue } from "@/utils/number_parser";
+import { shouldHideRow } from "@/utils/row_filter";
 
 // Regex patterns at module level for performance (lint/performance/useTopLevelRegex)
 const QUERY_OR_HASH_REGEX = /[?#]/;
@@ -26,6 +27,7 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
   type StorageData = {
     domainPatterns?: string[];
     autoEnableSort?: boolean;
+    enableRowFilter?: boolean;
   };
 
   type ContentRequest =
@@ -237,6 +239,12 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
     const isAscending = table.dataset.sortOrder !== "asc";
     table.dataset.sortOrder = isAscending ? "asc" : "desc";
 
+    // Step 1: 全行を表示状態に復元（フィルタリングのリセット）
+    for (const row of rows) {
+      row.style.display = "";
+    }
+
+    // Step 2: ソート実行
     rows.sort((a, b) => {
       const aCell = a.cells[columnIndex]?.textContent?.trim() ?? "";
       const bCell = b.cells[columnIndex]?.textContent?.trim() ?? "";
@@ -255,6 +263,36 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
 
     for (const row of rows) {
       targetBody.appendChild(row);
+    }
+
+    // Step 3: フィルタリング適用（設定が有効な場合）
+    applyRowFiltering(rows, columnIndex);
+  }
+
+  /**
+   * 行フィルタリングを適用する
+   * @param rows - フィルタリング対象の行配列
+   * @param columnIndex - フィルタリング対象の列インデックス
+   */
+  function applyRowFiltering(
+    rows: HTMLTableRowElement[],
+    columnIndex: number
+  ): void {
+    // tableConfig.enableRowFilterがtrueの場合のみ適用
+    if (!tableConfig.enableRowFilter) {
+      return;
+    }
+
+    for (const row of rows) {
+      const cell = row.cells[columnIndex];
+      if (!cell) {
+        continue;
+      }
+
+      const cellText = cell.textContent?.trim() ?? "";
+      if (shouldHideRow(cellText, parseNumericValue)) {
+        row.style.display = "none";
+      }
     }
   }
 
@@ -841,9 +879,14 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
   // 7. 自動実行ロジック（SPA URL変化も含む）
   // ========================================
 
-  let tableConfig: { domainPatterns: string[]; autoEnableSort: boolean } = {
+  let tableConfig: {
+    domainPatterns: string[];
+    autoEnableSort: boolean;
+    enableRowFilter: boolean;
+  } = {
     domainPatterns: [],
     autoEnableSort: false,
+    enableRowFilter: false,
   };
 
   function normalizePatterns(value: unknown): string[] {
@@ -875,13 +918,19 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
       const data = (await storageSyncGet([
         "domainPatterns",
         "autoEnableSort",
+        "enableRowFilter",
       ])) as StorageData;
       tableConfig = {
         domainPatterns: normalizePatterns(data.domainPatterns),
         autoEnableSort: Boolean(data.autoEnableSort),
+        enableRowFilter: Boolean(data.enableRowFilter),
       };
     } catch {
-      tableConfig = { domainPatterns: [], autoEnableSort: false };
+      tableConfig = {
+        domainPatterns: [],
+        autoEnableSort: false,
+        enableRowFilter: false,
+      };
     }
   }
 
@@ -903,7 +952,9 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
     }
 
     const hasTableConfigChange =
-      "domainPatterns" in changes || "autoEnableSort" in changes;
+      "domainPatterns" in changes ||
+      "autoEnableSort" in changes ||
+      "enableRowFilter" in changes;
     if (!hasTableConfigChange) {
       return;
     }

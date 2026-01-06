@@ -23,9 +23,11 @@ function normalizePatterns(value: unknown): string[] {
 
 export function TablePane(props: TablePaneProps): React.JSX.Element {
   const [autoEnable, setAutoEnable] = useState(false);
+  const [enableRowFilter, setEnableRowFilter] = useState(false);
   const [patterns, setPatterns] = useState<string[]>([]);
   const [patternInput, setPatternInput] = useState("");
   const autoEnableLabelId = useId();
+  const rowFilterLabelId = useId();
 
   useEffect(() => {
     let cancelled = false;
@@ -33,6 +35,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
       const data = await props.runtime.storageSyncGet([
         "domainPatterns",
         "autoEnableSort",
+        "enableRowFilter",
       ]);
       if (Result.isFailure(data)) {
         return;
@@ -41,6 +44,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
         return;
       }
       setAutoEnable(Boolean(data.value.autoEnableSort));
+      setEnableRowFilter(Boolean(data.value.enableRowFilter));
       setPatterns(normalizePatterns(data.value.domainPatterns));
     })().catch(() => {
       // no-op
@@ -85,6 +89,19 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
     }
     props.notify.error("保存に失敗しました");
     setAutoEnable(!checked);
+  };
+
+  const toggleRowFilter = async (checked: boolean): Promise<void> => {
+    setEnableRowFilter(checked);
+    const saved = await props.runtime.storageSyncSet({
+      enableRowFilter: checked,
+    });
+    if (Result.isSuccess(saved)) {
+      props.notify.success("保存しました");
+      return;
+    }
+    props.notify.error("保存に失敗しました");
+    setEnableRowFilter(!checked);
   };
 
   const addPattern = async (): Promise<void> => {
@@ -172,6 +189,29 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
         >
           <Switch.Thumb className="mbu-switch-thumb" />
         </Switch.Root>
+      </div>
+
+      <div className="mbu-switch-field">
+        <span className="mbu-switch-text" id={rowFilterLabelId}>
+          行フィルタリングを有効化
+        </span>
+        <Switch.Root
+          aria-labelledby={rowFilterLabelId}
+          checked={enableRowFilter}
+          className="mbu-switch"
+          data-testid="enable-row-filter"
+          onCheckedChange={(checked) => {
+            toggleRowFilter(checked).catch(() => {
+              // no-op
+            });
+          }}
+        >
+          <Switch.Thumb className="mbu-switch-thumb" />
+        </Switch.Root>
+      </div>
+
+      <div className="hint">
+        ソート時に0円、ハイフン（-）、空白、N/A の行を自動的に非表示にします
       </div>
 
       <div className="stack">
