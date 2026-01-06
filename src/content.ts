@@ -15,6 +15,7 @@ import {
   ToastHost,
   type ToastManager,
 } from "@/ui/toast";
+import { parseNumericValue } from "@/utils/number_parser";
 
 // Regex patterns at module level for performance (lint/performance/useTopLevelRegex)
 const QUERY_OR_HASH_REGEX = /[?#]/;
@@ -163,6 +164,7 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
   type ContentTestHooks = {
     patternToRegex?: (pattern: string) => RegExp;
     matchesAnyPattern?: (patterns: string[]) => boolean;
+    parseNumericValue?: (text: string) => number;
   };
 
   const testHooks = (
@@ -171,6 +173,7 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
   if (testHooks) {
     testHooks.patternToRegex = patternToRegex;
     testHooks.matchesAnyPattern = matchesAnyPattern;
+    testHooks.parseNumericValue = parseNumericValue;
   }
 
   // 2回目以降の初期化では副作用を追加しない（idempotent）
@@ -238,8 +241,8 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
       const aCell = a.cells[columnIndex]?.textContent?.trim() ?? "";
       const bCell = b.cells[columnIndex]?.textContent?.trim() ?? "";
 
-      const aNum = Number.parseFloat(aCell);
-      const bNum = Number.parseFloat(bCell);
+      const aNum = parseNumericValue(aCell);
+      const bNum = parseNumericValue(bCell);
 
       if (!(Number.isNaN(aNum) || Number.isNaN(bNum))) {
         return isAscending ? aNum - bNum : bNum - aNum;
