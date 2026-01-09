@@ -1,35 +1,49 @@
 // Content Script - Webページに注入される
 
 import { Result } from "@praha/byethrow";
-import { createElement } from "react";
-import { createRoot, type Root } from "react-dom/client";
-import {
-  OverlayApp,
-  type OverlayViewModel,
-} from "@/content/overlay/OverlayApp";
 import type { DomainPatternConfig } from "@/popup/runtime";
 import type { ExtractedEvent, SummarySource } from "@/shared_types";
-import { ensureShadowUiBaseStyles } from "@/ui/styles";
+import { storageLocalGet, storageLocalSet } from "@/storage/helpers";
 import { applyTheme, isTheme, type Theme } from "@/ui/theme";
 import {
-  createNotifications,
-  type Notifier,
-  ToastHost,
-  type ToastManager,
-} from "@/ui/toast";
+  matchesAnyPattern,
+  patternToRegex,
+} from "@/content/url-pattern";
 import { parseNumericValue } from "@/utils/number_parser";
-import { shouldHideRow } from "@/utils/row_filter";
-
-// Regex patterns at module level for performance (lint/performance/useTopLevelRegex)
-const QUERY_OR_HASH_REGEX = /[?#]/;
-const HTTP_PROTOCOL_REGEX = /^https?:\/\//;
-const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
+import {
+  enableTableSort,
+  sortTable as sortTableCore,
+} from "@/content/table-sort";
+import {
+  startTableObserver,
+  stopTableObserver,
+} from "@/content/table-observer";
+import {
+  ensureToastMount,
+  showNotification as showNotificationCore,
+  type ToastMount,
+} from "@/content/notification";
+import { copyToClipboardWithNotification } from "@/content/clipboard";
+import {
+  getSummaryTargetText,
+  type SummaryTarget,
+} from "@/content/summary-target";
+import {
+  getCurrentPatternRowFilterSetting as getPatternRowFilterSetting,
+  refreshTableConfig,
+} from "@/content/config";
+import {
+  ensureOverlayMount,
+  closeOverlay,
+  showActionOverlay as showActionOverlayCore,
+  showSummaryOverlay as showSummaryOverlayCore,
+  resetSummarizeOverlayTitleState,
+  type OverlayMount,
+  type ActionOverlayRequest,
+  type SummaryOverlayRequest,
+} from "@/content/overlay-helpers";
 
 (() => {
-  type StorageData = {
-    domainPatternConfigs?: DomainPatternConfig[];
-    domainPatterns?: string[];
-  };
 
   type ContentRequest =
     | { action: "enableTableSort" }
@@ -56,33 +70,7 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
         event?: ExtractedEvent;
       };
 
-  type SummaryTarget = {
-    text: string;
-    source: SummarySource;
-    title: string;
-    url: string;
-  };
 
-  const OVERLAY_HOST_ID = "browser-toolkit-overlay";
-  const OVERLAY_ROOT_ID = "mtk-overlay-react-root";
-
-  const TOAST_HOST_ID = "browser-toolkit-toast-host";
-  const TOAST_ROOT_ID = "mtk-toast-react-root";
-  const ROW_HIDDEN_BY_EXTENSION_DATASET_KEY = "mbuHiddenByExtension";
-
-  type OverlayMount = {
-    host: HTMLDivElement;
-    shadow: ShadowRoot;
-    root: Root;
-  };
-
-  type ToastMount = {
-    host: HTMLDivElement;
-    shadow: ShadowRoot;
-    root: Root;
-    toastManager: ToastManager;
-    notify: Notifier;
-  };
 
   type GlobalContentState = {
     initialized: boolean;
@@ -118,10 +106,10 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
   }
 
   async function refreshThemeFromStorage(): Promise<void> {
-    try {
-      const data = (await storageLocalGet(["theme"])) as { theme?: unknown };
-      currentTheme = normalizeTheme(data.theme);
-    } catch {
+    const result = await storageLocalGet<{ theme?: unknown }>(["theme"]);
+    if (Result.isSuccess(result)) {
+      currentTheme = normalizeTheme(result.value.theme);
+    } else {
       currentTheme = "auto";
     }
     applyThemeToMounts(currentTheme);
@@ -130,40 +118,7 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
   // ========================================
   // 1. ユーティリティ関数（URLパターン）
   // ========================================
-
-  function patternToRegex(pattern: string): RegExp {
-    const escaped = pattern
-      .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
-      .replace(/\*/g, ".*");
-
-    const shouldAllowQueryHashSuffix = !QUERY_OR_HASH_REGEX.test(pattern);
-    const allowOptionalTrailingSlash =
-      shouldAllowQueryHashSuffix &&
-      !pattern.endsWith("/") &&
-      !pattern.includes("*");
-
-    const optionalTrailingSlash = allowOptionalTrailingSlash ? "(?:/)?" : "";
-    const optionalQueryHashSuffix = shouldAllowQueryHashSuffix
-      ? "(?:[?#].*)?"
-      : "";
-
-    return new RegExp(
-      `^${escaped}${optionalTrailingSlash}${optionalQueryHashSuffix}$`
-    );
-  }
-
-  function matchesAnyPattern(patterns: string[]): boolean {
-    const urlWithoutProtocol = window.location.href.replace(
-      HTTP_PROTOCOL_REGEX,
-      ""
-    );
-
-    return patterns.some((pattern) => {
-      const patternWithoutProtocol = pattern.replace(HTTP_PROTOCOL_REGEX, "");
-      const regex = patternToRegex(patternWithoutProtocol);
-      return regex.test(urlWithoutProtocol);
-    });
-  }
+  // → @/content/url-pattern に移動
 
   type ContentTestHooks = {
     patternToRegex?: (pattern: string) => RegExp;
@@ -190,184 +145,50 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
   });
 
   // ========================================
-  // 2. テーブルソート機能
+  // 2. テーブルソート機能（モジュール化済み）
   // ========================================
 
-  let tableObserver: MutationObserver | null = null;
-
-  function enableSingleTable(table: HTMLTableElement): void {
-    if (table.dataset.sortable) {
-      return;
-    }
-
-    table.dataset.sortable = "true";
-    const headers = table.querySelectorAll<HTMLTableCellElement>("th");
-
-    let headerIndex = 0;
-    for (const header of headers) {
-      const columnIndex = headerIndex;
-      header.style.cursor = "pointer";
-      header.style.userSelect = "none";
-      header.title = "クリックでソート";
-
-      header.addEventListener("click", () => {
-        sortTable(table, columnIndex);
-      });
-      headerIndex += 1;
-    }
-  }
-
-  function enableTableSort(): void {
-    const tables = document.querySelectorAll<HTMLTableElement>("table");
-
-    for (const table of tables) {
-      enableSingleTable(table);
-    }
-
-    if (tables.length > 0) {
-      showNotification(`${tables.length}個のテーブルでソートを有効化しました`);
-    }
+  function getCurrentPatternRowFilterSetting(): Result.Result<boolean, string> {
+    return getPatternRowFilterSetting(
+      tableConfig.domainPatternConfigs,
+      window.location.href
+    );
   }
 
   function sortTable(table: HTMLTableElement, columnIndex: number): void {
-    const tbody = table.querySelector(
-      "tbody"
-    ) as HTMLTableSectionElement | null;
-    const targetBody = tbody ?? table;
-    const rows = Array.from(
-      targetBody.querySelectorAll<HTMLTableRowElement>("tr")
-    ).filter((row) => row.parentNode === targetBody);
-
-    const isAscending = table.dataset.sortOrder !== "asc";
-    table.dataset.sortOrder = isAscending ? "asc" : "desc";
-
-    // Step 1: 拡張機能で非表示にした行のみ表示状態に復元（フィルタリングのリセット）
-    for (const row of rows) {
-      if (row.dataset[ROW_HIDDEN_BY_EXTENSION_DATASET_KEY] !== "true") {
-        continue;
-      }
-      row.style.display = "";
-      delete row.dataset[ROW_HIDDEN_BY_EXTENSION_DATASET_KEY];
-    }
-
-    // Step 2: ソート実行
-    rows.sort((a, b) => {
-      const aCell = a.cells[columnIndex]?.textContent?.trim() ?? "";
-      const bCell = b.cells[columnIndex]?.textContent?.trim() ?? "";
-
-      const aNum = parseNumericValue(aCell);
-      const bNum = parseNumericValue(bCell);
-
-      if (!(Number.isNaN(aNum) || Number.isNaN(bNum))) {
-        return isAscending ? aNum - bNum : bNum - aNum;
-      }
-
-      return isAscending
-        ? aCell.localeCompare(bCell, "ja")
-        : bCell.localeCompare(aCell, "ja");
-    });
-
-    for (const row of rows) {
-      targetBody.appendChild(row);
-    }
-
-    // Step 3: 現在のURLのパターンの行フィルタリング設定を取得
-    const filterSettingResult = getCurrentPatternRowFilterSetting();
-    if (Result.isSuccess(filterSettingResult)) {
-      const enableRowFilter = filterSettingResult.value;
-      // フィルタリング適用（設定が有効な場合）
-      applyRowFiltering(rows, columnIndex, enableRowFilter);
-    }
+    sortTableCore(table, columnIndex, getCurrentPatternRowFilterSetting);
   }
 
-  /**
-   * 行フィルタリングを適用する
-   * @param rows - フィルタリング対象の行配列
-   * @param columnIndex - フィルタリング対象の列インデックス
-   * @param enableRowFilter - 行フィルタリングを有効にするかどうか
-   */
-  function applyRowFiltering(
-    rows: HTMLTableRowElement[],
-    columnIndex: number,
-    enableRowFilter: boolean
-  ): void {
-    // enableRowFilterがtrueの場合のみ適用
-    if (!enableRowFilter) {
-      return;
-    }
-
-    for (const row of rows) {
-      const cell = row.cells[columnIndex];
-      if (!cell) {
-        continue;
-      }
-
-      const cellText = cell.textContent?.trim() ?? "";
-      if (shouldHideRow(cellText, parseNumericValue)) {
-        if (
-          row.dataset[ROW_HIDDEN_BY_EXTENSION_DATASET_KEY] !== "true" &&
-          row.style.display !== "none"
-        ) {
-          row.dataset[ROW_HIDDEN_BY_EXTENSION_DATASET_KEY] = "true";
-        }
-        row.style.display = "none";
-      }
-    }
+  function enableTableSortWithNotification(): void {
+    enableTableSort((message: string) => showNotification(message));
   }
 
-  // ========================================
-  // 3. MutationObserver（動的テーブル検出）
-  // ========================================
-
-  function startTableObserver(): void {
-    if (tableObserver) {
-      return;
-    }
-
-    let debounceTimer: number | undefined;
-
-    const handleMutations = (): void => {
-      window.clearTimeout(debounceTimer);
-      debounceTimer = window.setTimeout(() => {
-        checkForNewTables();
-      }, 300);
-    };
-
-    tableObserver = new MutationObserver(handleMutations);
-
-    tableObserver.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
-  }
-
-  function checkForNewTables(): void {
-    const tables = document.querySelectorAll<HTMLTableElement>(
-      "table:not([data-sortable])"
-    );
-
-    if (tables.length > 0) {
-      for (const table of tables) {
-        enableSingleTable(table);
-      }
-
-      showNotification(
-        `${tables.length}個の新しいテーブルでソートを有効化しました`
-      );
-    }
-  }
-
-  function stopTableObserver(): void {
-    if (tableObserver) {
-      tableObserver.disconnect();
-      tableObserver = null;
-    }
+  function startTableObserverWithNotification(): void {
+    startTableObserver((message: string) => showNotification(message));
   }
 
   window.addEventListener("pagehide", stopTableObserver);
 
   // ========================================
-  // 4. 通知・選択範囲キャッシュ
+  // 4. 通知・クリップボード（モジュール化済み）
+  // ========================================
+
+  function getOrCreateToastMount(): ToastMount {
+    if (globalState.toastMount?.host.isConnected) {
+      return globalState.toastMount;
+    }
+    const mount = ensureToastMount(currentTheme);
+    globalState.toastMount = mount;
+    return mount;
+  }
+
+  function showNotification(message: string): void {
+    const mount = getOrCreateToastMount();
+    showNotificationCore(mount.notify, message);
+  }
+
+  // ========================================
+  // 5. 選択範囲キャッシュ（モジュール化済み）
   // ========================================
 
   document.addEventListener("mouseup", () => {
@@ -376,453 +197,46 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
       storageLocalSet({
         selectedText,
         selectedTextUpdatedAt: Date.now(),
-      }).catch(() => {
-        // no-op
-      });
+      })
+        .then(() => {
+          // no-op
+        })
+        .catch(() => {
+          // no-op
+        });
     }
   });
 
-  function ensureToastMount(): ToastMount {
-    if (globalState.toastMount?.host.isConnected) {
-      return globalState.toastMount;
-    }
-
-    const existing = document.getElementById(
-      TOAST_HOST_ID
-    ) as HTMLDivElement | null;
-    const host = existing || document.createElement("div");
-    host.id = TOAST_HOST_ID;
-
-    const shadow = host.shadowRoot ?? host.attachShadow({ mode: "open" });
-    if (!host.isConnected) {
-      (document.documentElement ?? document.body ?? document).appendChild(host);
-    }
-    ensureShadowUiBaseStyles(shadow);
-    applyTheme(currentTheme, shadow);
-
-    let rootEl = shadow.getElementById(TOAST_ROOT_ID) as HTMLDivElement | null;
-    if (!rootEl) {
-      rootEl = document.createElement("div");
-      rootEl.id = TOAST_ROOT_ID;
-      shadow.appendChild(rootEl);
-    }
-
-    const notifications = createNotifications();
-    const root = createRoot(rootEl);
-    root.render(
-      createElement(ToastHost, {
-        toastManager: notifications.toastManager,
-        placement: "screen",
-        portalContainer: shadow,
-      })
-    );
-
-    globalState.toastMount = {
-      host,
-      shadow,
-      root,
-      toastManager: notifications.toastManager,
-      notify: notifications.notify,
-    };
-    return globalState.toastMount;
-  }
-
-  function showNotification(message: string): void {
-    const text = message.trim();
-    if (!text) {
-      return;
-    }
-    const mount = ensureToastMount();
-    mount.notify.info(text);
-  }
-
-  async function copyToClipboard(
-    text: string
-  ): Promise<{ ok: true } | { ok: false; error: string }> {
-    const trimmed = text.trim();
-    if (!trimmed) {
-      return { ok: false, error: "コピーする内容がありません" };
-    }
-
-    if (!navigator.clipboard?.writeText) {
-      return {
-        ok: false,
-        error: "この環境ではクリップボードにコピーできません",
-      };
-    }
-
-    try {
-      await navigator.clipboard.writeText(trimmed);
-      return { ok: true };
-    } catch {
-      return { ok: false, error: "コピーに失敗しました" };
-    }
-  }
-  function buildSelectionTarget(text: string): SummaryTarget {
-    return {
-      text,
-      source: "selection",
-      title: document.title ?? "",
-      url: window.location.href,
-    };
-  }
-
-  function buildPageTarget(text: string): SummaryTarget {
-    return {
-      text,
-      source: "page",
-      title: document.title ?? "",
-      url: window.location.href,
-    };
-  }
-
-  function getLiveSelectionTarget(): SummaryTarget | null {
-    const selection = window.getSelection()?.toString().trim() ?? "";
-    if (!selection) {
-      return null;
-    }
-    return buildSelectionTarget(selection);
-  }
-
-  async function getCachedSelectionTarget(): Promise<SummaryTarget | null> {
-    try {
-      const stored = (await storageLocalGet([
-        "selectedText",
-        "selectedTextUpdatedAt",
-      ])) as {
-        selectedText?: string;
-        selectedTextUpdatedAt?: number;
-      };
-      const selection = stored.selectedText?.trim() ?? "";
-      const updatedAt = stored.selectedTextUpdatedAt ?? 0;
-      const isFresh = Date.now() - updatedAt <= 30_000;
-      if (!(isFresh && selection)) {
-        return null;
-      }
-      return buildSelectionTarget(selection);
-    } catch {
-      return null;
-    }
-  }
-  async function getSummaryTargetText(options?: {
-    ignoreSelection?: boolean;
-  }): Promise<SummaryTarget> {
-    if (!options?.ignoreSelection) {
-      const selectionTarget = getLiveSelectionTarget();
-      if (selectionTarget) {
-        return selectionTarget;
-      }
-      const cachedSelectionTarget = await getCachedSelectionTarget();
-      if (cachedSelectionTarget) {
-        return cachedSelectionTarget;
-      }
-    }
-
-    const bodyText = document.body?.innerText ?? "";
-    const MAX_RETURN_CHARS = 60_000;
-    const normalized = normalizeText(bodyText);
-    const clipped =
-      normalized.length > MAX_RETURN_CHARS
-        ? `${normalized.slice(0, MAX_RETURN_CHARS)}\n\n(以下略)`
-        : normalized;
-    return buildPageTarget(clipped);
-  }
-
-  function normalizeText(text: string): string {
-    return text
-      .replace(/\r\n/g, "\n")
-      .replace(/\n{3,}/g, "\n\n")
-      .trim();
-  }
-
   // ========================================
-  // 5. Overlay (React + Shadow DOM)
+  // 6. Overlay (React + Shadow DOM)（モジュール化済み）
   // ========================================
 
-  // Overlay styles live in src/styles/tokens/components.css
-
-  function ensureOverlayMount(): OverlayMount {
+  function getOrCreateOverlayMount(): OverlayMount {
     if (globalState.overlayMount?.host.isConnected) {
       return globalState.overlayMount;
     }
-
-    const existing = document.getElementById(
-      OVERLAY_HOST_ID
-    ) as HTMLDivElement | null;
-    const host = existing || document.createElement("div");
-    host.id = OVERLAY_HOST_ID;
-
-    const shadow = host.shadowRoot ?? host.attachShadow({ mode: "open" });
-    if (!host.isConnected) {
-      (document.documentElement ?? document.body ?? document).appendChild(host);
-    }
-    ensureShadowUiBaseStyles(shadow);
-    applyTheme(currentTheme, shadow);
-
-    let rootEl = shadow.getElementById(
-      OVERLAY_ROOT_ID
-    ) as HTMLDivElement | null;
-    if (!rootEl) {
-      rootEl = document.createElement("div");
-      rootEl.id = OVERLAY_ROOT_ID;
-      shadow.appendChild(rootEl);
-    }
-
-    const root = createRoot(rootEl);
-
-    globalState.overlayMount = { host, shadow, root };
-    return globalState.overlayMount;
+    const mount = ensureOverlayMount(currentTheme);
+    globalState.overlayMount = mount;
+    return mount;
   }
 
-  function closeOverlay(): void {
-    const mount = globalState.overlayMount;
-    if (!mount) {
-      return;
-    }
-    try {
-      mount.root.unmount();
-    } catch {
-      // no-op
-    }
-    mount.host.remove();
+  function handleCloseOverlay(): void {
+    closeOverlay(globalState.overlayMount);
     globalState.overlayMount = null;
   }
 
-  function getSelectionAnchorRect(): OverlayViewModel["anchorRect"] {
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) {
-      return null;
-    }
-
-    const range = selection.getRangeAt(0);
-    const rects = Array.from(range.getClientRects());
-    const rect =
-      rects.length > 0 ? rects.at(-1) : range.getBoundingClientRect();
-
-    if (!rect || (rect.width === 0 && rect.height === 0)) {
-      return null;
-    }
-    return {
-      left: rect.left,
-      top: rect.top,
-      width: rect.width,
-      height: rect.height,
-    };
+  function showActionOverlay(request: ActionOverlayRequest): void {
+    const mount = getOrCreateOverlayMount();
+    showActionOverlayCore(mount, request, handleCloseOverlay);
   }
 
-  function renderOverlay(viewModel: OverlayViewModel): void {
-    const mount = ensureOverlayMount();
-    mount.root.render(
-      createElement(OverlayApp, {
-        host: mount.host,
-        portalContainer: mount.shadow,
-        viewModel,
-        onDismiss: () => {
-          closeOverlay();
-        },
-      })
-    );
-  }
-
-  function stripSourceSuffix(title: string): string {
-    return title.replace(SOURCE_SUFFIX_REGEX, "").trim();
-  }
-
-  let summarizeOverlayTitleCache: string | null = null;
-  let summarizeOverlayTitleInFlight: Promise<string> | null = null;
-
-  function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === "object" && value !== null;
-  }
-
-  function getTrimmedStringProp(
-    record: Record<string, unknown>,
-    key: string
-  ): string {
-    const value = record[key];
-    return typeof value === "string" ? value.trim() : "";
-  }
-
-  function findContextActionTitle(actions: unknown, id: string): string | null {
-    if (!Array.isArray(actions)) {
-      return null;
-    }
-    for (const item of actions) {
-      if (!isRecord(item)) {
-        continue;
-      }
-      if (getTrimmedStringProp(item, "id") !== id) {
-        continue;
-      }
-      const title = getTrimmedStringProp(item, "title");
-      return title || null;
-    }
-    return null;
-  }
-
-  function getSummarizeOverlayTitle(): Promise<string> {
-    if (summarizeOverlayTitleCache) {
-      return Promise.resolve(summarizeOverlayTitleCache);
-    }
-    if (summarizeOverlayTitleInFlight) {
-      return summarizeOverlayTitleInFlight;
-    }
-
-    summarizeOverlayTitleInFlight = (async () => {
-      try {
-        const stored = (await storageSyncGet(["contextActions"])) as {
-          contextActions?: unknown;
-        };
-        const title = findContextActionTitle(
-          stored.contextActions,
-          "builtin:summarize"
-        );
-        summarizeOverlayTitleCache = stripSourceSuffix(title ?? "") || "要約";
-      } catch {
-        summarizeOverlayTitleCache = "要約";
-      } finally {
-        summarizeOverlayTitleInFlight = null;
-      }
-      return summarizeOverlayTitleCache;
-    })();
-
-    return summarizeOverlayTitleInFlight;
-  }
-
-  type ActionOverlayRequest = Extract<
-    ContentRequest,
-    { action: "showActionOverlay" }
-  >;
-
-  function trimmedOrEmpty(value: string | undefined): string {
-    return value?.trim() ?? "";
-  }
-
-  function optionalTrimmed(value: string | undefined): string | undefined {
-    const trimmed = value?.trim() ?? "";
-    return trimmed || undefined;
-  }
-
-  function anchorRectBySource(
-    source: SummarySource
-  ): OverlayViewModel["anchorRect"] {
-    return source === "selection" ? getSelectionAnchorRect() : null;
-  }
-
-  function actionOverlayPrimaryText(
-    status: ActionOverlayRequest["status"],
-    primary: string
-  ): string {
-    if (status === "ready") {
-      return primary || "結果が空でした";
-    }
-    if (status === "error") {
-      return primary || "処理に失敗しました";
-    }
-    return "";
-  }
-
-  function actionOverlaySecondaryText(
-    status: ActionOverlayRequest["status"],
-    secondary: string
-  ): string {
-    return status === "loading"
-      ? secondary || "処理に数秒かかることがあります。"
-      : secondary;
-  }
-
-  function actionOverlayEventPayload(
-    mode: ActionOverlayRequest["mode"],
-    status: ActionOverlayRequest["status"],
-    event: ExtractedEvent | undefined
-  ): ExtractedEvent | undefined {
-    if (!(mode === "event" && status === "ready")) {
-      return;
-    }
-    return event;
-  }
-
-  function showActionOverlay(
-    request: Extract<ContentRequest, { action: "showActionOverlay" }>
-  ): void {
-    const primary = trimmedOrEmpty(request.primary);
-    const secondary = trimmedOrEmpty(request.secondary);
-
-    renderOverlay({
-      open: true,
-      status: request.status,
-      mode: request.mode,
-      source: request.source,
-      title: stripSourceSuffix(request.title),
-      primary: actionOverlayPrimaryText(request.status, primary),
-      secondary: actionOverlaySecondaryText(request.status, secondary),
-      event: actionOverlayEventPayload(
-        request.mode,
-        request.status,
-        request.event
-      ),
-      calendarUrl: optionalTrimmed(request.calendarUrl),
-      ics: optionalTrimmed(request.ics),
-      anchorRect: anchorRectBySource(request.source),
-    });
-  }
-
-  function renderSummaryOverlayWithTitle(
-    request: Extract<ContentRequest, { action: "showSummaryOverlay" }>,
-    title: string
-  ): void {
-    const summary = request.summary?.trim() ?? "";
-    const error = request.error?.trim() ?? "";
-
-    const anchorRect =
-      request.source === "selection" ? getSelectionAnchorRect() : null;
-
-    let primaryText = "";
-    if (request.status === "ready") {
-      primaryText = summary || "要約結果が空でした";
-    } else if (request.status === "error") {
-      primaryText = error || "要約に失敗しました";
-    }
-
-    let secondaryText = "";
-    if (request.status === "loading") {
-      secondaryText = "処理に数秒かかることがあります。";
-    } else if (request.status === "error") {
-      secondaryText =
-        "OpenAI API Token未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。";
-    }
-
-    renderOverlay({
-      open: true,
-      status: request.status,
-      mode: "text",
-      source: request.source,
-      title,
-      primary: primaryText,
-      secondary: secondaryText,
-      anchorRect,
-    });
-  }
-
-  function showSummaryOverlay(
-    request: Extract<ContentRequest, { action: "showSummaryOverlay" }>
-  ): void {
-    const fallbackTitle = summarizeOverlayTitleCache ?? "要約";
-    renderSummaryOverlayWithTitle(request, fallbackTitle);
-
-    (async () => {
-      const title = await getSummarizeOverlayTitle();
-      if (title === fallbackTitle) {
-        return;
-      }
-      renderSummaryOverlayWithTitle(request, title);
-    })().catch(() => {
-      // no-op
-    });
+  function showSummaryOverlay(request: SummaryOverlayRequest): void {
+    const mount = getOrCreateOverlayMount();
+    showSummaryOverlayCore(mount, request, handleCloseOverlay);
   }
 
   // ========================================
-  // 6. メッセージリスナー
+  // 7. メッセージリスナー
   // ========================================
 
   chrome.runtime.onMessage.addListener(
@@ -833,8 +247,8 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
     ) => {
       switch (request.action) {
         case "enableTableSort": {
-          enableTableSort();
-          startTableObserver();
+          enableTableSortWithNotification();
+          startTableObserverWithNotification();
           sendResponse({ success: true });
           return;
         }
@@ -845,11 +259,12 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
         }
         case "copyToClipboard": {
           (async () => {
-            const result = await copyToClipboard(request.text);
-            if (result.ok && request.successMessage?.trim()) {
-              const mount = ensureToastMount();
-              mount.notify.success(request.successMessage.trim());
-            }
+            const mount = getOrCreateToastMount();
+            const result = await copyToClipboardWithNotification(
+              request.text,
+              mount.notify,
+              request.successMessage
+            );
             sendResponse(result);
           })().catch(() => {
             sendResponse({ ok: false, error: "コピーに失敗しました" });
@@ -895,7 +310,7 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
   );
 
   // ========================================
-  // 7. 自動実行ロジック（SPA URL変化も含む）
+  // 8. 自動実行ロジック（SPA URL変化も含む）
   // ========================================
 
   let tableConfig: {
@@ -904,133 +319,27 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
     domainPatternConfigs: [],
   };
 
-  /**
-   * ストレージデータからDomainPatternConfig配列を正規化する
-   * @param data - ストレージデータ
-   * @returns 成功時はDomainPatternConfig配列、失敗時はエラーメッセージ
-   */
-  function normalizeDomainPatternConfigs(
-    data: StorageData
-  ): Result.Result<DomainPatternConfig[], string> {
-    // 1. domainPatternConfigsが存在する場合はバリデーション
-    if (data.domainPatternConfigs !== undefined) {
-      if (!Array.isArray(data.domainPatternConfigs)) {
-        return Result.fail("domainPatternConfigs must be an array");
-      }
-
-      const configs: DomainPatternConfig[] = [];
-      for (const item of data.domainPatternConfigs) {
-        if (
-          typeof item !== "object" ||
-          item === null ||
-          typeof item.pattern !== "string" ||
-          typeof item.enableRowFilter !== "boolean"
-        ) {
-          return Result.fail("Invalid domainPatternConfig item format");
-        }
-        const pattern = item.pattern.trim();
-        if (!pattern) {
-          continue;
-        }
-        configs.push({
-          pattern,
-          enableRowFilter: item.enableRowFilter,
-        });
-      }
-      return Result.succeed(configs);
-    }
-
-    // 2. 旧キー(domainPatterns)のフォールバック
-    if (data.domainPatterns !== undefined) {
-      if (!Array.isArray(data.domainPatterns)) {
-        return Result.fail("domainPatterns must be an array");
-      }
-
-      const configs: DomainPatternConfig[] = [];
-      for (const patternRaw of data.domainPatterns) {
-        if (typeof patternRaw !== "string") {
-          return Result.fail("Invalid domainPatterns item format");
-        }
-        const pattern = patternRaw.trim();
-        if (!pattern) {
-          continue;
-        }
-        configs.push({
-          pattern,
-          enableRowFilter: false,
-        });
-      }
-      return Result.succeed(configs);
-    }
-
-    // 3. 未設定 → 空配列
-    return Result.succeed([]);
-  }
-
-  /**
-   * 現在のURLにマッチするパターンの行フィルタリング設定を取得
-   * @returns 成功時はenableRowFilterの値、失敗時はエラーメッセージ
-   */
-  function getCurrentPatternRowFilterSetting(): Result.Result<boolean, string> {
-    const urlWithoutProtocol = window.location.href.replace(
-      HTTP_PROTOCOL_REGEX,
-      ""
-    );
-
-    for (const config of tableConfig.domainPatternConfigs) {
-      const patternWithoutProtocol = config.pattern.replace(
-        HTTP_PROTOCOL_REGEX,
-        ""
-      );
-      const regex = patternToRegex(patternWithoutProtocol);
-      if (regex.test(urlWithoutProtocol)) {
-        return Result.succeed(config.enableRowFilter);
-      }
-    }
-
-    // マッチするパターンがない場合はfalse
-    return Result.succeed(false);
-  }
 
   function maybeEnableTableSortFromConfig(): void {
     if (tableConfig.domainPatternConfigs.length > 0) {
       const patterns = tableConfig.domainPatternConfigs.map(
         (config) => config.pattern
       );
-      if (matchesAnyPattern(patterns)) {
-        enableTableSort();
-        startTableObserver();
+      if (matchesAnyPattern(patterns, window.location.href)) {
+        enableTableSortWithNotification();
+        startTableObserverWithNotification();
       }
     }
   }
 
-  async function refreshTableConfig(): Promise<void> {
-    try {
-      const data = (await storageSyncGet([
-        "domainPatternConfigs",
-        "domainPatterns",
-      ])) as StorageData;
-
-      const configsResult = normalizeDomainPatternConfigs(data);
-      tableConfig = {
-        domainPatternConfigs: Result.isSuccess(configsResult)
-          ? configsResult.value
-          : [],
-      };
-    } catch {
-      tableConfig = {
-        domainPatternConfigs: [],
-      };
-    }
+  async function refreshTableConfigAndUpdate(): Promise<void> {
+    const configs = await refreshTableConfig();
+    tableConfig = { domainPatternConfigs: configs };
   }
 
-  function resetSummarizeOverlayTitleState(): void {
-    summarizeOverlayTitleCache = null;
-    summarizeOverlayTitleInFlight = null;
-  }
 
   async function refreshTableConfigAndMaybeEnable(): Promise<void> {
-    await refreshTableConfig();
+    await refreshTableConfigAndUpdate();
     maybeEnableTableSortFromConfig();
   }
 
@@ -1089,62 +398,4 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
     lastHref = href;
     maybeEnableTableSortFromConfig();
   }, 1000);
-
-  // ========================================
-  // 8. ストレージヘルパー
-  // ========================================
-
-  function storageSyncGet(keys: string[]): Promise<unknown> {
-    return new Promise((resolve, reject) => {
-      if (!chrome.storage?.sync) {
-        resolve({});
-        return;
-      }
-
-      chrome.storage.sync.get(keys, (items) => {
-        const err = chrome.runtime.lastError;
-        if (err) {
-          reject(new Error(err.message));
-          return;
-        }
-        resolve(items);
-      });
-    });
-  }
-
-  function storageLocalGet(keys: string[]): Promise<unknown> {
-    return new Promise((resolve, reject) => {
-      if (!chrome.storage?.local) {
-        resolve({});
-        return;
-      }
-
-      chrome.storage.local.get(keys, (items) => {
-        const err = chrome.runtime.lastError;
-        if (err) {
-          reject(new Error(err.message));
-          return;
-        }
-        resolve(items);
-      });
-    });
-  }
-
-  function storageLocalSet(items: Record<string, unknown>): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (!chrome.storage?.local) {
-        resolve();
-        return;
-      }
-
-      chrome.storage.local.set(items, () => {
-        const err = chrome.runtime.lastError;
-        if (err) {
-          reject(new Error(err.message));
-          return;
-        }
-        resolve();
-      });
-    });
-  }
 })();
