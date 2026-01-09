@@ -163,11 +163,17 @@ import {
   }
 
   function enableTableSortWithNotification(): void {
-    enableTableSort((message: string) => showNotification(message));
+    enableTableSort(
+      (message: string) => showNotification(message),
+      getCurrentPatternRowFilterSetting
+    );
   }
 
   function startTableObserverWithNotification(): void {
-    startTableObserver((message: string) => showNotification(message));
+    startTableObserver(
+      (message: string) => showNotification(message),
+      getCurrentPatternRowFilterSetting
+    );
   }
 
   window.addEventListener("pagehide", stopTableObserver);

@@ -7,8 +7,13 @@ const ROW_HIDDEN_BY_EXTENSION_DATASET_KEY = "mbuHiddenByExtension";
 
 /**
  * 単一テーブルにソート機能を有効化
+ * @param table - 対象テーブル
+ * @param getRowFilterSetting - 行フィルタリング設定取得関数
  */
-export function enableSingleTable(table: HTMLTableElement): void {
+export function enableSingleTable(
+  table: HTMLTableElement,
+  getRowFilterSetting?: () => Result.Result<boolean, string>
+): void {
   if (table.dataset.sortable) {
     return;
   }
@@ -24,7 +29,7 @@ export function enableSingleTable(table: HTMLTableElement): void {
     header.title = "クリックでソート";
 
     header.addEventListener("click", () => {
-      sortTable(table, columnIndex);
+      sortTable(table, columnIndex, getRowFilterSetting);
     });
     headerIndex += 1;
   }
@@ -33,13 +38,17 @@ export function enableSingleTable(table: HTMLTableElement): void {
 /**
  * ページ内の全テーブルにソート機能を有効化
  * @param onNotify - 通知コールバック
+ * @param getRowFilterSetting - 行フィルタリング設定取得関数
  * @returns 有効化したテーブル数
  */
-export function enableTableSort(onNotify: (message: string) => void): number {
+export function enableTableSort(
+  onNotify: (message: string) => void,
+  getRowFilterSetting?: () => Result.Result<boolean, string>
+): number {
   const tables = document.querySelectorAll<HTMLTableElement>("table");
 
   for (const table of tables) {
-    enableSingleTable(table);
+    enableSingleTable(table, getRowFilterSetting);
   }
 
   if (tables.length > 0) {
