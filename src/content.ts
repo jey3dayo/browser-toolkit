@@ -1,11 +1,13 @@
 // Content Script - Webページに注入される
 
+import { Result } from "@praha/byethrow";
 import { createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import {
   OverlayApp,
   type OverlayViewModel,
 } from "@/content/overlay/OverlayApp";
+import type { DomainPatternConfig } from "@/popup/runtime";
 import type { ExtractedEvent, SummarySource } from "@/shared_types";
 import { ensureShadowUiBaseStyles } from "@/ui/styles";
 import { applyTheme, isTheme, type Theme } from "@/ui/theme";
@@ -16,6 +18,7 @@ import {
   type ToastManager,
 } from "@/ui/toast";
 import { parseNumericValue } from "@/utils/number_parser";
+import { shouldHideRow } from "@/utils/row_filter";
 
 // Regex patterns at module level for performance (lint/performance/useTopLevelRegex)
 const QUERY_OR_HASH_REGEX = /[?#]/;
@@ -24,8 +27,8 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
 
 (() => {
   type StorageData = {
+    domainPatternConfigs?: DomainPatternConfig[];
     domainPatterns?: string[];
-    autoEnableSort?: boolean;
   };
 
   type ContentRequest =
@@ -65,6 +68,7 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
 
   const TOAST_HOST_ID = "browser-toolkit-toast-host";
   const TOAST_ROOT_ID = "mtk-toast-react-root";
+  const ROW_HIDDEN_BY_EXTENSION_DATASET_KEY = "mbuHiddenByExtension";
 
   type OverlayMount = {
     host: HTMLDivElement;
@@ -237,6 +241,16 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
     const isAscending = table.dataset.sortOrder !== "asc";
     table.dataset.sortOrder = isAscending ? "asc" : "desc";
 
+    // Step 1: 拡張機能で非表示にした行のみ表示状態に復元（フィルタリングのリセット）
+    for (const row of rows) {
+      if (row.dataset[ROW_HIDDEN_BY_EXTENSION_DATASET_KEY] !== "true") {
+        continue;
+      }
+      row.style.display = "";
+      delete row.dataset[ROW_HIDDEN_BY_EXTENSION_DATASET_KEY];
+    }
+
+    // Step 2: ソート実行
     rows.sort((a, b) => {
       const aCell = a.cells[columnIndex]?.textContent?.trim() ?? "";
       const bCell = b.cells[columnIndex]?.textContent?.trim() ?? "";
@@ -255,6 +269,49 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
 
     for (const row of rows) {
       targetBody.appendChild(row);
+    }
+
+    // Step 3: 現在のURLのパターンの行フィルタリング設定を取得
+    const filterSettingResult = getCurrentPatternRowFilterSetting();
+    if (Result.isSuccess(filterSettingResult)) {
+      const enableRowFilter = filterSettingResult.value;
+      // フィルタリング適用（設定が有効な場合）
+      applyRowFiltering(rows, columnIndex, enableRowFilter);
+    }
+  }
+
+  /**
+   * 行フィルタリングを適用する
+   * @param rows - フィルタリング対象の行配列
+   * @param columnIndex - フィルタリング対象の列インデックス
+   * @param enableRowFilter - 行フィルタリングを有効にするかどうか
+   */
+  function applyRowFiltering(
+    rows: HTMLTableRowElement[],
+    columnIndex: number,
+    enableRowFilter: boolean
+  ): void {
+    // enableRowFilterがtrueの場合のみ適用
+    if (!enableRowFilter) {
+      return;
+    }
+
+    for (const row of rows) {
+      const cell = row.cells[columnIndex];
+      if (!cell) {
+        continue;
+      }
+
+      const cellText = cell.textContent?.trim() ?? "";
+      if (shouldHideRow(cellText, parseNumericValue)) {
+        if (
+          row.dataset[ROW_HIDDEN_BY_EXTENSION_DATASET_KEY] !== "true" &&
+          row.style.display !== "none"
+        ) {
+          row.dataset[ROW_HIDDEN_BY_EXTENSION_DATASET_KEY] = "true";
+        }
+        row.style.display = "none";
+      }
     }
   }
 
@@ -841,47 +898,129 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
   // 7. 自動実行ロジック（SPA URL変化も含む）
   // ========================================
 
-  let tableConfig: { domainPatterns: string[]; autoEnableSort: boolean } = {
-    domainPatterns: [],
-    autoEnableSort: false,
+  let tableConfig: {
+    domainPatternConfigs: DomainPatternConfig[];
+  } = {
+    domainPatternConfigs: [],
   };
 
-  function normalizePatterns(value: unknown): string[] {
-    if (!Array.isArray(value)) {
-      return [];
+  /**
+   * ストレージデータからDomainPatternConfig配列を正規化する
+   * @param data - ストレージデータ
+   * @returns 成功時はDomainPatternConfig配列、失敗時はエラーメッセージ
+   */
+  function normalizeDomainPatternConfigs(
+    data: StorageData
+  ): Result.Result<DomainPatternConfig[], string> {
+    // 1. domainPatternConfigsが存在する場合はバリデーション
+    if (data.domainPatternConfigs !== undefined) {
+      if (!Array.isArray(data.domainPatternConfigs)) {
+        return Result.fail("domainPatternConfigs must be an array");
+      }
+
+      const configs: DomainPatternConfig[] = [];
+      for (const item of data.domainPatternConfigs) {
+        if (
+          typeof item !== "object" ||
+          item === null ||
+          typeof item.pattern !== "string" ||
+          typeof item.enableRowFilter !== "boolean"
+        ) {
+          return Result.fail("Invalid domainPatternConfig item format");
+        }
+        const pattern = item.pattern.trim();
+        if (!pattern) {
+          continue;
+        }
+        configs.push({
+          pattern,
+          enableRowFilter: item.enableRowFilter,
+        });
+      }
+      return Result.succeed(configs);
     }
-    return value
-      .map((item) => (typeof item === "string" ? item.trim() : ""))
-      .filter(Boolean);
+
+    // 2. 旧キー(domainPatterns)のフォールバック
+    if (data.domainPatterns !== undefined) {
+      if (!Array.isArray(data.domainPatterns)) {
+        return Result.fail("domainPatterns must be an array");
+      }
+
+      const configs: DomainPatternConfig[] = [];
+      for (const patternRaw of data.domainPatterns) {
+        if (typeof patternRaw !== "string") {
+          return Result.fail("Invalid domainPatterns item format");
+        }
+        const pattern = patternRaw.trim();
+        if (!pattern) {
+          continue;
+        }
+        configs.push({
+          pattern,
+          enableRowFilter: false,
+        });
+      }
+      return Result.succeed(configs);
+    }
+
+    // 3. 未設定 → 空配列
+    return Result.succeed([]);
+  }
+
+  /**
+   * 現在のURLにマッチするパターンの行フィルタリング設定を取得
+   * @returns 成功時はenableRowFilterの値、失敗時はエラーメッセージ
+   */
+  function getCurrentPatternRowFilterSetting(): Result.Result<boolean, string> {
+    const urlWithoutProtocol = window.location.href.replace(
+      HTTP_PROTOCOL_REGEX,
+      ""
+    );
+
+    for (const config of tableConfig.domainPatternConfigs) {
+      const patternWithoutProtocol = config.pattern.replace(
+        HTTP_PROTOCOL_REGEX,
+        ""
+      );
+      const regex = patternToRegex(patternWithoutProtocol);
+      if (regex.test(urlWithoutProtocol)) {
+        return Result.succeed(config.enableRowFilter);
+      }
+    }
+
+    // マッチするパターンがない場合はfalse
+    return Result.succeed(false);
   }
 
   function maybeEnableTableSortFromConfig(): void {
-    if (tableConfig.autoEnableSort) {
-      enableTableSort();
-      startTableObserver();
-      return;
-    }
-    if (
-      tableConfig.domainPatterns.length > 0 &&
-      matchesAnyPattern(tableConfig.domainPatterns)
-    ) {
-      enableTableSort();
-      startTableObserver();
+    if (tableConfig.domainPatternConfigs.length > 0) {
+      const patterns = tableConfig.domainPatternConfigs.map(
+        (config) => config.pattern
+      );
+      if (matchesAnyPattern(patterns)) {
+        enableTableSort();
+        startTableObserver();
+      }
     }
   }
 
   async function refreshTableConfig(): Promise<void> {
     try {
       const data = (await storageSyncGet([
+        "domainPatternConfigs",
         "domainPatterns",
-        "autoEnableSort",
       ])) as StorageData;
+
+      const configsResult = normalizeDomainPatternConfigs(data);
       tableConfig = {
-        domainPatterns: normalizePatterns(data.domainPatterns),
-        autoEnableSort: Boolean(data.autoEnableSort),
+        domainPatternConfigs: Result.isSuccess(configsResult)
+          ? configsResult.value
+          : [],
       };
     } catch {
-      tableConfig = { domainPatterns: [], autoEnableSort: false };
+      tableConfig = {
+        domainPatternConfigs: [],
+      };
     }
   }
 
@@ -903,7 +1042,7 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
     }
 
     const hasTableConfigChange =
-      "domainPatterns" in changes || "autoEnableSort" in changes;
+      "domainPatternConfigs" in changes || "domainPatterns" in changes;
     if (!hasTableConfigChange) {
       return;
     }

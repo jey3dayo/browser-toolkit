@@ -132,7 +132,7 @@ function escapeHtml(text) {
 セマンティックバージョニング（SemVer）に従う:
 
 - **MAJOR**: 破壊的変更
-- **MINOR**: 新機能追加（後方互換性あり）
+- **MINOR**: 新機能追加
 - **PATCH**: バグ修正
 
 ### リリース前チェックリスト

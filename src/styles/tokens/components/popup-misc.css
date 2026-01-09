@@ -48,13 +48,14 @@
 
 .pattern-item {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto auto;
   align-items: center;
   gap: 8px;
-  padding: 10px;
-  margin-bottom: 8px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
   background: var(--panel-soft);
   border-radius: 10px;
+  min-height: 44px;
 }
 
 .pattern-item:last-child {
@@ -62,7 +63,21 @@
 }
 
 .pattern-text {
+  flex: 1;
+  min-width: 0;
   word-break: break-all;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+  padding-right: 8px;
+}
+
+.pattern-item .mbu-switch {
+  margin: 0;
+}
+
+.pattern-item .btn-delete {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn-delete {

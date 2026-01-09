@@ -25,7 +25,7 @@ type Story = StoryObj<typeof meta>;
 export const Basic: Story = {
   args: {
     runtime: createStoryPopupRuntime({
-      sync: { autoEnableSort: false, domainPatterns: [] },
+      sync: { domainPatternConfigs: [] },
       activeTabId: 1,
     }),
     notify: { info: fn(), success: fn(), error: fn() },
@@ -38,11 +38,6 @@ export const Basic: Story = {
       expect(args.notify.success).toHaveBeenCalledWith(
         "テーブルソートを有効化しました"
       );
-    });
-
-    await userEvent.click(canvas.getByTestId("auto-enable-sort"));
-    await waitFor(() => {
-      expect(args.notify.success).toHaveBeenCalledWith("保存しました");
     });
 
     await userEvent.type(

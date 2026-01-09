@@ -70,3 +70,99 @@ export const Gallery: Story = {
     }
   },
 };
+
+function IconWithProps(): React.JSX.Element {
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+        gap: 16,
+        padding: 16,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 8,
+          padding: 12,
+          borderRadius: 12,
+          border: "1px solid var(--color-border-ui)",
+          background: "var(--color-surface)",
+        }}
+      >
+        <div style={{ fontSize: 12, fontWeight: 600 }}>Default Size</div>
+        <Icon aria-hidden="true" data-testid="icon-default" name="settings" />
+      </div>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 8,
+          padding: 12,
+          borderRadius: 12,
+          border: "1px solid var(--color-border-ui)",
+          background: "var(--color-surface)",
+        }}
+      >
+        <div style={{ fontSize: 12, fontWeight: 600 }}>Custom Size (24px)</div>
+        <Icon
+          aria-hidden="true"
+          data-testid="icon-size-24"
+          name="settings"
+          size={24}
+        />
+      </div>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 8,
+          padding: 12,
+          borderRadius: 12,
+          border: "1px solid var(--color-border-ui)",
+          background: "var(--color-surface)",
+        }}
+      >
+        <div style={{ fontSize: 12, fontWeight: 600 }}>Custom Color</div>
+        <Icon
+          aria-hidden="true"
+          color="var(--color-accent)"
+          data-testid="icon-color"
+          name="settings"
+        />
+      </div>
+    </div>
+  );
+}
+
+export const WithProps: Story = {
+  render: () => <IconWithProps />,
+  play: ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    const defaultIcon = canvas.getByTestId("icon-default");
+    const size24Icon = canvas.getByTestId("icon-size-24");
+    const colorIcon = canvas.getByTestId("icon-color");
+
+    expect(defaultIcon.tagName.toLowerCase()).toBe("svg");
+    expect(size24Icon.tagName.toLowerCase()).toBe("svg");
+    expect(colorIcon.tagName.toLowerCase()).toBe("svg");
+
+    expect(size24Icon.getAttribute("width")).toBe("24");
+    expect(size24Icon.getAttribute("height")).toBe("24");
+  },
+};
+
+export const Accessibility: Story = {
+  play: ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    for (const name of iconNames) {
+      const svg = canvas.getByTestId(`icon-${name}`);
+      const ariaHidden = svg.getAttribute("aria-hidden");
+      expect(ariaHidden).toBe("true");
+    }
+  },
+};
