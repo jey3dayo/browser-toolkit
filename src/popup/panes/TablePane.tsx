@@ -26,13 +26,8 @@ function TooltipSwitch(props: TooltipSwitchProps): React.JSX.Element {
     <Tooltip.Root>
       <Tooltip.Trigger render={props.children} />
       <Tooltip.Portal>
-        <Tooltip.Positioner
-          className="mbu-tooltip-positioner"
-          sideOffset={6}
-        >
-          <Tooltip.Popup className="mbu-tooltip">
-            {props.tooltip}
-          </Tooltip.Popup>
+        <Tooltip.Positioner className="mbu-tooltip-positioner" sideOffset={6}>
+          <Tooltip.Popup className="mbu-tooltip">{props.tooltip}</Tooltip.Popup>
         </Tooltip.Positioner>
       </Tooltip.Portal>
     </Tooltip.Root>
@@ -82,15 +77,12 @@ function normalizeDomainPatternConfigsForPopup(
 export function TablePane(props: TablePaneProps): React.JSX.Element {
   const [patterns, setPatterns] = useState<DomainPatternConfig[]>([]);
   const [patternInput, setPatternInput] = useState("");
-  const rowFilterTooltip =
-    "0円・ハイフン・空白・N/A の行を非表示にします";
+  const rowFilterTooltip = "0円・ハイフン・空白・N/A の行を非表示にします";
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const data = await props.runtime.storageSyncGet([
-        "domainPatternConfigs",
-      ]);
+      const data = await props.runtime.storageSyncGet(["domainPatternConfigs"]);
       if (Result.isFailure(data)) {
         return;
       }

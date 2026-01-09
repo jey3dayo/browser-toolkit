@@ -28,6 +28,7 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
 (() => {
   type StorageData = {
     domainPatternConfigs?: DomainPatternConfig[];
+    domainPatterns?: string[];
   };
 
   type ContentRequest =
@@ -67,6 +68,7 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
 
   const TOAST_HOST_ID = "browser-toolkit-toast-host";
   const TOAST_ROOT_ID = "mtk-toast-react-root";
+  const ROW_HIDDEN_BY_EXTENSION_DATASET_KEY = "mbuHiddenByExtension";
 
   type OverlayMount = {
     host: HTMLDivElement;
@@ -239,9 +241,13 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
     const isAscending = table.dataset.sortOrder !== "asc";
     table.dataset.sortOrder = isAscending ? "asc" : "desc";
 
-    // Step 1: 全行を表示状態に復元（フィルタリングのリセット）
+    // Step 1: 拡張機能で非表示にした行のみ表示状態に復元（フィルタリングのリセット）
     for (const row of rows) {
+      if (row.dataset[ROW_HIDDEN_BY_EXTENSION_DATASET_KEY] !== "true") {
+        continue;
+      }
       row.style.display = "";
+      delete row.dataset[ROW_HIDDEN_BY_EXTENSION_DATASET_KEY];
     }
 
     // Step 2: ソート実行
@@ -298,6 +304,12 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
 
       const cellText = cell.textContent?.trim() ?? "";
       if (shouldHideRow(cellText, parseNumericValue)) {
+        if (
+          row.dataset[ROW_HIDDEN_BY_EXTENSION_DATASET_KEY] !== "true" &&
+          row.style.display !== "none"
+        ) {
+          row.dataset[ROW_HIDDEN_BY_EXTENSION_DATASET_KEY] = "true";
+        }
         row.style.display = "none";
       }
     }
@@ -901,7 +913,7 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
     data: StorageData
   ): Result.Result<DomainPatternConfig[], string> {
     // 1. domainPatternConfigsが存在する場合はバリデーション
-    if (data.domainPatternConfigs) {
+    if (data.domainPatternConfigs !== undefined) {
       if (!Array.isArray(data.domainPatternConfigs)) {
         return Result.fail("domainPatternConfigs must be an array");
       }
@@ -928,7 +940,30 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
       return Result.succeed(configs);
     }
 
-    // 2. 未設定 → 空配列
+    // 2. 旧キー(domainPatterns)のフォールバック
+    if (data.domainPatterns !== undefined) {
+      if (!Array.isArray(data.domainPatterns)) {
+        return Result.fail("domainPatterns must be an array");
+      }
+
+      const configs: DomainPatternConfig[] = [];
+      for (const patternRaw of data.domainPatterns) {
+        if (typeof patternRaw !== "string") {
+          return Result.fail("Invalid domainPatterns item format");
+        }
+        const pattern = patternRaw.trim();
+        if (!pattern) {
+          continue;
+        }
+        configs.push({
+          pattern,
+          enableRowFilter: false,
+        });
+      }
+      return Result.succeed(configs);
+    }
+
+    // 3. 未設定 → 空配列
     return Result.succeed([]);
   }
 
@@ -973,6 +1008,7 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
     try {
       const data = (await storageSyncGet([
         "domainPatternConfigs",
+        "domainPatterns",
       ])) as StorageData;
 
       const configsResult = normalizeDomainPatternConfigs(data);
@@ -1006,7 +1042,7 @@ const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
     }
 
     const hasTableConfigChange =
-      "domainPatternConfigs" in changes;
+      "domainPatternConfigs" in changes || "domainPatterns" in changes;
     if (!hasTableConfigChange) {
       return;
     }
