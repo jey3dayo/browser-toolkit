@@ -23,7 +23,10 @@ import {
   showNotification as showNotificationCore,
   type ToastMount,
 } from "@/content/notification";
-import { copyToClipboardWithNotification } from "@/content/clipboard";
+import {
+  copyToClipboardWithNotification,
+  getClipboardErrorMessage,
+} from "@/content/clipboard";
 import {
   getSummaryTargetText,
   type SummaryTarget,
@@ -265,7 +268,14 @@ import {
               mount.notify,
               request.successMessage
             );
-            sendResponse(result);
+            if (Result.isSuccess(result)) {
+              sendResponse({ ok: true });
+            } else {
+              sendResponse({
+                ok: false,
+                error: getClipboardErrorMessage(result.error),
+              });
+            }
           })().catch(() => {
             sendResponse({ ok: false, error: "コピーに失敗しました" });
           });

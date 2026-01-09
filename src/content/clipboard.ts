@@ -1,31 +1,34 @@
 // クリップボード操作
+import { Result } from "@praha/byethrow";
 import type { Notifier } from "@/ui/toast";
 
-export type CopyResult = { ok: true } | { ok: false; error: string };
+export type ClipboardError =
+  | { type: "empty-text" }
+  | { type: "unavailable" }
+  | { type: "copy-failed" };
 
 /**
  * クリップボードにテキストをコピー
  * @param text - コピーするテキスト
- * @returns CopyResult
+ * @returns Result<void, ClipboardError>
  */
-export async function copyToClipboard(text: string): Promise<CopyResult> {
+export async function copyToClipboard(
+  text: string,
+): Promise<Result.Result<void, ClipboardError>> {
   const trimmed = text.trim();
   if (!trimmed) {
-    return { ok: false, error: "コピーする内容がありません" };
+    return Result.fail({ type: "empty-text" });
   }
 
   if (!navigator.clipboard?.writeText) {
-    return {
-      ok: false,
-      error: "この環境ではクリップボードにコピーできません",
-    };
+    return Result.fail({ type: "unavailable" });
   }
 
   try {
     await navigator.clipboard.writeText(trimmed);
-    return { ok: true };
+    return Result.succeed(undefined);
   } catch {
-    return { ok: false, error: "コピーに失敗しました" };
+    return Result.fail({ type: "copy-failed" });
   }
 }
 
@@ -34,16 +37,32 @@ export async function copyToClipboard(text: string): Promise<CopyResult> {
  * @param text - コピーするテキスト
  * @param notify - Notifierインスタンス
  * @param successMessage - 成功時のメッセージ
- * @returns CopyResult
+ * @returns Result<void, ClipboardError>
  */
 export async function copyToClipboardWithNotification(
   text: string,
   notify: Notifier,
-  successMessage?: string
-): Promise<CopyResult> {
+  successMessage?: string,
+): Promise<Result.Result<void, ClipboardError>> {
   const result = await copyToClipboard(text);
-  if (result.ok && successMessage?.trim()) {
+  if (Result.isSuccess(result) && successMessage?.trim()) {
     notify.success(successMessage.trim());
   }
   return result;
+}
+
+/**
+ * ClipboardErrorから人間が読めるメッセージに変換
+ * @param error - ClipboardError
+ * @returns エラーメッセージ
+ */
+export function getClipboardErrorMessage(error: ClipboardError): string {
+  switch (error.type) {
+    case "empty-text":
+      return "コピーする内容がありません";
+    case "unavailable":
+      return "この環境ではクリップボードにコピーできません";
+    case "copy-failed":
+      return "コピーに失敗しました";
+  }
 }
