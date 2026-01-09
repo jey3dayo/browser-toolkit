@@ -146,3 +146,163 @@ export const Basic: Story = {
     await triggerAndAssertToast("toast-long", "長いメッセージでも太く見えず");
   },
 };
+
+function ToastWithCloseButton(): React.JSX.Element {
+  const notifications = useMemo(() => createNotifications(), []);
+
+  return (
+    <>
+      <ToastHost
+        portalContainer={document.body}
+        toastManager={notifications.toastManager}
+      />
+      <div style={{ display: "grid", gap: 12, maxWidth: 560 }}>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 13 }}>Toast with Close</div>
+          <div style={{ color: "var(--color-text-muted)", fontSize: 12 }}>
+            トーストを表示して閉じるボタンで閉じることを確認します。
+          </div>
+        </div>
+
+        <button
+          className="mbu-overlay-action"
+          data-testid="toast-close-test"
+          onClick={() => {
+            notifications.notify.info("閉じるボタンで閉じられます");
+          }}
+          type="button"
+        >
+          Show Toast
+        </button>
+      </div>
+    </>
+  );
+}
+
+export const CloseButton: Story = {
+  render: () => <ToastWithCloseButton />,
+  play: async ({ canvasElement }) => {
+    const doc = canvasElement.ownerDocument;
+    const canvas = within(canvasElement);
+
+    await userEvent.click(canvas.getByTestId("toast-close-test"));
+
+    await waitFor(() => {
+      const toasts = doc.body.querySelectorAll<HTMLElement>(".mbu-toast-root");
+      expect(toasts.length).toBeGreaterThan(0);
+    });
+
+    const toasts = doc.body.querySelectorAll<HTMLElement>(".mbu-toast-root");
+    const toast = Array.from(toasts).find((node) =>
+      node.textContent?.includes("閉じるボタンで閉じられます")
+    );
+    expect(toast).toBeTruthy();
+    if (!toast) {
+      return;
+    }
+
+    const closeButton = toast.querySelector<HTMLElement>(".mbu-toast-close");
+    expect(closeButton).toBeTruthy();
+    if (!closeButton) {
+      return;
+    }
+
+    expect(closeButton.getAttribute("aria-label")).toBe("閉じる");
+
+    await userEvent.click(closeButton);
+
+    await waitFor(
+      () => {
+        const remainingToasts = doc.body.querySelectorAll(".mbu-toast-root");
+        const remainingToast = Array.from(remainingToasts).find((node) =>
+          node.textContent?.includes("閉じるボタンで閉じられます")
+        );
+        expect(remainingToast).toBeFalsy();
+      },
+      { timeout: 1000 }
+    );
+  },
+};
+
+function ToastStacking(): React.JSX.Element {
+  const notifications = useMemo(() => createNotifications(), []);
+
+  return (
+    <>
+      <ToastHost
+        portalContainer={document.body}
+        toastManager={notifications.toastManager}
+      />
+      <div style={{ display: "grid", gap: 12, maxWidth: 560 }}>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 13 }}>Toast Stacking</div>
+          <div style={{ color: "var(--color-text-muted)", fontSize: 12 }}>
+            複数のトーストが適切にスタッキングされることを確認します。
+          </div>
+        </div>
+
+        <button
+          className="mbu-overlay-action"
+          data-testid="toast-stack-test"
+          onClick={() => {
+            notifications.notify.info("1つ目のトースト");
+            setTimeout(() => {
+              notifications.notify.success("2つ目のトースト");
+            }, 100);
+            setTimeout(() => {
+              notifications.notify.error("3つ目のトースト");
+            }, 200);
+          }}
+          type="button"
+        >
+          Show Multiple Toasts
+        </button>
+      </div>
+    </>
+  );
+}
+
+export const Stacking: Story = {
+  render: () => <ToastStacking />,
+  play: async ({ canvasElement }) => {
+    const doc = canvasElement.ownerDocument;
+    const canvas = within(canvasElement);
+
+    await userEvent.click(canvas.getByTestId("toast-stack-test"));
+
+    await waitFor(
+      () => {
+        const toasts =
+          doc.body.querySelectorAll<HTMLElement>(".mbu-toast-root");
+        expect(toasts.length).toBeGreaterThanOrEqual(3);
+      },
+      { timeout: 2000 }
+    );
+
+    const toasts = doc.body.querySelectorAll<HTMLElement>(".mbu-toast-root");
+    expect(toasts.length).toBeGreaterThanOrEqual(3);
+
+    const toast1 = Array.from(toasts).find((node) =>
+      node.textContent?.includes("1つ目のトースト")
+    );
+    const toast2 = Array.from(toasts).find((node) =>
+      node.textContent?.includes("2つ目のトースト")
+    );
+    const toast3 = Array.from(toasts).find((node) =>
+      node.textContent?.includes("3つ目のトースト")
+    );
+
+    expect(toast1).toBeTruthy();
+    expect(toast2).toBeTruthy();
+    expect(toast3).toBeTruthy();
+
+    if (toast1 && toast2 && toast3) {
+      const rect1 = toast1.getBoundingClientRect();
+      const rect2 = toast2.getBoundingClientRect();
+      const rect3 = toast3.getBoundingClientRect();
+
+      expect(rect1.top).toBeLessThan(rect2.top);
+      expect(rect2.top).toBeLessThan(rect3.top);
+    }
+  },
+};
