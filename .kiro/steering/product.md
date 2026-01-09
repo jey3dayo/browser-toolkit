@@ -27,8 +27,8 @@ Browser Toolkit is a personal Chrome extension that adds small, high-leverage ut
   - Prefer the current selection (context-menu `selectionText` or live `window.getSelection()`), or
   - For popup-triggered flows, fall back to a timestamped “recent selection” cache (treated as fresh for ~30s; local-only), or
   - Extracted page text (fallback).
-- Built-in actions exist (summarize/translate/calendar), and user-defined actions are editable in the popup UI.
-- Results are surfaced in-page as a lightweight overlay (Shadow DOM), anchored to the selection when possible, with copy/calendar handoff affordances.
+- Built-in actions include summarize/translate/code review (text) plus calendar extraction (event); user-defined actions are editable in the popup UI.
+- Results are surfaced in the popup output panel and/or in-page as a lightweight overlay (Shadow DOM), anchored to the selection when possible, with copy/calendar handoff affordances.
 - Actions support simple template variables (e.g. `{{text}}`, `{{title}}`, `{{url}}`, `{{source}}`) to reuse metadata in prompts.
 - Secrets (OpenAI API token) are configured by the user; the extension guides the user to settings when missing.
 - “Calendar” actions extract a structured event and provide handoff options (Google Calendar link; optional `.ics` export).

@@ -9,6 +9,10 @@
 - `src/styles/` holds design-token CSS and base styles; popup links them directly and Shadow DOM UIs inject them programmatically.
 - `src/ui/` contains cross-cutting UI plumbing (theme application, stylesheet injection, toast/notifications).
 - `src/` is intentionally modular: shared helpers live under `src/utils/` and feature code lives under folders like `src/popup/` and `src/content/`.
+- Background worker logic is split into focused modules under `src/background/`, with `src/background.ts` acting as the entrypoint/composer.
+- Built-in context-action prompts live in `src/prompts/` (TOML) and are assembled into defaults via `src/context_actions.ts`.
+- OpenAI settings/model defaults live under `src/openai/`, and storage schema typing lives under `src/storage/` for shared use across runtimes.
+- `src/types/` contains module declaration shims (e.g., TOML/assets) needed by the bundler and TypeScript.
 - Popup features are pane-based: add a new utility as a pane under `src/popup/panes/` and register it in `src/popup/panes.ts`.
 - `.storybook/` config supports developing/testing UI components outside the extension shell.
 - `dist/` is generated build output (bundled JS); it is treated as an artifact, not a source of truth.
