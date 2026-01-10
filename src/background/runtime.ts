@@ -24,6 +24,7 @@ import type { ContextAction } from "@/context_actions";
 import type { ExtractedEvent } from "@/shared_types";
 import {
   clearDebugLogs,
+  debugLog,
   downloadDebugLogs,
   getDebugLogStats,
   getDebugLogs,
@@ -209,6 +210,12 @@ function handleSummarizeTabRequest(
       const result = await summarizeWithOpenAI(target);
       sendResponse(result);
     } catch (error) {
+      await debugLog(
+        "handleSummarizeTabRequest",
+        "Failed to summarize tab",
+        { error, request },
+        "error"
+      );
       sendResponse({
         ok: false,
         error: error instanceof Error ? error.message : "要約に失敗しました",
@@ -227,6 +234,12 @@ function handleSummarizeTextRequest(
       const result = await summarizeWithOpenAI(request.target);
       sendResponse(result);
     } catch (error) {
+      await debugLog(
+        "handleSummarizeTextRequest",
+        "Failed to summarize text",
+        { error, request },
+        "error"
+      );
       sendResponse({
         ok: false,
         error: error instanceof Error ? error.message : "要約に失敗しました",
@@ -277,6 +290,12 @@ function handleRunContextActionRequest(
         );
       }
     } catch (error) {
+      await debugLog(
+        "handleRunContextActionRequest",
+        "Failed to run context action",
+        { error, request },
+        "error"
+      );
       sendResponse({
         ok: false,
         error:
@@ -298,6 +317,12 @@ function handleTestOpenAiTokenRequest(
       const result = await testOpenAiToken(request.token);
       sendResponse(result);
     } catch (error) {
+      await debugLog(
+        "handleTestOpenAiTokenRequest",
+        "Failed to test OpenAI token",
+        { error, request },
+        "error"
+      );
       sendResponse({
         ok: false,
         error:
@@ -312,13 +337,21 @@ function handleSummarizeEventRequest(
   request: SummarizeEventRequest,
   sendResponse: RuntimeSendResponse
 ): boolean {
-  handleSummarizeEventInMessage(request.target, sendResponse).catch((error) => {
-    sendResponse({
-      ok: false,
-      error:
-        error instanceof Error ? error.message : "イベント要約に失敗しました",
-    });
-  });
+  handleSummarizeEventInMessage(request.target, sendResponse).catch(
+    async (error) => {
+      await debugLog(
+        "handleSummarizeEventRequest",
+        "Failed to summarize event",
+        { error, request },
+        "error"
+      );
+      sendResponse({
+        ok: false,
+        error:
+          error instanceof Error ? error.message : "イベント要約に失敗しました",
+      });
+    }
+  );
   return true;
 }
 

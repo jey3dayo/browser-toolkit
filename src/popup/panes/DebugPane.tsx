@@ -12,6 +12,8 @@ import type {
   DownloadDebugLogsResponse,
 } from "@/popup/runtime";
 import type { LocalStorageData } from "@/storage/types";
+import { debugLog } from "@/utils/debug_log";
+import { formatErrorLog } from "@/utils/errors";
 
 export type DebugPaneProps = PopupPaneBaseProps;
 
@@ -33,8 +35,15 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
       }
       const raw: Partial<LocalStorageData> = loaded.value;
       setDebugMode(raw.debugMode ?? false);
-    })().catch(() => {
-      // no-op
+    })().catch((error) => {
+      debugLog(
+        "DebugPane.useEffect[props.runtime]",
+        "failed",
+        { error: formatErrorLog("", {}, error) },
+        "error"
+      ).catch(() => {
+        // no-op
+      });
     });
     return () => {
       cancelled = true;
@@ -97,8 +106,15 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
 
   useEffect(() => {
     if (debugMode) {
-      loadLogStats().catch(() => {
-        // no-op
+      loadLogStats().catch((error) => {
+        debugLog(
+          "DebugPane.loadLogStats",
+          "failed",
+          { error: formatErrorLog("", {}, error) },
+          "error"
+        ).catch(() => {
+          // no-op
+        });
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -230,7 +246,15 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
                   className="btn btn-ghost btn-small"
                   data-testid="show-debug-logs"
                   onClick={() => {
-                    loadAndShowLogs().catch(() => {
+                    loadAndShowLogs().catch((error) => {
+                      debugLog(
+                        "DebugPane.loadAndShowLogs",
+                        "failed",
+                        { error: formatErrorLog("", {}, error) },
+                        "error"
+                      ).catch(() => {
+                        // no-op
+                      });
                       props.notify.error("ログの読み込みに失敗しました");
                     });
                   }}

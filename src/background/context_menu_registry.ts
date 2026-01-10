@@ -141,6 +141,7 @@ async function refreshContextMenus(): Promise<void> {
     });
 
     if (enabledEngines.length > 0) {
+      await debugLog("refreshContextMenus", "creating search parent menu");
       await new Promise<void>((resolve, reject) => {
         chrome.contextMenus.create(
           {
@@ -152,15 +153,28 @@ async function refreshContextMenus(): Promise<void> {
           () => {
             const err = chrome.runtime.lastError;
             if (err) {
+              debugLog(
+                "refreshContextMenus",
+                "search parent menu error",
+                { error: err.message },
+                "error"
+              ).catch(() => {});
               reject(new Error(err.message));
               return;
             }
+            debugLog(
+              "refreshContextMenus",
+              "search parent menu created"
+            ).catch(() => {});
             resolve();
           }
         );
       });
 
       for (const engine of enabledEngines) {
+        await debugLog("refreshContextMenus", "creating search engine menu", {
+          engine,
+        });
         await new Promise<void>((resolve, reject) => {
           chrome.contextMenus.create(
             {
@@ -172,9 +186,18 @@ async function refreshContextMenus(): Promise<void> {
             () => {
               const err = chrome.runtime.lastError;
               if (err) {
+                debugLog(
+                  "refreshContextMenus",
+                  "search engine menu error",
+                  { engine, error: err.message },
+                  "error"
+                ).catch(() => {});
                 reject(new Error(err.message));
                 return;
               }
+              debugLog("refreshContextMenus", "search engine menu created", {
+                engine,
+              }).catch(() => {});
               resolve();
             }
           );
@@ -339,6 +362,12 @@ async function ensureContextActionsInitialized(): Promise<ContextAction[]> {
     await storageSyncSet({ contextActions: DEFAULT_CONTEXT_ACTIONS });
     return DEFAULT_CONTEXT_ACTIONS;
   } catch (error) {
+    await debugLog(
+      "ensureContextActionsInitialized",
+      "failed",
+      { error: formatErrorLog("", {}, error) },
+      "error"
+    );
     console.error(
       formatErrorLog("ensureContextActionsInitialized failed", {}, error)
     );
@@ -399,8 +428,15 @@ async function handleSearchEngineClick(
   }
 
   const searchUrl = buildSearchUrl(engine.urlTemplate, selectionText);
-  chrome.tabs.create({ url: searchUrl }).catch(() => {
-    // no-op
+  chrome.tabs.create({ url: searchUrl }).catch((error) => {
+    debugLog(
+      "handleSearchEngineClick",
+      "chrome.tabs.create failed",
+      { engineId, selectionText, searchUrl, error: formatErrorLog("", {}, error) },
+      "error"
+    ).catch(() => {
+      // no-op
+    });
   });
 }
 

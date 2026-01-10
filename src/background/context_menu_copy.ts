@@ -12,6 +12,7 @@ import type {
   SyncStorageData,
 } from "@/background/types";
 import type { CopyTitleLinkFailure } from "@/storage/types";
+import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog, toErrorMessage } from "@/utils/errors";
 import {
   coerceLinkFormat,
@@ -55,7 +56,13 @@ async function loadLinkFormatPreference(): Promise<LinkFormat> {
     const stored = (await storageSyncGet(["linkFormat"])) as SyncStorageData;
     const format = coerceLinkFormat(stored.linkFormat);
     return format ?? DEFAULT_LINK_FORMAT;
-  } catch {
+  } catch (error) {
+    await debugLog(
+      "loadLinkFormatPreference",
+      "failed",
+      { error: formatErrorLog("", {}, error) },
+      "error"
+    );
     return DEFAULT_LINK_FORMAT;
   }
 }
@@ -100,6 +107,12 @@ export async function handleCopyTitleLinkContextMenuClick(
     });
   } catch (error) {
     const errorMessage = toErrorMessage(error, "コピーに失敗しました");
+    await debugLog(
+      "handleCopyTitleLinkContextMenuClick",
+      "failed",
+      { tabId: params.tabId, title, url, format, errorMessage, error: formatErrorLog("", {}, error) },
+      "error"
+    );
     console.error(
       formatErrorLog(
         "copy title/link failed",
@@ -148,8 +161,15 @@ async function showCopyTitleLinkFailureIndicator(
   tabId: number,
   failure: CopyTitleLinkFailure
 ): Promise<void> {
-  await storageLocalSet({ lastCopyTitleLinkFailure: failure }).catch(() => {
-    // no-op
+  await storageLocalSet({ lastCopyTitleLinkFailure: failure }).catch((error) => {
+    debugLog(
+      "showCopyTitleLinkFailureIndicator",
+      "storageLocalSet failed",
+      { tabId, error: formatErrorLog("", {}, error) },
+      "error"
+    ).catch(() => {
+      // no-op
+    });
   });
 
   const pageLabel = failure.pageUrl || failure.pageTitle || "このページ";
@@ -160,8 +180,13 @@ async function showCopyTitleLinkFailureIndicator(
       title: `${APP_NAME}: このページではコピーできません\n${pageLabel}\n（ポップアップ「リンク作成」からコピーできます）`,
       tabId,
     });
-  } catch {
-    // no-op
+  } catch (error) {
+    await debugLog(
+      "showCopyTitleLinkFailureIndicator",
+      "chrome.action API failed",
+      { tabId, error: formatErrorLog("", {}, error) },
+      "error"
+    );
   }
 }
 

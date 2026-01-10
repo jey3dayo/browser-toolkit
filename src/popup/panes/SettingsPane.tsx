@@ -24,6 +24,8 @@ import type {
 } from "@/popup/runtime";
 import type { LocalStorageData } from "@/storage/types";
 import { applyTheme, isTheme, type Theme } from "@/ui/theme";
+import { debugLog } from "@/utils/debug_log";
+import { formatErrorLog } from "@/utils/errors";
 import { isRecord } from "@/utils/guards";
 
 export type SettingsPaneProps = PopupPaneBaseProps & {
@@ -74,8 +76,15 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
       const resolvedTheme: Theme = isTheme(raw.theme) ? raw.theme : "auto";
       setTheme(resolvedTheme);
       applyTheme(resolvedTheme, document);
-    })().catch(() => {
-      // no-op
+    })().catch((error) => {
+      debugLog(
+        "SettingsPane.useEffect[props.runtime]",
+        "failed",
+        { error: formatErrorLog("", {}, error) },
+        "error"
+      ).catch(() => {
+        // no-op
+      });
     });
     return () => {
       cancelled = true;

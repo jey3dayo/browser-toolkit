@@ -13,6 +13,8 @@ import {
   normalizeSearchEngines,
   type SearchEngine,
 } from "@/search_engines";
+import { debugLog } from "@/utils/debug_log";
+import { formatErrorLog } from "@/utils/errors";
 
 export type SearchEnginesPaneProps = PopupPaneBaseProps;
 
@@ -41,8 +43,15 @@ export function SearchEnginesPane(
       const enginesResult =
         existing.length > 0 ? existing : DEFAULT_SEARCH_ENGINES;
       setEngines(enginesResult);
-    })().catch(() => {
-      // no-op
+    })().catch((error) => {
+      debugLog(
+        "SearchEnginesPane.useEffect[props.runtime]",
+        "failed",
+        { error: formatErrorLog("", {}, error) },
+        "error"
+      ).catch(() => {
+        // no-op
+      });
     });
     return () => {
       cancelled = true;

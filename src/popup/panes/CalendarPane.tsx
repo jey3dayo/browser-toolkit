@@ -23,6 +23,8 @@ import {
   DEFAULT_CALENDAR_TARGETS,
   resolveCalendarTargets,
 } from "@/utils/calendar_targets";
+import { debugLog } from "@/utils/debug_log";
+import { formatErrorLog } from "@/utils/errors";
 import { buildIcs, sanitizeFileName } from "@/utils/ics";
 
 export type CalendarPaneProps = PopupPaneBaseProps & {
@@ -93,8 +95,15 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
       }
       const next = resolveCalendarTargets(data.value.calendarTargets);
       setTargets(next);
-    })().catch(() => {
-      // no-op
+    })().catch((error) => {
+      debugLog(
+        "CalendarPane.useEffect[props.runtime]",
+        "failed",
+        { error: formatErrorLog("", {}, error) },
+        "error"
+      ).catch(() => {
+        // no-op
+      });
     });
     return () => {
       cancelled = true;
