@@ -146,10 +146,26 @@ type RuntimeRequest =
   | { action: "getDebugLogStats" }
   | { action: "getDebugLogs" };
 
+export type TestOpenAiTokenResponse = Result.Result<
+  Record<string, never>,
+  string
+>;
+export type DownloadDebugLogsResponse = Result.Result<
+  Record<string, never>,
+  string
+>;
+export type ClearDebugLogsResponse = Result.Result<
+  Record<string, never>,
+  string
+>;
+
 type RuntimeResponse =
   | BackgroundResponse
   | RunContextActionResponse
   | SummarizeEventResponse
+  | TestOpenAiTokenResponse
+  | DownloadDebugLogsResponse
+  | ClearDebugLogsResponse
   | { ok: true }
   | { ok: false; error: string }
   | {
@@ -252,11 +268,11 @@ function handleRunContextActionRequest(
       const actions = await loadContextActions();
       const action = actions.find((item) => item.id === request.actionId);
       if (!action) {
-        sendResponse({
-          ok: false,
-          error:
-            "アクションが見つかりません（ポップアップで再保存してください）",
-        });
+        sendResponse(
+          Result.fail(
+            "アクションが見つかりません（ポップアップで再保存してください）"
+          )
+        );
         return;
       }
 
@@ -283,13 +299,13 @@ function handleRunContextActionRequest(
         { error, request },
         "error"
       );
-      sendResponse({
-        ok: false,
-        error:
+      sendResponse(
+        Result.fail(
           error instanceof Error
             ? error.message
-            : "アクションの実行に失敗しました",
-      });
+            : "アクションの実行に失敗しました"
+        )
+      );
     }
   })();
   return true;
@@ -303,10 +319,10 @@ function handleTestOpenAiTokenRequest(
     try {
       const result = await testOpenAiToken(request.token);
       if (Result.isFailure(result)) {
-        sendResponse({ ok: false, error: result.error });
+        sendResponse(Result.fail(result.error));
         return;
       }
-      sendResponse({ ok: true });
+      sendResponse(Result.succeed({}));
     } catch (error) {
       await debugLog(
         "handleTestOpenAiTokenRequest",
@@ -314,11 +330,11 @@ function handleTestOpenAiTokenRequest(
         { error, request },
         "error"
       );
-      sendResponse({
-        ok: false,
-        error:
-          error instanceof Error ? error.message : "トークン確認に失敗しました",
-      });
+      sendResponse(
+        Result.fail(
+          error instanceof Error ? error.message : "トークン確認に失敗しました"
+        )
+      );
     }
   })();
   return true;
@@ -369,16 +385,16 @@ function handleDownloadDebugLogsRequest(
 ): boolean {
   downloadDebugLogs()
     .then(() => {
-      sendResponse({ ok: true });
+      sendResponse(Result.succeed({}));
     })
     .catch((error) => {
-      sendResponse({
-        ok: false,
-        error:
+      sendResponse(
+        Result.fail(
           error instanceof Error
             ? error.message
-            : "デバッグログのダウンロードに失敗しました",
-      });
+            : "デバッグログのダウンロードに失敗しました"
+        )
+      );
     });
   return true;
 }
@@ -389,16 +405,16 @@ function handleClearDebugLogsRequest(
 ): boolean {
   clearDebugLogs()
     .then(() => {
-      sendResponse({ ok: true });
+      sendResponse(Result.succeed({}));
     })
     .catch((error) => {
-      sendResponse({
-        ok: false,
-        error:
+      sendResponse(
+        Result.fail(
           error instanceof Error
             ? error.message
-            : "デバッグログのクリアに失敗しました",
-      });
+            : "デバッグログのクリアに失敗しました"
+        )
+      );
     });
   return true;
 }
