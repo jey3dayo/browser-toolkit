@@ -4,6 +4,7 @@ export const PANE_IDS = [
   "pane-table",
   "pane-create-link",
   "pane-search-engines",
+  "pane-debug",
   "pane-settings",
 ] as const;
 export type PaneId = (typeof PANE_IDS)[number];

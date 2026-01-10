@@ -152,7 +152,7 @@ import { parseNumericValue } from "@/utils/number_parser";
     );
   }
 
-  function sortTable(table: HTMLTableElement, columnIndex: number): void {
+  function _sortTable(table: HTMLTableElement, columnIndex: number): void {
     sortTableCore(table, columnIndex, getCurrentPatternRowFilterSetting);
   }
 

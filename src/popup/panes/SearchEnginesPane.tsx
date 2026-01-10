@@ -1,11 +1,9 @@
 import { Button } from "@base-ui/react/button";
 import { Form } from "@base-ui/react/form";
 import { Input } from "@base-ui/react/input";
-import { ScrollArea } from "@base-ui/react/scroll-area";
 import { Switch } from "@base-ui/react/switch";
 import { Result } from "@praha/byethrow";
 import { useEffect, useState } from "react";
-import { scheduleRefreshContextMenus } from "@/background/context_menu_registry";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { persistWithRollback } from "@/popup/utils/persist";
 import {
@@ -29,12 +27,16 @@ export function SearchEnginesPane(
     let cancelled = false;
     (async () => {
       const data = await props.runtime.storageSyncGet(["searchEngines"]);
-      if (Result.isFailure(data)) {
-        return;
-      }
       if (cancelled) {
         return;
       }
+
+      // ストレージ読み込み失敗時もデフォルト値を表示
+      if (Result.isFailure(data)) {
+        setEngines(DEFAULT_SEARCH_ENGINES);
+        return;
+      }
+
       const existing = normalizeSearchEngines(data.value.searchEngines);
       const enginesResult =
         existing.length > 0 ? existing : DEFAULT_SEARCH_ENGINES;
@@ -47,18 +49,13 @@ export function SearchEnginesPane(
     };
   }, [props.runtime]);
 
-  const saveAndRefreshMenu = async (
+  const saveEngines = async (
     nextEngines: SearchEngine[]
   ): Promise<Result.Result<void, string>> => {
-    const saved = await props.runtime.storageSyncSet({
+    // ストレージ保存のみ。メニューは background.ts の storage.onChanged で自動更新される
+    return await props.runtime.storageSyncSet({
       searchEngines: nextEngines,
     });
-    if (Result.isSuccess(saved)) {
-      scheduleRefreshContextMenus().catch(() => {
-        // no-op
-      });
-    }
-    return saved;
   };
 
   const toggleEngineEnabled = async (
@@ -75,7 +72,7 @@ export function SearchEnginesPane(
       rollback: () => {
         setEngines(engines);
       },
-      persist: () => saveAndRefreshMenu(next),
+      persist: () => saveEngines(next),
       onFailure: () => {
         props.notify.error("保存に失敗しました");
       },
@@ -128,7 +125,7 @@ export function SearchEnginesPane(
       rollback: () => {
         setEngines(engines);
       },
-      persist: () => saveAndRefreshMenu(next),
+      persist: () => saveEngines(next),
       onSuccess: () => {
         props.notify.success("追加しました");
       },
@@ -147,7 +144,7 @@ export function SearchEnginesPane(
       rollback: () => {
         setEngines(engines);
       },
-      persist: () => saveAndRefreshMenu(next),
+      persist: () => saveEngines(next),
       onSuccess: () => {
         props.notify.success("削除しました");
       },
@@ -165,7 +162,7 @@ export function SearchEnginesPane(
       rollback: () => {
         setEngines(engines);
       },
-      persist: () => saveAndRefreshMenu(DEFAULT_SEARCH_ENGINES),
+      persist: () => saveEngines(DEFAULT_SEARCH_ENGINES),
       onSuccess: () => {
         props.notify.success("デフォルトに戻しました");
       },
@@ -241,61 +238,47 @@ export function SearchEnginesPane(
         </Form>
 
         {engines.length > 0 ? (
-          <ScrollArea.Root className="pattern-scrollarea">
-            <ScrollArea.Viewport className="pattern-list">
-              <ScrollArea.Content>
-                <ul
-                  aria-label="登録済み検索エンジン"
-                  className="pattern-list-inner"
-                >
-                  {engines.map((engine) => (
-                    <li className="search-engine-item" key={engine.id}>
-                      <div className="search-engine-header">
-                        <strong className="search-engine-name">
-                          {engine.name}
-                        </strong>
-                        <Switch.Root
-                          aria-label={`${engine.name}を有効化`}
-                          checked={engine.enabled}
-                          className="mbu-switch"
-                          data-testid={`engine-enabled-${engine.id}`}
-                          onCheckedChange={(checked) => {
-                            toggleEngineEnabled(engine.id, checked).catch(
-                              () => {
-                                // no-op
-                              }
-                            );
-                          }}
-                        >
-                          <Switch.Thumb className="mbu-switch-thumb" />
-                        </Switch.Root>
-                        {!engine.id.startsWith("builtin:") && (
-                          <Button
-                            className="btn-delete"
-                            data-testid={`remove-engine-${engine.id}`}
-                            onClick={() => {
-                              removeEngine(engine.id).catch(() => {
-                                // no-op
-                              });
-                            }}
-                            type="button"
-                          >
-                            削除
-                          </Button>
-                        )}
-                      </div>
-                      <code className="search-engine-url">
-                        {engine.urlTemplate}
-                      </code>
-                    </li>
-                  ))}
-                </ul>
-              </ScrollArea.Content>
-            </ScrollArea.Viewport>
-            <ScrollArea.Scrollbar className="pattern-scrollbar">
-              <ScrollArea.Thumb className="pattern-thumb" />
-            </ScrollArea.Scrollbar>
-          </ScrollArea.Root>
+          <ul aria-label="登録済み検索エンジン" className="search-engines-list">
+            {engines.map((engine) => (
+              <li className="search-engine-item" key={engine.id}>
+                <div className="search-engine-content">
+                  <strong className="search-engine-name">{engine.name}</strong>
+                  <code className="search-engine-url">
+                    {engine.urlTemplate}
+                  </code>
+                </div>
+                <div className="search-engine-controls">
+                  <Switch.Root
+                    aria-label={`${engine.name}を有効化`}
+                    checked={engine.enabled}
+                    className="mbu-switch"
+                    data-testid={`engine-enabled-${engine.id}`}
+                    onCheckedChange={(checked) => {
+                      toggleEngineEnabled(engine.id, checked).catch(() => {
+                        // no-op
+                      });
+                    }}
+                  >
+                    <Switch.Thumb className="mbu-switch-thumb" />
+                  </Switch.Root>
+                  {!engine.id.startsWith("builtin:") && (
+                    <Button
+                      className="btn-delete"
+                      data-testid={`remove-engine-${engine.id}`}
+                      onClick={() => {
+                        removeEngine(engine.id).catch(() => {
+                          // no-op
+                        });
+                      }}
+                      type="button"
+                    >
+                      削除
+                    </Button>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
         ) : (
           <p className="empty-message">検索エンジンが登録されていません</p>
         )}

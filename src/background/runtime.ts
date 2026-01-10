@@ -22,6 +22,12 @@ import type {
 } from "@/background/types";
 import type { ContextAction } from "@/context_actions";
 import type { ExtractedEvent } from "@/shared_types";
+import {
+  clearDebugLogs,
+  downloadDebugLogs,
+  getDebugLogStats,
+  getDebugLogs,
+} from "@/utils/debug_log";
 import { showErrorNotification } from "@/utils/notifications";
 
 // Helper function for handling event actions in message listener
@@ -140,7 +146,11 @@ type RuntimeRequest =
   | { action: "summarizeText"; target: SummaryTarget }
   | { action: "testOpenAiToken"; token?: string }
   | { action: "summarizeEvent"; target: SummaryTarget }
-  | { action: "openPopupSettings" };
+  | { action: "openPopupSettings" }
+  | { action: "downloadDebugLogs" }
+  | { action: "clearDebugLogs" }
+  | { action: "getDebugLogStats" }
+  | { action: "getDebugLogs" };
 
 type RuntimeResponse =
   | BackgroundResponse
@@ -153,6 +163,22 @@ type RuntimeResponse =
       eventText: string;
       calendarUrl?: string;
       calendarError?: string;
+    }
+  | {
+      ok: true;
+      logs: Array<{
+        timestamp: string;
+        level: string;
+        context: string;
+        message: string;
+        data?: unknown;
+      }>;
+    }
+  | {
+      ok: true;
+      entryCount: number;
+      sizeBytes: number;
+      sizeKB: string;
     };
 
 type RuntimeSendResponse = (response?: RuntimeResponse) => void;
@@ -313,6 +339,86 @@ function handleOpenPopupSettingsRequest(
   return true;
 }
 
+function handleDownloadDebugLogsRequest(
+  _request: { action: "downloadDebugLogs" },
+  sendResponse: RuntimeSendResponse
+): boolean {
+  downloadDebugLogs()
+    .then(() => {
+      sendResponse({ ok: true });
+    })
+    .catch((error) => {
+      sendResponse({
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "デバッグログのダウンロードに失敗しました",
+      });
+    });
+  return true;
+}
+
+function handleClearDebugLogsRequest(
+  _request: { action: "clearDebugLogs" },
+  sendResponse: RuntimeSendResponse
+): boolean {
+  clearDebugLogs()
+    .then(() => {
+      sendResponse({ ok: true });
+    })
+    .catch((error) => {
+      sendResponse({
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "デバッグログのクリアに失敗しました",
+      });
+    });
+  return true;
+}
+
+function handleGetDebugLogStatsRequest(
+  _request: { action: "getDebugLogStats" },
+  sendResponse: RuntimeSendResponse
+): boolean {
+  getDebugLogStats()
+    .then((stats) => {
+      sendResponse({ ok: true, ...stats });
+    })
+    .catch((error) => {
+      sendResponse({
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "デバッグログ統計の取得に失敗しました",
+      });
+    });
+  return true;
+}
+
+function handleGetDebugLogsRequest(
+  _request: { action: "getDebugLogs" },
+  sendResponse: RuntimeSendResponse
+): boolean {
+  getDebugLogs()
+    .then((logs) => {
+      sendResponse({ ok: true, logs });
+    })
+    .catch((error) => {
+      sendResponse({
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "デバッグログの取得に失敗しました",
+      });
+    });
+  return true;
+}
+
 const runtimeHandlers = {
   summarizeTab: handleSummarizeTabRequest,
   summarizeText: handleSummarizeTextRequest,
@@ -320,6 +426,10 @@ const runtimeHandlers = {
   testOpenAiToken: handleTestOpenAiTokenRequest,
   summarizeEvent: handleSummarizeEventRequest,
   openPopupSettings: handleOpenPopupSettingsRequest,
+  downloadDebugLogs: handleDownloadDebugLogsRequest,
+  clearDebugLogs: handleClearDebugLogsRequest,
+  getDebugLogStats: handleGetDebugLogStatsRequest,
+  getDebugLogs: handleGetDebugLogsRequest,
 } as const;
 
 export function registerRuntimeMessageHandlers(): void {

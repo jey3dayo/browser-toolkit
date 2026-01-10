@@ -208,14 +208,13 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
             追加指示（オプション）
           </Fieldset.Legend>
           <label className="field" htmlFor={promptInputId}>
-            <span className="field-name">追加指示</span>
             <textarea
               className="prompt-input"
               data-testid="custom-prompt"
               id={promptInputId}
               name="openaiCustomPrompt"
               onChange={(event) => setCustomPrompt(event.currentTarget.value)}
-              rows={6}
+              rows={3}
               value={customPrompt}
             />
           </label>
@@ -265,7 +264,6 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
           </Fieldset.Legend>
 
           <div className="field">
-            <span className="field-name">モデル</span>
             <Select.Root
               name="openaiModel"
               onValueChange={(value) => {
@@ -351,10 +349,10 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
       >
         <Field.Root name="theme">
           <Fieldset.Root
-            className="mbu-fieldset stack"
+            className="mbu-fieldset"
             render={
               <RadioGroup
-                className="mbu-radio-group"
+                className="mbu-radio-group mbu-radio-group--horizontal"
                 onValueChange={(value) => {
                   if (!isTheme(value)) {
                     return;

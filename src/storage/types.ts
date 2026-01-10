@@ -17,4 +17,5 @@ export type LocalStorageData = {
   openaiModel?: string;
   theme?: Theme;
   lastCopyTitleLinkFailure?: CopyTitleLinkFailure;
+  debugMode?: boolean;
 };

@@ -75,6 +75,20 @@ export type TestOpenAiTokenResponse =
   | { ok: true }
   | { ok: false; error: string };
 
+export type DownloadDebugLogsRequest = {
+  action: "downloadDebugLogs";
+};
+export type DownloadDebugLogsResponse =
+  | { ok: true }
+  | { ok: false; error: string };
+
+export type ClearDebugLogsRequest = {
+  action: "clearDebugLogs";
+};
+export type ClearDebugLogsResponse =
+  | { ok: true }
+  | { ok: false; error: string };
+
 export type ActiveTabInfo = {
   id: number;
   title?: string;

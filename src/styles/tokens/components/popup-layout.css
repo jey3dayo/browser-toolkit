@@ -84,6 +84,11 @@
   gap: 10px;
 }
 
+.mbu-radio-group--horizontal {
+  grid-auto-flow: column;
+  justify-content: start;
+}
+
 .mbu-radio-label {
   display: inline-flex;
   align-items: center;

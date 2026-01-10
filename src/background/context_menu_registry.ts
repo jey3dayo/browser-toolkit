@@ -31,6 +31,7 @@ import {
   normalizeSearchEngines,
   type SearchEngine,
 } from "@/search_engines";
+import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
 
 let contextMenuRefreshQueue: Promise<void> = Promise.resolve();
@@ -129,46 +130,15 @@ async function refreshContextMenus(): Promise<void> {
       );
     });
 
-    await new Promise<void>((resolve, reject) => {
-      chrome.contextMenus.create(
-        {
-          id: CONTEXT_MENU_COPY_TITLE_LINK_ID,
-          parentId: CONTEXT_MENU_ROOT_ID,
-          title: "タイトルとリンクをコピー",
-          contexts: ["page", "selection"],
-        },
-        () => {
-          const err = chrome.runtime.lastError;
-          if (err) {
-            reject(new Error(err.message));
-            return;
-          }
-          resolve();
-        }
-      );
-    });
-
-    await new Promise<void>((resolve, reject) => {
-      chrome.contextMenus.create(
-        {
-          id: CONTEXT_MENU_CALENDAR_ID,
-          parentId: CONTEXT_MENU_ROOT_ID,
-          title: "カレンダー登録",
-          contexts: ["page", "selection"],
-        },
-        () => {
-          const err = chrome.runtime.lastError;
-          if (err) {
-            reject(new Error(err.message));
-            return;
-          }
-          resolve();
-        }
-      );
-    });
-
     const searchEngines = await ensureSearchEnginesInitialized();
     const enabledEngines = searchEngines.filter((engine) => engine.enabled);
+
+    await debugLog("refreshContextMenus", "searchEngines loaded", {
+      searchEngines,
+    });
+    await debugLog("refreshContextMenus", "enabledEngines filtered", {
+      enabledEngines,
+    });
 
     if (enabledEngines.length > 0) {
       await new Promise<void>((resolve, reject) => {
@@ -230,6 +200,44 @@ async function refreshContextMenus(): Promise<void> {
         );
       });
     }
+
+    await new Promise<void>((resolve, reject) => {
+      chrome.contextMenus.create(
+        {
+          id: CONTEXT_MENU_COPY_TITLE_LINK_ID,
+          parentId: CONTEXT_MENU_ROOT_ID,
+          title: "タイトルとリンクをコピー",
+          contexts: ["page", "selection"],
+        },
+        () => {
+          const err = chrome.runtime.lastError;
+          if (err) {
+            reject(new Error(err.message));
+            return;
+          }
+          resolve();
+        }
+      );
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      chrome.contextMenus.create(
+        {
+          id: CONTEXT_MENU_CALENDAR_ID,
+          parentId: CONTEXT_MENU_ROOT_ID,
+          title: "カレンダー登録",
+          contexts: ["page", "selection"],
+        },
+        () => {
+          const err = chrome.runtime.lastError;
+          if (err) {
+            reject(new Error(err.message));
+            return;
+          }
+          resolve();
+        }
+      );
+    });
 
     await new Promise<void>((resolve, reject) => {
       chrome.contextMenus.create(
@@ -310,28 +318,69 @@ async function refreshContextMenus(): Promise<void> {
       );
     });
   } catch (error) {
-    console.error(formatErrorLog("refreshContextMenus failed", {}, error));
+    await debugLog(
+      "refreshContextMenus",
+      "failed",
+      { error: formatErrorLog("", {}, error) },
+      "error"
+    );
   }
 }
 
 async function ensureContextActionsInitialized(): Promise<ContextAction[]> {
-  const stored = (await storageSyncGet(["contextActions"])) as SyncStorageData;
-  const existing = normalizeContextActions(stored.contextActions);
-  if (existing.length > 0) {
-    return existing;
+  try {
+    const stored = (await storageSyncGet([
+      "contextActions",
+    ])) as SyncStorageData;
+    const existing = normalizeContextActions(stored.contextActions);
+    if (existing.length > 0) {
+      return existing;
+    }
+    await storageSyncSet({ contextActions: DEFAULT_CONTEXT_ACTIONS });
+    return DEFAULT_CONTEXT_ACTIONS;
+  } catch (error) {
+    console.error(
+      formatErrorLog("ensureContextActionsInitialized failed", {}, error)
+    );
+    // ストレージ読み込み失敗時もデフォルト値を返す
+    return DEFAULT_CONTEXT_ACTIONS;
   }
-  await storageSyncSet({ contextActions: DEFAULT_CONTEXT_ACTIONS });
-  return DEFAULT_CONTEXT_ACTIONS;
 }
 
 async function ensureSearchEnginesInitialized(): Promise<SearchEngine[]> {
-  const stored = (await storageSyncGet(["searchEngines"])) as SyncStorageData;
-  const existing = normalizeSearchEngines(stored.searchEngines);
-  if (existing.length > 0) {
-    return existing;
+  try {
+    await debugLog("ensureSearchEnginesInitialized", "start");
+    const stored = (await storageSyncGet(["searchEngines"])) as SyncStorageData;
+    await debugLog("ensureSearchEnginesInitialized", "stored data", { stored });
+    const existing = normalizeSearchEngines(stored.searchEngines);
+    await debugLog("ensureSearchEnginesInitialized", "normalized existing", {
+      existing,
+      count: existing.length,
+    });
+    if (existing.length > 0) {
+      await debugLog("ensureSearchEnginesInitialized", "returning existing");
+      return existing;
+    }
+    await debugLog("ensureSearchEnginesInitialized", "saving defaults", {
+      defaults: DEFAULT_SEARCH_ENGINES,
+    });
+    await storageSyncSet({ searchEngines: DEFAULT_SEARCH_ENGINES });
+    await debugLog("ensureSearchEnginesInitialized", "returning defaults");
+    return DEFAULT_SEARCH_ENGINES;
+  } catch (error) {
+    await debugLog(
+      "ensureSearchEnginesInitialized",
+      "error occurred",
+      { error: formatErrorLog("", {}, error) },
+      "error"
+    );
+    // ストレージ読み込み失敗時もデフォルト値を返す
+    await debugLog(
+      "ensureSearchEnginesInitialized",
+      "returning defaults after error"
+    );
+    return DEFAULT_SEARCH_ENGINES;
   }
-  await storageSyncSet({ searchEngines: DEFAULT_SEARCH_ENGINES });
-  return DEFAULT_SEARCH_ENGINES;
 }
 
 async function handleSearchEngineClick(

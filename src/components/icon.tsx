@@ -1,4 +1,5 @@
 import {
+  Bug,
   Calendar,
   Copy,
   Eye,
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 
 export type IconName =
+  | "bug"
   | "calendar"
   | "close"
   | "copy"
@@ -35,6 +37,7 @@ export type IconName =
   | "zap";
 
 const icons: Record<IconName, React.ComponentType<LucideProps>> = {
+  bug: Bug,
   calendar: Calendar,
   close: X,
   copy: Copy,
