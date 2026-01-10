@@ -2,7 +2,6 @@ import { Result } from "@praha/byethrow";
 import { useEffect, useMemo, useState } from "react";
 import {
   type ContextAction,
-  type ContextActionKind,
   DEFAULT_CONTEXT_ACTIONS,
   normalizeContextActions,
 } from "@/context_actions";
@@ -11,35 +10,12 @@ import { ActionButtons } from "@/popup/panes/actions/ActionButtons";
 import { ActionEditorPanel } from "@/popup/panes/actions/ActionEditorPanel";
 import { ActionOutputPanel } from "@/popup/panes/actions/ActionOutputPanel";
 import { ActionTargetAccordion } from "@/popup/panes/actions/ActionTargetAccordion";
-import type {
-  PopupRuntime,
-  RunContextActionRequest,
-  RunContextActionResponse,
-  SummaryTarget,
-} from "@/popup/runtime";
-import {
-  ensureOpenAiTokenConfigured,
-  type NotificationOptions,
-} from "@/popup/token_guard";
+import { useActionEditor } from "@/popup/panes/actions/useActionEditor";
+import { useActionRunner } from "@/popup/panes/actions/useActionRunner";
+import type { PopupRuntime } from "@/popup/runtime";
 import { persistWithRollback } from "@/popup/utils/persist";
 import { coerceSummarySourceLabel } from "@/popup/utils/summary_source_label";
-import {
-  fetchSummaryTargetForTab,
-  resolveActiveTabId,
-} from "@/popup/utils/summary_target";
 import type { Notifier } from "@/ui/toast";
-import { isRecord } from "@/utils/guards";
-
-type OutputState =
-  | { status: "idle" }
-  | { status: "running"; title: string }
-  | {
-      status: "ready";
-      title: string;
-      text: string;
-      sourceLabel: string;
-    }
-  | { status: "error"; title: string; message: string };
 
 export type ActionsPaneProps = {
   runtime: PopupRuntime;
@@ -48,87 +24,78 @@ export type ActionsPaneProps = {
   focusTokenInput: () => void;
 };
 
-function isRunContextActionResponse(
-  value: unknown
-): value is RunContextActionResponse {
-  // Result type is opaque, so we can't check its structure directly
-  // We assume the value is a RunContextActionResponse if it's an object
-  return isRecord(value);
-}
-
-type ParseRunContextActionResponseError = string;
-
-export function parseRunContextActionResponseToOutput(params: {
-  actionTitle: string;
-  responseUnknown: unknown;
-}): Result.Result<OutputState, ParseRunContextActionResponseError> {
-  if (!isRunContextActionResponse(params.responseUnknown)) {
-    return Result.fail("バックグラウンドの応答が不正です");
-  }
-
-  const response = params.responseUnknown;
-  if (Result.isFailure(response)) {
-    return Result.fail(response.error);
-  }
-
-  const payload = response.value;
-  const sourceLabel = coerceSummarySourceLabel(payload.source);
-
-  if (payload.resultType === "event") {
-    return Result.succeed({
-      status: "ready",
-      title: params.actionTitle,
-      text: payload.eventText,
-      sourceLabel,
-    });
-  }
-
-  if (payload.resultType === "text") {
-    return Result.succeed({
-      status: "ready",
-      title: params.actionTitle,
-      text: payload.text,
-      sourceLabel,
-    });
-  }
-
-  return Result.fail("結果の形式が不正です");
-}
-
 export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
   const [actions, setActions] = useState<ContextAction[]>([]);
-  const [output, setOutput] = useState<OutputState>({ status: "idle" });
-  const [target, setTarget] = useState<SummaryTarget | null>(null);
-  const [editorId, setEditorId] = useState<string>("");
-  const [editorTitle, setEditorTitle] = useState("");
-  const [editorKind, setEditorKind] = useState<ContextActionKind>("text");
-  const [editorPrompt, setEditorPrompt] = useState("");
 
   const actionsById = useMemo(
     () => new Map(actions.map((action) => [action.id, action])),
     [actions]
   );
-  const outputTitle =
-    output.status === "ready" || output.status === "running"
-      ? output.title
-      : "出力";
-  const outputText = output.status === "ready" ? output.text : "";
-  const canCopyOutput = Boolean(outputText.trim());
-  const targetSourceLabel = target
-    ? coerceSummarySourceLabel(target.source)
-    : "";
-  const outputValue = (() => {
-    switch (output.status) {
-      case "ready":
-        return output.text;
-      case "running":
-        return "実行中...";
-      case "error":
-        return output.message;
-      default:
-        return "";
-    }
-  })();
+
+  const {
+    output,
+    target,
+    runAction,
+    copyOutput,
+    outputTitle,
+    outputValue,
+    canCopyOutput,
+    targetSourceLabel,
+  } = useActionRunner({
+    actionsById,
+    runtime: props.runtime,
+    notify: props.notify,
+    navigateToPane: props.navigateToPane,
+    focusTokenInput: props.focusTokenInput,
+  });
+
+  const persistActionsUpdate = async (
+    nextActions: ContextAction[],
+    successMessage: string,
+    failureMessage: string
+  ): Promise<void> => {
+    const previous = actions;
+    await persistWithRollback({
+      applyNext: () => {
+        setActions(nextActions);
+        resetEditorState();
+      },
+      rollback: () => {
+        setActions(previous);
+      },
+      persist: () =>
+        props.runtime.storageSyncSet({
+          contextActions: nextActions,
+        }),
+      onSuccess: () => {
+        props.notify.success(successMessage);
+      },
+      onFailure: () => {
+        props.notify.error(failureMessage);
+      },
+    });
+  };
+
+  const {
+    editorId,
+    editorTitle,
+    editorKind,
+    editorPrompt,
+    setEditorTitle,
+    setEditorKind,
+    setEditorPrompt,
+    selectActionForEdit,
+    saveEditor,
+    deleteEditor,
+    resetEditorState,
+  } = useActionEditor({
+    actions,
+    actionsById,
+    setActions,
+    persistActionsUpdate,
+    runtime: props.runtime,
+    notify: props.notify,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -164,287 +131,12 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
     };
   }, [props.runtime]);
 
-  useEffect(() => {
-    if (!editorId) {
-      return;
-    }
-    if (actions.some((action) => action.id === editorId)) {
-      return;
-    }
-    setEditorId("");
-    setEditorTitle("");
-    setEditorKind("text");
-    setEditorPrompt("");
-  }, [actions, editorId]);
-
-  const selectActionForEdit = (nextId: string): void => {
-    setEditorId(nextId);
-    if (!nextId) {
-      setEditorTitle("");
-      setEditorKind("text");
-      setEditorPrompt("");
-      return;
-    }
-    const action = actionsById.get(nextId);
-    if (!action) {
-      return;
-    }
-    setEditorTitle(action.title);
-    setEditorKind(action.kind);
-    setEditorPrompt(action.prompt);
-  };
-
-  const createActionId = (): string => {
-    const uuid =
-      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-        ? crypto.randomUUID()
-        : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    return `custom:${uuid}`;
-  };
-
-  const saveEditor = async (): Promise<void> => {
-    const title = editorTitle.trim();
-    if (!title) {
-      props.notify.error("タイトルを入力してください");
-      return;
-    }
-
-    const prompt = editorPrompt;
-    if (editorKind === "text" && !prompt.trim()) {
-      props.notify.error("プロンプトを入力してください");
-      return;
-    }
-
-    const nextId = editorId || createActionId();
-    const next: ContextAction = { id: nextId, title, kind: editorKind, prompt };
-
-    const previous = actions;
-    const nextActions = editorId
-      ? actions.map((action) => (action.id === editorId ? next : action))
-      : [...actions, next];
-
-    setActions(nextActions);
-    setEditorId(nextId);
-
-    const saved = await props.runtime.storageSyncSet({
-      contextActions: nextActions,
-    });
-    if (Result.isSuccess(saved)) {
-      props.notify.success("保存しました");
-      return;
-    }
-    setActions(previous);
-    props.notify.error("保存に失敗しました");
-  };
-
-  const resetEditorState = (): void => {
-    setEditorId("");
-    setEditorTitle("");
-    setEditorKind("text");
-    setEditorPrompt("");
-  };
-
-  const persistActionsUpdate = async (
-    nextActions: ContextAction[],
-    successMessage: string,
-    failureMessage: string
-  ): Promise<void> => {
-    const previous = actions;
-    await persistWithRollback({
-      applyNext: () => {
-        setActions(nextActions);
-        resetEditorState();
-      },
-      rollback: () => {
-        setActions(previous);
-      },
-      persist: () =>
-        props.runtime.storageSyncSet({
-          contextActions: nextActions,
-        }),
-      onSuccess: () => {
-        props.notify.success(successMessage);
-      },
-      onFailure: () => {
-        props.notify.error(failureMessage);
-      },
-    });
-  };
-
-  const deleteEditor = async (): Promise<void> => {
-    if (!editorId) {
-      return;
-    }
-
-    const nextActions = actions.filter((action) => action.id !== editorId);
-    await persistActionsUpdate(
-      nextActions,
-      "削除しました",
-      "削除に失敗しました"
-    );
-  };
-
   const resetActions = async (): Promise<void> => {
     await persistActionsUpdate(
       DEFAULT_CONTEXT_ACTIONS,
       "リセットしました",
       "リセットに失敗しました"
     );
-  };
-
-  const ensureTokenReady = async (): Promise<boolean> => {
-    const tokenConfigured = await ensureOpenAiTokenConfigured({
-      storageLocalGet: (keys) => props.runtime.storageLocalGet(keys),
-      showNotification: (messageOrOptions, type) => {
-        if (typeof messageOrOptions === "string") {
-          const message: string = messageOrOptions;
-          if (type === "error") {
-            props.notify.error(message);
-            return;
-          }
-          props.notify.info(message);
-          return;
-        }
-
-        // NotificationOptions with action
-        const options: NotificationOptions = messageOrOptions;
-        if (type === "error") {
-          props.notify.error({
-            title: options.message,
-            description: options.action ? (
-              <button
-                className="mbu-toast-action-link"
-                onClick={options.action.onClick}
-                type="button"
-              >
-                {options.action.label}
-              </button>
-            ) : undefined,
-          });
-          return;
-        }
-        props.notify.info(options.message);
-      },
-      navigateToPane: (paneId) => {
-        props.navigateToPane(paneId as PaneId);
-      },
-      focusTokenInput: props.focusTokenInput,
-    });
-
-    return !Result.isFailure(tokenConfigured);
-  };
-
-  const reportError = (message: string): void => {
-    // トークン関連エラーの場合は「→ 設定を開く」リンク付きで表示
-    if (
-      message.includes("Token") ||
-      message.includes("トークン") ||
-      message.includes("未設定") ||
-      message.includes("API Key")
-    ) {
-      props.notify.error({
-        title: message,
-        description: (
-          <button
-            className="mbu-toast-action-link"
-            onClick={() => {
-              props.navigateToPane("pane-settings");
-              props.focusTokenInput();
-            }}
-            type="button"
-          >
-            → 設定を開く
-          </button>
-        ),
-      });
-    } else {
-      props.notify.error(message);
-    }
-    setOutput({ status: "idle" });
-  };
-
-  const runAction = async (actionId: string): Promise<void> => {
-    const action = actionsById.get(actionId);
-    if (!action) {
-      props.notify.error("アクションが見つかりません");
-      setOutput({ status: "idle" });
-      return;
-    }
-
-    const tokenReady = await ensureTokenReady();
-    if (!tokenReady) {
-      setOutput({ status: "idle" });
-      return;
-    }
-
-    setOutput({ status: "running", title: action.title });
-    setTarget(null);
-
-    const tabId = await resolveActiveTabId({
-      runtime: props.runtime,
-      onError: reportError,
-    });
-    if (tabId === null) {
-      return;
-    }
-
-    const summaryTarget = await fetchSummaryTargetForTab({
-      runtime: props.runtime,
-      tabId,
-      onError: reportError,
-    });
-    if (!summaryTarget) {
-      return;
-    }
-    setTarget(summaryTarget);
-
-    const responseUnknown = await props.runtime.sendMessageToBackground<
-      RunContextActionRequest,
-      unknown
-    >({
-      action: "runContextAction",
-      tabId,
-      actionId,
-      target: summaryTarget,
-      source: "popup",
-    });
-    if (Result.isFailure(responseUnknown)) {
-      reportError(responseUnknown.error);
-      return;
-    }
-
-    const parsed = parseRunContextActionResponseToOutput({
-      actionTitle: action.title,
-      responseUnknown: responseUnknown.value,
-    });
-    if (Result.isFailure(parsed)) {
-      reportError(parsed.error);
-      return;
-    }
-
-    setOutput(parsed.value);
-    props.notify.success("完了しました");
-  };
-
-  const copyOutput = async (): Promise<void> => {
-    if (output.status !== "ready") {
-      return;
-    }
-    const text = output.text.trim();
-    if (!text) {
-      return;
-    }
-
-    try {
-      if (!navigator.clipboard?.writeText) {
-        props.notify.error("この環境ではクリップボードにコピーできません");
-        return;
-      }
-      await navigator.clipboard.writeText(text);
-      props.notify.success("コピーしました");
-    } catch {
-      props.notify.error("コピーに失敗しました");
-    }
   };
 
   return (
