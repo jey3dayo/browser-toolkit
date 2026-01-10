@@ -234,10 +234,10 @@ async function resolveOpenAiToken(
 
 export async function testOpenAiToken(
   tokenOverride?: string
-): Promise<{ ok: true } | { ok: false; error: string }> {
+): Promise<Result.Result<void, string>> {
   const tokenResult = await resolveOpenAiToken(tokenOverride);
   if (Result.isFailure(tokenResult)) {
-    return { ok: false, error: tokenResult.error };
+    return Result.fail(tokenResult.error);
   }
 
   const checkResult = await fetchOpenAiChatCompletionOk(
@@ -255,25 +255,25 @@ export async function testOpenAiToken(
   );
 
   if (Result.isFailure(checkResult)) {
-    return { ok: false, error: checkResult.error };
+    return Result.fail(checkResult.error);
   }
 
-  return { ok: true };
+  return Result.succeed(undefined);
 }
 
 export async function extractEventWithOpenAI(
   target: SummaryTarget,
   extraInstruction?: string
-): Promise<{ ok: true; event: ExtractedEvent } | { ok: false; error: string }> {
+): Promise<Result.Result<ExtractedEvent, string>> {
   const settingsResult = await loadOpenAiSettings(storageLocalGetTyped);
   if (Result.isFailure(settingsResult)) {
-    return { ok: false, error: settingsResult.error };
+    return Result.fail(settingsResult.error);
   }
   const settings = settingsResult.value;
 
   const clippedText = clipInputText(target.text);
   if (!clippedText) {
-    return { ok: false, error: "要約対象のテキストが見つかりませんでした" };
+    return Result.fail("要約対象のテキストが見つかりませんでした");
   }
 
   const meta = buildTitleUrlMeta(target, { includeMissing: true });
@@ -321,18 +321,18 @@ export async function extractEventWithOpenAI(
     "イベント要約結果の取得に失敗しました"
   );
   if (Result.isFailure(contentResult)) {
-    return { ok: false, error: contentResult.error };
+    return Result.fail(contentResult.error);
   }
 
   const eventResult = safeParseJsonObject<ExtractedEvent>(contentResult.value);
   if (Result.isFailure(eventResult)) {
-    return { ok: false, error: "イベント情報の解析に失敗しました" };
+    return Result.fail("イベント情報の解析に失敗しました");
   }
 
   const event = eventResult.value;
   if (typeof event.title !== "string" || typeof event.start !== "string") {
-    return { ok: false, error: "イベント情報の解析に失敗しました" };
+    return Result.fail("イベント情報の解析に失敗しました");
   }
 
-  return { ok: true, event: normalizeEvent(event) };
+  return Result.succeed(normalizeEvent(event));
 }

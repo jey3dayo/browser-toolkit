@@ -44,7 +44,7 @@ async function handleEventActionInMessage(
     : undefined;
   const result = await extractEventWithOpenAI(target, extraInstruction);
 
-  if (!result.ok) {
+  if (Result.isFailure(result)) {
     // コンテキストメニューからの実行の場合はOS通知を表示
     if (source === "contextMenu") {
       await showErrorNotification({
@@ -68,11 +68,11 @@ async function handleEventActionInMessage(
       });
     }
 
-    sendResponse(result);
+    sendResponse({ ok: false, error: result.error });
     return;
   }
 
-  const eventText = formatEventText(result.event);
+  const eventText = formatEventText(result.value);
   sendResponse({
     ok: true,
     resultType: "event",
@@ -123,19 +123,19 @@ async function handleSummarizeEventInMessage(
   ) => void
 ): Promise<void> {
   const result = await extractEventWithOpenAI(target);
-  if (!result.ok) {
-    sendResponse(result);
+  if (Result.isFailure(result)) {
+    sendResponse({ ok: false, error: result.error });
     return;
   }
 
-  const eventText = formatEventText(result.event);
-  const calendarUrl = buildGoogleCalendarUrl(result.event) ?? undefined;
+  const eventText = formatEventText(result.value);
+  const calendarUrl = buildGoogleCalendarUrl(result.value) ?? undefined;
   const calendarError = calendarUrl
     ? undefined
-    : buildGoogleCalendarUrlFailureMessage(result.event);
+    : buildGoogleCalendarUrlFailureMessage(result.value);
   sendResponse({
     ok: true,
-    event: result.event,
+    event: result.value,
     eventText,
     calendarUrl,
     calendarError,
@@ -315,7 +315,11 @@ function handleTestOpenAiTokenRequest(
   (async () => {
     try {
       const result = await testOpenAiToken(request.token);
-      sendResponse(result);
+      if (Result.isFailure(result)) {
+        sendResponse({ ok: false, error: result.error });
+        return;
+      }
+      sendResponse({ ok: true });
     } catch (error) {
       await debugLog(
         "handleTestOpenAiTokenRequest",

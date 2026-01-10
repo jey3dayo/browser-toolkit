@@ -170,7 +170,7 @@ export async function handleCalendarContextMenuClick(
   )}）`;
 
   const result = await extractEventWithOpenAI(target);
-  if (!result.ok) {
+  if (Result.isFailure(result)) {
     await showErrorNotification({
       title: "カレンダー登録に失敗しました",
       errorMessage: result.error,
@@ -201,7 +201,7 @@ export async function handleCalendarContextMenuClick(
     });
   }
 
-  const artifacts = buildCalendarArtifacts(result.event, calendarTargets);
+  const artifacts = buildCalendarArtifacts(result.value, calendarTargets);
   if (artifacts.errors.length > 0) {
     await sendMessageToTab(params.tabId, {
       action: "showNotification",
@@ -221,7 +221,7 @@ export async function handleCalendarContextMenuClick(
     secondary: context.selectionSecondary,
     calendarUrl: artifacts.calendarUrl,
     ics: artifacts.ics,
-    event: result.event,
+    event: result.value,
   } satisfies ContentScriptMessage);
 }
 
@@ -268,7 +268,7 @@ async function handleEventAction(context: OverlayContext): Promise<void> {
     : undefined;
   const result = await extractEventWithOpenAI(target, extraInstruction);
 
-  if (!result.ok) {
+  if (Result.isFailure(result)) {
     await showErrorNotification({
       title: `${action.title}に失敗しました`,
       errorMessage: result.error,
@@ -288,7 +288,7 @@ async function handleEventAction(context: OverlayContext): Promise<void> {
     return;
   }
 
-  const eventText = formatEventText(result.event);
+  const eventText = formatEventText(result.value);
   await sendMessageToTab(tabId, {
     action: "showActionOverlay",
     status: "ready",
@@ -297,7 +297,7 @@ async function handleEventAction(context: OverlayContext): Promise<void> {
     title: resolvedTitle,
     primary: eventText,
     secondary: selectionSecondary,
-    event: result.event,
+    event: result.value,
   });
 }
 
