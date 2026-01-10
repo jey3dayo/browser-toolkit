@@ -37,7 +37,43 @@
 
 ## Error Handling Style
 
-- Prefer typed results over throwing for async flows (use `@praha/byethrow` `Result` / `ResultAsync`, plus `{ ok: true/false }` response unions at message boundaries).
+### Result Type Usage
+
+**Internal functions**: Always use `@praha/byethrow` `Result` / `ResultAsync` for typed error handling.
+
+**Message boundaries**: Convert `Result` to `{ ok: true/false }` response unions **only** at `sendResponse()` calls in Chrome extension message handlers.
+
+**Rule**: Never use `{ ok: true/false }` in internal functions - this pattern is reserved exclusively for Chrome extension message boundaries (`chrome.runtime.sendMessage` / `sendResponse`).
+
+**Example:**
+```typescript
+// ✅ CORRECT: Internal function - always use Result
+async function processData(): Promise<Result.Result<Data, string>> {
+  if (error) return Result.fail("error message");
+  return Result.succeed(data);
+}
+
+// ✅ CORRECT: Message handler - convert Result to { ok } at boundary
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  (async () => {
+    const result = await processData();
+    if (Result.isFailure(result)) {
+      sendResponse({ ok: false, error: result.error });
+      return;
+    }
+    sendResponse({ ok: true, data: result.value });
+  })();
+  return true;
+});
+
+// ❌ WRONG: Internal function using { ok: true/false }
+async function processData(): Promise<{ ok: true; data: Data } | { ok: false; error: string }> {
+  // This is only allowed in message handler boundaries
+}
+```
+
+### Error Display
+
 - UI surfaces errors as notifications/overlays, not console-only.
 
 ## Quality Gates

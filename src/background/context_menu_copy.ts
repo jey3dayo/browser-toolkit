@@ -110,7 +110,14 @@ export async function handleCopyTitleLinkContextMenuClick(
     await debugLog(
       "handleCopyTitleLinkContextMenuClick",
       "failed",
-      { tabId: params.tabId, title, url, format, errorMessage, error: formatErrorLog("", {}, error) },
+      {
+        tabId: params.tabId,
+        title,
+        url,
+        format,
+        errorMessage,
+        error: formatErrorLog("", {}, error),
+      },
       "error"
     );
     console.error(
@@ -161,16 +168,18 @@ async function showCopyTitleLinkFailureIndicator(
   tabId: number,
   failure: CopyTitleLinkFailure
 ): Promise<void> {
-  await storageLocalSet({ lastCopyTitleLinkFailure: failure }).catch((error) => {
-    debugLog(
-      "showCopyTitleLinkFailureIndicator",
-      "storageLocalSet failed",
-      { tabId, error: formatErrorLog("", {}, error) },
-      "error"
-    ).catch(() => {
-      // no-op
-    });
-  });
+  await storageLocalSet({ lastCopyTitleLinkFailure: failure }).catch(
+    (error) => {
+      debugLog(
+        "showCopyTitleLinkFailureIndicator",
+        "storageLocalSet failed",
+        { tabId, error: formatErrorLog("", {}, error) },
+        "error"
+      ).catch(() => {
+        // no-op
+      });
+    }
+  );
 
   const pageLabel = failure.pageUrl || failure.pageTitle || "このページ";
   try {
