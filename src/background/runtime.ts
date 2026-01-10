@@ -18,10 +18,10 @@ import type {
   BackgroundResponse,
   ContentScriptMessage,
   RunContextActionResponse,
+  SummarizeEventResponse,
   SummaryTarget,
 } from "@/background/types";
 import type { ContextAction } from "@/context_actions";
-import type { ExtractedEvent } from "@/shared_types";
 import {
   clearDebugLogs,
   debugLog,
@@ -68,17 +68,18 @@ async function handleEventActionInMessage(
       });
     }
 
-    sendResponse({ ok: false, error: result.error });
+    sendResponse(Result.fail(result.error));
     return;
   }
 
   const eventText = formatEventText(result.value);
-  sendResponse({
-    ok: true,
-    resultType: "event",
-    eventText,
-    source: target.source,
-  });
+  sendResponse(
+    Result.succeed({
+      resultType: "event",
+      eventText,
+      source: target.source,
+    })
+  );
 }
 
 // Helper function for handling prompt actions in message listener
@@ -90,41 +91,32 @@ async function handlePromptActionInMessage(
 ): Promise<void> {
   const prompt = action.prompt.trim();
   if (!prompt) {
-    sendResponse({ ok: false, error: "プロンプトが空です" });
+    sendResponse(Result.fail("プロンプトが空です"));
     return;
   }
 
   const result = await runPromptActionWithOpenAI(target, prompt);
   if (Result.isFailure(result)) {
-    sendResponse({ ok: false, error: result.error });
+    sendResponse(Result.fail(result.error));
     return;
   }
 
-  sendResponse({
-    ok: true,
-    resultType: "text",
-    text: result.value,
-    source: target.source,
-  });
+  sendResponse(
+    Result.succeed({
+      resultType: "text",
+      text: result.value,
+      source: target.source,
+    })
+  );
 }
 
 async function handleSummarizeEventInMessage(
   target: SummaryTarget,
-  sendResponse: (
-    response:
-      | { ok: false; error: string }
-      | {
-          ok: true;
-          event: ExtractedEvent;
-          eventText: string;
-          calendarUrl?: string;
-          calendarError?: string;
-        }
-  ) => void
+  sendResponse: (response: SummarizeEventResponse) => void
 ): Promise<void> {
   const result = await extractEventWithOpenAI(target);
   if (Result.isFailure(result)) {
-    sendResponse({ ok: false, error: result.error });
+    sendResponse(Result.fail(result.error));
     return;
   }
 
@@ -133,13 +125,14 @@ async function handleSummarizeEventInMessage(
   const calendarError = calendarUrl
     ? undefined
     : buildGoogleCalendarUrlFailureMessage(result.value);
-  sendResponse({
-    ok: true,
-    event: result.value,
-    eventText,
-    calendarUrl,
-    calendarError,
-  });
+  sendResponse(
+    Result.succeed({
+      event: result.value,
+      eventText,
+      calendarUrl,
+      calendarError,
+    })
+  );
 }
 
 type RuntimeRequest =
@@ -156,15 +149,9 @@ type RuntimeRequest =
 type RuntimeResponse =
   | BackgroundResponse
   | RunContextActionResponse
+  | SummarizeEventResponse
   | { ok: true }
   | { ok: false; error: string }
-  | {
-      ok: true;
-      event: ExtractedEvent;
-      eventText: string;
-      calendarUrl?: string;
-      calendarError?: string;
-    }
   | {
       ok: true;
       logs: Array<{

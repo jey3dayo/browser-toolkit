@@ -1,3 +1,4 @@
+import type { Result } from "@praha/byethrow";
 import type { ContextAction } from "@/context_actions";
 import type { SearchEngine } from "@/search_engines";
 import type {
@@ -48,19 +49,36 @@ export type BackgroundRequest =
       source?: "popup" | "contextMenu";
     };
 
-export type BackgroundResponse =
-  | { ok: true; summary: string; source: SummarySource }
-  | { ok: false; error: string };
+export type BackgroundSuccessPayload = {
+  summary: string;
+  source: SummarySource;
+};
 
-export type RunContextActionResponse =
-  | { ok: true; resultType: "text"; text: string; source: SummarySource }
-  | {
-      ok: true;
-      resultType: "event";
-      eventText: string;
-      source: SummarySource;
-    }
-  | { ok: false; error: string };
+export type BackgroundResponse = Result.Result<
+  BackgroundSuccessPayload,
+  string
+>;
+
+export type RunContextActionSuccessPayload =
+  | { resultType: "text"; text: string; source: SummarySource }
+  | { resultType: "event"; eventText: string; source: SummarySource };
+
+export type RunContextActionResponse = Result.Result<
+  RunContextActionSuccessPayload,
+  string
+>;
+
+export type SummarizeEventSuccessPayload = {
+  event: ExtractedEvent;
+  eventText: string;
+  calendarUrl?: string;
+  calendarError?: string;
+};
+
+export type SummarizeEventResponse = Result.Result<
+  SummarizeEventSuccessPayload,
+  string
+>;
 
 export type ContextMenuTabParams = {
   tabId: number;

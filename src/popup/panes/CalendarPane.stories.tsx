@@ -1,3 +1,4 @@
+import { Result } from "@praha/byethrow";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
@@ -39,19 +40,19 @@ export const Basic: Story = {
         url: "https://example.com",
       },
       background: {
-        summarizeEvent: (_message: SummarizeEventRequest) => ({
-          ok: true,
-          eventText: "イベント要約（storybook）",
-          calendarUrl:
-            "https://calendar.google.com/calendar/render?action=TEMPLATE",
-          event: {
-            title: "storybook event",
-            start: "2025-01-01T10:00:00+09:00",
-            end: "2025-01-01T11:00:00+09:00",
-            location: "オンライン",
-            description: "storybook description",
-          },
-        }),
+        summarizeEvent: (_message: SummarizeEventRequest) =>
+          Result.succeed({
+            eventText: "イベント要約（storybook）",
+            calendarUrl:
+              "https://calendar.google.com/calendar/render?action=TEMPLATE",
+            event: {
+              title: "storybook event",
+              start: "2025-01-01T10:00:00+09:00",
+              end: "2025-01-01T11:00:00+09:00",
+              location: "オンライン",
+              description: "storybook description",
+            },
+          }),
       },
     }),
     notify: { info: fn(), success: fn(), error: fn() },

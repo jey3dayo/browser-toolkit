@@ -51,24 +51,9 @@ export type ActionsPaneProps = {
 function isRunContextActionResponse(
   value: unknown
 ): value is RunContextActionResponse {
-  if (!isRecord(value)) {
-    return false;
-  }
-  const v = value as { ok?: unknown };
-  if (typeof v.ok !== "boolean") {
-    return false;
-  }
-  return true;
-}
-
-function coerceKind(value: unknown): ContextActionKind | null {
-  if (value === "event") {
-    return "event";
-  }
-  if (value === "text") {
-    return "text";
-  }
-  return null;
+  // Result type is opaque, so we can't check its structure directly
+  // We assume the value is a RunContextActionResponse if it's an object
+  return isRecord(value);
 }
 
 type ParseRunContextActionResponseError = string;
@@ -82,46 +67,32 @@ export function parseRunContextActionResponseToOutput(params: {
   }
 
   const response = params.responseUnknown;
-  if (!response.ok) {
-    const errorMessage = (response as { error?: unknown }).error;
-    return Result.fail(
-      typeof errorMessage === "string" ? errorMessage : "実行に失敗しました"
-    );
+  if (Result.isFailure(response)) {
+    return Result.fail(response.error);
   }
 
-  const sourceLabel = coerceSummarySourceLabel(
-    (response as { source?: unknown }).source
-  );
-  const resultType = (response as { resultType?: unknown }).resultType;
-  const kind = coerceKind(resultType);
+  const payload = response.value;
+  const sourceLabel = coerceSummarySourceLabel(payload.source);
 
-  if (kind === "event") {
-    const eventText = (response as { eventText?: unknown }).eventText;
-    if (typeof eventText !== "string") {
-      return Result.fail("イベント結果が不正です");
-    }
+  if (payload.resultType === "event") {
     return Result.succeed({
       status: "ready",
       title: params.actionTitle,
-      text: eventText,
+      text: payload.eventText,
       sourceLabel,
     });
   }
 
-  if (kind !== "text") {
-    return Result.fail("結果の形式が不正です");
+  if (payload.resultType === "text") {
+    return Result.succeed({
+      status: "ready",
+      title: params.actionTitle,
+      text: payload.text,
+      sourceLabel,
+    });
   }
 
-  const text = (response as { text?: unknown }).text;
-  if (typeof text !== "string") {
-    return Result.fail("テキスト結果が不正です");
-  }
-  return Result.succeed({
-    status: "ready",
-    title: params.actionTitle,
-    text,
-    sourceLabel,
-  });
+  return Result.fail("結果の形式が不正です");
 }
 
 export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {

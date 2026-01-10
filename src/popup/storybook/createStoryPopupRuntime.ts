@@ -113,41 +113,39 @@ export function createStoryPopupRuntime(options: Options = {}): PopupRuntime {
 
       if (action === "testOpenAiToken") {
         if (options.background?.testOpenAiToken) {
-          return Result.succeed(
-            (await options.background.testOpenAiToken(
-              message as TestOpenAiTokenRequest
-            )) as never
+          const response = await options.background.testOpenAiToken(
+            message as TestOpenAiTokenRequest
           );
+          return Result.succeed(response as never);
         }
-        return Result.succeed({ ok: true } as never);
+        // TestOpenAiTokenResponse is Result<void, string>
+        return Result.succeed(Result.succeed() as never);
       }
 
       if (action === "runContextAction") {
         if (options.background?.runContextAction) {
-          return Result.succeed(
-            (await options.background.runContextAction(
-              message as RunContextActionRequest
-            )) as never
+          const response = await options.background.runContextAction(
+            message as RunContextActionRequest
           );
+          return Result.succeed(response as never);
         }
-        return Result.succeed({
-          ok: false,
-          error: "storybook runtime: not implemented",
-        } as never);
+        // RunContextActionResponse is Result<RunContextActionSuccessPayload, string>
+        return Result.succeed(
+          Result.fail("storybook runtime: not implemented") as never
+        );
       }
 
       if (action === "summarizeEvent") {
         if (options.background?.summarizeEvent) {
-          return Result.succeed(
-            (await options.background.summarizeEvent(
-              message as SummarizeEventRequest
-            )) as never
+          const response = await options.background.summarizeEvent(
+            message as SummarizeEventRequest
           );
+          return Result.succeed(response as never);
         }
-        return Result.succeed({
-          ok: false,
-          error: "storybook runtime: not implemented",
-        } as never);
+        // SummarizeEventResponse is Result<SummarizeEventSuccessPayload, string>
+        return Result.succeed(
+          Result.fail("storybook runtime: not implemented") as never
+        );
       }
 
       return Result.succeed({} as never);

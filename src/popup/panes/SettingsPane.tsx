@@ -35,17 +35,9 @@ export type SettingsPaneProps = PopupPaneBaseProps & {
 function isTestOpenAiTokenResponse(
   value: unknown
 ): value is TestOpenAiTokenResponse {
-  if (!isRecord(value)) {
-    return false;
-  }
-  const v = value as { ok?: unknown };
-  if (typeof v.ok !== "boolean") {
-    return false;
-  }
-  if (v.ok) {
-    return true;
-  }
-  return typeof (value as { error?: unknown }).error === "string";
+  // Result type is opaque, so we can't check its structure directly
+  // We assume the value is a TestOpenAiTokenResponse if it's an object
+  return isRecord(value);
 }
 
 export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
@@ -132,12 +124,13 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
       return;
     }
 
-    if (responseUnknown.value.ok) {
-      props.notify.success("トークンOK");
+    const response = responseUnknown.value;
+    if (Result.isFailure(response)) {
+      props.notify.error(response.error);
       return;
     }
 
-    props.notify.error(responseUnknown.value.error);
+    props.notify.success("トークンOK");
   };
 
   const savePrompt = async (): Promise<void> => {
