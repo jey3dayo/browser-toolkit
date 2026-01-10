@@ -1,14 +1,18 @@
 import { Result } from "@praha/byethrow";
+import type { SummaryTarget } from "@/background/types";
 import type { ContextAction } from "@/context_actions";
 import type { SearchEngine } from "@/search_engines";
-import type {
-  CalendarRegistrationTarget,
-  ExtractedEvent,
-  SummarySource,
-} from "@/shared_types";
+import type { CalendarRegistrationTarget } from "@/shared_types";
 import type { LocalStorageData } from "@/storage/types";
 import { toErrorMessage } from "@/utils/errors";
 import type { LinkFormat } from "@/utils/link_format";
+
+// Re-export types from background/types for popup components
+export type {
+  RunContextActionResponse,
+  SummarizeEventResponse,
+  SummaryTarget,
+} from "@/background/types";
 
 /**
  * URLパターンとその設定
@@ -36,58 +40,27 @@ export type RunContextActionRequest = {
   target?: SummaryTarget;
   source?: "popup" | "contextMenu";
 };
-export type RunContextActionResponse =
-  | { ok: true; resultType: "text"; text: string; source: SummarySource }
-  | {
-      ok: true;
-      resultType: "event";
-      eventText: string;
-      source: SummarySource;
-    }
-  | { ok: false; error: string };
-
-export type SummaryTarget = {
-  text: string;
-  source: SummarySource;
-  title?: string;
-  url?: string;
-};
 
 export type SummarizeEventRequest = {
   action: "summarizeEvent";
   target: SummaryTarget;
 };
-export type SummarizeEventResponse =
-  | {
-      ok: true;
-      event: ExtractedEvent;
-      eventText: string;
-      calendarUrl?: string;
-      calendarError?: string;
-    }
-  | { ok: false; error: string };
 
 export type TestOpenAiTokenRequest = {
   action: "testOpenAiToken";
   token?: string;
 };
-export type TestOpenAiTokenResponse =
-  | { ok: true }
-  | { ok: false; error: string };
+export type TestOpenAiTokenResponse = Result.Result<void, string>;
 
 export type DownloadDebugLogsRequest = {
   action: "downloadDebugLogs";
 };
-export type DownloadDebugLogsResponse =
-  | { ok: true }
-  | { ok: false; error: string };
+export type DownloadDebugLogsResponse = Result.Result<void, string>;
 
 export type ClearDebugLogsRequest = {
   action: "clearDebugLogs";
 };
-export type ClearDebugLogsResponse =
-  | { ok: true }
-  | { ok: false; error: string };
+export type ClearDebugLogsResponse = Result.Result<void, string>;
 
 export type ActiveTabInfo = {
   id: number;

@@ -1,3 +1,4 @@
+import { Result } from "@praha/byethrow";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
@@ -31,14 +32,13 @@ export const Basic: Story = {
       background: {
         runContextAction: (message: RunContextActionRequest) => {
           if (message.actionId === "builtin:summarize") {
-            return {
-              ok: true,
-              resultType: "text",
+            return Result.succeed({
+              resultType: "text" as const,
               text: "要約結果（storybook）",
-              source: "selection",
-            };
+              source: "selection" as const,
+            });
           }
-          return { ok: false, error: "storybook: unknown action" };
+          return Result.fail("storybook: unknown action");
         },
       },
     }),

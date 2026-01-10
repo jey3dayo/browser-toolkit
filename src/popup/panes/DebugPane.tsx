@@ -3,7 +3,7 @@ import { Fieldset } from "@base-ui/react/fieldset";
 import { Separator } from "@base-ui/react/separator";
 import { Switch } from "@base-ui/react/switch";
 import { Result } from "@praha/byethrow";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import type {
   ClearDebugLogsRequest,
@@ -50,7 +50,7 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
     };
   }, [props.runtime]);
 
-  const loadLogStats = async (): Promise<void> => {
+  const loadLogStats = useCallback(async (): Promise<void> => {
     const result = await props.runtime.sendMessageToBackground<
       { action: "getDebugLogStats" },
       unknown
@@ -68,7 +68,7 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
         setLogStats({ entryCount: data.entryCount, sizeKB: data.sizeKB });
       }
     }
-  };
+  }, [props.runtime]);
 
   const loadAndShowLogs = async (): Promise<void> => {
     const result = await props.runtime.sendMessageToBackground<
@@ -117,8 +117,7 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
         });
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debugMode]);
+  }, [debugMode, loadLogStats]);
 
   const toggleDebugMode = async (checked: boolean): Promise<void> => {
     const saved = await props.runtime.storageLocalSet({ debugMode: checked });
@@ -152,12 +151,12 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
     }
 
     const response = responseUnknown.value as DownloadDebugLogsResponse;
-    if (response.ok) {
-      props.notify.success("ダウンロードしました");
+    if (Result.isFailure(response)) {
+      props.notify.error(response.error);
       return;
     }
 
-    props.notify.error(response.error);
+    props.notify.success("ダウンロードしました");
   };
 
   const clearLogs = async (): Promise<void> => {
@@ -174,15 +173,15 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
     }
 
     const response = responseUnknown.value as ClearDebugLogsResponse;
-    if (response.ok) {
-      setLogStats(null);
-      setShowLogs(false);
-      setLogContent("");
-      props.notify.success("クリアしました");
+    if (Result.isFailure(response)) {
+      props.notify.error(response.error);
       return;
     }
 
-    props.notify.error(response.error);
+    setLogStats(null);
+    setShowLogs(false);
+    setLogContent("");
+    props.notify.success("クリアしました");
   };
 
   return (

@@ -1,3 +1,4 @@
+import { Result } from "@praha/byethrow";
 import type { JSDOM } from "jsdom";
 import { act } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -71,15 +72,16 @@ describe("popup Actions pane: event output", () => {
         chromeStub.runtime.lastError = null;
         const action = (message as { action?: unknown }).action;
         if (action === "runContextAction") {
-          callback({
-            ok: true,
-            resultType: "event",
-            eventText: "予定: ミーティング",
-            source: "selection",
-          });
+          callback(
+            Result.succeed({
+              resultType: "event",
+              eventText: "予定: ミーティング",
+              source: "selection",
+            })
+          );
           return;
         }
-        callback({ ok: true });
+        callback(Result.succeed({}));
       }
     );
 

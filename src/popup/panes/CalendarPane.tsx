@@ -1,6 +1,7 @@
 import { Button } from "@base-ui/react/button";
 import { Result } from "@praha/byethrow";
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
+import type { SummarizeEventSuccessPayload } from "@/background/types";
 import type { PaneId } from "@/popup/panes";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import type {
@@ -43,8 +44,6 @@ type OutputState =
       event: ExtractedEvent;
     }
   | { status: "error"; message: string };
-
-type SummarizeEventSuccess = Extract<SummarizeEventResponse, { ok: true }>;
 
 export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
   const [targets, setTargets] = useState<CalendarRegistrationTarget[]>(
@@ -224,7 +223,7 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
 
   const requestEventSummary = async (
     target: SummaryTarget
-  ): Promise<SummarizeEventSuccess | null> => {
+  ): Promise<SummarizeEventSuccessPayload | null> => {
     const response = await props.runtime.sendMessageToBackground<
       SummarizeEventRequest,
       SummarizeEventResponse
@@ -233,11 +232,12 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
       reportError(response.error);
       return null;
     }
-    if (!response.value.ok) {
-      reportError(response.value.error);
+    const eventResponse = response.value;
+    if (Result.isFailure(eventResponse)) {
+      reportError(eventResponse.error);
       return null;
     }
-    return response.value;
+    return eventResponse.value;
   };
 
   const runCalendar = async (): Promise<void> => {

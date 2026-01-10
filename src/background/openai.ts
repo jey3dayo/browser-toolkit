@@ -66,13 +66,13 @@ export async function summarizeWithOpenAI(
 ): Promise<BackgroundResponse> {
   const settingsResult = await loadOpenAiSettings(storageLocalGetTyped);
   if (Result.isFailure(settingsResult)) {
-    return { ok: false, error: settingsResult.error };
+    return Result.fail(settingsResult.error);
   }
   const settings = settingsResult.value;
 
   const clippedText = clipInputText(target.text);
   if (!clippedText) {
-    return { ok: false, error: "要約対象のテキストが見つかりませんでした" };
+    return Result.fail("要約対象のテキストが見つかりませんでした");
   }
 
   const meta = buildTitleUrlMeta(target, { includeMissing: true });
@@ -115,10 +115,13 @@ export async function summarizeWithOpenAI(
     "要約結果の取得に失敗しました"
   );
   if (Result.isFailure(summaryResult)) {
-    return { ok: false, error: summaryResult.error };
+    return Result.fail(summaryResult.error);
   }
 
-  return { ok: true, summary: summaryResult.value, source: target.source };
+  return Result.succeed({
+    summary: summaryResult.value,
+    source: target.source,
+  });
 }
 
 export async function runPromptActionWithOpenAI(
