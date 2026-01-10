@@ -34,6 +34,17 @@ async function initTheme(): Promise<void> {
       return;
     }
     started = true;
+
+    // ResizeObserver の無害な警告を抑制
+    // Base UI コンポーネントが内部で ResizeObserver を使用しており、
+    // 同じフレーム内での繰り返し呼び出しによる警告が発生するが、機能には影響しない
+    window.addEventListener("error", (event) => {
+      if (event.message.includes("ResizeObserver")) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    });
+
     ensurePopupUiBaseStyles(document);
     applyTheme("auto", document);
     initTheme().catch(() => {

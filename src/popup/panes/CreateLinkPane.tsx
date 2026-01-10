@@ -5,6 +5,8 @@ import { Result } from "@praha/byethrow";
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { persistWithRollback } from "@/popup/utils/persist";
+import { debugLog } from "@/utils/debug_log";
+import { formatErrorLog } from "@/utils/errors";
 import {
   coerceLinkFormat,
   formatLink,
@@ -37,6 +39,12 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
     try {
       const activeTab = await props.runtime.getActiveTab();
       if (Result.isFailure(activeTab)) {
+        await debugLog(
+          "CreateLinkPane.loadFromActiveTab",
+          "getActiveTab failed",
+          { error: activeTab.error },
+          "error"
+        );
         return;
       }
 
@@ -45,8 +53,13 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
       }
       setTitle(activeTab.value.title ?? "");
       setUrl(activeTab.value.url ?? "");
-    } finally {
-      // no-op
+    } catch (error) {
+      await debugLog(
+        "CreateLinkPane.loadFromActiveTab",
+        "unexpected error",
+        { error: formatErrorLog("", {}, error) },
+        "error"
+      );
     }
   }, [props.runtime]);
 
@@ -86,8 +99,15 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
         return;
       }
       setFormat(next);
-    })().catch(() => {
-      // no-op
+    })().catch((error) => {
+      debugLog(
+        "CreateLinkPane.useEffect[props.initialFormat, props.runtime]",
+        "failed",
+        { error: formatErrorLog("", {}, error) },
+        "error"
+      ).catch(() => {
+        // no-op
+      });
     });
     return () => {
       cancelled = true;

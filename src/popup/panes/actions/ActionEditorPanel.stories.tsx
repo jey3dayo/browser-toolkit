@@ -4,21 +4,9 @@ import { expect, userEvent, waitFor, within } from "storybook/test";
 import type { ContextAction, ContextActionKind } from "@/context_actions";
 import { ActionEditorPanel } from "./ActionEditorPanel";
 
-function ActionEditorPanelStory(props: {
-  actions: ContextAction[];
-  editorId: string;
-  editorTitle: string;
-  editorKind: ContextActionKind;
-  editorPrompt: string;
-  onSelectActionId: (actionId: string) => void;
-  onChangeTitle: (value: string) => void;
-  onChangeKind: (value: ContextActionKind) => void;
-  onChangePrompt: (value: string) => void;
-  onSave: () => void;
-  onDelete: () => void;
-  onClear: () => void;
-  onReset: () => void;
-}): React.JSX.Element {
+function ActionEditorPanelStory(
+  props: React.ComponentProps<typeof ActionEditorPanel>
+): React.JSX.Element {
   return <ActionEditorPanel {...props} />;
 }
 

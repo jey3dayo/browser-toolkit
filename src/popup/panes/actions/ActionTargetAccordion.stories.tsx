@@ -4,10 +4,9 @@ import { expect, userEvent, waitFor, within } from "storybook/test";
 import type { SummaryTarget } from "@/popup/runtime";
 import { ActionTargetAccordion } from "./ActionTargetAccordion";
 
-function ActionTargetAccordionStory(props: {
-  sourceLabel: string;
-  target: SummaryTarget;
-}): React.JSX.Element {
+function ActionTargetAccordionStory(
+  props: React.ComponentProps<typeof ActionTargetAccordion>
+): React.JSX.Element {
   return <ActionTargetAccordion {...props} />;
 }
 

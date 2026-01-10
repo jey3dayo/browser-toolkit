@@ -1,7 +1,7 @@
 // 要約対象テキスト取得
 import { Result } from "@praha/byethrow";
-import { storageLocalGet } from "@/storage/helpers";
 import type { SummarySource } from "@/shared_types";
+import { storageLocalGet } from "@/storage/helpers";
 
 export type SummaryTarget = {
   text: string;

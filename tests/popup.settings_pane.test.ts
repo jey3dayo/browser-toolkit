@@ -184,11 +184,7 @@ describe("popup Settings pane", () => {
     const modelSelect = dom.window.document.querySelector<HTMLButtonElement>(
       '[data-testid="openai-model"]'
     );
-    const save = dom.window.document.querySelector<HTMLButtonElement>(
-      '[data-testid="model-save"]'
-    );
     expect(modelSelect).not.toBeNull();
-    expect(save).not.toBeNull();
 
     expect(modelSelect?.textContent).toContain("gpt-4o");
 
@@ -198,7 +194,6 @@ describe("popup Settings pane", () => {
         modelSelect as HTMLButtonElement,
         "gpt-4o-mini"
       );
-      save?.click();
       await flush(dom.window);
     });
 

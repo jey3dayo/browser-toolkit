@@ -69,9 +69,7 @@ export function sortTable(
   columnIndex: number,
   getRowFilterSetting?: () => Result.Result<boolean, string>
 ): void {
-  const tbody = table.querySelector(
-    "tbody"
-  ) as HTMLTableSectionElement | null;
+  const tbody = table.querySelector("tbody") as HTMLTableSectionElement | null;
   const targetBody = tbody ?? table;
   const rows = Array.from(
     targetBody.querySelectorAll<HTMLTableRowElement>("tr")

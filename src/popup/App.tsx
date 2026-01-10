@@ -9,6 +9,8 @@ import { coercePaneId, getPaneIdFromHash, type PaneId } from "@/popup/panes";
 import { ActionsPane } from "@/popup/panes/ActionsPane";
 import { CalendarPane } from "@/popup/panes/CalendarPane";
 import { CreateLinkPane } from "@/popup/panes/CreateLinkPane";
+import { DebugPane } from "@/popup/panes/DebugPane";
+import { SearchEnginesPane } from "@/popup/panes/SearchEnginesPane";
 import { SettingsPane } from "@/popup/panes/SettingsPane";
 import { TablePane } from "@/popup/panes/TablePane";
 import { createPopupRuntime } from "@/popup/runtime";
@@ -297,6 +299,18 @@ export function PopupApp(): React.JSX.Element {
                 runtime={runtime}
               />
             </Tabs.Panel>
+            <Tabs.Panel
+              data-pane="pane-search-engines"
+              value="pane-search-engines"
+            >
+              <SearchEnginesPane
+                notify={notifications.notify}
+                runtime={runtime}
+              />
+            </Tabs.Panel>
+            <Tabs.Panel data-pane="pane-debug" value="pane-debug">
+              <DebugPane notify={notifications.notify} runtime={runtime} />
+            </Tabs.Panel>
             <Tabs.Panel data-pane="pane-settings" value="pane-settings">
               <SettingsPane
                 notify={notifications.notify}
@@ -360,6 +374,30 @@ export function PopupApp(): React.JSX.Element {
                   <Icon aria-hidden="true" name="link" />
                 </span>
                 <span className="nav-label">リンク作成</span>
+              </Tabs.Tab>
+              <Tabs.Tab
+                aria-label="検索エンジン"
+                className="nav-item"
+                data-tooltip="検索エンジン"
+                data-value="pane-search-engines"
+                value="pane-search-engines"
+              >
+                <span aria-hidden="true" className="nav-icon">
+                  <Icon aria-hidden="true" name="search" />
+                </span>
+                <span className="nav-label">検索エンジン</span>
+              </Tabs.Tab>
+              <Tabs.Tab
+                aria-label="デバッグ"
+                className="nav-item"
+                data-tooltip="デバッグ"
+                data-value="pane-debug"
+                value="pane-debug"
+              >
+                <span aria-hidden="true" className="nav-icon">
+                  <Icon aria-hidden="true" name="bug" />
+                </span>
+                <span className="nav-label">デバッグ</span>
               </Tabs.Tab>
               <Tabs.Tab
                 aria-label="設定"
@@ -457,6 +495,40 @@ export function PopupApp(): React.JSX.Element {
                       <Icon aria-hidden="true" name="link" />
                     </span>
                     リンク作成
+                  </Button>
+                  <Button
+                    aria-current={
+                      tabValue === "pane-search-engines" ? "page" : undefined
+                    }
+                    className={
+                      tabValue === "pane-search-engines"
+                        ? "menu-item active"
+                        : "menu-item"
+                    }
+                    onClick={() => navigateToPane("pane-search-engines")}
+                    type="button"
+                  >
+                    <span aria-hidden="true" className="menu-icon">
+                      <Icon aria-hidden="true" name="search" />
+                    </span>
+                    検索エンジン
+                  </Button>
+                  <Button
+                    aria-current={
+                      tabValue === "pane-debug" ? "page" : undefined
+                    }
+                    className={
+                      tabValue === "pane-debug"
+                        ? "menu-item active"
+                        : "menu-item"
+                    }
+                    onClick={() => navigateToPane("pane-debug")}
+                    type="button"
+                  >
+                    <span aria-hidden="true" className="menu-icon">
+                      <Icon aria-hidden="true" name="bug" />
+                    </span>
+                    デバッグ
                   </Button>
                   <Button
                     aria-current={

@@ -4,10 +4,9 @@ import { expect, userEvent, waitFor, within } from "storybook/test";
 import type { ContextAction } from "@/context_actions";
 import { ActionButtons } from "./ActionButtons";
 
-function ActionButtonsStory(props: {
-  actions: ContextAction[];
-  onRun: (actionId: string) => void;
-}): React.JSX.Element {
+function ActionButtonsStory(
+  props: React.ComponentProps<typeof ActionButtons>
+): React.JSX.Element {
   return <ActionButtons {...props} />;
 }
 

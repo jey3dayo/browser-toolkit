@@ -1,8 +1,8 @@
 // 設定管理
 import { Result } from "@praha/byethrow";
+import { patternToRegex } from "@/content/url-pattern";
 import type { DomainPatternConfig } from "@/popup/runtime";
 import { storageSyncGet } from "@/storage/helpers";
-import { patternToRegex } from "@/content/url-pattern";
 
 type StorageData = {
   domainPatternConfigs?: DomainPatternConfig[];

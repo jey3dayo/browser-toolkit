@@ -1,4 +1,5 @@
 import {
+  Bug,
   Calendar,
   Copy,
   Eye,
@@ -9,6 +10,7 @@ import {
   Monitor,
   Moon,
   Pin,
+  Search,
   Settings,
   Sun,
   Table,
@@ -17,6 +19,7 @@ import {
 } from "lucide-react";
 
 export type IconName =
+  | "bug"
   | "calendar"
   | "close"
   | "copy"
@@ -27,12 +30,14 @@ export type IconName =
   | "monitor"
   | "moon"
   | "pin"
+  | "search"
   | "settings"
   | "sun"
   | "table"
   | "zap";
 
 const icons: Record<IconName, React.ComponentType<LucideProps>> = {
+  bug: Bug,
   calendar: Calendar,
   close: X,
   copy: Copy,
@@ -43,6 +48,7 @@ const icons: Record<IconName, React.ComponentType<LucideProps>> = {
   monitor: Monitor,
   moon: Moon,
   pin: Pin,
+  search: Search,
   settings: Settings,
   sun: Sun,
   table: Table,

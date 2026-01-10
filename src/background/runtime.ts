@@ -22,6 +22,13 @@ import type {
 } from "@/background/types";
 import type { ContextAction } from "@/context_actions";
 import type { ExtractedEvent } from "@/shared_types";
+import {
+  clearDebugLogs,
+  debugLog,
+  downloadDebugLogs,
+  getDebugLogStats,
+  getDebugLogs,
+} from "@/utils/debug_log";
 import { showErrorNotification } from "@/utils/notifications";
 
 // Helper function for handling event actions in message listener
@@ -140,7 +147,11 @@ type RuntimeRequest =
   | { action: "summarizeText"; target: SummaryTarget }
   | { action: "testOpenAiToken"; token?: string }
   | { action: "summarizeEvent"; target: SummaryTarget }
-  | { action: "openPopupSettings" };
+  | { action: "openPopupSettings" }
+  | { action: "downloadDebugLogs" }
+  | { action: "clearDebugLogs" }
+  | { action: "getDebugLogStats" }
+  | { action: "getDebugLogs" };
 
 type RuntimeResponse =
   | BackgroundResponse
@@ -153,9 +164,34 @@ type RuntimeResponse =
       eventText: string;
       calendarUrl?: string;
       calendarError?: string;
+    }
+  | {
+      ok: true;
+      logs: Array<{
+        timestamp: string;
+        level: string;
+        context: string;
+        message: string;
+        data?: unknown;
+      }>;
+    }
+  | {
+      ok: true;
+      entryCount: number;
+      sizeBytes: number;
+      sizeKB: string;
     };
 
 type RuntimeSendResponse = (response?: RuntimeResponse) => void;
+
+type SummarizeTextRequest = Extract<
+  RuntimeRequest,
+  { action: "summarizeText" }
+>;
+type SummarizeEventRequest = Extract<
+  RuntimeRequest,
+  { action: "summarizeEvent" }
+>;
 
 function handleSummarizeTabRequest(
   request: { action: "summarizeTab"; tabId: number },
@@ -174,6 +210,12 @@ function handleSummarizeTabRequest(
       const result = await summarizeWithOpenAI(target);
       sendResponse(result);
     } catch (error) {
+      await debugLog(
+        "handleSummarizeTabRequest",
+        "Failed to summarize tab",
+        { error, request },
+        "error"
+      );
       sendResponse({
         ok: false,
         error: error instanceof Error ? error.message : "要約に失敗しました",
@@ -184,7 +226,7 @@ function handleSummarizeTabRequest(
 }
 
 function handleSummarizeTextRequest(
-  request: { action: "summarizeText"; target: SummaryTarget },
+  request: SummarizeTextRequest,
   sendResponse: RuntimeSendResponse
 ): boolean {
   (async () => {
@@ -192,6 +234,12 @@ function handleSummarizeTextRequest(
       const result = await summarizeWithOpenAI(request.target);
       sendResponse(result);
     } catch (error) {
+      await debugLog(
+        "handleSummarizeTextRequest",
+        "Failed to summarize text",
+        { error, request },
+        "error"
+      );
       sendResponse({
         ok: false,
         error: error instanceof Error ? error.message : "要約に失敗しました",
@@ -242,6 +290,12 @@ function handleRunContextActionRequest(
         );
       }
     } catch (error) {
+      await debugLog(
+        "handleRunContextActionRequest",
+        "Failed to run context action",
+        { error, request },
+        "error"
+      );
       sendResponse({
         ok: false,
         error:
@@ -263,6 +317,12 @@ function handleTestOpenAiTokenRequest(
       const result = await testOpenAiToken(request.token);
       sendResponse(result);
     } catch (error) {
+      await debugLog(
+        "handleTestOpenAiTokenRequest",
+        "Failed to test OpenAI token",
+        { error, request },
+        "error"
+      );
       sendResponse({
         ok: false,
         error:
@@ -274,16 +334,24 @@ function handleTestOpenAiTokenRequest(
 }
 
 function handleSummarizeEventRequest(
-  request: { action: "summarizeEvent"; target: SummaryTarget },
+  request: SummarizeEventRequest,
   sendResponse: RuntimeSendResponse
 ): boolean {
-  handleSummarizeEventInMessage(request.target, sendResponse).catch((error) => {
-    sendResponse({
-      ok: false,
-      error:
-        error instanceof Error ? error.message : "イベント要約に失敗しました",
-    });
-  });
+  handleSummarizeEventInMessage(request.target, sendResponse).catch(
+    async (error) => {
+      await debugLog(
+        "handleSummarizeEventRequest",
+        "Failed to summarize event",
+        { error, request },
+        "error"
+      );
+      sendResponse({
+        ok: false,
+        error:
+          error instanceof Error ? error.message : "イベント要約に失敗しました",
+      });
+    }
+  );
   return true;
 }
 
@@ -304,6 +372,86 @@ function handleOpenPopupSettingsRequest(
   return true;
 }
 
+function handleDownloadDebugLogsRequest(
+  _request: { action: "downloadDebugLogs" },
+  sendResponse: RuntimeSendResponse
+): boolean {
+  downloadDebugLogs()
+    .then(() => {
+      sendResponse({ ok: true });
+    })
+    .catch((error) => {
+      sendResponse({
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "デバッグログのダウンロードに失敗しました",
+      });
+    });
+  return true;
+}
+
+function handleClearDebugLogsRequest(
+  _request: { action: "clearDebugLogs" },
+  sendResponse: RuntimeSendResponse
+): boolean {
+  clearDebugLogs()
+    .then(() => {
+      sendResponse({ ok: true });
+    })
+    .catch((error) => {
+      sendResponse({
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "デバッグログのクリアに失敗しました",
+      });
+    });
+  return true;
+}
+
+function handleGetDebugLogStatsRequest(
+  _request: { action: "getDebugLogStats" },
+  sendResponse: RuntimeSendResponse
+): boolean {
+  getDebugLogStats()
+    .then((stats) => {
+      sendResponse({ ok: true, ...stats });
+    })
+    .catch((error) => {
+      sendResponse({
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "デバッグログ統計の取得に失敗しました",
+      });
+    });
+  return true;
+}
+
+function handleGetDebugLogsRequest(
+  _request: { action: "getDebugLogs" },
+  sendResponse: RuntimeSendResponse
+): boolean {
+  getDebugLogs()
+    .then((logs) => {
+      sendResponse({ ok: true, logs });
+    })
+    .catch((error) => {
+      sendResponse({
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "デバッグログの取得に失敗しました",
+      });
+    });
+  return true;
+}
+
 const runtimeHandlers = {
   summarizeTab: handleSummarizeTabRequest,
   summarizeText: handleSummarizeTextRequest,
@@ -311,6 +459,10 @@ const runtimeHandlers = {
   testOpenAiToken: handleTestOpenAiTokenRequest,
   summarizeEvent: handleSummarizeEventRequest,
   openPopupSettings: handleOpenPopupSettingsRequest,
+  downloadDebugLogs: handleDownloadDebugLogsRequest,
+  clearDebugLogs: handleClearDebugLogsRequest,
+  getDebugLogStats: handleGetDebugLogStatsRequest,
+  getDebugLogs: handleGetDebugLogsRequest,
 } as const;
 
 export function registerRuntimeMessageHandlers(): void {

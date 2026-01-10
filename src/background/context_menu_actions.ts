@@ -10,6 +10,7 @@ import {
 import { storageSyncGet } from "@/background/storage";
 import type {
   ContentScriptMessage,
+  ContextMenuTabParams,
   SummaryTarget,
   SyncStorageData,
 } from "@/background/types";
@@ -31,11 +32,6 @@ type ContextMenuSelectionContext = {
   selection: string;
   initialSource: SummarySource;
   selectionSecondary: string | undefined;
-};
-
-type ContextMenuTabParams = {
-  tabId: number;
-  tab?: chrome.tabs.Tab;
 };
 
 type ContextMenuClickParams = ContextMenuTabParams & {

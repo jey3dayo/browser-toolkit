@@ -1,5 +1,6 @@
 import { Result } from "@praha/byethrow";
 import type { ContextAction } from "@/context_actions";
+import type { SearchEngine } from "@/search_engines";
 import type {
   CalendarRegistrationTarget,
   ExtractedEvent,
@@ -22,6 +23,7 @@ export type SyncStorageData = {
   contextActions?: ContextAction[];
   linkFormat?: LinkFormat;
   calendarTargets?: CalendarRegistrationTarget[];
+  searchEngines?: SearchEngine[];
 };
 
 export type EnableTableSortMessage = { action: "enableTableSort" };
@@ -70,6 +72,20 @@ export type TestOpenAiTokenRequest = {
   token?: string;
 };
 export type TestOpenAiTokenResponse =
+  | { ok: true }
+  | { ok: false; error: string };
+
+export type DownloadDebugLogsRequest = {
+  action: "downloadDebugLogs";
+};
+export type DownloadDebugLogsResponse =
+  | { ok: true }
+  | { ok: false; error: string };
+
+export type ClearDebugLogsRequest = {
+  action: "clearDebugLogs";
+};
+export type ClearDebugLogsResponse =
   | { ok: true }
   | { ok: false; error: string };
 
