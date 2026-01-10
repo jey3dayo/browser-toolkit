@@ -162,10 +162,9 @@ async function refreshContextMenus(): Promise<void> {
               reject(new Error(err.message));
               return;
             }
-            debugLog(
-              "refreshContextMenus",
-              "search parent menu created"
-            ).catch(() => {});
+            debugLog("refreshContextMenus", "search parent menu created").catch(
+              () => {}
+            );
             resolve();
           }
         );
@@ -432,7 +431,12 @@ async function handleSearchEngineClick(
     debugLog(
       "handleSearchEngineClick",
       "chrome.tabs.create failed",
-      { engineId, selectionText, searchUrl, error: formatErrorLog("", {}, error) },
+      {
+        engineId,
+        selectionText,
+        searchUrl,
+        error: formatErrorLog("", {}, error),
+      },
       "error"
     ).catch(() => {
       // no-op

@@ -71,22 +71,22 @@ function coerceKind(value: unknown): ContextActionKind | null {
   return null;
 }
 
-function parseRunContextActionResponseToOutput(params: {
+type ParseRunContextActionResponseError = string;
+
+export function parseRunContextActionResponseToOutput(params: {
   actionTitle: string;
   responseUnknown: unknown;
-}): { ok: true; output: OutputState } | { ok: false; error: string } {
+}): Result.Result<OutputState, ParseRunContextActionResponseError> {
   if (!isRunContextActionResponse(params.responseUnknown)) {
-    return { ok: false, error: "バックグラウンドの応答が不正です" };
+    return Result.fail("バックグラウンドの応答が不正です");
   }
 
   const response = params.responseUnknown;
   if (!response.ok) {
     const errorMessage = (response as { error?: unknown }).error;
-    return {
-      ok: false,
-      error:
-        typeof errorMessage === "string" ? errorMessage : "実行に失敗しました",
-    };
+    return Result.fail(
+      typeof errorMessage === "string" ? errorMessage : "実行に失敗しました"
+    );
   }
 
   const sourceLabel = coerceSummarySourceLabel(
@@ -98,36 +98,30 @@ function parseRunContextActionResponseToOutput(params: {
   if (kind === "event") {
     const eventText = (response as { eventText?: unknown }).eventText;
     if (typeof eventText !== "string") {
-      return { ok: false, error: "イベント結果が不正です" };
+      return Result.fail("イベント結果が不正です");
     }
-    return {
-      ok: true,
-      output: {
-        status: "ready",
-        title: params.actionTitle,
-        text: eventText,
-        sourceLabel,
-      },
-    };
+    return Result.succeed({
+      status: "ready",
+      title: params.actionTitle,
+      text: eventText,
+      sourceLabel,
+    });
   }
 
   if (kind !== "text") {
-    return { ok: false, error: "結果の形式が不正です" };
+    return Result.fail("結果の形式が不正です");
   }
 
   const text = (response as { text?: unknown }).text;
   if (typeof text !== "string") {
-    return { ok: false, error: "テキスト結果が不正です" };
+    return Result.fail("テキスト結果が不正です");
   }
-  return {
-    ok: true,
-    output: {
-      status: "ready",
-      title: params.actionTitle,
-      text,
-      sourceLabel,
-    },
-  };
+  return Result.succeed({
+    status: "ready",
+    title: params.actionTitle,
+    text,
+    sourceLabel,
+  });
 }
 
 export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
@@ -452,12 +446,12 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
       actionTitle: action.title,
       responseUnknown: responseUnknown.value,
     });
-    if (!parsed.ok) {
+    if (Result.isFailure(parsed)) {
       reportError(parsed.error);
       return;
     }
 
-    setOutput(parsed.output);
+    setOutput(parsed.value);
     props.notify.success("完了しました");
   };
 
