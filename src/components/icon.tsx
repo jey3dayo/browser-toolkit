@@ -9,6 +9,7 @@ import {
   Monitor,
   Moon,
   Pin,
+  Search,
   Settings,
   Sun,
   Table,
@@ -27,6 +28,7 @@ export type IconName =
   | "monitor"
   | "moon"
   | "pin"
+  | "search"
   | "settings"
   | "sun"
   | "table"
@@ -43,6 +45,7 @@ const icons: Record<IconName, React.ComponentType<LucideProps>> = {
   monitor: Monitor,
   moon: Moon,
   pin: Pin,
+  search: Search,
   settings: Settings,
   sun: Sun,
   table: Table,

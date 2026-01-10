@@ -3,12 +3,9 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import { ActionOutputPanel } from "./ActionOutputPanel";
 
-function ActionOutputPanelStory(props: {
-  title: string;
-  value: string;
-  canCopy: boolean;
-  onCopy: () => void;
-}): React.JSX.Element {
+function ActionOutputPanelStory(
+  props: React.ComponentProps<typeof ActionOutputPanel>
+): React.JSX.Element {
   return <ActionOutputPanel {...props} />;
 }
 

@@ -13,7 +13,7 @@ export type ClipboardError =
  * @returns Result<void, ClipboardError>
  */
 export async function copyToClipboard(
-  text: string,
+  text: string
 ): Promise<Result.Result<void, ClipboardError>> {
   const trimmed = text.trim();
   if (!trimmed) {
@@ -42,7 +42,7 @@ export async function copyToClipboard(
 export async function copyToClipboardWithNotification(
   text: string,
   notify: Notifier,
-  successMessage?: string,
+  successMessage?: string
 ): Promise<Result.Result<void, ClipboardError>> {
   const result = await copyToClipboard(text);
   if (Result.isSuccess(result) && successMessage?.trim()) {

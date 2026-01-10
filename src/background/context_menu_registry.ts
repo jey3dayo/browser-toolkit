@@ -13,6 +13,9 @@ import {
   CONTEXT_MENU_COPY_TITLE_LINK_ID,
   CONTEXT_MENU_CUSTOM_SEPARATOR_ID,
   CONTEXT_MENU_ROOT_ID,
+  CONTEXT_MENU_SEARCH_PARENT_ID,
+  CONTEXT_MENU_SEARCH_PREFIX,
+  CONTEXT_MENU_SEARCH_SEPARATOR_ID,
   CONTEXT_MENU_SETTINGS_ID,
 } from "@/background/context_menu_ids";
 import { storageSyncGet, storageSyncSet } from "@/background/storage";
@@ -22,6 +25,12 @@ import {
   DEFAULT_CONTEXT_ACTIONS,
   normalizeContextActions,
 } from "@/context_actions";
+import {
+  buildSearchUrl,
+  DEFAULT_SEARCH_ENGINES,
+  normalizeSearchEngines,
+  type SearchEngine,
+} from "@/search_engines";
 import { formatErrorLog } from "@/utils/errors";
 
 let contextMenuRefreshQueue: Promise<void> = Promise.resolve();
@@ -62,6 +71,14 @@ export function registerContextMenuHandlers(): void {
           .catch(() => {
             // no-op
           });
+        return;
+      }
+
+      if (menuItemId.startsWith(CONTEXT_MENU_SEARCH_PREFIX)) {
+        const engineId = menuItemId.slice(CONTEXT_MENU_SEARCH_PREFIX.length);
+        handleSearchEngineClick(engineId, info).catch(() => {
+          // no-op
+        });
         return;
       }
 
@@ -149,6 +166,70 @@ async function refreshContextMenus(): Promise<void> {
         }
       );
     });
+
+    const searchEngines = await ensureSearchEnginesInitialized();
+    const enabledEngines = searchEngines.filter((engine) => engine.enabled);
+
+    if (enabledEngines.length > 0) {
+      await new Promise<void>((resolve, reject) => {
+        chrome.contextMenus.create(
+          {
+            id: CONTEXT_MENU_SEARCH_PARENT_ID,
+            parentId: CONTEXT_MENU_ROOT_ID,
+            title: "検索",
+            contexts: ["selection"],
+          },
+          () => {
+            const err = chrome.runtime.lastError;
+            if (err) {
+              reject(new Error(err.message));
+              return;
+            }
+            resolve();
+          }
+        );
+      });
+
+      for (const engine of enabledEngines) {
+        await new Promise<void>((resolve, reject) => {
+          chrome.contextMenus.create(
+            {
+              id: `${CONTEXT_MENU_SEARCH_PREFIX}${engine.id}`,
+              parentId: CONTEXT_MENU_SEARCH_PARENT_ID,
+              title: engine.name,
+              contexts: ["selection"],
+            },
+            () => {
+              const err = chrome.runtime.lastError;
+              if (err) {
+                reject(new Error(err.message));
+                return;
+              }
+              resolve();
+            }
+          );
+        });
+      }
+
+      await new Promise<void>((resolve, reject) => {
+        chrome.contextMenus.create(
+          {
+            id: CONTEXT_MENU_SEARCH_SEPARATOR_ID,
+            parentId: CONTEXT_MENU_ROOT_ID,
+            type: "separator",
+            contexts: ["page", "selection"],
+          },
+          () => {
+            const err = chrome.runtime.lastError;
+            if (err) {
+              reject(new Error(err.message));
+              return;
+            }
+            resolve();
+          }
+        );
+      });
+    }
 
     await new Promise<void>((resolve, reject) => {
       chrome.contextMenus.create(
@@ -241,6 +322,37 @@ async function ensureContextActionsInitialized(): Promise<ContextAction[]> {
   }
   await storageSyncSet({ contextActions: DEFAULT_CONTEXT_ACTIONS });
   return DEFAULT_CONTEXT_ACTIONS;
+}
+
+async function ensureSearchEnginesInitialized(): Promise<SearchEngine[]> {
+  const stored = (await storageSyncGet(["searchEngines"])) as SyncStorageData;
+  const existing = normalizeSearchEngines(stored.searchEngines);
+  if (existing.length > 0) {
+    return existing;
+  }
+  await storageSyncSet({ searchEngines: DEFAULT_SEARCH_ENGINES });
+  return DEFAULT_SEARCH_ENGINES;
+}
+
+async function handleSearchEngineClick(
+  engineId: string,
+  info: chrome.contextMenus.OnClickData
+): Promise<void> {
+  const selectionText = info.selectionText;
+  if (!selectionText) {
+    return;
+  }
+
+  const searchEngines = await ensureSearchEnginesInitialized();
+  const engine = searchEngines.find((e) => e.id === engineId);
+  if (!engine?.enabled) {
+    return;
+  }
+
+  const searchUrl = buildSearchUrl(engine.urlTemplate, selectionText);
+  chrome.tabs.create({ url: searchUrl }).catch(() => {
+    // no-op
+  });
 }
 
 export async function loadContextActions(): Promise<ContextAction[]> {

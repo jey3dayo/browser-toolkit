@@ -1,4 +1,5 @@
 import type { ContextAction } from "@/context_actions";
+import type { SearchEngine } from "@/search_engines";
 import type {
   CalendarRegistrationTarget,
   ExtractedEvent,
@@ -61,8 +62,14 @@ export type RunContextActionResponse =
     }
   | { ok: false; error: string };
 
+export type ContextMenuTabParams = {
+  tabId: number;
+  tab?: chrome.tabs.Tab;
+};
+
 export type SyncStorageData = {
   contextActions?: ContextAction[];
   linkFormat?: LinkFormat;
   calendarTargets?: CalendarRegistrationTarget[];
+  searchEngines?: SearchEngine[];
 };

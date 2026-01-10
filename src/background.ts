@@ -20,7 +20,7 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
   if (areaName !== "sync") {
     return;
   }
-  if (!("contextActions" in changes)) {
+  if (!("contextActions" in changes || "searchEngines" in changes)) {
     return;
   }
   scheduleRefreshContextMenus();

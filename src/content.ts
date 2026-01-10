@@ -1,53 +1,49 @@
 // Content Script - Webページに注入される
 
 import { Result } from "@praha/byethrow";
-import type { DomainPatternConfig } from "@/popup/runtime";
-import type { ExtractedEvent, SummarySource } from "@/shared_types";
-import { storageLocalGet, storageLocalSet } from "@/storage/helpers";
-import { applyTheme, isTheme, type Theme } from "@/ui/theme";
 import {
-  matchesAnyPattern,
-  patternToRegex,
-} from "@/content/url-pattern";
-import { parseNumericValue } from "@/utils/number_parser";
+  copyToClipboardWithNotification,
+  getClipboardErrorMessage,
+} from "@/content/clipboard";
 import {
-  enableTableSort,
-  sortTable as sortTableCore,
-} from "@/content/table-sort";
-import {
-  startTableObserver,
-  stopTableObserver,
-} from "@/content/table-observer";
+  getCurrentPatternRowFilterSetting as getPatternRowFilterSetting,
+  refreshTableConfig,
+} from "@/content/config";
 import {
   ensureToastMount,
   showNotification as showNotificationCore,
   type ToastMount,
 } from "@/content/notification";
 import {
-  copyToClipboardWithNotification,
-  getClipboardErrorMessage,
-} from "@/content/clipboard";
+  type ActionOverlayRequest,
+  closeOverlay,
+  ensureOverlayMount,
+  type OverlayMount,
+  resetSummarizeOverlayTitleState,
+  type SummaryOverlayRequest,
+  showActionOverlay as showActionOverlayCore,
+  showSummaryOverlay as showSummaryOverlayCore,
+} from "@/content/overlay-helpers";
 import {
   getSummaryTargetText,
   type SummaryTarget,
 } from "@/content/summary-target";
 import {
-  getCurrentPatternRowFilterSetting as getPatternRowFilterSetting,
-  refreshTableConfig,
-} from "@/content/config";
+  startTableObserver,
+  stopTableObserver,
+} from "@/content/table-observer";
 import {
-  ensureOverlayMount,
-  closeOverlay,
-  showActionOverlay as showActionOverlayCore,
-  showSummaryOverlay as showSummaryOverlayCore,
-  resetSummarizeOverlayTitleState,
-  type OverlayMount,
-  type ActionOverlayRequest,
-  type SummaryOverlayRequest,
-} from "@/content/overlay-helpers";
+  enableTableSort,
+  sortTable as sortTableCore,
+} from "@/content/table-sort";
+import { matchesAnyPattern, patternToRegex } from "@/content/url-pattern";
+import type { DomainPatternConfig } from "@/popup/runtime";
+import type { ExtractedEvent, SummarySource } from "@/shared_types";
+import { storageLocalGet, storageLocalSet } from "@/storage/helpers";
+import { applyTheme, isTheme, type Theme } from "@/ui/theme";
+import { parseNumericValue } from "@/utils/number_parser";
 
 (() => {
-
   type ContentRequest =
     | { action: "enableTableSort" }
     | { action: "showNotification"; message: string }
@@ -72,8 +68,6 @@ import {
         ics?: string;
         event?: ExtractedEvent;
       };
-
-
 
   type GlobalContentState = {
     initialized: boolean;
@@ -335,7 +329,6 @@ import {
     domainPatternConfigs: [],
   };
 
-
   function maybeEnableTableSortFromConfig(): void {
     if (tableConfig.domainPatternConfigs.length > 0) {
       const patterns = tableConfig.domainPatternConfigs.map(
@@ -352,7 +345,6 @@ import {
     const configs = await refreshTableConfig();
     tableConfig = { domainPatternConfigs: configs };
   }
-
 
   async function refreshTableConfigAndMaybeEnable(): Promise<void> {
     await refreshTableConfigAndUpdate();

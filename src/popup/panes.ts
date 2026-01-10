@@ -3,6 +3,7 @@ export const PANE_IDS = [
   "pane-calendar",
   "pane-table",
   "pane-create-link",
+  "pane-search-engines",
   "pane-settings",
 ] as const;
 export type PaneId = (typeof PANE_IDS)[number];

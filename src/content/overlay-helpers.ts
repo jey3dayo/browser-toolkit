@@ -61,9 +61,7 @@ export function ensureOverlayMount(currentTheme: Theme): OverlayMount {
   ensureShadowUiBaseStyles(shadow);
   applyTheme(currentTheme, shadow);
 
-  let rootEl = shadow.getElementById(
-    OVERLAY_ROOT_ID
-  ) as HTMLDivElement | null;
+  let rootEl = shadow.getElementById(OVERLAY_ROOT_ID) as HTMLDivElement | null;
   if (!rootEl) {
     rootEl = document.createElement("div");
     rootEl.id = OVERLAY_ROOT_ID;
@@ -101,8 +99,7 @@ export function getSelectionAnchorRect(): OverlayViewModel["anchorRect"] {
 
   const range = selection.getRangeAt(0);
   const rects = Array.from(range.getClientRects());
-  const rect =
-    rects.length > 0 ? rects.at(-1) : range.getBoundingClientRect();
+  const rect = rects.length > 0 ? rects.at(-1) : range.getBoundingClientRect();
 
   if (!rect || (rect.width === 0 && rect.height === 0)) {
     return null;

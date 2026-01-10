@@ -1,14 +1,14 @@
 // Toast通知機能
 import { createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { ensureShadowUiBaseStyles } from "@/ui/styles";
+import { applyTheme, type Theme } from "@/ui/theme";
 import {
   createNotifications,
   type Notifier,
   ToastHost,
   type ToastManager,
 } from "@/ui/toast";
-import { ensureShadowUiBaseStyles } from "@/ui/styles";
-import { applyTheme, type Theme } from "@/ui/theme";
 
 const TOAST_HOST_ID = "browser-toolkit-toast-host";
 const TOAST_ROOT_ID = "mtk-toast-react-root";

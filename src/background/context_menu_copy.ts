@@ -6,7 +6,11 @@ import {
   storageLocalSet,
   storageSyncGet,
 } from "@/background/storage";
-import type { ContentScriptMessage, SyncStorageData } from "@/background/types";
+import type {
+  ContentScriptMessage,
+  ContextMenuTabParams,
+  SyncStorageData,
+} from "@/background/types";
 import type { CopyTitleLinkFailure } from "@/storage/types";
 import { formatErrorLog, toErrorMessage } from "@/utils/errors";
 import {
@@ -17,11 +21,6 @@ import {
 import { showErrorNotification } from "@/utils/notifications";
 
 const DEFAULT_LINK_FORMAT: LinkFormat = "text";
-
-type ContextMenuTabParams = {
-  tabId: number;
-  tab?: chrome.tabs.Tab;
-};
 
 function buildCopyTitleLinkOverlayTitle(): string {
   return "タイトルとリンクをコピー";

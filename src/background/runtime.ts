@@ -157,6 +157,15 @@ type RuntimeResponse =
 
 type RuntimeSendResponse = (response?: RuntimeResponse) => void;
 
+type SummarizeTextRequest = Extract<
+  RuntimeRequest,
+  { action: "summarizeText" }
+>;
+type SummarizeEventRequest = Extract<
+  RuntimeRequest,
+  { action: "summarizeEvent" }
+>;
+
 function handleSummarizeTabRequest(
   request: { action: "summarizeTab"; tabId: number },
   sendResponse: RuntimeSendResponse
@@ -184,7 +193,7 @@ function handleSummarizeTabRequest(
 }
 
 function handleSummarizeTextRequest(
-  request: { action: "summarizeText"; target: SummaryTarget },
+  request: SummarizeTextRequest,
   sendResponse: RuntimeSendResponse
 ): boolean {
   (async () => {
@@ -274,7 +283,7 @@ function handleTestOpenAiTokenRequest(
 }
 
 function handleSummarizeEventRequest(
-  request: { action: "summarizeEvent"; target: SummaryTarget },
+  request: SummarizeEventRequest,
   sendResponse: RuntimeSendResponse
 ): boolean {
   handleSummarizeEventInMessage(request.target, sendResponse).catch((error) => {

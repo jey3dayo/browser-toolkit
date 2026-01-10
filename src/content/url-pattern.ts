@@ -26,7 +26,7 @@ export function patternToRegex(pattern: string): RegExp {
     : "";
 
   return new RegExp(
-    `^${escaped}${optionalTrailingSlash}${optionalQueryHashSuffix}$`,
+    `^${escaped}${optionalTrailingSlash}${optionalQueryHashSuffix}$`
   );
 }
 
@@ -38,7 +38,7 @@ export function patternToRegex(pattern: string): RegExp {
  */
 export function matchesAnyPattern(
   patterns: string[],
-  url: string = window.location.href,
+  url: string = window.location.href
 ): boolean {
   const urlWithoutProtocol = url.replace(HTTP_PROTOCOL_REGEX, "");
 
