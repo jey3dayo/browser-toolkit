@@ -6,7 +6,7 @@ import {
   scheduleRefreshContextMenus,
 } from "@/background/context_menu_registry";
 import { registerRuntimeMessageHandlers } from "@/background/runtime";
-import { autoSaveDebugLogs, debugLog } from "@/utils/debug_log";
+import { debugLog } from "@/utils/debug_log";
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log(`${APP_NAME} installed`);
@@ -42,10 +42,3 @@ registerContextMenuHandlers();
 registerRuntimeMessageHandlers();
 
 scheduleRefreshContextMenus();
-
-// デバッグログを定期的に保存（10秒ごと）
-setInterval(() => {
-  autoSaveDebugLogs().catch(() => {
-    // no-op
-  });
-}, 10_000);

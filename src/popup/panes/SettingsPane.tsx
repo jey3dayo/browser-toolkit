@@ -153,39 +153,18 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
     props.notify.error("削除に失敗しました");
   };
 
-  const saveModel = async (): Promise<void> => {
-    const normalized = normalizeOpenAiModel(model);
-    const saved = await props.runtime.storageLocalSet({
+  const saveModel = async (value: OpenAiModelOption): Promise<void> => {
+    const normalized = normalizeOpenAiModel(value);
+    await props.runtime.storageLocalSet({
       openaiModel: normalized,
     });
-    if (Result.isSuccess(saved)) {
-      setModel(normalized);
-      props.notify.success("保存しました");
-      return;
-    }
-    props.notify.error("保存に失敗しました");
   };
 
-  const resetModel = async (): Promise<void> => {
-    const removed = await props.runtime.storageLocalRemove("openaiModel");
-    if (Result.isSuccess(removed)) {
-      setModel(DEFAULT_OPENAI_MODEL);
-      props.notify.success("デフォルトに戻しました");
+  const saveTheme = async (value: Theme): Promise<void> => {
+    if (!isTheme(value)) {
       return;
     }
-    props.notify.error("変更に失敗しました");
-  };
-
-  const saveTheme = async (): Promise<void> => {
-    if (!isTheme(theme)) {
-      return;
-    }
-    const saved = await props.runtime.storageLocalSet({ theme });
-    if (Result.isSuccess(saved)) {
-      props.notify.success("保存しました");
-      return;
-    }
-    props.notify.error("保存に失敗しました");
+    await props.runtime.storageLocalSet({ theme: value });
   };
 
   return (
@@ -250,164 +229,112 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
 
       <Separator className="mbu-separator" />
 
-      <Form
-        className="stack"
-        onFormSubmit={() => {
-          saveModel().catch(() => {
-            // no-op
-          });
-        }}
-      >
-        <Fieldset.Root className="mbu-fieldset stack">
-          <Fieldset.Legend className="mbu-fieldset-legend">
-            モデル
-          </Fieldset.Legend>
+      <Fieldset.Root className="mbu-fieldset stack">
+        <Fieldset.Legend className="mbu-fieldset-legend">
+          モデル
+        </Fieldset.Legend>
 
-          <div className="field">
-            <Select.Root
-              name="openaiModel"
-              onValueChange={(value) => {
-                if (typeof value === "string") {
-                  setModel(normalizeOpenAiModel(value));
-                }
-              }}
-              value={model}
+        <div className="field">
+          <Select.Root
+            name="openaiModel"
+            onValueChange={(value) => {
+              if (typeof value === "string") {
+                const normalized = normalizeOpenAiModel(value);
+                setModel(normalized);
+                saveModel(normalized).catch(() => {
+                  // no-op
+                });
+              }
+            }}
+            value={model}
+          >
+            <Select.Trigger
+              aria-label="モデル"
+              className="token-input mbu-select-trigger"
+              data-testid="openai-model"
+              type="button"
             >
-              <Select.Trigger
-                aria-label="モデル"
-                className="token-input mbu-select-trigger"
-                data-testid="openai-model"
-                type="button"
+              <Select.Value className="mbu-select-value" />
+              <Select.Icon className="mbu-select-icon">▾</Select.Icon>
+            </Select.Trigger>
+            <Select.Portal>
+              <Select.Positioner
+                className="mbu-select-positioner"
+                sideOffset={6}
               >
-                <Select.Value className="mbu-select-value" />
-                <Select.Icon className="mbu-select-icon">▾</Select.Icon>
-              </Select.Trigger>
-              <Select.Portal>
-                <Select.Positioner
-                  className="mbu-select-positioner"
-                  sideOffset={6}
-                >
-                  <Select.Popup className="mbu-select-popup">
-                    <Select.List className="mbu-select-list">
-                      {OPENAI_MODEL_OPTIONS.map((option) => (
-                        <Select.Item
-                          className="mbu-select-item"
-                          key={option}
-                          value={option}
-                        >
-                          <Select.ItemText>{option}</Select.ItemText>
-                          <Select.ItemIndicator className="mbu-select-indicator">
-                            ✓
-                          </Select.ItemIndicator>
-                        </Select.Item>
-                      ))}
-                    </Select.List>
-                  </Select.Popup>
-                </Select.Positioner>
-              </Select.Portal>
-            </Select.Root>
-          </div>
-        </Fieldset.Root>
-
-        <div className="button-row">
-          <Button
-            className="btn btn-primary btn-small"
-            data-testid="model-save"
-            onClick={() => {
-              saveModel().catch(() => {
-                // no-op
-              });
-            }}
-            type="button"
-          >
-            保存
-          </Button>
-          <Button
-            className="btn btn-ghost btn-small"
-            data-testid="model-reset"
-            onClick={() => {
-              resetModel().catch(() => {
-                // no-op
-              });
-            }}
-            type="button"
-          >
-            デフォルトに戻す
-          </Button>
+                <Select.Popup className="mbu-select-popup">
+                  <Select.List className="mbu-select-list">
+                    {OPENAI_MODEL_OPTIONS.map((option) => (
+                      <Select.Item
+                        className="mbu-select-item"
+                        key={option}
+                        value={option}
+                      >
+                        <Select.ItemText>{option}</Select.ItemText>
+                        <Select.ItemIndicator className="mbu-select-indicator">
+                          ✓
+                        </Select.ItemIndicator>
+                      </Select.Item>
+                    ))}
+                  </Select.List>
+                </Select.Popup>
+              </Select.Positioner>
+            </Select.Portal>
+          </Select.Root>
         </div>
-      </Form>
+      </Fieldset.Root>
 
       <Separator className="mbu-separator" />
 
-      <Form
-        className="stack"
-        onFormSubmit={() => {
-          saveTheme().catch(() => {
-            // no-op
-          });
-        }}
-      >
-        <Field.Root name="theme">
-          <Fieldset.Root
-            className="mbu-fieldset"
-            render={
-              <RadioGroup
-                className="mbu-radio-group mbu-radio-group--horizontal"
-                onValueChange={(value) => {
-                  if (!isTheme(value)) {
-                    return;
-                  }
-                  setTheme(value);
-                  applyTheme(value, document);
-                }}
-                value={theme}
-              />
-            }
-          >
-            <Fieldset.Legend className="mbu-fieldset-legend">
-              テーマ
-            </Fieldset.Legend>
-            <Field.Item>
-              <Field.Label className="mbu-radio-label">
-                <Radio.Root className="mbu-radio-root" value="auto">
-                  <Radio.Indicator className="mbu-radio-indicator" />
-                </Radio.Root>
-                自動
-              </Field.Label>
-            </Field.Item>
-            <Field.Item>
-              <Field.Label className="mbu-radio-label">
-                <Radio.Root className="mbu-radio-root" value="light">
-                  <Radio.Indicator className="mbu-radio-indicator" />
-                </Radio.Root>
-                ライト
-              </Field.Label>
-            </Field.Item>
-            <Field.Item>
-              <Field.Label className="mbu-radio-label">
-                <Radio.Root className="mbu-radio-root" value="dark">
-                  <Radio.Indicator className="mbu-radio-indicator" />
-                </Radio.Root>
-                ダーク
-              </Field.Label>
-            </Field.Item>
-          </Fieldset.Root>
-        </Field.Root>
-
-        <div className="button-row">
-          <Button
-            className="btn btn-primary btn-small"
-            onClick={() => {
-              saveTheme().catch(() => {
-                // no-op
-              });
-            }}
-            type="button"
-          >
-            保存
-          </Button>
-        </div>
-      </Form>
+      <Field.Root name="theme">
+        <Fieldset.Root
+          className="mbu-fieldset"
+          render={
+            <RadioGroup
+              className="mbu-radio-group mbu-radio-group--horizontal"
+              onValueChange={(value) => {
+                if (!isTheme(value)) {
+                  return;
+                }
+                setTheme(value);
+                applyTheme(value, document);
+                saveTheme(value).catch(() => {
+                  // no-op
+                });
+              }}
+              value={theme}
+            />
+          }
+        >
+          <Fieldset.Legend className="mbu-fieldset-legend">
+            テーマ
+          </Fieldset.Legend>
+          <Field.Item>
+            <Field.Label className="mbu-radio-label">
+              <Radio.Root className="mbu-radio-root" value="auto">
+                <Radio.Indicator className="mbu-radio-indicator" />
+              </Radio.Root>
+              自動
+            </Field.Label>
+          </Field.Item>
+          <Field.Item>
+            <Field.Label className="mbu-radio-label">
+              <Radio.Root className="mbu-radio-root" value="light">
+                <Radio.Indicator className="mbu-radio-indicator" />
+              </Radio.Root>
+              ライト
+            </Field.Label>
+          </Field.Item>
+          <Field.Item>
+            <Field.Label className="mbu-radio-label">
+              <Radio.Root className="mbu-radio-root" value="dark">
+                <Radio.Indicator className="mbu-radio-indicator" />
+              </Radio.Root>
+              ダーク
+            </Field.Label>
+          </Field.Item>
+        </Fieldset.Root>
+      </Field.Root>
 
       <Separator className="mbu-separator" />
 
