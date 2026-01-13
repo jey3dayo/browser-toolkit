@@ -64,5 +64,8 @@ export function getClipboardErrorMessage(error: ClipboardError): string {
       return "この環境ではクリップボードにコピーできません";
     case "copy-failed":
       return "コピーに失敗しました";
+    default:
+      // すべてのケースを網羅しているため、ここには到達しない
+      return "不明なエラーが発生しました";
   }
 }

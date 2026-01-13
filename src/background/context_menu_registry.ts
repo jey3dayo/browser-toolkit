@@ -158,12 +158,16 @@ async function refreshContextMenus(): Promise<void> {
                 "search parent menu error",
                 { error: err.message },
                 "error"
-              ).catch(() => {});
+              ).catch(() => {
+                // デバッグログの失敗は無視（処理を継続）
+              });
               reject(new Error(err.message));
               return;
             }
             debugLog("refreshContextMenus", "search parent menu created").catch(
-              () => {}
+              () => {
+                // デバッグログの失敗は無視（処理を継続）
+              }
             );
             resolve();
           }
@@ -190,13 +194,17 @@ async function refreshContextMenus(): Promise<void> {
                   "search engine menu error",
                   { engine, error: err.message },
                   "error"
-                ).catch(() => {});
+                ).catch(() => {
+                  // デバッグログの失敗は無視（処理を継続）
+                });
                 reject(new Error(err.message));
                 return;
               }
               debugLog("refreshContextMenus", "search engine menu created", {
                 engine,
-              }).catch(() => {});
+              }).catch(() => {
+                // デバッグログの失敗は無視（処理を継続）
+              });
               resolve();
             }
           );
