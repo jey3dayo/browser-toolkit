@@ -14,7 +14,6 @@ import { useActionEditor } from "@/popup/panes/actions/useActionEditor";
 import { useActionRunner } from "@/popup/panes/actions/useActionRunner";
 import type { PopupRuntime } from "@/popup/runtime";
 import { persistWithRollback } from "@/popup/utils/persist";
-import { coerceSummarySourceLabel } from "@/popup/utils/summary_source_label";
 import type { Notifier } from "@/ui/toast";
 
 export type ActionsPaneProps = {
