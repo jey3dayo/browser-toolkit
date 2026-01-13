@@ -13,6 +13,61 @@ type StorageData = {
 const HTTP_PROTOCOL_REGEX = /^https?:\/\//;
 
 /**
+ * 新形式(domainPatternConfigs)のバリデーションと正規化
+ * @param items - domainPatternConfigs配列
+ * @returns 成功時はDomainPatternConfig配列、失敗時はエラーメッセージ
+ */
+function validateDomainPatternConfigs(
+  items: unknown
+): Result.Result<DomainPatternConfig[], string> {
+  if (!Array.isArray(items)) {
+    return Result.fail("domainPatternConfigs must be an array");
+  }
+
+  const configs: DomainPatternConfig[] = [];
+  for (const item of items) {
+    if (
+      typeof item !== "object" ||
+      item === null ||
+      typeof item.pattern !== "string" ||
+      typeof item.enableRowFilter !== "boolean"
+    ) {
+      return Result.fail("Invalid domainPatternConfig item format");
+    }
+    const pattern = item.pattern.trim();
+    if (pattern) {
+      configs.push({ pattern, enableRowFilter: item.enableRowFilter });
+    }
+  }
+  return Result.succeed(configs);
+}
+
+/**
+ * 旧形式(domainPatterns)のバリデーションと変換
+ * @param items - domainPatterns配列
+ * @returns 成功時はDomainPatternConfig配列、失敗時はエラーメッセージ
+ */
+function validateLegacyDomainPatterns(
+  items: unknown
+): Result.Result<DomainPatternConfig[], string> {
+  if (!Array.isArray(items)) {
+    return Result.fail("domainPatterns must be an array");
+  }
+
+  const configs: DomainPatternConfig[] = [];
+  for (const patternRaw of items) {
+    if (typeof patternRaw !== "string") {
+      return Result.fail("Invalid domainPatterns item format");
+    }
+    const pattern = patternRaw.trim();
+    if (pattern) {
+      configs.push({ pattern, enableRowFilter: false });
+    }
+  }
+  return Result.succeed(configs);
+}
+
+/**
  * ストレージデータからDomainPatternConfig配列を正規化する
  * @param data - ストレージデータ
  * @returns 成功時はDomainPatternConfig配列、失敗時はエラーメッセージ
@@ -20,55 +75,14 @@ const HTTP_PROTOCOL_REGEX = /^https?:\/\//;
 export function normalizeDomainPatternConfigs(
   data: StorageData
 ): Result.Result<DomainPatternConfig[], string> {
-  // 1. domainPatternConfigsが存在する場合はバリデーション
+  // 1. 新形式(domainPatternConfigs)のバリデーション
   if (data.domainPatternConfigs !== undefined) {
-    if (!Array.isArray(data.domainPatternConfigs)) {
-      return Result.fail("domainPatternConfigs must be an array");
-    }
-
-    const configs: DomainPatternConfig[] = [];
-    for (const item of data.domainPatternConfigs) {
-      if (
-        typeof item !== "object" ||
-        item === null ||
-        typeof item.pattern !== "string" ||
-        typeof item.enableRowFilter !== "boolean"
-      ) {
-        return Result.fail("Invalid domainPatternConfig item format");
-      }
-      const pattern = item.pattern.trim();
-      if (!pattern) {
-        continue;
-      }
-      configs.push({
-        pattern,
-        enableRowFilter: item.enableRowFilter,
-      });
-    }
-    return Result.succeed(configs);
+    return validateDomainPatternConfigs(data.domainPatternConfigs);
   }
 
-  // 2. 旧キー(domainPatterns)のフォールバック
+  // 2. 旧形式(domainPatterns)のフォールバック
   if (data.domainPatterns !== undefined) {
-    if (!Array.isArray(data.domainPatterns)) {
-      return Result.fail("domainPatterns must be an array");
-    }
-
-    const configs: DomainPatternConfig[] = [];
-    for (const patternRaw of data.domainPatterns) {
-      if (typeof patternRaw !== "string") {
-        return Result.fail("Invalid domainPatterns item format");
-      }
-      const pattern = patternRaw.trim();
-      if (!pattern) {
-        continue;
-      }
-      configs.push({
-        pattern,
-        enableRowFilter: false,
-      });
-    }
-    return Result.succeed(configs);
+    return validateLegacyDomainPatterns(data.domainPatterns);
   }
 
   // 3. 未設定 → 空配列

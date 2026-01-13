@@ -48,19 +48,19 @@
     "@storybook/addon-docs": "^10.1.11",
     "@storybook/addon-vitest": "^10.1.11",
     "@storybook/react-vite": "^10.1.11",
-    "@types/chrome": "^0.1.32",
+    "@types/chrome": "^0.1.33",
     "@types/jsdom": "^27.0.0",
-    "@types/react": "^19.2.7",
+    "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
-    "@vitest/browser-playwright": "^4.0.16",
-    "@vitest/coverage-v8": "^4.0.16",
+    "@vitest/browser-playwright": "^4.0.17",
+    "@vitest/coverage-v8": "^4.0.17",
     "esbuild": "^0.27.2",
     "jsdom": "^27.4.0",
     "playwright": "^1.57.0",
     "storybook": "^10.1.11",
     "typescript": "^5.9.3",
-    "ultracite": "7.0.10",
-    "vitest": "^4.0.16"
+    "ultracite": "7.0.11",
+    "vitest": "^4.0.17"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
@@ -68,5 +68,5 @@
       "unrs-resolver"
     ]
   },
-  "packageManager": "pnpm@10.27.0"
+  "packageManager": "pnpm@10.28.0"
 }
