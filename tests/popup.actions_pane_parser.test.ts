@@ -1,6 +1,6 @@
 import { Result } from "@praha/byethrow";
 import { describe, expect, it } from "vitest";
-import { parseRunContextActionResponseToOutput } from "@/popup/panes/ActionsPane";
+import { parseRunContextActionResponseToOutput } from "@/popup/panes/actions/types";
 
 describe("parseRunContextActionResponseToOutput", () => {
   it("returns error when response format is invalid (not a record)", () => {
