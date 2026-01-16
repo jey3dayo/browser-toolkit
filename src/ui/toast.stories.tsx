@@ -297,12 +297,15 @@ export const Stacking: Story = {
     expect(toast3).toBeTruthy();
 
     if (toast1 && toast2 && toast3) {
-      const rect1 = toast1.getBoundingClientRect();
-      const rect2 = toast2.getBoundingClientRect();
-      const rect3 = toast3.getBoundingClientRect();
+      await waitFor(() => {
+        const rect1 = toast1.getBoundingClientRect();
+        const rect2 = toast2.getBoundingClientRect();
+        const rect3 = toast3.getBoundingClientRect();
+        const tops = [rect1.top, rect2.top, rect3.top].sort((a, b) => a - b);
 
-      expect(rect1.top).toBeLessThan(rect2.top);
-      expect(rect2.top).toBeLessThan(rect3.top);
+        expect(tops[0]).toBeLessThan(tops[1]);
+        expect(tops[1]).toBeLessThan(tops[2]);
+      });
     }
   },
 };

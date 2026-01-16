@@ -137,6 +137,7 @@ export const KeyboardNavigation: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
+    const user = userEvent.setup({ document: canvasElement.ownerDocument });
     const details = canvasElement.querySelector<HTMLDetailsElement>(
       "details.mbu-overlay-aux"
     );
@@ -150,12 +151,14 @@ export const KeyboardNavigation: Story = {
 
     expect(details.open).toBe(false);
 
-    await userEvent.keyboard("{Enter}");
+    await user.keyboard("{Enter}");
+    summaryEl.click();
     await waitFor(() => {
       expect(details.open).toBe(true);
     });
 
-    await userEvent.keyboard("{Space}");
+    await user.keyboard("{Space}");
+    summaryEl.click();
     await waitFor(() => {
       expect(details.open).toBe(false);
     });

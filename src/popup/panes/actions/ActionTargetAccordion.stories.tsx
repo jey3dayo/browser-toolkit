@@ -29,37 +29,64 @@ export const SelectionTarget: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
+    const win = canvasElement.ownerDocument.defaultView;
+    let restoreClipboard: (() => void) | null = null;
 
-    const accordion = canvasElement.querySelector(".mbu-accordion");
-    expect(accordion).toBeTruthy();
+    if (win) {
+      const originalClipboard = win.navigator.clipboard;
+      try {
+        Object.defineProperty(win.navigator, "clipboard", {
+          configurable: true,
+          value: {
+            ...originalClipboard,
+            writeText: () => Promise.resolve(),
+          },
+        });
+        restoreClipboard = () => {
+          Object.defineProperty(win.navigator, "clipboard", {
+            configurable: true,
+            value: originalClipboard,
+          });
+        };
+      } catch {
+        restoreClipboard = null;
+      }
+    }
 
-    const trigger = canvas.getByText("選択したテキスト");
-    expect(trigger).toBeTruthy();
+    try {
+      const accordion = canvasElement.querySelector(".mbu-accordion");
+      expect(accordion).toBeTruthy();
 
-    const panel = canvasElement.querySelector(".mbu-accordion-panel");
-    expect(panel).toBeTruthy();
+      const trigger = canvas.getByText("選択したテキスト");
+      expect(trigger).toBeTruthy();
 
-    const textarea = canvasElement.querySelector<HTMLTextAreaElement>(
-      ".mbu-accordion-text"
-    );
-    expect(textarea?.value).toBe("これは選択されたテキストです。");
+      const panel = canvasElement.querySelector(".mbu-accordion-panel");
+      expect(panel).toBeTruthy();
 
-    const copyButton = canvasElement.querySelector<HTMLButtonElement>(
-      ".mbu-accordion-copy-btn"
-    );
-    expect(copyButton).toBeTruthy();
-    expect(copyButton?.getAttribute("aria-label")).toBe("テキストをコピー");
+      const textarea = canvasElement.querySelector<HTMLTextAreaElement>(
+        ".mbu-accordion-text"
+      );
+      expect(textarea?.value).toBe("これは選択されたテキストです。");
 
-    if (copyButton) {
-      await userEvent.click(copyButton);
-      await waitFor(() => {
-        const updatedButton = canvasElement.querySelector<HTMLButtonElement>(
-          ".mbu-accordion-copy-btn"
-        );
-        expect(updatedButton?.getAttribute("aria-label")).toBe(
-          "コピーしました"
-        );
-      });
+      const copyButton = canvasElement.querySelector<HTMLButtonElement>(
+        ".mbu-accordion-copy-btn"
+      );
+      expect(copyButton).toBeTruthy();
+      expect(copyButton?.getAttribute("aria-label")).toBe("テキストをコピー");
+
+      if (copyButton) {
+        await userEvent.click(copyButton);
+        await waitFor(() => {
+          const updatedButton = canvasElement.querySelector<HTMLButtonElement>(
+            ".mbu-accordion-copy-btn"
+          );
+          expect(updatedButton?.getAttribute("aria-label")).toBe(
+            "コピーしました"
+          );
+        });
+      }
+    } finally {
+      restoreClipboard?.();
     }
   },
 };
