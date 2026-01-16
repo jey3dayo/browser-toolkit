@@ -4,6 +4,7 @@ on:
   pull_request:
   merge_group:
   push:
+    branches: [main, develop]
   workflow_dispatch:
 
 permissions:
@@ -136,7 +137,16 @@ jobs:
   unified-quality-gate:
     name: Quality Gate
     runs-on: ubuntu-latest
-    needs: [detect-changes, actionlint, lint, test, build, storybook, docs-quality-gate]
+    needs:
+      [
+        detect-changes,
+        actionlint,
+        lint,
+        test,
+        build,
+        storybook,
+        docs-quality-gate,
+      ]
     if: always()
 
     steps:
