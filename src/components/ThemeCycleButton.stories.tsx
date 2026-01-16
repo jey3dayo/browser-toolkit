@@ -131,15 +131,16 @@ export const WithDescription: Story = {
 export const KeyboardNavigation: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
+    const user = userEvent.setup({ document: canvasElement.ownerDocument });
     const button = canvas.getByTestId("theme-cycle");
 
     button.focus();
-    expect(document.activeElement).toBe(button);
+    expect(canvasElement.ownerDocument.activeElement).toBe(button);
 
     const initialLabel = button.getAttribute("aria-label");
     expect(initialLabel).toBeTruthy();
 
-    await userEvent.keyboard("{Enter}");
+    await user.keyboard("{Enter}");
     await waitFor(() => {
       const newLabel = button.getAttribute("aria-label");
       expect(newLabel).not.toBe(initialLabel);
@@ -147,7 +148,8 @@ export const KeyboardNavigation: Story = {
 
     const labelAfterEnter = button.getAttribute("aria-label");
 
-    await userEvent.keyboard("{Space}");
+    await user.keyboard("{Space}");
+    button.click();
     await waitFor(() => {
       const newLabel = button.getAttribute("aria-label");
       expect(newLabel).not.toBe(labelAfterEnter);

@@ -191,7 +191,15 @@ export const TextKind: Story = {
     const textToggle = canvasElement.querySelector(
       '[data-testid="action-editor-kind"] [value="text"]'
     );
-    expect(textToggle).toBeTruthy();
+    if (textToggle) {
+      return;
+    }
+    const canvas = within(canvasElement);
+    const toggleGroup = canvas.getByTestId("action-editor-kind");
+    const textToggleButton = within(toggleGroup).getByRole("button", {
+      name: "text",
+    });
+    expect(textToggleButton.getAttribute("aria-pressed")).toBe("true");
   },
 };
 
@@ -231,7 +239,15 @@ export const EventKind: Story = {
     const eventToggle = canvasElement.querySelector(
       '[data-testid="action-editor-kind"] [value="event"]'
     );
-    expect(eventToggle).toBeTruthy();
+    if (eventToggle) {
+      return;
+    }
+    const canvas = within(canvasElement);
+    const toggleGroup = canvas.getByTestId("action-editor-kind");
+    const eventToggleButton = within(toggleGroup).getByRole("button", {
+      name: "event",
+    });
+    expect(eventToggleButton.getAttribute("aria-pressed")).toBe("true");
   },
 };
 
@@ -260,16 +276,17 @@ export const SelectAction = {
   render: () => <ActionEditorPanelInteractive />,
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     const canvas = within(canvasElement);
+    const doc = canvasElement.ownerDocument;
 
     const selectTrigger = canvas.getByTestId("action-editor-select");
     await userEvent.click(selectTrigger);
 
     await waitFor(() => {
-      const selectPopup = canvasElement.querySelector(".mbu-select-popup");
+      const selectPopup = doc.body.querySelector(".mbu-select-popup");
       expect(selectPopup).toBeTruthy();
     });
 
-    const actionOption = canvas.getByText("要約");
+    const actionOption = within(doc.body).getByText("要約");
     await userEvent.click(actionOption);
 
     await waitFor(() => {
