@@ -17,6 +17,9 @@ import {
   CONTEXT_MENU_SEARCH_PREFIX,
   CONTEXT_MENU_SEARCH_SEPARATOR_ID,
   CONTEXT_MENU_SETTINGS_ID,
+  CONTEXT_MENU_TEMPLATE_PREFIX,
+  CONTEXT_MENU_TEMPLATE_ROOT_ID,
+  CONTEXT_MENU_TEMPLATE_SEPARATOR_ID,
 } from "@/background/context_menu_ids";
 import { storageSyncGet, storageSyncSet } from "@/background/storage";
 import type { SyncStorageData } from "@/background/types";
@@ -31,6 +34,7 @@ import {
   normalizeSearchEngines,
   type SearchEngine,
 } from "@/search_engines";
+import { DEFAULT_TEXT_TEMPLATES, type TextTemplate } from "@/text_templates";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
 
@@ -83,6 +87,16 @@ export function registerContextMenuHandlers(): void {
         return;
       }
 
+      if (menuItemId.startsWith(CONTEXT_MENU_TEMPLATE_PREFIX)) {
+        const templateId = menuItemId.slice(
+          CONTEXT_MENU_TEMPLATE_PREFIX.length
+        );
+        handleTemplateClick(tabId, templateId).catch(() => {
+          // no-op
+        });
+        return;
+      }
+
       if (!menuItemId.startsWith(CONTEXT_MENU_ACTION_PREFIX)) {
         return;
       }
@@ -106,7 +120,7 @@ export function registerContextMenuHandlers(): void {
   );
 }
 
-async function refreshContextMenus(): Promise<void> {
+export async function refreshContextMenus(): Promise<void> {
   try {
     await new Promise<void>((resolve) => {
       chrome.contextMenus.removeAll(() => resolve());
@@ -117,7 +131,7 @@ async function refreshContextMenus(): Promise<void> {
         {
           id: CONTEXT_MENU_ROOT_ID,
           title: APP_NAME,
-          contexts: ["page", "selection"],
+          contexts: ["page", "selection", "editable"],
         },
         () => {
           const err = chrome.runtime.lastError;
@@ -237,7 +251,7 @@ async function refreshContextMenus(): Promise<void> {
           id: CONTEXT_MENU_COPY_TITLE_LINK_ID,
           parentId: CONTEXT_MENU_ROOT_ID,
           title: "タイトルとリンクをコピー",
-          contexts: ["page", "selection"],
+          contexts: ["page", "selection", "editable"],
         },
         () => {
           const err = chrome.runtime.lastError;
@@ -256,7 +270,7 @@ async function refreshContextMenus(): Promise<void> {
           id: CONTEXT_MENU_CALENDAR_ID,
           parentId: CONTEXT_MENU_ROOT_ID,
           title: "カレンダー登録",
-          contexts: ["page", "selection"],
+          contexts: ["page", "selection", "editable"],
         },
         () => {
           const err = chrome.runtime.lastError;
@@ -275,7 +289,7 @@ async function refreshContextMenus(): Promise<void> {
           id: CONTEXT_MENU_BUILTIN_SEPARATOR_ID,
           parentId: CONTEXT_MENU_ROOT_ID,
           type: "separator",
-          contexts: ["page", "selection"],
+          contexts: ["page", "selection", "editable"],
         },
         () => {
           const err = chrome.runtime.lastError;
@@ -296,7 +310,7 @@ async function refreshContextMenus(): Promise<void> {
             id: `${CONTEXT_MENU_ACTION_PREFIX}${action.id}`,
             parentId: CONTEXT_MENU_ROOT_ID,
             title: action.title,
-            contexts: ["page", "selection"],
+            contexts: ["page", "selection", "editable"],
           },
           () => {
             const err = chrome.runtime.lastError;
@@ -316,7 +330,7 @@ async function refreshContextMenus(): Promise<void> {
           id: CONTEXT_MENU_CUSTOM_SEPARATOR_ID,
           parentId: CONTEXT_MENU_ROOT_ID,
           type: "separator",
-          contexts: ["page", "selection"],
+          contexts: ["page", "selection", "editable"],
         },
         () => {
           const err = chrome.runtime.lastError;
@@ -329,13 +343,77 @@ async function refreshContextMenus(): Promise<void> {
       );
     });
 
+    const templates = await ensureTextTemplatesInitialized();
+    const visibleTemplates = templates.filter((template) => !template.hidden);
+
+    if (visibleTemplates.length > 0) {
+      await new Promise<void>((resolve, reject) => {
+        chrome.contextMenus.create(
+          {
+            id: CONTEXT_MENU_TEMPLATE_ROOT_ID,
+            parentId: CONTEXT_MENU_ROOT_ID,
+            title: "テキストテンプレート",
+            contexts: ["page", "selection", "editable"],
+          },
+          () => {
+            const err = chrome.runtime.lastError;
+            if (err) {
+              reject(new Error(err.message));
+              return;
+            }
+            resolve();
+          }
+        );
+      });
+
+      for (const template of visibleTemplates) {
+        await new Promise<void>((resolve, reject) => {
+          chrome.contextMenus.create(
+            {
+              id: `${CONTEXT_MENU_TEMPLATE_PREFIX}${template.id}`,
+              parentId: CONTEXT_MENU_TEMPLATE_ROOT_ID,
+              title: template.title,
+              contexts: ["page", "selection", "editable"],
+            },
+            () => {
+              const err = chrome.runtime.lastError;
+              if (err) {
+                reject(new Error(err.message));
+                return;
+              }
+              resolve();
+            }
+          );
+        });
+      }
+
+      await new Promise<void>((resolve, reject) => {
+        chrome.contextMenus.create(
+          {
+            id: CONTEXT_MENU_TEMPLATE_SEPARATOR_ID,
+            parentId: CONTEXT_MENU_ROOT_ID,
+            type: "separator",
+            contexts: ["page", "selection", "editable"],
+          },
+          () => {
+            const err = chrome.runtime.lastError;
+            if (err) {
+              reject(new Error(err.message));
+              return;
+            }
+            resolve();
+          }
+        );
+      });
+    }
+
     await new Promise<void>((resolve, reject) => {
       chrome.contextMenus.create(
         {
           id: CONTEXT_MENU_SETTINGS_ID,
           parentId: CONTEXT_MENU_ROOT_ID,
           title: "設定",
-          contexts: ["page", "selection"],
+          contexts: ["page", "selection", "editable"],
         },
         () => {
           const err = chrome.runtime.lastError;
@@ -417,6 +495,62 @@ async function ensureSearchEnginesInitialized(): Promise<SearchEngine[]> {
     );
     return DEFAULT_SEARCH_ENGINES;
   }
+}
+
+export async function ensureTextTemplatesInitialized(): Promise<
+  TextTemplate[]
+> {
+  try {
+    const stored = (await storageSyncGet(["textTemplates"])) as SyncStorageData;
+
+    // Only initialize defaults if textTemplates key is undefined
+    // An empty array [] means the user intentionally deleted all templates
+    if (stored.textTemplates === undefined) {
+      await storageSyncSet({ textTemplates: DEFAULT_TEXT_TEMPLATES });
+      return DEFAULT_TEXT_TEMPLATES;
+    }
+
+    return stored.textTemplates;
+  } catch (error) {
+    await debugLog(
+      "ensureTextTemplatesInitialized",
+      "failed",
+      { error: formatErrorLog("", {}, error) },
+      "error"
+    );
+    return DEFAULT_TEXT_TEMPLATES;
+  }
+}
+
+async function handleTemplateClick(
+  tabId: number,
+  templateId: string
+): Promise<void> {
+  const templates = await ensureTextTemplatesInitialized();
+  const template = templates.find((t) => t.id === templateId);
+  if (!template) {
+    return;
+  }
+
+  chrome.tabs
+    .sendMessage(tabId, {
+      action: "pasteTemplate",
+      content: template.content,
+    })
+    .catch((error) => {
+      debugLog(
+        "handleTemplateClick",
+        "chrome.tabs.sendMessage failed",
+        {
+          tabId,
+          templateId,
+          error: formatErrorLog("", {}, error),
+        },
+        "error"
+      ).catch(() => {
+        // no-op
+      });
+    });
 }
 
 async function handleSearchEngineClick(

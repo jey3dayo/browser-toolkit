@@ -48,6 +48,7 @@ import { parseNumericValue } from "@/utils/number_parser";
     | { action: "enableTableSort" }
     | { action: "showNotification"; message: string }
     | { action: "copyToClipboard"; text: string; successMessage?: string }
+    | { action: "pasteTemplate"; content: string }
     | { action: "getSummaryTargetText"; ignoreSelection?: boolean }
     | {
         action: "showSummaryOverlay";
@@ -239,6 +240,83 @@ import { parseNumericValue } from "@/utils/number_parser";
   }
 
   // ========================================
+  // 6.5. Template Paste Helpers
+  // ========================================
+
+  /**
+   * input/textarea要素にテキストを挿入
+   */
+  function pasteToInputElement(
+    element: HTMLInputElement | HTMLTextAreaElement,
+    content: string
+  ): void {
+    const start = element.selectionStart ?? 0;
+    const end = element.selectionEnd ?? 0;
+    const currentValue = element.value;
+    const newValue =
+      currentValue.substring(0, start) + content + currentValue.substring(end);
+    element.value = newValue;
+
+    // カーソル位置を挿入後に移動
+    const newCursorPos = start + content.length;
+    element.setSelectionRange(newCursorPos, newCursorPos);
+
+    // input/changeイベントを発火（React等のフレームワーク対応）
+    element.dispatchEvent(new Event("input", { bubbles: true }));
+    element.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  /**
+   * contenteditable要素にテキストを挿入
+   * @throws Error Selection APIが利用できない場合
+   */
+  function pasteToContentEditable(element: HTMLElement, content: string): void {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      throw new Error("No selection available");
+    }
+
+    const range = selection.getRangeAt(0);
+    range.deleteContents();
+
+    // テキストノードを作成して挿入
+    const textNode = document.createTextNode(content);
+    range.insertNode(textNode);
+
+    // カーソルを挿入後に移動
+    range.setStartAfter(textNode);
+    range.setEndAfter(textNode);
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    // inputイベントを発火
+    element.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+
+  /**
+   * クリップボードにテキストをコピー（フォールバック）
+   */
+  async function copyToClipboardFallback(
+    content: string,
+    sendResponse: (response: { ok: boolean; error?: string }) => void
+  ): Promise<void> {
+    const mount = getOrCreateToastMount();
+    const result = await copyToClipboardWithNotification(
+      content,
+      mount.notify,
+      "テンプレートをコピーしました"
+    );
+    if (Result.isSuccess(result)) {
+      sendResponse({ ok: true });
+    } else {
+      sendResponse({
+        ok: false,
+        error: getClipboardErrorMessage(result.error),
+      });
+    }
+  }
+
+  // ========================================
   // 7. メッセージリスナー
   // ========================================
 
@@ -278,6 +356,48 @@ import { parseNumericValue } from "@/utils/number_parser";
             }
           })().catch(() => {
             sendResponse({ ok: false, error: "コピーに失敗しました" });
+          });
+          return true;
+        }
+        case "pasteTemplate": {
+          (async () => {
+            const activeElement = document.activeElement;
+
+            // input/textarea要素への挿入
+            if (
+              activeElement &&
+              (activeElement instanceof HTMLInputElement ||
+                activeElement instanceof HTMLTextAreaElement)
+            ) {
+              pasteToInputElement(activeElement, request.content);
+              sendResponse({ ok: true });
+              return;
+            }
+
+            // contenteditable要素への挿入
+            if (
+              activeElement &&
+              activeElement instanceof HTMLElement &&
+              activeElement.isContentEditable
+            ) {
+              try {
+                pasteToContentEditable(activeElement, request.content);
+                sendResponse({ ok: true });
+                return;
+              } catch {
+                // Selection API失敗時はクリップボードにフォールバック
+                await copyToClipboardFallback(request.content, sendResponse);
+                return;
+              }
+            }
+
+            // フォーカスがない場合はクリップボードにコピー
+            await copyToClipboardFallback(request.content, sendResponse);
+          })().catch(() => {
+            sendResponse({
+              ok: false,
+              error: "テンプレートの貼り付けに失敗しました",
+            });
           });
           return true;
         }

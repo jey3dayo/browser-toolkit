@@ -4,6 +4,7 @@ import type { ContextAction } from "@/context_actions";
 import type { SearchEngine } from "@/search_engines";
 import type { CalendarRegistrationTarget } from "@/shared_types";
 import type { LocalStorageData } from "@/storage/types";
+import type { TextTemplate } from "@/text_templates";
 import { toErrorMessage } from "@/utils/errors";
 import type { LinkFormat } from "@/utils/link_format";
 
@@ -28,6 +29,7 @@ export type SyncStorageData = {
   linkFormat?: LinkFormat;
   calendarTargets?: CalendarRegistrationTarget[];
   searchEngines?: SearchEngine[];
+  textTemplates?: TextTemplate[];
 };
 
 export type EnableTableSortMessage = { action: "enableTableSort" };

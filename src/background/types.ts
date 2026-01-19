@@ -6,6 +6,7 @@ import type {
   ExtractedEvent,
   SummarySource,
 } from "@/shared_types";
+import type { TextTemplate } from "@/text_templates";
 import type { LinkFormat } from "@/utils/link_format";
 
 export type SummaryTarget = {
@@ -19,6 +20,7 @@ export type ContentScriptMessage =
   | { action: "showNotification"; message: string }
   | { action: "getSummaryTargetText"; ignoreSelection?: boolean }
   | { action: "copyToClipboard"; text: string; successMessage?: string }
+  | { action: "pasteTemplate"; content: string }
   | {
       action: "showSummaryOverlay";
       status: "loading" | "ready" | "error";
@@ -90,4 +92,5 @@ export type SyncStorageData = {
   linkFormat?: LinkFormat;
   calendarTargets?: CalendarRegistrationTarget[];
   searchEngines?: SearchEngine[];
+  textTemplates?: TextTemplate[];
 };
