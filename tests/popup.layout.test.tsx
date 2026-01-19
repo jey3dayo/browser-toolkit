@@ -3,6 +3,7 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PopupApp } from "@/popup/App";
+import { navigationItems } from "@/popup/navigation-items";
 import { flush } from "./helpers/async";
 import { createPopupDom } from "./helpers/popupDom";
 
@@ -66,7 +67,7 @@ describe("popup layout structure", () => {
         'aside.sidebar [role="tab"]'
       )
     );
-    expect(tabButtons.length).toBe(7);
+    expect(tabButtons.length).toBe(navigationItems.length);
 
     for (const tab of tabButtons) {
       expect(tab.classList.contains("nav-item")).toBe(true);
