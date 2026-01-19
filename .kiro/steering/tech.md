@@ -5,6 +5,18 @@
 - Chrome Extension (Manifest V3): background service worker + content script + popup page.
 - UI is React (popup + in-page overlays/toasts) with Base UI primitives (`@base-ui/react`), while keeping the extension runtime lightweight.
 
+## Requirements
+
+Core UI dependencies:
+
+- `@base-ui/react`: Accessible UI primitives for React components (popup and in-page overlays)
+- `lucide-react`: Icon library for consistent UI iconography
+- `react` / `react-dom`: UI framework (React 19+)
+- `@praha/byethrow`: Result-based error handling
+- `date-fns`: Date manipulation for calendar features
+- `react-markdown` + `remark-gfm`: Markdown rendering in AI action outputs
+- `smol-toml`: TOML parsing for built-in action prompts
+
 ## Language & Build
 
 - TypeScript with `strict` enabled.
@@ -46,6 +58,7 @@
 **Rule**: Never use `{ ok: true/false }` in internal functions - this pattern is reserved exclusively for Chrome extension message boundaries (`chrome.runtime.sendMessage` / `sendResponse`).
 
 **Example:**
+
 ```typescript
 // ✅ CORRECT: Internal function - always use Result
 async function processData(): Promise<Result.Result<Data, string>> {
@@ -67,7 +80,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 // ❌ WRONG: Internal function using { ok: true/false }
-async function processData(): Promise<{ ok: true; data: Data } | { ok: false; error: string }> {
+async function processData(): Promise<
+  { ok: true; data: Data } | { ok: false; error: string }
+> {
   // This is only allowed in message handler boundaries
 }
 ```
