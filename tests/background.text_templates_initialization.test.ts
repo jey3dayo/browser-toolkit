@@ -53,9 +53,11 @@ describe("background: text templates initialization", () => {
     expect(chrome.storage.sync.set).toHaveBeenCalledWith(
       expect.objectContaining({
         textTemplates: expect.arrayContaining([
-          expect.objectContaining({ id: "template:lgtm" }),
-          expect.objectContaining({ id: "template:greptile" }),
-          expect.objectContaining({ id: "template:coderabbit" }),
+          expect.objectContaining({ id: "template:lgtm-0023a134" }),
+          expect.objectContaining({ id: "template:greptile-review-34fe3f8c" }),
+          expect.objectContaining({
+            id: "template:coderabbit-review-0f6905e9",
+          }),
         ]),
       }),
       expect.any(Function)

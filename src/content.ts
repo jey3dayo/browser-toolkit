@@ -313,6 +313,56 @@ import { parseNumericValue } from "@/utils/number_parser";
               );
 
               sendResponse({ ok: true });
+            } else if (
+              activeElement &&
+              activeElement instanceof HTMLElement &&
+              activeElement.isContentEditable
+            ) {
+              // contenteditable要素への対応（Gmail、Notion等）
+              try {
+                // Selection APIを使用してテキストを挿入
+                const selection = window.getSelection();
+                if (selection && selection.rangeCount > 0) {
+                  const range = selection.getRangeAt(0);
+                  range.deleteContents();
+
+                  // テキストノードを作成して挿入
+                  const textNode = document.createTextNode(request.content);
+                  range.insertNode(textNode);
+
+                  // カーソルを挿入後に移動
+                  range.setStartAfter(textNode);
+                  range.setEndAfter(textNode);
+                  selection.removeAllRanges();
+                  selection.addRange(range);
+
+                  // inputイベントを発火
+                  activeElement.dispatchEvent(
+                    new Event("input", { bubbles: true })
+                  );
+
+                  sendResponse({ ok: true });
+                } else {
+                  // Selectionがない場合はクリップボードにフォールバック
+                  throw new Error("No selection available");
+                }
+              } catch {
+                // contenteditable挿入失敗時はクリップボードにフォールバック
+                const mount = getOrCreateToastMount();
+                const result = await copyToClipboardWithNotification(
+                  request.content,
+                  mount.notify,
+                  "テンプレートをコピーしました"
+                );
+                if (Result.isSuccess(result)) {
+                  sendResponse({ ok: true });
+                } else {
+                  sendResponse({
+                    ok: false,
+                    error: getClipboardErrorMessage(result.error),
+                  });
+                }
+              }
             } else {
               // フォーカスがない場合はクリップボードにコピー
               const mount = getOrCreateToastMount();

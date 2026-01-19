@@ -34,21 +34,21 @@ export type TextTemplate = {
  */
 export const DEFAULT_TEXT_TEMPLATES: TextTemplate[] = [
   {
-    id: "template:lgtm",
+    id: "template:lgtm-0023a134",
     title: "LGTM",
     content: "LGTM :+1:",
     hidden: false,
   },
   {
-    id: "template:greptile",
+    id: "template:greptile-review-34fe3f8c",
     title: "greptile review",
-    content: "@greptile review",
+    content: "`@greptile` review",
     hidden: false,
   },
   {
-    id: "template:coderabbit",
+    id: "template:coderabbit-review-0f6905e9",
     title: "coderabbitai review",
-    content: "@coderabbitai review",
+    content: "`@coderabbitai` review",
     hidden: false,
   },
 ];
@@ -75,7 +75,8 @@ function simpleHash(str: string): string {
  * @param title テンプレートのタイトル
  * @returns "template:xxx" 形式のID
  *
- * ASCII文字のみの場合はスラッグを生成、非ASCII文字のみの場合はハッシュを使用
+ * タイトルの衝突を防ぐため、slugの末尾にハッシュsuffixを追加します。
+ * 例: "Hello World" → "template:hello-world-a1b2c3d4"
  */
 export function generateTemplateId(title: string): string {
   const slug = title
@@ -83,10 +84,14 @@ export function generateTemplateId(title: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 
-  // slugが空の場合（非ASCII文字のみ）、タイトルのハッシュを使用
+  // タイトルのハッシュを短縮（最初の8文字）
+  const hash = simpleHash(title).substring(0, 8);
+
+  // slugが空の場合（非ASCII文字のみ）、ハッシュのみを使用
   if (slug.length === 0) {
-    return `template:${simpleHash(title)}`;
+    return `template:${hash}`;
   }
 
-  return `template:${slug}`;
+  // slugとハッシュを組み合わせて一意性を保証
+  return `template:${slug}-${hash}`;
 }

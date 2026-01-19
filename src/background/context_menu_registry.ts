@@ -497,7 +497,9 @@ async function ensureSearchEnginesInitialized(): Promise<SearchEngine[]> {
   }
 }
 
-export async function ensureTextTemplatesInitialized(): Promise<TextTemplate[]> {
+export async function ensureTextTemplatesInitialized(): Promise<
+  TextTemplate[]
+> {
   try {
     const stored = (await storageSyncGet(["textTemplates"])) as SyncStorageData;
 
