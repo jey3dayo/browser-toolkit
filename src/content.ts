@@ -48,6 +48,7 @@ import { parseNumericValue } from "@/utils/number_parser";
     | { action: "enableTableSort" }
     | { action: "showNotification"; message: string }
     | { action: "copyToClipboard"; text: string; successMessage?: string }
+    | { action: "pasteTemplate"; content: string }
     | { action: "getSummaryTargetText"; ignoreSelection?: boolean }
     | {
         action: "showSummaryOverlay";
@@ -278,6 +279,62 @@ import { parseNumericValue } from "@/utils/number_parser";
             }
           })().catch(() => {
             sendResponse({ ok: false, error: "コピーに失敗しました" });
+          });
+          return true;
+        }
+        case "pasteTemplate": {
+          (async () => {
+            const activeElement = document.activeElement;
+            if (
+              activeElement &&
+              (activeElement instanceof HTMLInputElement ||
+                activeElement instanceof HTMLTextAreaElement)
+            ) {
+              // 入力欄にフォーカスがある場合は直接挿入
+              const start = activeElement.selectionStart ?? 0;
+              const end = activeElement.selectionEnd ?? 0;
+              const currentValue = activeElement.value;
+              const newValue =
+                currentValue.substring(0, start) +
+                request.content +
+                currentValue.substring(end);
+              activeElement.value = newValue;
+
+              // カーソル位置を挿入後に移動
+              const newCursorPos = start + request.content.length;
+              activeElement.setSelectionRange(newCursorPos, newCursorPos);
+
+              // input/changeイベントを発火（React等のフレームワーク対応）
+              activeElement.dispatchEvent(
+                new Event("input", { bubbles: true })
+              );
+              activeElement.dispatchEvent(
+                new Event("change", { bubbles: true })
+              );
+
+              sendResponse({ ok: true });
+            } else {
+              // フォーカスがない場合はクリップボードにコピー
+              const mount = getOrCreateToastMount();
+              const result = await copyToClipboardWithNotification(
+                request.content,
+                mount.notify,
+                "テンプレートをコピーしました"
+              );
+              if (Result.isSuccess(result)) {
+                sendResponse({ ok: true });
+              } else {
+                sendResponse({
+                  ok: false,
+                  error: getClipboardErrorMessage(result.error),
+                });
+              }
+            }
+          })().catch(() => {
+            sendResponse({
+              ok: false,
+              error: "テンプレートの挿入に失敗しました",
+            });
           });
           return true;
         }

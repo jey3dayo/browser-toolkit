@@ -12,6 +12,7 @@ import { DebugPane } from "@/popup/panes/DebugPane";
 import { SearchEnginesPane } from "@/popup/panes/SearchEnginesPane";
 import { SettingsPane } from "@/popup/panes/SettingsPane";
 import { TablePane } from "@/popup/panes/TablePane";
+import { TemplatesPane } from "@/popup/panes/TemplatesPane";
 import { createPopupRuntime } from "@/popup/runtime";
 import { createNotifications, ToastHost } from "@/ui/toast";
 import type { LinkFormat } from "@/utils/link_format";
@@ -162,6 +163,9 @@ export function PopupApp(): React.JSX.Element {
                 notify={notifications.notify}
                 runtime={runtime}
               />
+            </Tabs.Panel>
+            <Tabs.Panel data-pane="pane-templates" value="pane-templates">
+              <TemplatesPane notify={notifications.notify} runtime={runtime} />
             </Tabs.Panel>
             <Tabs.Panel data-pane="pane-debug" value="pane-debug">
               <DebugPane notify={notifications.notify} runtime={runtime} />

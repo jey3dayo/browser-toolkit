@@ -7,4 +7,7 @@ export const CONTEXT_MENU_SEARCH_PREFIX = "mbu-search:";
 export const CONTEXT_MENU_SEARCH_SEPARATOR_ID = "mbu-separator:search";
 export const CONTEXT_MENU_BUILTIN_SEPARATOR_ID = "mbu-separator:builtins";
 export const CONTEXT_MENU_CUSTOM_SEPARATOR_ID = "mbu-separator:custom";
+export const CONTEXT_MENU_TEMPLATE_ROOT_ID = "mbu-template-root";
+export const CONTEXT_MENU_TEMPLATE_PREFIX = "mbu-template:";
+export const CONTEXT_MENU_TEMPLATE_SEPARATOR_ID = "mbu-separator:template";
 export const CONTEXT_MENU_SETTINGS_ID = "mbu-settings";

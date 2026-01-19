@@ -40,6 +40,12 @@ export const navigationItems: NavigationItem[] = [
     ariaLabel: "検索エンジン",
   },
   {
+    id: "pane-templates",
+    label: "テンプレート",
+    icon: "file-text",
+    ariaLabel: "テンプレート",
+  },
+  {
     id: "pane-debug",
     label: "デバッグ",
     icon: "bug",

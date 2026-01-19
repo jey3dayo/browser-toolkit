@@ -27,7 +27,13 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
   if (areaName !== "sync") {
     return;
   }
-  if (!("contextActions" in changes || "searchEngines" in changes)) {
+  if (
+    !(
+      "contextActions" in changes ||
+      "searchEngines" in changes ||
+      "textTemplates" in changes
+    )
+  ) {
     return;
   }
   debugLog("background", "storage changed, refreshing menus", {
