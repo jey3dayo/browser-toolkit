@@ -120,7 +120,7 @@ export function registerContextMenuHandlers(): void {
   );
 }
 
-async function refreshContextMenus(): Promise<void> {
+export async function refreshContextMenus(): Promise<void> {
   try {
     await new Promise<void>((resolve) => {
       chrome.contextMenus.removeAll(() => resolve());
@@ -231,7 +231,7 @@ async function refreshContextMenus(): Promise<void> {
             id: CONTEXT_MENU_SEARCH_SEPARATOR_ID,
             parentId: CONTEXT_MENU_ROOT_ID,
             type: "separator",
-            contexts: ["page", "selection", "editable"],
+            contexts: ["page", "selection"],
           },
           () => {
             const err = chrome.runtime.lastError;
@@ -497,15 +497,18 @@ async function ensureSearchEnginesInitialized(): Promise<SearchEngine[]> {
   }
 }
 
-async function ensureTextTemplatesInitialized(): Promise<TextTemplate[]> {
+export async function ensureTextTemplatesInitialized(): Promise<TextTemplate[]> {
   try {
     const stored = (await storageSyncGet(["textTemplates"])) as SyncStorageData;
-    const existing = stored.textTemplates || [];
-    if (existing.length > 0) {
-      return existing;
+
+    // Only initialize defaults if textTemplates key is undefined
+    // An empty array [] means the user intentionally deleted all templates
+    if (stored.textTemplates === undefined) {
+      await storageSyncSet({ textTemplates: DEFAULT_TEXT_TEMPLATES });
+      return DEFAULT_TEXT_TEMPLATES;
     }
-    await storageSyncSet({ textTemplates: DEFAULT_TEXT_TEMPLATES });
-    return DEFAULT_TEXT_TEMPLATES;
+
+    return stored.textTemplates;
   } catch (error) {
     await debugLog(
       "ensureTextTemplatesInitialized",
