@@ -540,11 +540,11 @@ async function handleTemplateClick(
     .catch((error) => {
       debugLog(
         "handleTemplateClick",
-        "chrome.tabs.sendMessage failed",
+        "Failed to paste template. Content script may not be loaded on this page.",
         {
           tabId,
           templateId,
-          error: formatErrorLog("", {}, error),
+          error: formatErrorLog("sendMessage error", {}, error),
         },
         "error"
       ).catch(() => {
