@@ -101,44 +101,62 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
     setContentInput("");
   };
 
-  const saveEdit = async (): Promise<void> => {
+  const parseTemplateInput = (): { title: string; content: string } | null => {
     const title = titleInput.trim();
-    const content = contentInput.trim();
-
     if (!title) {
       props.notify.error("タイトルを入力してください");
-      return;
+      return null;
     }
-
+    const content = contentInput.trim();
     if (!content) {
       props.notify.error("内容を入力してください");
-      return;
+      return null;
     }
+    return { title, content };
+  };
 
-    let next: TextTemplate[];
+  const buildNextTemplates = (params: {
+    title: string;
+    content: string;
+  }): Result.Result<
+    { next: TextTemplate[]; successMessage: string },
+    string
+  > => {
+    if (!editingId) {
+      return Result.fail("編集対象が見つかりません");
+    }
 
     if (editingId === "new") {
-      // 新規追加
-      const id = generateTemplateId(title);
+      const id = generateTemplateId(params.title);
       if (templates.some((t) => t.id === id)) {
-        props.notify.error("既に同じタイトルのテンプレートが存在します");
-        return;
+        return Result.fail("既に同じタイトルのテンプレートが存在します");
       }
-
       const newTemplate: TextTemplate = {
         id,
-        title,
-        content,
+        title: params.title,
+        content: params.content,
         hidden: false,
       };
-      next = [...templates, newTemplate];
-    } else {
-      // 編集
-      next = templates.map((template) =>
-        template.id === editingId ? { ...template, title, content } : template
-      );
+      return Result.succeed({
+        next: [...templates, newTemplate],
+        successMessage: "追加しました",
+      });
     }
 
+    return Result.succeed({
+      next: templates.map((template) =>
+        template.id === editingId
+          ? { ...template, title: params.title, content: params.content }
+          : template
+      ),
+      successMessage: "更新しました",
+    });
+  };
+
+  const persistTemplatesUpdate = async (
+    next: TextTemplate[],
+    successMessage: string
+  ): Promise<void> => {
     await persistWithRollback({
       applyNext: () => {
         setTemplates(next);
@@ -149,14 +167,30 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
       },
       persist: () => saveTemplates(next),
       onSuccess: () => {
-        props.notify.success(
-          editingId === "new" ? "追加しました" : "更新しました"
-        );
+        props.notify.success(successMessage);
       },
       onFailure: () => {
         props.notify.error("保存に失敗しました");
       },
     });
+  };
+
+  const saveEdit = async (): Promise<void> => {
+    const input = parseTemplateInput();
+    if (!input) {
+      return;
+    }
+
+    const nextResult = buildNextTemplates(input);
+    if (Result.isFailure(nextResult)) {
+      props.notify.error(nextResult.error);
+      return;
+    }
+
+    await persistTemplatesUpdate(
+      nextResult.value.next,
+      nextResult.value.successMessage
+    );
   };
 
   const removeTemplate = async (templateId: string): Promise<void> => {

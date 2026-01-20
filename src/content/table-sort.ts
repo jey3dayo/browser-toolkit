@@ -58,6 +58,57 @@ export function enableTableSort(
   return tables.length;
 }
 
+function resetHiddenRows(rows: HTMLTableRowElement[]): void {
+  for (const row of rows) {
+    if (row.dataset[ROW_HIDDEN_BY_EXTENSION_DATASET_KEY] !== "true") {
+      continue;
+    }
+    row.style.display = "";
+    delete row.dataset[ROW_HIDDEN_BY_EXTENSION_DATASET_KEY];
+  }
+}
+
+function sortRows(
+  rows: HTMLTableRowElement[],
+  columnIndex: number,
+  isAscending: boolean
+): void {
+  rows.sort((a, b) => {
+    const aCell = a.cells[columnIndex]?.textContent?.trim() ?? "";
+    const bCell = b.cells[columnIndex]?.textContent?.trim() ?? "";
+
+    const aNum = parseNumericValue(aCell);
+    const bNum = parseNumericValue(bCell);
+
+    if (!(Number.isNaN(aNum) || Number.isNaN(bNum))) {
+      return isAscending ? aNum - bNum : bNum - aNum;
+    }
+
+    return isAscending
+      ? aCell.localeCompare(bCell, "ja")
+      : bCell.localeCompare(aCell, "ja");
+  });
+}
+
+function applyRowFilterIfEnabled(params: {
+  rows: HTMLTableRowElement[];
+  columnIndex: number;
+  getRowFilterSetting?: () => Result.Result<boolean, string>;
+}): void {
+  if (!params.getRowFilterSetting) {
+    return;
+  }
+
+  const filterSettingResult = params.getRowFilterSetting();
+  if (Result.isSuccess(filterSettingResult)) {
+    applyRowFiltering(
+      params.rows,
+      params.columnIndex,
+      filterSettingResult.value
+    );
+  }
+}
+
 /**
  * テーブルをソート
  * @param table - 対象テーブル
@@ -79,44 +130,17 @@ export function sortTable(
   table.dataset.sortOrder = isAscending ? "asc" : "desc";
 
   // Step 1: 拡張機能で非表示にした行のみ表示状態に復元（フィルタリングのリセット）
-  for (const row of rows) {
-    if (row.dataset[ROW_HIDDEN_BY_EXTENSION_DATASET_KEY] !== "true") {
-      continue;
-    }
-    row.style.display = "";
-    delete row.dataset[ROW_HIDDEN_BY_EXTENSION_DATASET_KEY];
-  }
+  resetHiddenRows(rows);
 
   // Step 2: ソート実行
-  rows.sort((a, b) => {
-    const aCell = a.cells[columnIndex]?.textContent?.trim() ?? "";
-    const bCell = b.cells[columnIndex]?.textContent?.trim() ?? "";
-
-    const aNum = parseNumericValue(aCell);
-    const bNum = parseNumericValue(bCell);
-
-    if (!(Number.isNaN(aNum) || Number.isNaN(bNum))) {
-      return isAscending ? aNum - bNum : bNum - aNum;
-    }
-
-    return isAscending
-      ? aCell.localeCompare(bCell, "ja")
-      : bCell.localeCompare(aCell, "ja");
-  });
+  sortRows(rows, columnIndex, isAscending);
 
   for (const row of rows) {
     targetBody.appendChild(row);
   }
 
   // Step 3: 現在のURLのパターンの行フィルタリング設定を取得
-  if (getRowFilterSetting) {
-    const filterSettingResult = getRowFilterSetting();
-    if (Result.isSuccess(filterSettingResult)) {
-      const enableRowFilter = filterSettingResult.value;
-      // フィルタリング適用（設定が有効な場合）
-      applyRowFiltering(rows, columnIndex, enableRowFilter);
-    }
-  }
+  applyRowFilterIfEnabled({ rows, columnIndex, getRowFilterSetting });
 }
 
 /**

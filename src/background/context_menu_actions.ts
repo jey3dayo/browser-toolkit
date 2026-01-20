@@ -15,7 +15,11 @@ import type {
   SyncStorageData,
 } from "@/background/types";
 import type { ContextAction } from "@/context_actions";
-import type { CalendarRegistrationTarget, SummarySource } from "@/shared_types";
+import type {
+  CalendarRegistrationTarget,
+  ExtractedEvent,
+  SummarySource,
+} from "@/shared_types";
 import { resolveCalendarTargets } from "@/utils/calendar_targets";
 import { showErrorNotification } from "@/utils/notifications";
 
@@ -124,6 +128,58 @@ function buildResolvedTitle(
 ): string {
   const resolvedSuffix = titleSuffixBySource(source);
   return `${action.title}（${resolvedSuffix}）`;
+}
+
+async function sendActionOverlayMessage(params: {
+  tabId: number;
+  status: "loading" | "ready" | "error";
+  mode: "text" | "event";
+  source: SummarySource;
+  title: string;
+  primary?: string;
+  secondary?: string;
+  event?: ExtractedEvent;
+  calendarUrl?: string;
+  ics?: string;
+}): Promise<void> {
+  await sendMessageToTab(params.tabId, {
+    action: "showActionOverlay",
+    status: params.status,
+    mode: params.mode,
+    source: params.source,
+    title: params.title,
+    primary: params.primary,
+    secondary: params.secondary,
+    event: params.event,
+    calendarUrl: params.calendarUrl,
+    ics: params.ics,
+  });
+}
+
+async function reportPromptActionFailure(params: {
+  tabId: number;
+  actionTitle: string;
+  source: SummarySource;
+  resolvedTitle: string;
+  errorMessage: string;
+  selectionSecondary: string | undefined;
+}): Promise<void> {
+  await showErrorNotification({
+    title: `${params.actionTitle}に失敗しました`,
+    errorMessage: params.errorMessage,
+  });
+
+  await sendActionOverlayMessage({
+    tabId: params.tabId,
+    status: "error",
+    mode: "text",
+    source: params.source,
+    title: params.resolvedTitle,
+    primary: params.errorMessage,
+    secondary: params.selectionSecondary,
+  }).catch(() => {
+    // no-op
+  });
 }
 
 export async function showContextMenuUnexpectedErrorOverlay(
@@ -306,8 +362,8 @@ async function handlePromptAction(context: OverlayContext): Promise<void> {
 
   const prompt = action.prompt.trim();
   if (!prompt) {
-    await sendMessageToTab(tabId, {
-      action: "showActionOverlay",
+    await sendActionOverlayMessage({
+      tabId,
       status: "error",
       mode: "text",
       source: target.source,
@@ -320,28 +376,19 @@ async function handlePromptAction(context: OverlayContext): Promise<void> {
 
   const result = await runPromptActionWithOpenAI(target, prompt);
   if (Result.isFailure(result)) {
-    const errorMessage = result.error;
-    await showErrorNotification({
-      title: `${action.title}に失敗しました`,
-      errorMessage,
-    });
-
-    await sendMessageToTab(tabId, {
-      action: "showActionOverlay",
-      status: "error",
-      mode: "text",
+    await reportPromptActionFailure({
+      tabId,
+      actionTitle: action.title,
       source: target.source,
-      title: resolvedTitle,
-      primary: errorMessage,
-      secondary: selectionSecondary,
-    }).catch(() => {
-      // no-op
+      resolvedTitle,
+      errorMessage: result.error,
+      selectionSecondary,
     });
     return;
   }
 
-  await sendMessageToTab(tabId, {
-    action: "showActionOverlay",
+  await sendActionOverlayMessage({
+    tabId,
     status: "ready",
     mode: "text",
     source: target.source,

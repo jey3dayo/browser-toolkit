@@ -1,8 +1,8 @@
 // Toast通知機能
 import { createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { ensureShadowUiBaseStyles } from "@/ui/styles";
-import { applyTheme, type Theme } from "@/ui/theme";
+import { ensureShadowMount } from "@/content/shadow_mount";
+import type { Theme } from "@/ui/theme";
 import {
   createNotifications,
   type Notifier,
@@ -27,39 +27,24 @@ export type ToastMount = {
  * @returns ToastMount
  */
 export function ensureToastMount(currentTheme: Theme): ToastMount {
-  const existing = document.getElementById(
-    TOAST_HOST_ID
-  ) as HTMLDivElement | null;
-  const host = existing || document.createElement("div");
-  host.id = TOAST_HOST_ID;
-
-  const shadow = host.shadowRoot ?? host.attachShadow({ mode: "open" });
-  if (!host.isConnected) {
-    (document.documentElement ?? document.body ?? document).appendChild(host);
-  }
-  ensureShadowUiBaseStyles(shadow);
-  applyTheme(currentTheme, shadow);
-
-  let rootEl = shadow.getElementById(TOAST_ROOT_ID) as HTMLDivElement | null;
-  if (!rootEl) {
-    rootEl = document.createElement("div");
-    rootEl.id = TOAST_ROOT_ID;
-    shadow.appendChild(rootEl);
-  }
-
+  const mount = ensureShadowMount({
+    hostId: TOAST_HOST_ID,
+    rootId: TOAST_ROOT_ID,
+    theme: currentTheme,
+  });
   const notifications = createNotifications();
-  const root = createRoot(rootEl);
+  const root = createRoot(mount.rootEl);
   root.render(
     createElement(ToastHost, {
       toastManager: notifications.toastManager,
       placement: "screen",
-      portalContainer: shadow,
+      portalContainer: mount.shadow,
     })
   );
 
   return {
-    host,
-    shadow,
+    host: mount.host,
+    shadow: mount.shadow,
     root,
     toastManager: notifications.toastManager,
     notify: notifications.notify,

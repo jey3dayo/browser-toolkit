@@ -3,9 +3,11 @@ import type { SyncStorageData } from "@/background/types";
 
 describe("background: text templates initialization", () => {
   let mockStorage: Partial<SyncStorageData>;
+  let mockLocalStorage: Record<string, unknown>;
 
   beforeEach(() => {
     mockStorage = {};
+    mockLocalStorage = { debugMode: false };
     // @ts-expect-error - mock chrome API
     globalThis.chrome = {
       storage: {
@@ -21,6 +23,29 @@ describe("background: text templates initialization", () => {
           }),
           set: vi.fn((items, callback) => {
             Object.assign(mockStorage, items);
+            callback?.();
+          }),
+        },
+        local: {
+          get: vi.fn((keys, callback) => {
+            const keyList = Array.isArray(keys) ? keys : [String(keys)];
+            const result: Record<string, unknown> = {};
+            for (const key of keyList) {
+              if (key in mockLocalStorage) {
+                result[key] = mockLocalStorage[key];
+              }
+            }
+            callback(result);
+          }),
+          set: vi.fn((items, callback) => {
+            Object.assign(mockLocalStorage, items);
+            callback?.();
+          }),
+          remove: vi.fn((keys, callback) => {
+            const keyList = Array.isArray(keys) ? keys : [String(keys)];
+            for (const key of keyList) {
+              delete mockLocalStorage[key];
+            }
             callback?.();
           }),
         },

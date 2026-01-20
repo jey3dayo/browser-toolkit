@@ -1,4 +1,5 @@
 import { isRecord } from "@/utils/guards";
+import { normalizeOptionalText } from "@/utils/text";
 
 export type SearchEngine = {
   id: string;
@@ -50,6 +51,33 @@ export function buildSearchUrl(urlTemplate: string, query: string): string {
   return urlTemplate.replace("{query}", encodeURIComponent(query));
 }
 
+function coerceUrlTemplate(value: unknown): string | null {
+  const normalized = normalizeOptionalText(value);
+  if (!normalized) {
+    return null;
+  }
+  return isValidUrlTemplate(normalized) ? normalized : null;
+}
+
+type SearchEngineParts = {
+  id: string | undefined;
+  name: string | undefined;
+  urlTemplate: string | null;
+  enabled: boolean;
+};
+
+function buildSearchEngine(parts: SearchEngineParts): SearchEngine | null {
+  if (!(parts.id && parts.name && parts.urlTemplate)) {
+    return null;
+  }
+  return {
+    id: parts.id,
+    name: parts.name,
+    urlTemplate: parts.urlTemplate,
+    enabled: parts.enabled,
+  };
+}
+
 /**
  * Type guard for SearchEngine
  */
@@ -58,17 +86,12 @@ function coerceSearchEngine(value: unknown): SearchEngine | null {
     return null;
   }
   const raw = value as Partial<SearchEngine>;
-  const id = typeof raw.id === "string" ? raw.id.trim() : "";
-  const name = typeof raw.name === "string" ? raw.name.trim() : "";
-  const urlTemplate =
-    typeof raw.urlTemplate === "string" ? raw.urlTemplate : "";
-  const enabled = typeof raw.enabled === "boolean" ? raw.enabled : true;
-
-  if (!(id && name && urlTemplate && isValidUrlTemplate(urlTemplate))) {
-    return null;
-  }
-
-  return { id, name, urlTemplate, enabled };
+  return buildSearchEngine({
+    id: normalizeOptionalText(raw.id),
+    name: normalizeOptionalText(raw.name),
+    urlTemplate: coerceUrlTemplate(raw.urlTemplate),
+    enabled: raw.enabled !== false,
+  });
 }
 
 /**

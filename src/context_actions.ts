@@ -4,6 +4,7 @@ import {
   TRANSLATE_JA_PROMPT,
 } from "@/prompts/context_actions";
 import { isRecord } from "@/utils/guards";
+import { normalizeOptionalText } from "@/utils/text";
 
 export type ContextActionKind = "text" | "event";
 
@@ -40,19 +41,19 @@ function coerceContextAction(value: unknown): ContextAction | null {
     return null;
   }
   const raw = value as Partial<ContextAction>;
-  const id = typeof raw.id === "string" ? raw.id.trim() : "";
-  const title = typeof raw.title === "string" ? raw.title.trim() : "";
-  let kind: ContextActionKind | null = null;
-  if (raw.kind === "event") {
-    kind = "event";
-  } else if (raw.kind === "text") {
-    kind = "text";
-  }
-  const prompt = typeof raw.prompt === "string" ? raw.prompt : "";
-  if (!(id && title && kind)) {
+  const id = normalizeOptionalText(raw.id);
+  const title = normalizeOptionalText(raw.title);
+  if (!(id && title)) {
     return null;
   }
-  return { id, title, kind, prompt };
+  const prompt = typeof raw.prompt === "string" ? raw.prompt : "";
+  switch (raw.kind) {
+    case "event":
+    case "text":
+      return { id, title, kind: raw.kind, prompt };
+    default:
+      return null;
+  }
 }
 
 export function normalizeContextActions(value: unknown): ContextAction[] {
