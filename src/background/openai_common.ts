@@ -61,6 +61,18 @@ export function applyTemplateVariables(
   return rendered;
 }
 
+export function buildTemplateVariables(
+  target: SummaryTarget,
+  text: string
+): Record<string, string> {
+  return {
+    text,
+    title: target.title ?? "",
+    url: target.url ?? "",
+    source: target.source,
+  };
+}
+
 /**
  * OpenAI入力の準備済みデータ
  */

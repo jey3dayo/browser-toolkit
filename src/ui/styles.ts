@@ -28,6 +28,15 @@ const POPUP_UTILITIES_PATH = "utilities.css";
 const POPUP_STYLE_ROOT_DEV = "src/styles";
 const POPUP_STYLE_ROOT_DIST = "dist/styles";
 
+const POPUP_STYLE_LINKS = [
+  { id: TOKEN_PRIMITIVES_ID, path: TOKEN_PRIMITIVES_PATH },
+  { id: TOKEN_SEMANTIC_ID, path: TOKEN_SEMANTIC_PATH },
+  { id: POPUP_BASE_ID, path: POPUP_BASE_PATH },
+  { id: POPUP_LAYOUT_ID, path: POPUP_LAYOUT_PATH },
+  { id: POPUP_UTILITIES_ID, path: POPUP_UTILITIES_PATH },
+  { id: STYLE_ID, path: TOKEN_COMPONENTS_PATH },
+] as const;
+
 const componentsCss = [
   componentTokensCss,
   componentBaseCss,
@@ -174,36 +183,13 @@ function ensureShadowFallbackTokens(shadowRoot: ShadowRoot): void {
   }
 }
 export function ensurePopupUiBaseStyles(doc: Document): void {
-  ensureDocumentStylesheet(
-    doc,
-    TOKEN_PRIMITIVES_ID,
-    resolvePopupStylePath(doc, TOKEN_PRIMITIVES_PATH)
-  );
-  ensureDocumentStylesheet(
-    doc,
-    TOKEN_SEMANTIC_ID,
-    resolvePopupStylePath(doc, TOKEN_SEMANTIC_PATH)
-  );
-  ensureDocumentStylesheet(
-    doc,
-    POPUP_BASE_ID,
-    resolvePopupStylePath(doc, POPUP_BASE_PATH)
-  );
-  ensureDocumentStylesheet(
-    doc,
-    POPUP_LAYOUT_ID,
-    resolvePopupStylePath(doc, POPUP_LAYOUT_PATH)
-  );
-  ensureDocumentStylesheet(
-    doc,
-    POPUP_UTILITIES_ID,
-    resolvePopupStylePath(doc, POPUP_UTILITIES_PATH)
-  );
-  ensureDocumentStylesheet(
-    doc,
-    STYLE_ID,
-    resolvePopupStylePath(doc, TOKEN_COMPONENTS_PATH)
-  );
+  for (const entry of POPUP_STYLE_LINKS) {
+    ensureDocumentStylesheet(
+      doc,
+      entry.id,
+      resolvePopupStylePath(doc, entry.path)
+    );
+  }
 }
 
 export function ensureShadowUiBaseStyles(shadowRoot: ShadowRoot): void {
