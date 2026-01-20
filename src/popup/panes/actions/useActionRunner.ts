@@ -11,6 +11,7 @@ import {
   ensureOpenAiTokenConfigured,
   type NotificationOptions,
 } from "@/popup/token_guard";
+import { createErrorReporter } from "@/popup/utils/error_reporter";
 import { coerceSummarySourceLabel } from "@/popup/utils/summary_source_label";
 import {
   fetchSummaryTargetForTab,
@@ -104,31 +105,14 @@ export function useActionRunner(params: {
     return !Result.isFailure(tokenConfigured);
   };
 
+  const baseReportError = createErrorReporter({
+    notify: params.notify,
+    navigateToPane: params.navigateToPane,
+    focusTokenInput: params.focusTokenInput,
+  });
+
   const reportError = (message: string): void => {
-    if (
-      message.includes("Token") ||
-      message.includes("トークン") ||
-      message.includes("未設定") ||
-      message.includes("API Key")
-    ) {
-      params.notify.error({
-        title: message,
-        description: React.createElement(
-          "button",
-          {
-            className: "mbu-toast-action-link",
-            onClick: () => {
-              params.navigateToPane("pane-settings");
-              params.focusTokenInput();
-            },
-            type: "button",
-          },
-          "→ 設定を開く"
-        ),
-      });
-    } else {
-      params.notify.error(message);
-    }
+    baseReportError(message);
     setOutput({ status: "idle" });
   };
 
