@@ -5,6 +5,7 @@ import {
   buildSystemMessage,
   buildTemplateVariables,
   clipInputText,
+  type PreparedOpenAiInput,
   prepareOpenAiInput,
 } from "@/background/openai_common";
 import { storageLocalGet, storageLocalGetTyped } from "@/background/storage";
@@ -19,52 +20,80 @@ import {
   fetchOpenAiChatCompletionText,
 } from "@/utils/openai";
 
-export async function summarizeWithOpenAI(
-  target: SummaryTarget
-): Promise<BackgroundResponse> {
+type OpenAiTextRequest = {
+  target: SummaryTarget;
+  missingTextMessage: string;
+  includeMissingMeta?: boolean;
+  buildBody: (params: PreparedOpenAiInput) => {
+    body: unknown;
+    emptyContentMessage: string;
+  };
+};
+
+async function requestOpenAiText(
+  params: OpenAiTextRequest
+): Promise<Result.Result<string, string>> {
   const preparedResult = await prepareOpenAiInput({
-    target,
-    missingTextMessage: "要約対象のテキストが見つかりませんでした",
-    includeMissingMeta: true,
+    target: params.target,
+    missingTextMessage: params.missingTextMessage,
+    includeMissingMeta: params.includeMissingMeta,
   });
   if (Result.isFailure(preparedResult)) {
     return Result.fail(preparedResult.error);
   }
+
   const { settings, clippedText, meta } = preparedResult.value;
+  const { body, emptyContentMessage } = params.buildBody({
+    settings,
+    clippedText,
+    meta,
+  });
 
-  const body = {
-    model: settings.model,
-    temperature: 0.2,
-    messages: [
-      {
-        role: "system",
-        content: buildSystemMessage(
-          "あなたは日本語の要約アシスタントです。入力テキストを読み、要点を短く整理して出力してください。",
-          settings.customPrompt
-        ),
-      },
-      {
-        role: "user",
-        content: [
-          "次のテキストを日本語で要約してください。",
-          "",
-          "要件:",
-          "- 重要ポイントを箇条書き(3〜7個)",
-          "- 最後に一文で結論/要約",
-          "- 事実と推測を混同しない",
-          "",
-          clippedText + meta,
-        ].join("\n"),
-      },
-    ],
-  };
-
-  const summaryResult = await fetchOpenAiChatCompletionText(
+  return await fetchOpenAiChatCompletionText(
     fetch,
     settings.token,
     body,
-    "要約結果の取得に失敗しました"
+    emptyContentMessage
   );
+}
+
+export async function summarizeWithOpenAI(
+  target: SummaryTarget
+): Promise<BackgroundResponse> {
+  const summaryResult = await requestOpenAiText({
+    target,
+    missingTextMessage: "要約対象のテキストが見つかりませんでした",
+    includeMissingMeta: true,
+    buildBody: ({ settings, clippedText, meta }) => ({
+      body: {
+        model: settings.model,
+        temperature: 0.2,
+        messages: [
+          {
+            role: "system",
+            content: buildSystemMessage(
+              "あなたは日本語の要約アシスタントです。入力テキストを読み、要点を短く整理して出力してください。",
+              settings.customPrompt
+            ),
+          },
+          {
+            role: "user",
+            content: [
+              "次のテキストを日本語で要約してください。",
+              "",
+              "要件:",
+              "- 重要ポイントを箇条書き(3〜7個)",
+              "- 最後に一文で結論/要約",
+              "- 事実と推測を混同しない",
+              "",
+              clippedText + meta,
+            ].join("\n"),
+          },
+        ],
+      },
+      emptyContentMessage: "要約結果の取得に失敗しました",
+    }),
+  });
   if (Result.isFailure(summaryResult)) {
     return Result.fail(summaryResult.error);
   }
@@ -79,53 +108,45 @@ export async function runPromptActionWithOpenAI(
   target: SummaryTarget,
   promptTemplate: string
 ): Promise<Result.Result<string, string>> {
-  const preparedResult = await prepareOpenAiInput({
+  return await requestOpenAiText({
     target,
     missingTextMessage: "対象のテキストが見つかりませんでした",
+    buildBody: ({ settings, clippedText, meta }) => {
+      const variables = buildTemplateVariables(target, clippedText);
+      const rendered = applyTemplateVariables(promptTemplate, variables);
+
+      const needsText = !promptTemplate.includes("{{text}}");
+      const needsMeta = !(
+        promptTemplate.includes("{{title}}") ||
+        promptTemplate.includes("{{url}}")
+      );
+      const userContent = [
+        rendered.trim(),
+        needsText ? `\n\n${clippedText}` : "",
+        needsMeta ? meta : "",
+      ]
+        .join("")
+        .trim();
+
+      return {
+        body: {
+          model: settings.model,
+          temperature: 0.2,
+          messages: [
+            {
+              role: "system",
+              content: buildSystemMessage(
+                "あなたはユーザーの「Context Action」を実行するアシスタントです。指示に従い、必要な結果だけを簡潔に出力してください。",
+                settings.customPrompt
+              ),
+            },
+            { role: "user", content: userContent },
+          ],
+        },
+        emptyContentMessage: "結果の取得に失敗しました",
+      };
+    },
   });
-  if (Result.isFailure(preparedResult)) {
-    return Result.fail(preparedResult.error);
-  }
-  const { settings, clippedText, meta } = preparedResult.value;
-
-  const variables = buildTemplateVariables(target, clippedText);
-
-  const rendered = applyTemplateVariables(promptTemplate, variables);
-
-  const needsText = !promptTemplate.includes("{{text}}");
-  const needsMeta = !(
-    promptTemplate.includes("{{title}}") || promptTemplate.includes("{{url}}")
-  );
-  const userContent = [
-    rendered.trim(),
-    needsText ? `\n\n${clippedText}` : "",
-    needsMeta ? meta : "",
-  ]
-    .join("")
-    .trim();
-
-  const body = {
-    model: settings.model,
-    temperature: 0.2,
-    messages: [
-      {
-        role: "system",
-        content: buildSystemMessage(
-          "あなたはユーザーの「Context Action」を実行するアシスタントです。指示に従い、必要な結果だけを簡潔に出力してください。",
-          settings.customPrompt
-        ),
-      },
-      { role: "user", content: userContent },
-    ],
-  };
-
-  const textResult = await fetchOpenAiChatCompletionText(
-    fetch,
-    settings.token,
-    body,
-    "結果の取得に失敗しました"
-  );
-  return textResult;
 }
 
 export function renderInstructionTemplate(
@@ -201,56 +222,49 @@ export async function extractEventWithOpenAI(
   target: SummaryTarget,
   extraInstruction?: string
 ): Promise<Result.Result<ExtractedEvent, string>> {
-  const preparedResult = await prepareOpenAiInput({
+  const contentResult = await requestOpenAiText({
     target,
     missingTextMessage: "要約対象のテキストが見つかりませんでした",
     includeMissingMeta: true,
+    buildBody: ({ settings, clippedText, meta }) => {
+      const baseSystemContent = [
+        "あなたはイベント抽出アシスタントです。入力テキストから、カレンダー登録に必要な情報を抽出してください。",
+        "出力は必ずJSONのみ。コードフェンス禁止。キーは title,start,end,allDay,location,description を使う。",
+        "start/end はISO 8601 (例: 2025-01-31T19:00:00+09:00) を優先。難しければ YYYY-MM-DD HH:mm でもOK。",
+        "YYYY/MM/DD や「2025年1月31日 19:00」のような表記は避けてください。",
+        "日付しか不明な場合は YYYY-MM-DD でOK。",
+        "end が不明なら省略可。allDay は終日なら true、それ以外は false または省略。",
+        "description はイベントの概要を日本語で短くまとめる。",
+      ].join("\n");
+
+      return {
+        body: {
+          model: settings.model,
+          temperature: 0.2,
+          response_format: { type: "json_object" },
+          messages: [
+            {
+              role: "system",
+              content: buildSystemMessage(
+                baseSystemContent,
+                settings.customPrompt,
+                extraInstruction
+              ),
+            },
+            {
+              role: "user",
+              content: [
+                "次のテキストからイベント情報を抽出し、JSONで返してください。",
+                "",
+                clippedText + meta,
+              ].join("\n"),
+            },
+          ],
+        },
+        emptyContentMessage: "イベント要約結果の取得に失敗しました",
+      };
+    },
   });
-  if (Result.isFailure(preparedResult)) {
-    return Result.fail(preparedResult.error);
-  }
-  const { settings, clippedText, meta } = preparedResult.value;
-
-  const baseSystemContent = [
-    "あなたはイベント抽出アシスタントです。入力テキストから、カレンダー登録に必要な情報を抽出してください。",
-    "出力は必ずJSONのみ。コードフェンス禁止。キーは title,start,end,allDay,location,description を使う。",
-    "start/end はISO 8601 (例: 2025-01-31T19:00:00+09:00) を優先。難しければ YYYY-MM-DD HH:mm でもOK。",
-    "YYYY/MM/DD や「2025年1月31日 19:00」のような表記は避けてください。",
-    "日付しか不明な場合は YYYY-MM-DD でOK。",
-    "end が不明なら省略可。allDay は終日なら true、それ以外は false または省略。",
-    "description はイベントの概要を日本語で短くまとめる。",
-  ].join("\n");
-
-  const body = {
-    model: settings.model,
-    temperature: 0.2,
-    response_format: { type: "json_object" },
-    messages: [
-      {
-        role: "system",
-        content: buildSystemMessage(
-          baseSystemContent,
-          settings.customPrompt,
-          extraInstruction
-        ),
-      },
-      {
-        role: "user",
-        content: [
-          "次のテキストからイベント情報を抽出し、JSONで返してください。",
-          "",
-          clippedText + meta,
-        ].join("\n"),
-      },
-    ],
-  };
-
-  const contentResult = await fetchOpenAiChatCompletionText(
-    fetch,
-    settings.token,
-    body,
-    "イベント要約結果の取得に失敗しました"
-  );
   if (Result.isFailure(contentResult)) {
     return Result.fail(contentResult.error);
   }
