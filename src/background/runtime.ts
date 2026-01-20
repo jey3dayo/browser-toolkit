@@ -1,15 +1,17 @@
 import { Result } from "@praha/byethrow";
 import {
+  executeEventAction,
+  executePromptAction,
+} from "@/background/action_executor";
+import {
   buildGoogleCalendarUrl,
   buildGoogleCalendarUrlFailureMessage,
   formatEventText,
 } from "@/background/calendar";
-import { loadContextActions } from "@/background/context_menu_registry";
+import { loadContextActions } from "@/background/context_menu_storage";
 import { sendMessageToTab } from "@/background/messaging";
 import {
   extractEventWithOpenAI,
-  renderInstructionTemplate,
-  runPromptActionWithOpenAI,
   summarizeWithOpenAI,
   testOpenAiToken,
 } from "@/background/openai";
@@ -39,10 +41,7 @@ async function handleEventActionInMessage(
   sendResponse: (response: RunContextActionResponse) => void,
   source?: "popup" | "contextMenu"
 ): Promise<void> {
-  const extraInstruction = action.prompt?.trim()
-    ? renderInstructionTemplate(action.prompt, target)
-    : undefined;
-  const result = await extractEventWithOpenAI(target, extraInstruction);
+  const result = await executeEventAction({ target, action });
 
   if (Result.isFailure(result)) {
     // コンテキストメニューからの実行の場合はOS通知を表示
@@ -72,12 +71,11 @@ async function handleEventActionInMessage(
     return;
   }
 
-  const eventText = formatEventText(result.value);
   sendResponse(
     Result.succeed({
       resultType: "event",
-      eventText,
-      source: target.source,
+      eventText: result.value.eventText,
+      source: result.value.source,
     })
   );
 }
@@ -89,13 +87,8 @@ async function handlePromptActionInMessage(
   sendResponse: (response: RunContextActionResponse) => void,
   _source?: "popup" | "contextMenu"
 ): Promise<void> {
-  const prompt = action.prompt.trim();
-  if (!prompt) {
-    sendResponse(Result.fail("プロンプトが空です"));
-    return;
-  }
+  const result = await executePromptAction({ target, action });
 
-  const result = await runPromptActionWithOpenAI(target, prompt);
   if (Result.isFailure(result)) {
     sendResponse(Result.fail(result.error));
     return;
@@ -104,8 +97,8 @@ async function handlePromptActionInMessage(
   sendResponse(
     Result.succeed({
       resultType: "text",
-      text: result.value,
-      source: target.source,
+      text: result.value.text,
+      source: result.value.source,
     })
   );
 }
