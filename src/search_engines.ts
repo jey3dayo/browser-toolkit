@@ -67,9 +67,7 @@ type SearchEngineParts = {
 };
 
 function buildSearchEngine(parts: SearchEngineParts): SearchEngine | null {
-  if (!parts.id || !parts.name || !parts.urlTemplate) {
-    return null;
-  }
+  if (!(parts.id && parts.name && parts.urlTemplate)) {
     return null;
   }
   return {
