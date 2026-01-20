@@ -40,15 +40,27 @@ export const DEFAULT_TEXT_TEMPLATES: TextTemplate[] = [
     hidden: false,
   },
   {
-    id: "template:greptile-review-34fe3f8c",
-    title: "greptile review",
-    content: "`@greptile` review",
+    id: "template:greptileai-review-390917b4",
+    title: "greptileai review",
+    content: "`@greptileai` review",
     hidden: false,
   },
   {
     id: "template:coderabbit-review-0f6905e9",
     title: "coderabbitai review",
     content: "`@coderabbitai` review",
+    hidden: false,
+  },
+  {
+    id: "template:greptileai-improve-49248104",
+    title: "greptileai improve",
+    content: "`@greptileai` コードの改善は可能ですか？",
+    hidden: false,
+  },
+  {
+    id: "template:greptileai-accept-56305a04",
+    title: "greptileai accept",
+    content: "`@greptileai` 許容してください",
     hidden: false,
   },
 ];

@@ -79,9 +79,17 @@ describe("background: text templates initialization", () => {
       expect.objectContaining({
         textTemplates: expect.arrayContaining([
           expect.objectContaining({ id: "template:lgtm-0023a134" }),
-          expect.objectContaining({ id: "template:greptile-review-34fe3f8c" }),
+          expect.objectContaining({
+            id: "template:greptileai-review-390917b4",
+          }),
           expect.objectContaining({
             id: "template:coderabbit-review-0f6905e9",
+          }),
+          expect.objectContaining({
+            id: "template:greptileai-improve-49248104",
+          }),
+          expect.objectContaining({
+            id: "template:greptileai-accept-56305a04",
           }),
         ]),
       }),

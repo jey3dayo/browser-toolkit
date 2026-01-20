@@ -7,13 +7,13 @@ const SLUG_HASH_PATTERN = /^template:[a-z0-9-]+-[0-9a-f]{8}$/;
 const HASH_ONLY_PATTERN = /^template:[0-9a-f]{8}$/;
 // Patterns for specific templates
 const LGTM_PATTERN = /^template:lgtm-/;
-const GREPTILE_REVIEW_PATTERN = /^template:greptile-review-/;
+const GREPTILEAI_REVIEW_PATTERN = /^template:greptileai-review-/;
 const CODE_REVIEW_PATTERN = /^template:code-review-/;
 
 describe("generateTemplateId", () => {
   it("generates slug with hash suffix for ASCII titles", () => {
     const id1 = generateTemplateId("LGTM");
-    const id2 = generateTemplateId("greptile review");
+    const id2 = generateTemplateId("greptileai review");
     const id3 = generateTemplateId("Code Review");
 
     // Should match slug-hash pattern
@@ -23,7 +23,7 @@ describe("generateTemplateId", () => {
 
     // Should have readable slugs
     expect(id1).toMatch(LGTM_PATTERN);
-    expect(id2).toMatch(GREPTILE_REVIEW_PATTERN);
+    expect(id2).toMatch(GREPTILEAI_REVIEW_PATTERN);
     expect(id3).toMatch(CODE_REVIEW_PATTERN);
   });
 
@@ -66,7 +66,7 @@ describe("generateTemplateId", () => {
 
   it("handles titles with special characters", () => {
     const id1 = generateTemplateId("Code-Review!!!");
-    const id2 = generateTemplateId("@greptile review");
+    const id2 = generateTemplateId("@greptileai review");
 
     // Should match slug-hash pattern
     expect(id1).toMatch(SLUG_HASH_PATTERN);
@@ -74,7 +74,7 @@ describe("generateTemplateId", () => {
 
     // Should have readable slugs
     expect(id1).toMatch(CODE_REVIEW_PATTERN);
-    expect(id2).toMatch(GREPTILE_REVIEW_PATTERN);
+    expect(id2).toMatch(GREPTILEAI_REVIEW_PATTERN);
   });
 
   it("handles empty title gracefully", () => {
