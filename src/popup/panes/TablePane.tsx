@@ -149,22 +149,33 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
     });
   };
 
-  const addPattern = async (): Promise<void> => {
+  const parsePatternInput = (): string | null => {
     const raw = patternInput.trim();
     if (!raw) {
       props.notify.error("パターンを入力してください");
-      return;
+      return null;
     }
-    if (patterns.some((config) => config.pattern === raw)) {
+    return raw;
+  };
+
+  const buildNextPatterns = (pattern: string): DomainPatternConfig[] | null => {
+    if (patterns.some((config) => config.pattern === pattern)) {
       props.notify.info("既に追加されています");
       setPatternInput("");
+      return null;
+    }
+    return [...patterns, { pattern, enableRowFilter: false }];
+  };
+
+  const addPattern = async (): Promise<void> => {
+    const raw = parsePatternInput();
+    if (!raw) {
       return;
     }
-
-    const next: DomainPatternConfig[] = [
-      ...patterns,
-      { pattern: raw, enableRowFilter: false },
-    ];
+    const next = buildNextPatterns(raw);
+    if (!next) {
+      return;
+    }
     await persistWithRollback({
       applyNext: () => {
         setPatterns(next);

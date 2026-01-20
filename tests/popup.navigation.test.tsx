@@ -4,6 +4,10 @@ import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PopupApp } from "@/popup/App";
 import { flush } from "./helpers/async";
+import {
+  createPopupChromeStub,
+  type PopupChromeStub,
+} from "./helpers/popupChromeStub";
 import { createPopupDom } from "./helpers/popupDom";
 
 (
@@ -12,14 +16,17 @@ import { createPopupDom } from "./helpers/popupDom";
 
 describe("popup navigation (React + Base UI Tabs)", () => {
   let dom: JSDOM;
+  let chromeStub: PopupChromeStub;
 
   beforeEach(() => {
     vi.resetModules();
 
     dom = createPopupDom("chrome-extension://test/popup.html#pane-settings");
+    chromeStub = createPopupChromeStub();
     vi.stubGlobal("window", dom.window);
     vi.stubGlobal("document", dom.window.document);
     vi.stubGlobal("navigator", dom.window.navigator);
+    vi.stubGlobal("chrome", chromeStub);
   });
 
   afterEach(() => {

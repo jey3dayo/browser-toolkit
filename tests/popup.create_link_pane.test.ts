@@ -58,8 +58,11 @@ describe("popup create link pane", () => {
     });
   });
 
-  afterEach(() => {
-    cleanupPopupTestHooks();
+  afterEach(async () => {
+    await act(async () => {
+      cleanupPopupTestHooks();
+      await flush(dom.window);
+    });
     vi.unstubAllGlobals();
   });
 

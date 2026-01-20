@@ -187,6 +187,14 @@ type RuntimeResponse =
 
 type RuntimeSendResponse = (response?: RuntimeResponse) => void;
 
+type DebugLogAction =
+  | "downloadDebugLogs"
+  | "clearDebugLogs"
+  | "getDebugLogStats"
+  | "getDebugLogs";
+
+type DebugLogRequest<TAction extends DebugLogAction> = { action: TAction };
+
 type SummarizeTextRequest = Extract<
   RuntimeRequest,
   { action: "summarizeText" }
@@ -380,7 +388,7 @@ function handleOpenPopupSettingsRequest(
 }
 
 function handleDownloadDebugLogsRequest(
-  _request: { action: "downloadDebugLogs" },
+  _request: DebugLogRequest<"downloadDebugLogs">,
   sendResponse: RuntimeSendResponse
 ): boolean {
   downloadDebugLogs()
@@ -400,7 +408,7 @@ function handleDownloadDebugLogsRequest(
 }
 
 function handleClearDebugLogsRequest(
-  _request: { action: "clearDebugLogs" },
+  _request: DebugLogRequest<"clearDebugLogs">,
   sendResponse: RuntimeSendResponse
 ): boolean {
   clearDebugLogs()
@@ -420,7 +428,7 @@ function handleClearDebugLogsRequest(
 }
 
 function handleGetDebugLogStatsRequest(
-  _request: { action: "getDebugLogStats" },
+  _request: DebugLogRequest<"getDebugLogStats">,
   sendResponse: RuntimeSendResponse
 ): boolean {
   getDebugLogStats()
@@ -440,7 +448,7 @@ function handleGetDebugLogStatsRequest(
 }
 
 function handleGetDebugLogsRequest(
-  _request: { action: "getDebugLogs" },
+  _request: DebugLogRequest<"getDebugLogs">,
   sendResponse: RuntimeSendResponse
 ): boolean {
   getDebugLogs()

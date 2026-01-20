@@ -2,7 +2,11 @@ import { Result } from "@praha/byethrow";
 import { normalizeEvent } from "@/background/calendar";
 import { storageLocalGet, storageLocalGetTyped } from "@/background/storage";
 import type { BackgroundResponse, SummaryTarget } from "@/background/types";
-import { loadOpenAiModel, loadOpenAiSettings } from "@/openai/settings";
+import {
+  loadOpenAiModel,
+  loadOpenAiSettings,
+  type OpenAiSettings,
+} from "@/openai/settings";
 import type { ExtractedEvent } from "@/shared_types";
 import type { LocalStorageData } from "@/storage/types";
 import { toErrorMessage } from "@/utils/errors";
@@ -61,21 +65,47 @@ function applyTemplateVariables(
   return rendered;
 }
 
-export async function summarizeWithOpenAI(
-  target: SummaryTarget
-): Promise<BackgroundResponse> {
+type PreparedOpenAiInput = {
+  settings: OpenAiSettings;
+  clippedText: string;
+  meta: string;
+};
+
+async function prepareOpenAiInput(params: {
+  target: SummaryTarget;
+  missingTextMessage: string;
+  includeMissingMeta?: boolean;
+}): Promise<Result.Result<PreparedOpenAiInput, string>> {
   const settingsResult = await loadOpenAiSettings(storageLocalGetTyped);
   if (Result.isFailure(settingsResult)) {
     return Result.fail(settingsResult.error);
   }
   const settings = settingsResult.value;
 
-  const clippedText = clipInputText(target.text);
+  const clippedText = clipInputText(params.target.text);
   if (!clippedText) {
-    return Result.fail("要約対象のテキストが見つかりませんでした");
+    return Result.fail(params.missingTextMessage);
   }
 
-  const meta = buildTitleUrlMeta(target, { includeMissing: true });
+  const meta = buildTitleUrlMeta(params.target, {
+    includeMissing: params.includeMissingMeta,
+  });
+
+  return Result.succeed({ settings, clippedText, meta });
+}
+
+export async function summarizeWithOpenAI(
+  target: SummaryTarget
+): Promise<BackgroundResponse> {
+  const preparedResult = await prepareOpenAiInput({
+    target,
+    missingTextMessage: "要約対象のテキストが見つかりませんでした",
+    includeMissingMeta: true,
+  });
+  if (Result.isFailure(preparedResult)) {
+    return Result.fail(preparedResult.error);
+  }
+  const { settings, clippedText, meta } = preparedResult.value;
 
   const body = {
     model: settings.model,
@@ -128,18 +158,14 @@ export async function runPromptActionWithOpenAI(
   target: SummaryTarget,
   promptTemplate: string
 ): Promise<Result.Result<string, string>> {
-  const settingsResult = await loadOpenAiSettings(storageLocalGetTyped);
-  if (Result.isFailure(settingsResult)) {
-    return Result.fail(settingsResult.error);
+  const preparedResult = await prepareOpenAiInput({
+    target,
+    missingTextMessage: "対象のテキストが見つかりませんでした",
+  });
+  if (Result.isFailure(preparedResult)) {
+    return Result.fail(preparedResult.error);
   }
-  const settings = settingsResult.value;
-
-  const clippedText = clipInputText(target.text);
-  if (!clippedText) {
-    return Result.fail("対象のテキストが見つかりませんでした");
-  }
-
-  const meta = buildTitleUrlMeta(target);
+  const { settings, clippedText, meta } = preparedResult.value;
 
   const variables: Record<string, string> = {
     text: clippedText,
@@ -268,18 +294,15 @@ export async function extractEventWithOpenAI(
   target: SummaryTarget,
   extraInstruction?: string
 ): Promise<Result.Result<ExtractedEvent, string>> {
-  const settingsResult = await loadOpenAiSettings(storageLocalGetTyped);
-  if (Result.isFailure(settingsResult)) {
-    return Result.fail(settingsResult.error);
+  const preparedResult = await prepareOpenAiInput({
+    target,
+    missingTextMessage: "要約対象のテキストが見つかりませんでした",
+    includeMissingMeta: true,
+  });
+  if (Result.isFailure(preparedResult)) {
+    return Result.fail(preparedResult.error);
   }
-  const settings = settingsResult.value;
-
-  const clippedText = clipInputText(target.text);
-  if (!clippedText) {
-    return Result.fail("要約対象のテキストが見つかりませんでした");
-  }
-
-  const meta = buildTitleUrlMeta(target, { includeMissing: true });
+  const { settings, clippedText, meta } = preparedResult.value;
 
   const body = {
     model: settings.model,

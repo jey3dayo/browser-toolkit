@@ -5,12 +5,7 @@ import { Switch } from "@base-ui/react/switch";
 import { Result } from "@praha/byethrow";
 import { useCallback, useEffect, useState } from "react";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
-import type {
-  ClearDebugLogsRequest,
-  ClearDebugLogsResponse,
-  DownloadDebugLogsRequest,
-  DownloadDebugLogsResponse,
-} from "@/popup/runtime";
+import { sendBackgroundResult } from "@/popup/utils/background_result";
 import type { LocalStorageData } from "@/storage/types";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
@@ -137,47 +132,29 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
     props.notify.error("保存に失敗しました");
   };
 
-  const downloadLogs = async (): Promise<void> => {
-    const responseUnknown = await props.runtime.sendMessageToBackground<
-      DownloadDebugLogsRequest,
-      unknown
-    >({
-      action: "downloadDebugLogs",
+  const runDebugAction = async (
+    action: "downloadDebugLogs" | "clearDebugLogs"
+  ): Promise<boolean> => {
+    const result = await sendBackgroundResult({
+      runtime: props.runtime,
+      message: { action },
+      onError: props.notify.error,
     });
+    return result !== null;
+  };
 
-    if (Result.isFailure(responseUnknown)) {
-      props.notify.error(responseUnknown.error);
-      return;
+  const downloadLogs = async (): Promise<void> => {
+    const ok = await runDebugAction("downloadDebugLogs");
+    if (ok) {
+      props.notify.success("ダウンロードしました");
     }
-
-    const response = responseUnknown.value as DownloadDebugLogsResponse;
-    if (Result.isFailure(response)) {
-      props.notify.error(response.error);
-      return;
-    }
-
-    props.notify.success("ダウンロードしました");
   };
 
   const clearLogs = async (): Promise<void> => {
-    const responseUnknown = await props.runtime.sendMessageToBackground<
-      ClearDebugLogsRequest,
-      unknown
-    >({
-      action: "clearDebugLogs",
-    });
-
-    if (Result.isFailure(responseUnknown)) {
-      props.notify.error(responseUnknown.error);
+    const ok = await runDebugAction("clearDebugLogs");
+    if (!ok) {
       return;
     }
-
-    const response = responseUnknown.value as ClearDebugLogsResponse;
-    if (Result.isFailure(response)) {
-      props.notify.error(response.error);
-      return;
-    }
-
     setLogStats(null);
     setShowLogs(false);
     setLogContent("");

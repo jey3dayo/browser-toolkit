@@ -6,10 +6,10 @@ import {
   OverlayApp,
   type OverlayViewModel,
 } from "@/content/overlay/OverlayApp";
+import { ensureShadowMount } from "@/content/shadow_mount";
 import type { ExtractedEvent, SummarySource } from "@/shared_types";
 import { storageSyncGet } from "@/storage/helpers";
-import { ensureShadowUiBaseStyles } from "@/ui/styles";
-import { applyTheme, type Theme } from "@/ui/theme";
+import type { Theme } from "@/ui/theme";
 
 const OVERLAY_HOST_ID = "browser-toolkit-overlay";
 const OVERLAY_ROOT_ID = "mtk-overlay-react-root";
@@ -48,29 +48,14 @@ export type SummaryOverlayRequest = {
  * Overlayマウントポイントを確保
  */
 export function ensureOverlayMount(currentTheme: Theme): OverlayMount {
-  const existing = document.getElementById(
-    OVERLAY_HOST_ID
-  ) as HTMLDivElement | null;
-  const host = existing || document.createElement("div");
-  host.id = OVERLAY_HOST_ID;
+  const mount = ensureShadowMount({
+    hostId: OVERLAY_HOST_ID,
+    rootId: OVERLAY_ROOT_ID,
+    theme: currentTheme,
+  });
+  const root = createRoot(mount.rootEl);
 
-  const shadow = host.shadowRoot ?? host.attachShadow({ mode: "open" });
-  if (!host.isConnected) {
-    (document.documentElement ?? document.body ?? document).appendChild(host);
-  }
-  ensureShadowUiBaseStyles(shadow);
-  applyTheme(currentTheme, shadow);
-
-  let rootEl = shadow.getElementById(OVERLAY_ROOT_ID) as HTMLDivElement | null;
-  if (!rootEl) {
-    rootEl = document.createElement("div");
-    rootEl.id = OVERLAY_ROOT_ID;
-    shadow.appendChild(rootEl);
-  }
-
-  const root = createRoot(rootEl);
-
-  return { host, shadow, root };
+  return { host: mount.host, shadow: mount.shadow, root };
 }
 
 /**

@@ -4,15 +4,12 @@ import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import type { SummarizeEventSuccessPayload } from "@/background/types";
 import type { PaneId } from "@/popup/panes";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
-import type {
-  SummarizeEventRequest,
-  SummarizeEventResponse,
-  SummaryTarget,
-} from "@/popup/runtime";
+import type { SummaryTarget } from "@/popup/runtime";
 import {
   ensureOpenAiTokenConfigured,
   type NotificationOptions,
 } from "@/popup/token_guard";
+import { sendBackgroundResult } from "@/popup/utils/background_result";
 import { persistWithRollback } from "@/popup/utils/persist";
 import { coerceSummarySourceLabel } from "@/popup/utils/summary_source_label";
 import { fetchSummaryTargetForActiveTab } from "@/popup/utils/summary_target";
@@ -224,20 +221,11 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
   const requestEventSummary = async (
     target: SummaryTarget
   ): Promise<SummarizeEventSuccessPayload | null> => {
-    const response = await props.runtime.sendMessageToBackground<
-      SummarizeEventRequest,
-      SummarizeEventResponse
-    >({ action: "summarizeEvent", target });
-    if (Result.isFailure(response)) {
-      reportError(response.error);
-      return null;
-    }
-    const eventResponse = response.value;
-    if (Result.isFailure(eventResponse)) {
-      reportError(eventResponse.error);
-      return null;
-    }
-    return eventResponse.value;
+    return await sendBackgroundResult({
+      runtime: props.runtime,
+      message: { action: "summarizeEvent", target },
+      onError: reportError,
+    });
   };
 
   const runCalendar = async (): Promise<void> => {

@@ -114,8 +114,11 @@ describe("popup Actions pane: event output", () => {
     });
   });
 
-  afterEach(() => {
-    cleanupPopupTestHooks();
+  afterEach(async () => {
+    await act(async () => {
+      cleanupPopupTestHooks();
+      await flush(dom.window);
+    });
     vi.unstubAllGlobals();
   });
 

@@ -43,15 +43,15 @@ export async function resolveActiveTabId(params: {
   onError: ErrorHandler;
 }): Promise<number | null> {
   const tabIdResult = await params.runtime.getActiveTabId();
-  if (Result.isFailure(tabIdResult)) {
-    params.onError(tabIdResult.error);
-    return null;
+  if (Result.isSuccess(tabIdResult) && tabIdResult.value !== null) {
+    return tabIdResult.value;
   }
-  if (tabIdResult.value === null) {
-    params.onError("有効なタブが見つかりません");
-    return null;
-  }
-  return tabIdResult.value;
+  params.onError(
+    Result.isFailure(tabIdResult)
+      ? tabIdResult.error
+      : "有効なタブが見つかりません"
+  );
+  return null;
 }
 
 export async function fetchSummaryTargetForActiveTab(params: {

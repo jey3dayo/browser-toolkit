@@ -50,6 +50,18 @@ export type LoadCopyTitleLinkFailureError =
   | "storage-error"
   | "invalid";
 
+function resolveStoredCopyTitleLinkFailure(
+  stored: unknown
+): Result.Result<CopyTitleLinkFailure, LoadCopyTitleLinkFailureError> {
+  if (typeof stored === "undefined") {
+    return Result.fail("none" as const);
+  }
+  return Result.pipe(
+    coerceCopyTitleLinkFailure(stored),
+    Result.mapError(() => "invalid" as const)
+  );
+}
+
 export async function loadCopyTitleLinkFailure(runtime: {
   storageLocalGet: ReturnType<typeof createPopupRuntime>["storageLocalGet"];
 }): Promise<
@@ -60,17 +72,9 @@ export async function loadCopyTitleLinkFailure(runtime: {
     return Result.fail("storage-error" as const);
   }
 
-  const stored = loaded.value.lastCopyTitleLinkFailure;
-  if (typeof stored === "undefined") {
-    return Result.fail("none" as const);
-  }
-
-  const result = coerceCopyTitleLinkFailure(stored);
-  if (Result.isFailure(result)) {
-    return Result.fail(result.error);
-  }
-
-  return Result.succeed(result.value);
+  return resolveStoredCopyTitleLinkFailure(
+    loaded.value.lastCopyTitleLinkFailure
+  );
 }
 
 export async function handleCopyTitleLinkFailureOnPopupOpen(params: {
