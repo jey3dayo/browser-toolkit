@@ -20,6 +20,7 @@ import type {
   BackgroundResponse,
   ContentScriptMessage,
   RunContextActionResponse,
+  RunContextActionSuccessPayload,
   SummarizeEventResponse,
   SummaryTarget,
 } from "@/background/types";
@@ -33,6 +34,27 @@ import {
 } from "@/utils/debug_log";
 import { showErrorNotification } from "@/utils/notifications";
 
+type RunContextActionHandlerOptions<T> = {
+  execute: () => Promise<Result.Result<T, string>>;
+  mapSuccess: (value: T) => RunContextActionSuccessPayload;
+  onFailure?: (error: string) => Promise<void> | void;
+  sendResponse: (response: RunContextActionResponse) => void;
+};
+
+async function handleRunContextActionResult<T>(
+  options: RunContextActionHandlerOptions<T>
+): Promise<void> {
+  const result = await options.execute();
+
+  if (Result.isFailure(result)) {
+    await options.onFailure?.(result.error);
+    options.sendResponse(Result.fail(result.error));
+    return;
+  }
+
+  options.sendResponse(Result.succeed(options.mapSuccess(result.value)));
+}
+
 // Helper function for handling event actions in message listener
 async function handleEventActionInMessage(
   tabId: number,
@@ -41,43 +63,39 @@ async function handleEventActionInMessage(
   sendResponse: (response: RunContextActionResponse) => void,
   source?: "popup" | "contextMenu"
 ): Promise<void> {
-  const result = await executeEventAction({ target, action });
-
-  if (Result.isFailure(result)) {
-    // コンテキストメニューからの実行の場合はOS通知を表示
-    if (source === "contextMenu") {
-      await showErrorNotification({
-        title: `${action.title}に失敗しました`,
-        errorMessage: result.error,
-        hint: "OpenAI API Tokenが未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。",
-      });
-
-      const tokenHintBase =
-        "OpenAI API Token未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。";
-      await sendMessageToTab(tabId, {
-        action: "showActionOverlay",
-        status: "error",
-        mode: "event",
-        source: target.source,
-        title: action.title,
-        primary: result.error,
-        secondary: tokenHintBase,
-      }).catch(() => {
-        // no-op
-      });
-    }
-
-    sendResponse(Result.fail(result.error));
-    return;
-  }
-
-  sendResponse(
-    Result.succeed({
+  await handleRunContextActionResult({
+    execute: () => executeEventAction({ target, action }),
+    mapSuccess: (value) => ({
       resultType: "event",
-      eventText: result.value.eventText,
-      source: result.value.source,
-    })
-  );
+      eventText: value.eventText,
+      source: value.source,
+    }),
+    onFailure: async (error) => {
+      // コンテキストメニューからの実行の場合はOS通知を表示
+      if (source === "contextMenu") {
+        await showErrorNotification({
+          title: `${action.title}に失敗しました`,
+          errorMessage: error,
+          hint: "OpenAI API Tokenが未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。",
+        });
+
+        const tokenHintBase =
+          "OpenAI API Token未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。";
+        await sendMessageToTab(tabId, {
+          action: "showActionOverlay",
+          status: "error",
+          mode: "event",
+          source: target.source,
+          title: action.title,
+          primary: error,
+          secondary: tokenHintBase,
+        }).catch(() => {
+          // no-op
+        });
+      }
+    },
+    sendResponse,
+  });
 }
 
 // Helper function for handling prompt actions in message listener
@@ -87,20 +105,15 @@ async function handlePromptActionInMessage(
   sendResponse: (response: RunContextActionResponse) => void,
   _source?: "popup" | "contextMenu"
 ): Promise<void> {
-  const result = await executePromptAction({ target, action });
-
-  if (Result.isFailure(result)) {
-    sendResponse(Result.fail(result.error));
-    return;
-  }
-
-  sendResponse(
-    Result.succeed({
+  await handleRunContextActionResult({
+    execute: () => executePromptAction({ target, action }),
+    mapSuccess: (value) => ({
       resultType: "text",
-      text: result.value.text,
-      source: result.value.source,
-    })
-  );
+      text: value.text,
+      source: value.source,
+    }),
+    sendResponse,
+  });
 }
 
 async function handleSummarizeEventInMessage(
