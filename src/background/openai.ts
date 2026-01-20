@@ -1,12 +1,14 @@
 import { Result } from "@praha/byethrow";
 import { normalizeEvent } from "@/background/calendar";
+import {
+  applyTemplateVariables,
+  buildSystemMessage,
+  clipInputText,
+  prepareOpenAiInput,
+} from "@/background/openai_common";
 import { storageLocalGet, storageLocalGetTyped } from "@/background/storage";
 import type { BackgroundResponse, SummaryTarget } from "@/background/types";
-import {
-  loadOpenAiModel,
-  loadOpenAiSettings,
-  type OpenAiSettings,
-} from "@/openai/settings";
+import { loadOpenAiModel } from "@/openai/settings";
 import type { ExtractedEvent } from "@/shared_types";
 import type { LocalStorageData } from "@/storage/types";
 import { toErrorMessage } from "@/utils/errors";
@@ -15,84 +17,6 @@ import {
   fetchOpenAiChatCompletionOk,
   fetchOpenAiChatCompletionText,
 } from "@/utils/openai";
-
-const MAX_INPUT_CHARS = 20_000;
-
-function clipInputText(rawText: string): string {
-  const trimmed = rawText.trim();
-  if (!trimmed) {
-    return "";
-  }
-  if (trimmed.length <= MAX_INPUT_CHARS) {
-    return trimmed;
-  }
-  return `${trimmed.slice(0, MAX_INPUT_CHARS)}\n\n(以下略)`;
-}
-
-function buildTitleUrlMeta(
-  target: SummaryTarget,
-  options?: { includeMissing?: boolean }
-): string {
-  const title = target.title?.trim() || "";
-  const url = target.url?.trim() || "";
-
-  if (!(title || url)) {
-    return "";
-  }
-
-  if (options?.includeMissing) {
-    return `\n\n---\nタイトル: ${title || "-"}\nURL: ${url || "-"}`;
-  }
-
-  const metaLines: string[] = [];
-  if (title) {
-    metaLines.push(`タイトル: ${title}`);
-  }
-  if (url) {
-    metaLines.push(`URL: ${url}`);
-  }
-  return metaLines.length > 0 ? `\n\n---\n${metaLines.join("\n")}` : "";
-}
-
-function applyTemplateVariables(
-  template: string,
-  variables: Record<string, string>
-): string {
-  let rendered = template;
-  for (const [key, value] of Object.entries(variables)) {
-    rendered = rendered.split(`{{${key}}}`).join(value);
-  }
-  return rendered;
-}
-
-type PreparedOpenAiInput = {
-  settings: OpenAiSettings;
-  clippedText: string;
-  meta: string;
-};
-
-async function prepareOpenAiInput(params: {
-  target: SummaryTarget;
-  missingTextMessage: string;
-  includeMissingMeta?: boolean;
-}): Promise<Result.Result<PreparedOpenAiInput, string>> {
-  const settingsResult = await loadOpenAiSettings(storageLocalGetTyped);
-  if (Result.isFailure(settingsResult)) {
-    return Result.fail(settingsResult.error);
-  }
-  const settings = settingsResult.value;
-
-  const clippedText = clipInputText(params.target.text);
-  if (!clippedText) {
-    return Result.fail(params.missingTextMessage);
-  }
-
-  const meta = buildTitleUrlMeta(params.target, {
-    includeMissing: params.includeMissingMeta,
-  });
-
-  return Result.succeed({ settings, clippedText, meta });
-}
 
 export async function summarizeWithOpenAI(
   target: SummaryTarget
@@ -113,14 +37,10 @@ export async function summarizeWithOpenAI(
     messages: [
       {
         role: "system",
-        content: [
+        content: buildSystemMessage(
           "あなたは日本語の要約アシスタントです。入力テキストを読み、要点を短く整理して出力してください。",
           settings.customPrompt
-            ? `\n\nユーザーの追加指示:\n${settings.customPrompt}`
-            : "",
-        ]
-          .join("")
-          .trim(),
+        ),
       },
       {
         role: "user",
@@ -194,14 +114,10 @@ export async function runPromptActionWithOpenAI(
     messages: [
       {
         role: "system",
-        content: [
+        content: buildSystemMessage(
           "あなたはユーザーの「Context Action」を実行するアシスタントです。指示に従い、必要な結果だけを簡潔に出力してください。",
           settings.customPrompt
-            ? `\n\nユーザーの追加指示:\n${settings.customPrompt}`
-            : "",
-        ]
-          .join("")
-          .trim(),
+        ),
       },
       { role: "user", content: userContent },
     ],
@@ -224,7 +140,7 @@ export function renderInstructionTemplate(
   if (!raw) {
     return "";
   }
-  const shortText = target.text.trim().slice(0, 1200);
+  const shortText = clipInputText(target.text).slice(0, 1200);
   const variables: Record<string, string> = {
     text: shortText,
     title: target.title ?? "",
@@ -304,6 +220,16 @@ export async function extractEventWithOpenAI(
   }
   const { settings, clippedText, meta } = preparedResult.value;
 
+  const baseSystemContent = [
+    "あなたはイベント抽出アシスタントです。入力テキストから、カレンダー登録に必要な情報を抽出してください。",
+    "出力は必ずJSONのみ。コードフェンス禁止。キーは title,start,end,allDay,location,description を使う。",
+    "start/end はISO 8601 (例: 2025-01-31T19:00:00+09:00) を優先。難しければ YYYY-MM-DD HH:mm でもOK。",
+    "YYYY/MM/DD や「2025年1月31日 19:00」のような表記は避けてください。",
+    "日付しか不明な場合は YYYY-MM-DD でOK。",
+    "end が不明なら省略可。allDay は終日なら true、それ以外は false または省略。",
+    "description はイベントの概要を日本語で短くまとめる。",
+  ].join("\n");
+
   const body = {
     model: settings.model,
     temperature: 0.2,
@@ -311,23 +237,11 @@ export async function extractEventWithOpenAI(
     messages: [
       {
         role: "system",
-        content: [
-          "あなたはイベント抽出アシスタントです。入力テキストから、カレンダー登録に必要な情報を抽出してください。",
-          "出力は必ずJSONのみ。コードフェンス禁止。キーは title,start,end,allDay,location,description を使う。",
-          "start/end はISO 8601 (例: 2025-01-31T19:00:00+09:00) を優先。難しければ YYYY-MM-DD HH:mm でもOK。",
-          "YYYY/MM/DD や「2025年1月31日 19:00」のような表記は避けてください。",
-          "日付しか不明な場合は YYYY-MM-DD でOK。",
-          "end が不明なら省略可。allDay は終日なら true、それ以外は false または省略。",
-          "description はイベントの概要を日本語で短くまとめる。",
-          settings.customPrompt
-            ? `\n\nユーザーの追加指示（descriptionの文体に反映）:\n${settings.customPrompt}`
-            : "",
-          extraInstruction?.trim()
-            ? `\n\nこのアクションの追加指示:\n${extraInstruction.trim()}`
-            : "",
-        ]
-          .join("\n")
-          .trim(),
+        content: buildSystemMessage(
+          baseSystemContent,
+          settings.customPrompt,
+          extraInstruction
+        ),
       },
       {
         role: "user",
