@@ -1,12 +1,12 @@
 import { Result } from "@praha/byethrow";
 import { APP_NAME } from "@/app_meta";
-import { buildCalendarArtifacts, formatEventText } from "@/background/calendar";
-import { sendMessageToTab } from "@/background/messaging";
 import {
-  extractEventWithOpenAI,
-  renderInstructionTemplate,
-  runPromptActionWithOpenAI,
-} from "@/background/openai";
+  executeEventAction,
+  executePromptAction,
+} from "@/background/action_executor";
+import { buildCalendarArtifacts } from "@/background/calendar";
+import { sendMessageToTab } from "@/background/messaging";
+import { extractEventWithOpenAI } from "@/background/openai";
 import { storageSyncGet } from "@/background/storage";
 import type {
   ContentScriptMessage,
@@ -319,10 +319,7 @@ export async function handleContextMenuClick(
 async function handleEventAction(context: OverlayContext): Promise<void> {
   const { tabId, action, target, resolvedTitle, selectionSecondary } = context;
 
-  const extraInstruction = action.prompt?.trim()
-    ? renderInstructionTemplate(action.prompt, target)
-    : undefined;
-  const result = await extractEventWithOpenAI(target, extraInstruction);
+  const result = await executeEventAction({ target, action });
 
   if (Result.isFailure(result)) {
     await showErrorNotification({
@@ -344,37 +341,23 @@ async function handleEventAction(context: OverlayContext): Promise<void> {
     return;
   }
 
-  const eventText = formatEventText(result.value);
   await sendMessageToTab(tabId, {
     action: "showActionOverlay",
     status: "ready",
     mode: "event",
     source: target.source,
     title: resolvedTitle,
-    primary: eventText,
+    primary: result.value.eventText,
     secondary: selectionSecondary,
-    event: result.value,
+    event: result.value.event,
   });
 }
 
 async function handlePromptAction(context: OverlayContext): Promise<void> {
   const { tabId, action, target, resolvedTitle, selectionSecondary } = context;
 
-  const prompt = action.prompt.trim();
-  if (!prompt) {
-    await sendActionOverlayMessage({
-      tabId,
-      status: "error",
-      mode: "text",
-      source: target.source,
-      title: resolvedTitle,
-      primary: "プロンプトが空です",
-      secondary: selectionSecondary,
-    });
-    return;
-  }
+  const result = await executePromptAction({ target, action });
 
-  const result = await runPromptActionWithOpenAI(target, prompt);
   if (Result.isFailure(result)) {
     await reportPromptActionFailure({
       tabId,
@@ -393,7 +376,7 @@ async function handlePromptAction(context: OverlayContext): Promise<void> {
     mode: "text",
     source: target.source,
     title: resolvedTitle,
-    primary: result.value,
+    primary: result.value.text,
     secondary: selectionSecondary,
   });
 }
