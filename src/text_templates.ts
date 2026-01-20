@@ -46,12 +46,6 @@ export const DEFAULT_TEXT_TEMPLATES: TextTemplate[] = [
     hidden: false,
   },
   {
-    id: "template:coderabbit-review-0f6905e9",
-    title: "coderabbitai review",
-    content: "@coderabbitai review",
-    hidden: false,
-  },
-  {
     id: "template:greptileai-improve-49248104",
     title: "greptileai improve",
     content: "@greptileai コードの改善は可能ですか？",
@@ -61,6 +55,12 @@ export const DEFAULT_TEXT_TEMPLATES: TextTemplate[] = [
     id: "template:greptileai-accept-56305a04",
     title: "greptileai accept",
     content: "@greptileai 許容してください",
+    hidden: false,
+  },
+  {
+    id: "template:coderabbit-review-0f6905e9",
+    title: "coderabbitai review",
+    content: "@coderabbitai review",
     hidden: false,
   },
 ];
