@@ -78,11 +78,7 @@ export function updateHostPosition(
   size: PanelSize,
   point: Point
 ): void {
-  const margin = OVERLAY_PINNED_MARGIN_PX;
-  const maxLeft = Math.max(margin, window.innerWidth - size.width - margin);
-  const maxTop = Math.max(margin, window.innerHeight - size.height - margin);
-  const left = clamp(point.left, margin, maxLeft);
-  const top = clamp(point.top, margin, maxTop);
+  const { left, top } = clampPointToViewport(point, size);
   host.style.left = `${Math.round(left)}px`;
   host.style.top = `${Math.round(top)}px`;
 }
@@ -168,18 +164,22 @@ function computePinnedPositionFromDrag(params: {
   dragOffset: DragOffset;
   size: PanelSize;
 }): Point {
+  return clampPointToViewport(
+    {
+      left: params.event.clientX - params.dragOffset.x,
+      top: params.event.clientY - params.dragOffset.y,
+    },
+    params.size
+  );
+}
+
+function clampPointToViewport(point: Point, size: PanelSize): Point {
   const margin = OVERLAY_PINNED_MARGIN_PX;
-  const maxLeft = Math.max(
-    margin,
-    window.innerWidth - params.size.width - margin
-  );
-  const maxTop = Math.max(
-    margin,
-    window.innerHeight - params.size.height - margin
-  );
+  const maxLeft = Math.max(margin, window.innerWidth - size.width - margin);
+  const maxTop = Math.max(margin, window.innerHeight - size.height - margin);
   return {
-    left: clamp(params.event.clientX - params.dragOffset.x, margin, maxLeft),
-    top: clamp(params.event.clientY - params.dragOffset.y, margin, maxTop),
+    left: clamp(point.left, margin, maxLeft),
+    top: clamp(point.top, margin, maxTop),
   };
 }
 
