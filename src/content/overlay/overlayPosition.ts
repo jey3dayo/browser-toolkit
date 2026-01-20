@@ -163,6 +163,26 @@ export type OverlayPinnedParams = {
   setPinnedPos: StateSetter<Point | null>;
 };
 
+function computePinnedPositionFromDrag(params: {
+  event: React.PointerEvent<HTMLElement>;
+  dragOffset: DragOffset;
+  size: PanelSize;
+}): Point {
+  const margin = OVERLAY_PINNED_MARGIN_PX;
+  const maxLeft = Math.max(
+    margin,
+    window.innerWidth - params.size.width - margin
+  );
+  const maxTop = Math.max(
+    margin,
+    window.innerHeight - params.size.height - margin
+  );
+  return {
+    left: clamp(params.event.clientX - params.dragOffset.x, margin, maxLeft),
+    top: clamp(params.event.clientY - params.dragOffset.y, margin, maxTop),
+  };
+}
+
 /**
  * Start overlay drag operation
  */
@@ -176,12 +196,19 @@ export function startOverlayDrag(params: OverlayDragStartParams): void {
   }
   params.event.preventDefault();
   const rect = params.host.getBoundingClientRect();
-  params.dragOffsetRef.current = {
+  const dragOffset = {
     x: params.event.clientX - rect.left,
     y: params.event.clientY - rect.top,
   };
+  params.dragOffsetRef.current = dragOffset;
   params.setDragging(true);
-  params.setPinnedPos({ left: rect.left, top: rect.top });
+  params.setPinnedPos(
+    computePinnedPositionFromDrag({
+      event: params.event,
+      dragOffset,
+      size: getPanelSize(params.host),
+    })
+  );
   try {
     params.event.currentTarget.setPointerCapture(params.event.pointerId);
   } catch {
@@ -208,17 +235,16 @@ export function moveOverlayDrag(
     return;
   }
 
-  const size = getPanelSize(params.panel);
-  const margin = 16;
-  const maxLeft = Math.max(margin, window.innerWidth - size.width - margin);
-  const maxTop = Math.max(margin, window.innerHeight - size.height - margin);
   if (params.pinned) {
     params.setPinned(false);
   }
-  params.setPinnedPos({
-    left: clamp(params.event.clientX - offset.x, margin, maxLeft),
-    top: clamp(params.event.clientY - offset.y, margin, maxTop),
-  });
+  params.setPinnedPos(
+    computePinnedPositionFromDrag({
+      event: params.event,
+      dragOffset: offset,
+      size: getPanelSize(params.panel),
+    })
+  );
 }
 
 /**
