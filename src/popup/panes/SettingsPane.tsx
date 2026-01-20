@@ -48,6 +48,32 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
   const [theme, setTheme] = useState<Theme>("auto");
   const tokenInputId = useId();
   const promptInputId = useId();
+  const saveLocalString = async (
+    key: "openaiApiToken" | "openaiCustomPrompt",
+    value: string
+  ): Promise<void> => {
+    const payload: Partial<LocalStorageData> = {};
+    payload[key] = value;
+    const saved = await props.runtime.storageLocalSet(payload);
+    if (Result.isSuccess(saved)) {
+      props.notify.success("保存しました");
+      return;
+    }
+    props.notify.error("保存に失敗しました");
+  };
+
+  const clearLocalString = async (
+    key: "openaiApiToken" | "openaiCustomPrompt",
+    onCleared: () => void
+  ): Promise<void> => {
+    const removed = await props.runtime.storageLocalRemove(key);
+    if (Result.isSuccess(removed)) {
+      onCleared();
+      props.notify.success("削除しました");
+      return;
+    }
+    props.notify.error("削除に失敗しました");
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -84,24 +110,11 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
   }, [props.runtime]);
 
   const saveToken = async (): Promise<void> => {
-    const saved = await props.runtime.storageLocalSet({
-      openaiApiToken: token,
-    });
-    if (Result.isSuccess(saved)) {
-      props.notify.success("保存しました");
-      return;
-    }
-    props.notify.error("保存に失敗しました");
+    await saveLocalString("openaiApiToken", token);
   };
 
   const clearToken = async (): Promise<void> => {
-    const removed = await props.runtime.storageLocalRemove("openaiApiToken");
-    if (Result.isSuccess(removed)) {
-      setToken("");
-      props.notify.success("削除しました");
-      return;
-    }
-    props.notify.error("削除に失敗しました");
+    await clearLocalString("openaiApiToken", () => setToken(""));
   };
 
   const testToken = async (): Promise<void> => {
@@ -134,25 +147,11 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
   };
 
   const savePrompt = async (): Promise<void> => {
-    const saved = await props.runtime.storageLocalSet({
-      openaiCustomPrompt: customPrompt,
-    });
-    if (Result.isSuccess(saved)) {
-      props.notify.success("保存しました");
-      return;
-    }
-    props.notify.error("保存に失敗しました");
+    await saveLocalString("openaiCustomPrompt", customPrompt);
   };
 
   const clearPrompt = async (): Promise<void> => {
-    const removed =
-      await props.runtime.storageLocalRemove("openaiCustomPrompt");
-    if (Result.isSuccess(removed)) {
-      setCustomPrompt("");
-      props.notify.success("削除しました");
-      return;
-    }
-    props.notify.error("削除に失敗しました");
+    await clearLocalString("openaiCustomPrompt", () => setCustomPrompt(""));
   };
 
   const saveModel = async (value: OpenAiModelOption): Promise<void> => {

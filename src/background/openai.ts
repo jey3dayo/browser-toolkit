@@ -3,6 +3,7 @@ import { normalizeEvent } from "@/background/calendar";
 import {
   applyTemplateVariables,
   buildSystemMessage,
+  buildTemplateVariables,
   clipInputText,
   prepareOpenAiInput,
 } from "@/background/openai_common";
@@ -87,12 +88,7 @@ export async function runPromptActionWithOpenAI(
   }
   const { settings, clippedText, meta } = preparedResult.value;
 
-  const variables: Record<string, string> = {
-    text: clippedText,
-    title: target.title ?? "",
-    url: target.url ?? "",
-    source: target.source,
-  };
+  const variables = buildTemplateVariables(target, clippedText);
 
   const rendered = applyTemplateVariables(promptTemplate, variables);
 
@@ -141,12 +137,7 @@ export function renderInstructionTemplate(
     return "";
   }
   const shortText = clipInputText(target.text).slice(0, 1200);
-  const variables: Record<string, string> = {
-    text: shortText,
-    title: target.title ?? "",
-    url: target.url ?? "",
-    source: target.source,
-  };
+  const variables = buildTemplateVariables(target, shortText);
 
   return applyTemplateVariables(raw, variables).trim();
 }
