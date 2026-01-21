@@ -34,12 +34,15 @@ export function extractOpenAiApiErrorMessage(
   return `OpenAI APIエラー: ${status}`;
 }
 
-export function fetchOpenAiChatCompletionText(
+/**
+ * Internal helper to fetch OpenAI Chat Completion API and return raw response + parsed JSON.
+ * This function handles the common logic of making the API request and parsing the response.
+ */
+function fetchOpenAiChatCompletionRaw(
   fetchFn: typeof fetch,
   token: string,
-  body: unknown,
-  emptyContentMessage: string
-): Result.ResultAsync<string, string> {
+  body: unknown
+): Result.ResultAsync<{ response: Response; json: unknown }, string> {
   return Result.pipe(
     Result.try({
       immediate: true,
@@ -65,6 +68,20 @@ export function fetchOpenAiChatCompletionText(
         null
       );
 
+      return Result.succeed({ response, json });
+    })
+  );
+}
+
+export function fetchOpenAiChatCompletionText(
+  fetchFn: typeof fetch,
+  token: string,
+  body: unknown,
+  emptyContentMessage: string
+): Result.ResultAsync<string, string> {
+  return Result.pipe(
+    fetchOpenAiChatCompletionRaw(fetchFn, token, body),
+    Result.andThen(({ response, json }) => {
       if (!response.ok) {
         return Result.fail(extractOpenAiApiErrorMessage(json, response.status));
       }
@@ -84,33 +101,11 @@ export function fetchOpenAiChatCompletionOk(
   body: unknown
 ): Result.ResultAsync<void, string> {
   return Result.pipe(
-    Result.try({
-      immediate: true,
-      try: () =>
-        fetchFn("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        }),
-      catch: (error) =>
-        toErrorMessage(error, "OpenAI APIへのリクエストに失敗しました"),
-    }),
-    Result.andThen(async (response) => {
+    fetchOpenAiChatCompletionRaw(fetchFn, token, body),
+    Result.andThen(({ response, json }) => {
       if (response.ok) {
         return Result.succeed();
       }
-
-      const json = await Result.unwrap(
-        Result.try({
-          immediate: true,
-          try: () => response.json(),
-          catch: () => null,
-        }),
-        null
-      );
 
       return Result.fail(extractOpenAiApiErrorMessage(json, response.status));
     })
