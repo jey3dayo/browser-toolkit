@@ -20,37 +20,146 @@ import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
 
 /**
+ * Options for generic storage initialization.
+ */
+type EnsureStorageInitializedOptions<T> = {
+  storageKey: keyof SyncStorageData;
+  normalize?: (raw: unknown) => T[];
+  defaults: T[];
+  functionName: string;
+  initializeOnEmpty?: boolean;
+  logDetails?: boolean;
+};
+
+/**
+ * Handles storage initialization for patterns that initialize on empty array.
+ * Used by contextActions and searchEngines.
+ */
+async function initializeOnEmptyPattern<T>(
+  raw: unknown,
+  normalize: ((raw: unknown) => T[]) | undefined,
+  storageKey: keyof SyncStorageData,
+  defaults: T[],
+  functionName: string,
+  logDetails: boolean
+): Promise<T[]> {
+  const existing = normalize ? normalize(raw) : ((raw as T[]) ?? []);
+
+  if (logDetails) {
+    await debugLog(functionName, "normalized existing", {
+      existing,
+      count: existing.length,
+    });
+  }
+
+  if (existing.length > 0) {
+    if (logDetails) {
+      await debugLog(functionName, "returning existing");
+    }
+    return existing;
+  }
+
+  if (logDetails) {
+    await debugLog(functionName, "saving defaults", { defaults });
+  }
+
+  await storageSyncSet({ [storageKey]: defaults });
+
+  if (logDetails) {
+    await debugLog(functionName, "returning defaults");
+  }
+
+  return defaults;
+}
+
+/**
+ * Handles storage initialization for patterns that only initialize if undefined.
+ * Used by textTemplates (empty array means user deleted all templates).
+ */
+async function initializeOnUndefinedPattern<T>(
+  raw: unknown,
+  storageKey: keyof SyncStorageData,
+  defaults: T[]
+): Promise<T[]> {
+  if (raw === undefined) {
+    await storageSyncSet({ [storageKey]: defaults });
+    return defaults;
+  }
+  return (raw as T[]) ?? defaults;
+}
+
+/**
+ * Generic helper to ensure storage is initialized with defaults.
+ * Handles the common pattern of checking storage, normalizing, and initializing defaults.
+ */
+async function ensureStorageInitialized<T>({
+  storageKey,
+  normalize,
+  defaults,
+  functionName,
+  initializeOnEmpty = true,
+  logDetails = false,
+}: EnsureStorageInitializedOptions<T>): Promise<T[]> {
+  try {
+    if (logDetails) {
+      await debugLog(functionName, "start");
+    }
+
+    const stored = (await storageSyncGet([storageKey])) as SyncStorageData;
+
+    if (logDetails) {
+      await debugLog(functionName, "stored data", { stored });
+    }
+
+    const raw = stored[storageKey];
+
+    if (initializeOnEmpty) {
+      return initializeOnEmptyPattern(
+        raw,
+        normalize,
+        storageKey,
+        defaults,
+        functionName,
+        logDetails
+      );
+    }
+
+    return initializeOnUndefinedPattern(raw, storageKey, defaults);
+  } catch (error) {
+    await debugLog(
+      functionName,
+      logDetails ? "error occurred" : "failed",
+      { error: formatErrorLog("", {}, error) },
+      "error"
+    );
+
+    if (logDetails) {
+      await debugLog(functionName, "returning defaults after error");
+    }
+
+    if (!logDetails) {
+      console.error(formatErrorLog(`${functionName} failed`, {}, error));
+    }
+
+    return defaults;
+  }
+}
+
+/**
  * Ensures context actions are initialized in storage.
  * If no actions exist, saves and returns default actions.
  *
  * @returns Promise resolving to context actions array
  */
-export async function ensureContextActionsInitialized(): Promise<
-  ContextAction[]
-> {
-  try {
-    const stored = (await storageSyncGet([
-      "contextActions",
-    ])) as SyncStorageData;
-    const existing = normalizeContextActions(stored.contextActions);
-    if (existing.length > 0) {
-      return existing;
-    }
-    await storageSyncSet({ contextActions: DEFAULT_CONTEXT_ACTIONS });
-    return DEFAULT_CONTEXT_ACTIONS;
-  } catch (error) {
-    await debugLog(
-      "ensureContextActionsInitialized",
-      "failed",
-      { error: formatErrorLog("", {}, error) },
-      "error"
-    );
-    console.error(
-      formatErrorLog("ensureContextActionsInitialized failed", {}, error)
-    );
-    // ストレージ読み込み失敗時もデフォルト値を返す
-    return DEFAULT_CONTEXT_ACTIONS;
-  }
+export function ensureContextActionsInitialized(): Promise<ContextAction[]> {
+  return ensureStorageInitialized({
+    storageKey: "contextActions",
+    normalize: normalizeContextActions,
+    defaults: DEFAULT_CONTEXT_ACTIONS,
+    functionName: "ensureContextActionsInitialized",
+    initializeOnEmpty: true,
+    logDetails: false,
+  });
 }
 
 /**
@@ -59,42 +168,15 @@ export async function ensureContextActionsInitialized(): Promise<
  *
  * @returns Promise resolving to search engines array
  */
-export async function ensureSearchEnginesInitialized(): Promise<
-  SearchEngine[]
-> {
-  try {
-    await debugLog("ensureSearchEnginesInitialized", "start");
-    const stored = (await storageSyncGet(["searchEngines"])) as SyncStorageData;
-    await debugLog("ensureSearchEnginesInitialized", "stored data", { stored });
-    const existing = normalizeSearchEngines(stored.searchEngines);
-    await debugLog("ensureSearchEnginesInitialized", "normalized existing", {
-      existing,
-      count: existing.length,
-    });
-    if (existing.length > 0) {
-      await debugLog("ensureSearchEnginesInitialized", "returning existing");
-      return existing;
-    }
-    await debugLog("ensureSearchEnginesInitialized", "saving defaults", {
-      defaults: DEFAULT_SEARCH_ENGINES,
-    });
-    await storageSyncSet({ searchEngines: DEFAULT_SEARCH_ENGINES });
-    await debugLog("ensureSearchEnginesInitialized", "returning defaults");
-    return DEFAULT_SEARCH_ENGINES;
-  } catch (error) {
-    await debugLog(
-      "ensureSearchEnginesInitialized",
-      "error occurred",
-      { error: formatErrorLog("", {}, error) },
-      "error"
-    );
-    // ストレージ読み込み失敗時もデフォルト値を返す
-    await debugLog(
-      "ensureSearchEnginesInitialized",
-      "returning defaults after error"
-    );
-    return DEFAULT_SEARCH_ENGINES;
-  }
+export function ensureSearchEnginesInitialized(): Promise<SearchEngine[]> {
+  return ensureStorageInitialized({
+    storageKey: "searchEngines",
+    normalize: normalizeSearchEngines,
+    defaults: DEFAULT_SEARCH_ENGINES,
+    functionName: "ensureSearchEnginesInitialized",
+    initializeOnEmpty: true,
+    logDetails: true,
+  });
 }
 
 /**
@@ -104,29 +186,14 @@ export async function ensureSearchEnginesInitialized(): Promise<
  *
  * @returns Promise resolving to text templates array
  */
-export async function ensureTextTemplatesInitialized(): Promise<
-  TextTemplate[]
-> {
-  try {
-    const stored = (await storageSyncGet(["textTemplates"])) as SyncStorageData;
-
-    // Only initialize defaults if textTemplates key is undefined
-    // An empty array [] means the user intentionally deleted all templates
-    if (stored.textTemplates === undefined) {
-      await storageSyncSet({ textTemplates: DEFAULT_TEXT_TEMPLATES });
-      return DEFAULT_TEXT_TEMPLATES;
-    }
-
-    return stored.textTemplates;
-  } catch (error) {
-    await debugLog(
-      "ensureTextTemplatesInitialized",
-      "failed",
-      { error: formatErrorLog("", {}, error) },
-      "error"
-    );
-    return DEFAULT_TEXT_TEMPLATES;
-  }
+export function ensureTextTemplatesInitialized(): Promise<TextTemplate[]> {
+  return ensureStorageInitialized({
+    storageKey: "textTemplates",
+    defaults: DEFAULT_TEXT_TEMPLATES,
+    functionName: "ensureTextTemplatesInitialized",
+    initializeOnEmpty: false,
+    logDetails: false,
+  });
 }
 
 /**
