@@ -1,7 +1,7 @@
-import { Result } from "@praha/byethrow";
 import { useCallback, useEffect, useState } from "react";
 import type { ContextAction, ContextActionKind } from "@/context_actions";
 import type { PopupRuntime } from "@/popup/runtime";
+import { persistWithRollback } from "@/popup/utils/persist";
 import type { Notifier } from "@/ui/toast";
 
 export function useActionEditor(params: {
@@ -96,18 +96,25 @@ export function useActionEditor(params: {
       ? params.actions.map((action) => (action.id === editorId ? next : action))
       : [...params.actions, next];
 
-    params.setActions(nextActions);
-    setEditorId(nextId);
-
-    const saved = await params.runtime.storageSyncSet({
-      contextActions: nextActions,
+    await persistWithRollback({
+      applyNext: () => {
+        params.setActions(nextActions);
+        setEditorId(nextId);
+      },
+      rollback: () => {
+        params.setActions(previous);
+      },
+      persist: () =>
+        params.runtime.storageSyncSet({
+          contextActions: nextActions,
+        }),
+      onSuccess: () => {
+        params.notify.success("保存しました");
+      },
+      onFailure: () => {
+        params.notify.error("保存に失敗しました");
+      },
     });
-    if (Result.isSuccess(saved)) {
-      params.notify.success("保存しました");
-      return;
-    }
-    params.setActions(previous);
-    params.notify.error("保存に失敗しました");
   };
 
   const deleteEditor = async (): Promise<void> => {
