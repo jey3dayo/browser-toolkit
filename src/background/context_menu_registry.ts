@@ -33,7 +33,6 @@ import {
   CONTEXT_MENU_SETTINGS_ID,
   CONTEXT_MENU_TEMPLATE_PREFIX,
   CONTEXT_MENU_TEMPLATE_ROOT_ID,
-  CONTEXT_MENU_TEMPLATE_SEPARATOR_ID,
 } from "@/background/context_menu_ids";
 import {
   ensureContextActionsInitialized,
@@ -198,6 +197,28 @@ export async function refreshContextMenus(): Promise<void> {
       contexts: ["page", "selection", "editable"],
     });
 
+    // Text templates section
+    const templates = await ensureTextTemplatesInitialized();
+    const visibleTemplates = templates.filter((template) => !template.hidden);
+
+    if (visibleTemplates.length > 0) {
+      await createMenuItem({
+        id: CONTEXT_MENU_TEMPLATE_ROOT_ID,
+        parentId: CONTEXT_MENU_ROOT_ID,
+        title: "テキストテンプレート",
+        contexts: ["page", "selection", "editable"],
+      });
+
+      for (const template of visibleTemplates) {
+        await createMenuItem({
+          id: `${CONTEXT_MENU_TEMPLATE_PREFIX}${template.id}`,
+          parentId: CONTEXT_MENU_TEMPLATE_ROOT_ID,
+          title: template.title,
+          contexts: ["page", "selection", "editable"],
+        });
+      }
+    }
+
     await createSeparator(
       CONTEXT_MENU_BUILTIN_SEPARATOR_ID,
       CONTEXT_MENU_ROOT_ID,
@@ -220,34 +241,6 @@ export async function refreshContextMenus(): Promise<void> {
       CONTEXT_MENU_ROOT_ID,
       ["page", "selection", "editable"]
     );
-
-    // Text templates section
-    const templates = await ensureTextTemplatesInitialized();
-    const visibleTemplates = templates.filter((template) => !template.hidden);
-
-    if (visibleTemplates.length > 0) {
-      await createMenuItem({
-        id: CONTEXT_MENU_TEMPLATE_ROOT_ID,
-        parentId: CONTEXT_MENU_ROOT_ID,
-        title: "テキストテンプレート",
-        contexts: ["page", "selection", "editable"],
-      });
-
-      for (const template of visibleTemplates) {
-        await createMenuItem({
-          id: `${CONTEXT_MENU_TEMPLATE_PREFIX}${template.id}`,
-          parentId: CONTEXT_MENU_TEMPLATE_ROOT_ID,
-          title: template.title,
-          contexts: ["page", "selection", "editable"],
-        });
-      }
-
-      await createSeparator(
-        CONTEXT_MENU_TEMPLATE_SEPARATOR_ID,
-        CONTEXT_MENU_ROOT_ID,
-        ["page", "selection", "editable"]
-      );
-    }
 
     // Settings menu
     await createMenuItem({
