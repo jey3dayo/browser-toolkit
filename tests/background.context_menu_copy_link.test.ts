@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { flush } from "./helpers/async";
 import { type ChromeStub, createChromeStub } from "./helpers/chromeStub";
 
 describe("background: context menu", () => {
@@ -16,8 +15,16 @@ describe("background: context menu", () => {
   });
 
   it("adds copy title/link item under root menu", async () => {
+    const registry = await import("@/background/context_menu_registry");
+    const scheduleSpy = vi.spyOn(registry, "scheduleRefreshContextMenus");
     await import("@/background.ts");
-    await flush(setTimeout, 10);
+    expect(scheduleSpy).toHaveBeenCalled();
+    const scheduled = scheduleSpy.mock.results[0]?.value as
+      | Promise<void>
+      | undefined;
+    if (scheduled) {
+      await scheduled;
+    }
 
     const created = chromeStub.contextMenus.create.mock.calls.map(
       (call) => call[0] as Record<string, unknown>
