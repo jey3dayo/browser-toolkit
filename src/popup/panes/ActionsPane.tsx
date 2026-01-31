@@ -144,7 +144,7 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
   ): Promise<void> => {
     await persistActionsUpdate(
       reorderedActions,
-      "",
+      "並び替えを保存しました",
       "並び替えの保存に失敗しました"
     );
   };

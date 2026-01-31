@@ -246,6 +246,9 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
         setTemplates(templates);
       },
       persist: () => saveTemplates(reorderedTemplates),
+      onSuccess: () => {
+        props.notify.success("並び替えを保存しました");
+      },
       onFailure: () => {
         props.notify.error("並び替えの保存に失敗しました");
       },

@@ -193,6 +193,9 @@ export function SearchEnginesPane(
         setEngines(engines);
       },
       persist: () => saveEngines(reorderedEngines),
+      onSuccess: () => {
+        props.notify.success("並び替えを保存しました");
+      },
       onFailure: () => {
         props.notify.error("並び替えの保存に失敗しました");
       },
