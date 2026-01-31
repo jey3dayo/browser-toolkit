@@ -4,6 +4,7 @@ import { Input } from "@base-ui/react/input";
 import { Switch } from "@base-ui/react/switch";
 import { Result } from "@praha/byethrow";
 import { useEffect, useState } from "react";
+import { SortableList } from "@/components/SortableList";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { persistWithRollback } from "@/popup/utils/persist";
 import {
@@ -234,6 +235,26 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
     });
   };
 
+  const handleReorder = async (
+    reorderedTemplates: TextTemplate[]
+  ): Promise<void> => {
+    await persistWithRollback({
+      applyNext: () => {
+        setTemplates(reorderedTemplates);
+      },
+      rollback: () => {
+        setTemplates(templates);
+      },
+      persist: () => saveTemplates(reorderedTemplates),
+      onSuccess: () => {
+        props.notify.success("並び替えを保存しました");
+      },
+      onFailure: () => {
+        props.notify.error("並び替えの保存に失敗しました");
+      },
+    });
+  };
+
   return (
     <div className="card card-stack">
       <div className="row-between">
@@ -320,9 +341,15 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
         )}
 
         {templates.length > 0 ? (
-          <ul aria-label="登録済みテンプレート" className="search-engines-list">
-            {templates.map((template) => (
-              <li className="search-engine-item" key={template.id}>
+          <SortableList
+            items={templates}
+            onReorder={(reordered) => {
+              handleReorder(reordered).catch(() => {
+                // no-op
+              });
+            }}
+            renderItem={(template) => (
+              <div className="search-engine-item">
                 <div className="search-engine-content">
                   <strong className="search-engine-name">
                     {template.title}
@@ -366,9 +393,9 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
                     削除
                   </Button>
                 </div>
-              </li>
-            ))}
-          </ul>
+              </div>
+            )}
+          />
         ) : (
           <p className="empty-message">テンプレートが登録されていません</p>
         )}

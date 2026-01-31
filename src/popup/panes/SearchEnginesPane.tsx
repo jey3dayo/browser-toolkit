@@ -4,6 +4,7 @@ import { Input } from "@base-ui/react/input";
 import { Switch } from "@base-ui/react/switch";
 import { Result } from "@praha/byethrow";
 import { useEffect, useState } from "react";
+import { SortableList } from "@/components/SortableList";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { persistWithRollback } from "@/popup/utils/persist";
 import {
@@ -181,6 +182,26 @@ export function SearchEnginesPane(
     });
   };
 
+  const handleReorder = async (
+    reorderedEngines: SearchEngine[]
+  ): Promise<void> => {
+    await persistWithRollback({
+      applyNext: () => {
+        setEngines(reorderedEngines);
+      },
+      rollback: () => {
+        setEngines(engines);
+      },
+      persist: () => saveEngines(reorderedEngines),
+      onSuccess: () => {
+        props.notify.success("並び替えを保存しました");
+      },
+      onFailure: () => {
+        props.notify.error("並び替えの保存に失敗しました");
+      },
+    });
+  };
+
   return (
     <div className="card card-stack">
       <div className="row-between">
@@ -247,9 +268,15 @@ export function SearchEnginesPane(
         </Form>
 
         {engines.length > 0 ? (
-          <ul aria-label="登録済み検索エンジン" className="search-engines-list">
-            {engines.map((engine) => (
-              <li className="search-engine-item" key={engine.id}>
+          <SortableList
+            items={engines}
+            onReorder={(reordered) => {
+              handleReorder(reordered).catch(() => {
+                // no-op
+              });
+            }}
+            renderItem={(engine) => (
+              <div className="search-engine-item">
                 <div className="search-engine-content">
                   <strong className="search-engine-name">{engine.name}</strong>
                   <code className="search-engine-url">
@@ -285,9 +312,9 @@ export function SearchEnginesPane(
                     </Button>
                   )}
                 </div>
-              </li>
-            ))}
-          </ul>
+              </div>
+            )}
+          />
         ) : (
           <p className="empty-message">検索エンジンが登録されていません</p>
         )}
