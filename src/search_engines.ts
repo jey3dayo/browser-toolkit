@@ -33,6 +33,25 @@ export const DEFAULT_SEARCH_ENGINES: SearchEngine[] = [
     urlTemplate: "https://shopping.yahoo.co.jp/search?p={query}",
     enabled: true,
   },
+  {
+    id: "builtin:yodobashi",
+    name: "ヨドバシ",
+    urlTemplate: "https://www.yodobashi.com/?word={query}",
+    enabled: true,
+  },
+  {
+    id: "builtin:x-twitter",
+    name: "X（日本語）",
+    urlTemplate:
+      "https://x.com/search?q={query}%20lang%3Aja&f=live&src=typed_query",
+    enabled: true,
+  },
+  {
+    id: "builtin:biccamera",
+    name: "ビックカメラ",
+    urlTemplate: "https://www.biccamera.com/bc/category/?q={query}",
+    enabled: true,
+  },
 ];
 
 export const MAX_SEARCH_ENGINES = 10;
