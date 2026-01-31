@@ -16,6 +16,13 @@ export const DEFAULT_SEARCH_ENGINES: SearchEngine[] = [
     enabled: true,
   },
   {
+    id: "builtin:x-twitter",
+    name: "X（日本語）",
+    urlTemplate:
+      "https://x.com/search?q={query}%20lang%3Aja&f=live&src=typed_query",
+    enabled: true,
+  },
+  {
     id: "builtin:amazon-jp",
     name: "Amazon",
     urlTemplate: "https://www.amazon.co.jp/s?k={query}",
@@ -37,13 +44,6 @@ export const DEFAULT_SEARCH_ENGINES: SearchEngine[] = [
     id: "builtin:yodobashi",
     name: "ヨドバシ",
     urlTemplate: "https://www.yodobashi.com/?word={query}",
-    enabled: true,
-  },
-  {
-    id: "builtin:x-twitter",
-    name: "X（日本語）",
-    urlTemplate:
-      "https://x.com/search?q={query}%20lang%3Aja&f=live&src=typed_query",
     enabled: true,
   },
   {
