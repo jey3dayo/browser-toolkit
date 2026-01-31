@@ -182,6 +182,28 @@ export async function refreshContextMenus(): Promise<void> {
       );
     }
 
+    // Text templates section
+    const templates = await ensureTextTemplatesInitialized();
+    const visibleTemplates = templates.filter((template) => !template.hidden);
+
+    if (visibleTemplates.length > 0) {
+      await createMenuItem({
+        id: CONTEXT_MENU_TEMPLATE_ROOT_ID,
+        parentId: CONTEXT_MENU_ROOT_ID,
+        title: "テンプレートを貼り付け",
+        contexts: ["page", "selection", "editable"],
+      });
+
+      for (const template of visibleTemplates) {
+        await createMenuItem({
+          id: `${CONTEXT_MENU_TEMPLATE_PREFIX}${template.id}`,
+          parentId: CONTEXT_MENU_TEMPLATE_ROOT_ID,
+          title: template.title,
+          contexts: ["page", "selection", "editable"],
+        });
+      }
+    }
+
     // Built-in actions
     await createMenuItem({
       id: CONTEXT_MENU_COPY_TITLE_LINK_ID,
@@ -196,28 +218,6 @@ export async function refreshContextMenus(): Promise<void> {
       title: "カレンダー登録",
       contexts: ["page", "selection", "editable"],
     });
-
-    // Text templates section
-    const templates = await ensureTextTemplatesInitialized();
-    const visibleTemplates = templates.filter((template) => !template.hidden);
-
-    if (visibleTemplates.length > 0) {
-      await createMenuItem({
-        id: CONTEXT_MENU_TEMPLATE_ROOT_ID,
-        parentId: CONTEXT_MENU_ROOT_ID,
-        title: "テキストテンプレート",
-        contexts: ["page", "selection", "editable"],
-      });
-
-      for (const template of visibleTemplates) {
-        await createMenuItem({
-          id: `${CONTEXT_MENU_TEMPLATE_PREFIX}${template.id}`,
-          parentId: CONTEXT_MENU_TEMPLATE_ROOT_ID,
-          title: template.title,
-          contexts: ["page", "selection", "editable"],
-        });
-      }
-    }
 
     await createSeparator(
       CONTEXT_MENU_BUILTIN_SEPARATOR_ID,
