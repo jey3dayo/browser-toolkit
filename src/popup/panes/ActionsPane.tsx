@@ -1,5 +1,6 @@
 import { Result } from "@praha/byethrow";
 import { useEffect, useMemo, useState } from "react";
+import { SortableList } from "@/components/SortableList";
 import {
   type ContextAction,
   DEFAULT_CONTEXT_ACTIONS,
@@ -138,6 +139,16 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
     );
   };
 
+  const handleReorder = async (
+    reorderedActions: ContextAction[]
+  ): Promise<void> => {
+    await persistActionsUpdate(
+      reorderedActions,
+      "",
+      "並び替えの保存に失敗しました"
+    );
+  };
+
   return (
     <div className="card card-stack">
       <div className="row-between">
@@ -216,6 +227,34 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
           selectActionForEdit(nextId);
         }}
       />
+
+      <section className="editor-panel">
+        <h3 className="editor-title">並び順編集</h3>
+        <div className="hint">
+          ドラッグ&ドロップで並び替えできます。右クリックメニューの順序に反映されます。
+        </div>
+        {actions.length > 0 ? (
+          <SortableList
+            items={actions}
+            onReorder={(reordered) => {
+              handleReorder(reordered).catch(() => {
+                // no-op
+              });
+            }}
+            renderItem={(action) => (
+              <div className="action-item">
+                <span className="action-title">{action.title}</span>
+                <span className="action-kind-badge">
+                  {action.kind === "text" && "テキスト"}
+                  {action.kind === "event" && "イベント"}
+                </span>
+              </div>
+            )}
+          />
+        ) : (
+          <p className="empty-message">アクションがありません</p>
+        )}
+      </section>
     </div>
   );
 }
