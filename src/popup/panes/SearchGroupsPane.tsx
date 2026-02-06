@@ -172,9 +172,14 @@ export function SearchGroupsPane(
       return;
     }
 
-    const nextEngineIds = isIncluded
-      ? [...group.engineIds, engineId]
-      : group.engineIds.filter((id) => id !== engineId);
+    let nextEngineIds: string[];
+    if (isIncluded) {
+      nextEngineIds = group.engineIds.includes(engineId)
+        ? group.engineIds
+        : [...group.engineIds, engineId];
+    } else {
+      nextEngineIds = group.engineIds.filter((id) => id !== engineId);
+    }
 
     const next = groups.map((g) =>
       g.id === groupId ? { ...g, engineIds: nextEngineIds } : g
@@ -351,12 +356,7 @@ export function SearchGroupsPane(
             className="btn btn-ghost btn-small"
             data-testid="add-search-group"
             disabled={engines.length === 0}
-            onClick={() => {
-              addNewGroup().catch(() => {
-                // no-op
-              });
-            }}
-            type="button"
+            type="submit"
           >
             追加
           </Button>
