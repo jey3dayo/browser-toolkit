@@ -101,7 +101,9 @@ describe("popup Table Sort pane", () => {
   });
 
   it("adds and removes URL patterns in sync storage", async () => {
-    expect(dom.window.document.body.textContent).toContain("example.com/foo*");
+    const pane = dom.window.document.querySelector('[data-pane="pane-table"]');
+    expect(pane).not.toBeNull();
+    expect(pane?.textContent ?? "").toContain("example.com/foo*");
 
     const input = dom.window.document.querySelector<HTMLInputElement>(
       '[data-testid="pattern-input"]'
@@ -152,7 +154,9 @@ describe("popup Table Sort pane", () => {
   });
 
   it("toggles row filter per pattern", async () => {
-    expect(dom.window.document.body.textContent).toContain("example.com/foo*");
+    const pane = dom.window.document.querySelector('[data-pane="pane-table"]');
+    expect(pane).not.toBeNull();
+    expect(pane?.textContent ?? "").toContain("example.com/foo*");
 
     const filterToggle = dom.window.document.querySelector<HTMLButtonElement>(
       '[data-testid="row-filter-example.com/foo*"]'
