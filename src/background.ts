@@ -31,6 +31,7 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
     !(
       "contextActions" in changes ||
       "searchEngines" in changes ||
+      "searchEngineGroups" in changes ||
       "textTemplates" in changes
     )
   ) {

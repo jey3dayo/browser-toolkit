@@ -4,6 +4,7 @@
  */
 
 import {
+  ensureSearchEngineGroupsInitialized,
   ensureSearchEnginesInitialized,
   ensureTextTemplatesInitialized,
 } from "@/background/context_menu_storage";
@@ -49,6 +50,70 @@ export async function handleSearchEngineClick(
       // no-op
     });
   });
+}
+
+/**
+ * Handles batch search context menu click.
+ * Opens multiple tabs for all enabled engines in the group.
+ *
+ * @param groupId - Search engine group ID
+ * @param info - Context menu click data
+ */
+export async function handleBatchSearchClick(
+  groupId: string,
+  info: chrome.contextMenus.OnClickData
+): Promise<void> {
+  const selectionText = info.selectionText;
+  if (!selectionText) {
+    return;
+  }
+
+  const [groups, engines] = await Promise.all([
+    ensureSearchEngineGroupsInitialized(),
+    ensureSearchEnginesInitialized(),
+  ]);
+
+  const group = groups.find((g) => g.id === groupId);
+  if (!group?.enabled) {
+    return;
+  }
+
+  // Filter to enabled engines that exist in the group
+  const enabledEngines = group.engineIds
+    .map((engineId) => engines.find((e) => e.id === engineId))
+    .filter((e): e is NonNullable<typeof e> => e?.enabled ?? false);
+
+  if (enabledEngines.length === 0) {
+    return;
+  }
+
+  // Open all tabs in parallel
+  const results = await Promise.allSettled(
+    enabledEngines.map((engine) => {
+      const searchUrl = buildSearchUrl(engine.urlTemplate, selectionText);
+      return chrome.tabs.create({ url: searchUrl });
+    })
+  );
+
+  // Log any failures
+  const failures = results.filter(
+    (r): r is PromiseRejectedResult => r.status === "rejected"
+  );
+  if (failures.length > 0) {
+    debugLog(
+      "handleBatchSearchClick",
+      "Some tabs failed to open",
+      {
+        groupId,
+        selectionText,
+        totalEngines: enabledEngines.length,
+        failures: failures.map((f) => formatErrorLog("", {}, f.reason)),
+      },
+      "error"
+    ).catch(() => {
+      // no-op
+    });
+  }
 }
 
 /**

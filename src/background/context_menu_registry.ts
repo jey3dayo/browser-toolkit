@@ -17,11 +17,14 @@ import {
 } from "@/background/context_menu_builder";
 import { handleCopyTitleLinkContextMenuClick } from "@/background/context_menu_copy";
 import {
+  handleBatchSearchClick,
   handleSearchEngineClick,
   handleTemplateClick,
 } from "@/background/context_menu_handlers";
 import {
   CONTEXT_MENU_ACTION_PREFIX,
+  CONTEXT_MENU_BATCH_SEARCH_PARENT_ID,
+  CONTEXT_MENU_BATCH_SEARCH_PREFIX,
   CONTEXT_MENU_BUILTIN_SEPARATOR_ID,
   CONTEXT_MENU_CALENDAR_ID,
   CONTEXT_MENU_COPY_TITLE_LINK_ID,
@@ -36,6 +39,7 @@ import {
 } from "@/background/context_menu_ids";
 import {
   ensureContextActionsInitialized,
+  ensureSearchEngineGroupsInitialized,
   ensureSearchEnginesInitialized,
   ensureTextTemplatesInitialized,
 } from "@/background/context_menu_storage";
@@ -90,6 +94,16 @@ export function registerContextMenuHandlers(): void {
       if (menuItemId.startsWith(CONTEXT_MENU_SEARCH_PREFIX)) {
         const engineId = menuItemId.slice(CONTEXT_MENU_SEARCH_PREFIX.length);
         handleSearchEngineClick(engineId, info).catch(() => {
+          // no-op
+        });
+        return;
+      }
+
+      if (menuItemId.startsWith(CONTEXT_MENU_BATCH_SEARCH_PREFIX)) {
+        const groupId = menuItemId.slice(
+          CONTEXT_MENU_BATCH_SEARCH_PREFIX.length
+        );
+        handleBatchSearchClick(groupId, info).catch(() => {
           // no-op
         });
         return;
@@ -173,6 +187,35 @@ export async function refreshContextMenus(): Promise<void> {
           title: engine.name,
           contexts: ["selection"],
         });
+      }
+
+      // Batch search groups section
+      const groups = await ensureSearchEngineGroupsInitialized();
+      const enabledGroups = groups.filter((group) => group.enabled);
+
+      if (enabledGroups.length > 0) {
+        await debugLog(
+          "refreshContextMenus",
+          "creating batch search parent menu"
+        );
+        await createMenuItem({
+          id: CONTEXT_MENU_BATCH_SEARCH_PARENT_ID,
+          parentId: CONTEXT_MENU_ROOT_ID,
+          title: "まとめて検索",
+          contexts: ["selection"],
+        });
+
+        for (const group of enabledGroups) {
+          await debugLog("refreshContextMenus", "creating batch search menu", {
+            group,
+          });
+          await createMenuItem({
+            id: `${CONTEXT_MENU_BATCH_SEARCH_PREFIX}${group.id}`,
+            parentId: CONTEXT_MENU_BATCH_SEARCH_PARENT_ID,
+            title: group.name,
+            contexts: ["selection"],
+          });
+        }
       }
 
       await createSeparator(
