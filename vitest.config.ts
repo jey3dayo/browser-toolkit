@@ -7,8 +7,8 @@ import type { Plugin } from "vite";
 import { defineConfig } from "vitest/config";
 
 const dirname =
-  typeof __dirname !== "undefined"
-    ? __dirname
+  typeof import.meta.dirname !== "undefined"
+    ? import.meta.dirname
     : path.dirname(fileURLToPath(import.meta.url));
 const alias = { "@": path.join(dirname, "src") };
 
