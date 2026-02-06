@@ -201,6 +201,11 @@ export function SearchGroupsPane(
       return;
     }
 
+    if (engines.length === 0) {
+      props.notify.error("検索エンジンが読み込まれていません");
+      return;
+    }
+
     if (groups.some((g) => g.name === name)) {
       props.notify.info("既に同じ名前のグループが存在します");
       return;
@@ -212,11 +217,10 @@ export function SearchGroupsPane(
     }
 
     // デフォルトで最初のエンジンのみON
-    const firstEngineId = engines[0]?.id;
     const newGroup: SearchEngineGroup = {
       id: generateGroupId(name),
       name,
-      engineIds: firstEngineId ? [firstEngineId] : [],
+      engineIds: [engines[0].id],
       enabled: true,
     };
 
@@ -346,6 +350,7 @@ export function SearchGroupsPane(
           <Button
             className="btn btn-ghost btn-small"
             data-testid="add-search-group"
+            disabled={engines.length === 0}
             onClick={() => {
               addNewGroup().catch(() => {
                 // no-op
