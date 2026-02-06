@@ -47,7 +47,7 @@ describe("content overlay (React + Shadow DOM)", () => {
   let listeners: Array<(...args: unknown[]) => unknown>;
   let chromeStub: ChromeStub;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.resetModules();
     (
       globalThis as unknown as { __MBU_CONTENT_STATE__?: unknown }
@@ -70,6 +70,8 @@ describe("content overlay (React + Shadow DOM)", () => {
     vi.stubGlobal("document", dom.window.document);
     vi.stubGlobal("navigator", dom.window.navigator);
     vi.stubGlobal("chrome", chromeStub);
+
+    await import("@/content/overlay-helpers");
   });
 
   afterEach(() => {

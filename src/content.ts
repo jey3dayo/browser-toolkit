@@ -9,20 +9,11 @@ import {
   createMessageListener,
   type MessageHandlerDeps,
 } from "@/content/message-handlers";
-import {
-  ensureToastMount,
-  showNotification as showNotificationCore,
-  type ToastMount,
-} from "@/content/notification";
-import {
-  type ActionOverlayRequest,
-  closeOverlay,
-  ensureOverlayMount,
-  type OverlayMount,
-  resetSummarizeOverlayTitleState,
-  type SummaryOverlayRequest,
-  showActionOverlay as showActionOverlayCore,
-  showSummaryOverlay as showSummaryOverlayCore,
+import type { ToastMount } from "@/content/notification";
+import type {
+  ActionOverlayRequest,
+  OverlayMount,
+  SummaryOverlayRequest,
 } from "@/content/overlay-helpers";
 import {
   startTableObserver,
@@ -36,6 +27,37 @@ import { applyTheme, isTheme, type Theme } from "@/ui/theme";
 import { parseNumericValue } from "@/utils/number_parser";
 
 (() => {
+  const supportsHtmlDocument = (() => {
+    if (typeof document === "undefined") {
+      return false;
+    }
+    const doc = document;
+    const rootTag = doc.documentElement?.tagName?.toLowerCase();
+    if (rootTag && rootTag !== "html") {
+      return false;
+    }
+    const contentType = doc.contentType?.toLowerCase() ?? "";
+    if (
+      contentType &&
+      contentType !== "text/html" &&
+      contentType !== "application/xhtml+xml"
+    ) {
+      return false;
+    }
+    try {
+      return Boolean(doc.createElement("div").style);
+    } catch {
+      return false;
+    }
+  })();
+
+  if (!supportsHtmlDocument) {
+    return;
+  }
+
+  type NotificationModule = typeof import("./content/notification");
+  type OverlayModule = typeof import("./content/overlay-helpers");
+
   type GlobalContentState = {
     initialized: boolean;
     overlayMount: OverlayMount | null;
@@ -55,6 +77,49 @@ import { parseNumericValue } from "@/utils/number_parser";
   const globalState = globalContainer.__MBU_CONTENT_STATE__;
 
   let currentTheme: Theme = "auto";
+  let notificationModule: NotificationModule | null = null;
+  let notificationModulePromise: Promise<NotificationModule> | null = null;
+  let overlayModule: OverlayModule | null = null;
+  let overlayModulePromise: Promise<OverlayModule> | null = null;
+
+  function unwrapModule<T>(module: T | { default: T }): T {
+    if (module && typeof module === "object" && "default" in module) {
+      return (module as { default: T }).default;
+    }
+    return module as T;
+  }
+
+  async function loadNotificationModule(): Promise<NotificationModule | null> {
+    if (notificationModule) {
+      return notificationModule;
+    }
+    if (!notificationModulePromise) {
+      notificationModulePromise = import("./content/notification");
+    }
+    try {
+      notificationModule = unwrapModule(await notificationModulePromise);
+      return notificationModule;
+    } catch (_error) {
+      notificationModulePromise = null;
+      return null;
+    }
+  }
+
+  async function loadOverlayModule(): Promise<OverlayModule | null> {
+    if (overlayModule) {
+      return overlayModule;
+    }
+    if (!overlayModulePromise) {
+      overlayModulePromise = import("./content/overlay-helpers");
+    }
+    try {
+      overlayModule = unwrapModule(await overlayModulePromise);
+      return overlayModule;
+    } catch (_error) {
+      overlayModulePromise = null;
+      return null;
+    }
+  }
 
   function normalizeTheme(value: unknown): Theme {
     return isTheme(value) ? value : "auto";
@@ -100,6 +165,13 @@ import { parseNumericValue } from "@/utils/number_parser";
   }
 
   // 2回目以降の初期化では副作用を追加しない（idempotent）
+  loadNotificationModule().catch(() => {
+    // no-op
+  });
+  loadOverlayModule().catch(() => {
+    // no-op
+  });
+
   if (globalState.initialized) {
     return;
   }
@@ -139,18 +211,33 @@ import { parseNumericValue } from "@/utils/number_parser";
   // 4. 通知・クリップボード（モジュール化済み）
   // ========================================
 
-  function getOrCreateToastMount(): ToastMount {
+  async function getOrCreateToastMount(): Promise<ToastMount | null> {
+    const module = await loadNotificationModule();
+    if (!module) {
+      return null;
+    }
     if (globalState.toastMount?.host.isConnected) {
       return globalState.toastMount;
     }
-    const mount = ensureToastMount(currentTheme);
+    const mount = module.ensureToastMount(currentTheme);
     globalState.toastMount = mount;
     return mount;
   }
 
   function showNotification(message: string): void {
-    const mount = getOrCreateToastMount();
-    showNotificationCore(mount.notify, message);
+    (async () => {
+      const module = await loadNotificationModule();
+      if (!module) {
+        return;
+      }
+      const mount = await getOrCreateToastMount();
+      if (!mount) {
+        return;
+      }
+      module.showNotification(mount.notify, message);
+    })().catch(() => {
+      // no-op
+    });
   }
 
   // ========================================
@@ -177,28 +264,62 @@ import { parseNumericValue } from "@/utils/number_parser";
   // 6. Overlay (React + Shadow DOM)（モジュール化済み）
   // ========================================
 
-  function getOrCreateOverlayMount(): OverlayMount {
+  async function getOrCreateOverlayMount(): Promise<OverlayMount | null> {
+    const module = await loadOverlayModule();
+    if (!module) {
+      return null;
+    }
     if (globalState.overlayMount?.host.isConnected) {
       return globalState.overlayMount;
     }
-    const mount = ensureOverlayMount(currentTheme);
+    const mount = module.ensureOverlayMount(currentTheme);
     globalState.overlayMount = mount;
     return mount;
   }
 
   function handleCloseOverlay(): void {
-    closeOverlay(globalState.overlayMount);
-    globalState.overlayMount = null;
+    (async () => {
+      const module = await loadOverlayModule();
+      if (!module) {
+        return;
+      }
+      module.closeOverlay(globalState.overlayMount);
+      globalState.overlayMount = null;
+    })().catch(() => {
+      // no-op
+    });
   }
 
   function showActionOverlay(request: ActionOverlayRequest): void {
-    const mount = getOrCreateOverlayMount();
-    showActionOverlayCore(mount, request, handleCloseOverlay);
+    (async () => {
+      const module = await loadOverlayModule();
+      if (!module) {
+        return;
+      }
+      const mount = await getOrCreateOverlayMount();
+      if (!mount) {
+        return;
+      }
+      module.showActionOverlay(mount, request, handleCloseOverlay);
+    })().catch(() => {
+      // no-op
+    });
   }
 
   function showSummaryOverlay(request: SummaryOverlayRequest): void {
-    const mount = getOrCreateOverlayMount();
-    showSummaryOverlayCore(mount, request, handleCloseOverlay);
+    (async () => {
+      const module = await loadOverlayModule();
+      if (!module) {
+        return;
+      }
+      const mount = await getOrCreateOverlayMount();
+      if (!mount) {
+        return;
+      }
+      module.showSummaryOverlay(mount, request, handleCloseOverlay);
+    })().catch(() => {
+      // no-op
+    });
   }
 
   // ========================================
@@ -259,7 +380,15 @@ import { parseNumericValue } from "@/utils/number_parser";
     changes: Record<string, chrome.storage.StorageChange>
   ): void {
     if ("contextActions" in changes) {
-      resetSummarizeOverlayTitleState();
+      (async () => {
+        const module = await loadOverlayModule();
+        if (!module) {
+          return;
+        }
+        module.resetSummarizeOverlayTitleState();
+      })().catch(() => {
+        // no-op
+      });
     }
 
     const hasTableConfigChange =
