@@ -10,6 +10,7 @@ import { CalendarPane } from "@/popup/panes/CalendarPane";
 import { CreateLinkPane } from "@/popup/panes/CreateLinkPane";
 import { DebugPane } from "@/popup/panes/DebugPane";
 import { SearchEnginesPane } from "@/popup/panes/SearchEnginesPane";
+import { SearchGroupsPane } from "@/popup/panes/SearchGroupsPane";
 import { SettingsPane } from "@/popup/panes/SettingsPane";
 import { TablePane } from "@/popup/panes/TablePane";
 import { TemplatesPane } from "@/popup/panes/TemplatesPane";
@@ -160,6 +161,15 @@ export function PopupApp(): React.JSX.Element {
               value="pane-search-engines"
             >
               <SearchEnginesPane
+                notify={notifications.notify}
+                runtime={runtime}
+              />
+            </Tabs.Panel>
+            <Tabs.Panel
+              data-pane="pane-search-groups"
+              value="pane-search-groups"
+            >
+              <SearchGroupsPane
                 notify={notifications.notify}
                 runtime={runtime}
               />

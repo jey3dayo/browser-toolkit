@@ -40,6 +40,12 @@ export const navigationItems: NavigationItem[] = [
     ariaLabel: "検索エンジン",
   },
   {
+    id: "pane-search-groups",
+    label: "まとめて検索",
+    icon: "layers",
+    ariaLabel: "まとめて検索",
+  },
+  {
     id: "pane-templates",
     label: "テンプレート",
     icon: "file-text",

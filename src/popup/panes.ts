@@ -4,6 +4,7 @@ export const PANE_IDS = [
   "pane-table",
   "pane-create-link",
   "pane-search-engines",
+  "pane-search-groups",
   "pane-templates",
   "pane-debug",
   "pane-settings",
