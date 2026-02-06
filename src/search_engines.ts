@@ -23,6 +23,12 @@ export const DEFAULT_SEARCH_ENGINES: SearchEngine[] = [
     enabled: true,
   },
   {
+    id: "builtin:youtube",
+    name: "YouTube",
+    urlTemplate: "https://www.youtube.com/results?search_query={query}",
+    enabled: true,
+  },
+  {
     id: "builtin:amazon-jp",
     name: "Amazon",
     urlTemplate: "https://www.amazon.co.jp/s?k={query}",
