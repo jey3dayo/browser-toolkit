@@ -1,10 +1,9 @@
 import { Button } from "@base-ui/react/button";
-import { Checkbox } from "@base-ui/react/checkbox";
-import { Dialog } from "@base-ui/react/dialog";
 import { Form } from "@base-ui/react/form";
 import { Input } from "@base-ui/react/input";
 import { Switch } from "@base-ui/react/switch";
 import { Result } from "@praha/byethrow";
+import { ChevronDown, ChevronRight, Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
 import { SortableList } from "@/components/SortableList";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
@@ -26,19 +25,17 @@ import { formatErrorLog } from "@/utils/errors";
 
 export type SearchGroupsPaneProps = PopupPaneBaseProps;
 
-type DialogMode = "none" | "create" | "edit";
-
 export function SearchGroupsPane(
   props: SearchGroupsPaneProps
 ): React.JSX.Element {
   const [groups, setGroups] = useState<SearchEngineGroup[]>([]);
   const [engines, setEngines] = useState<SearchEngine[]>([]);
-  const [dialogMode, setDialogMode] = useState<DialogMode>("none");
-  const [editingGroup, setEditingGroup] = useState<SearchEngineGroup | null>(
+  const [expandedGroupId, setExpandedGroupId] = useState<string | null>(null);
+  const [editingNameGroupId, setEditingNameGroupId] = useState<string | null>(
     null
   );
-  const [nameInput, setNameInput] = useState("");
-  const [selectedEngineIds, setSelectedEngineIds] = useState<string[]>([]);
+  const [editingNameValue, setEditingNameValue] = useState("");
+  const [newGroupNameInput, setNewGroupNameInput] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -116,115 +113,140 @@ export function SearchGroupsPane(
     });
   };
 
-  const openCreateDialog = (): void => {
-    setDialogMode("create");
-    setEditingGroup(null);
-    setNameInput("");
-    setSelectedEngineIds([]);
+  const toggleGroupExpand = (groupId: string): void => {
+    setExpandedGroupId((prev) => (prev === groupId ? null : groupId));
   };
 
-  const openEditDialog = (group: SearchEngineGroup): void => {
-    setDialogMode("edit");
-    setEditingGroup(group);
-    setNameInput(group.name);
-    setSelectedEngineIds([...group.engineIds]);
+  const startEditingGroupName = (group: SearchEngineGroup): void => {
+    setEditingNameGroupId(group.id);
+    setEditingNameValue(group.name);
   };
 
-  const closeDialog = (): void => {
-    setDialogMode("none");
-    setEditingGroup(null);
-    setNameInput("");
-    setSelectedEngineIds([]);
+  const cancelEditingGroupName = (): void => {
+    setEditingNameGroupId(null);
+    setEditingNameValue("");
   };
 
-  const toggleEngineSelection = (engineId: string): void => {
-    setSelectedEngineIds((prev) =>
-      prev.includes(engineId)
-        ? prev.filter((id) => id !== engineId)
-        : [...prev, engineId]
-    );
-  };
-
-  const saveGroup = async (): Promise<void> => {
-    const name = nameInput.trim();
+  const saveGroupName = async (groupId: string): Promise<void> => {
+    const name = editingNameValue.trim();
 
     if (!name) {
       props.notify.error("グループ名を入力してください");
       return;
     }
 
-    if (selectedEngineIds.length === 0) {
-      props.notify.error("少なくとも1つの検索エンジンを選択してください");
+    if (groups.some((g) => g.name === name && g.id !== groupId)) {
+      props.notify.info("既に同じ名前のグループが存在します");
       return;
     }
 
-    if (dialogMode === "create") {
-      // 新規作成
-      if (groups.some((g) => g.name === name)) {
-        props.notify.info("既に同じ名前のグループが存在します");
-        return;
-      }
+    const next = groups.map((g) => (g.id === groupId ? { ...g, name } : g));
+    await persistWithRollback({
+      applyNext: () => {
+        setGroups(next);
+        cancelEditingGroupName();
+      },
+      rollback: () => {
+        setGroups(groups);
+      },
+      persist: () => saveGroups(next),
+      onFailure: () => {
+        props.notify.error("更新に失敗しました");
+      },
+    });
+  };
 
-      if (groups.length >= MAX_SEARCH_ENGINE_GROUPS) {
-        props.notify.error(
-          `グループは最大${MAX_SEARCH_ENGINE_GROUPS}個までです`
-        );
-        return;
-      }
-
-      const newGroup: SearchEngineGroup = {
-        id: generateGroupId(name),
-        name,
-        engineIds: selectedEngineIds,
-        enabled: true,
-      };
-
-      const next = [...groups, newGroup];
-      await persistWithRollback({
-        applyNext: () => {
-          setGroups(next);
-          closeDialog();
-        },
-        rollback: () => {
-          setGroups(groups);
-        },
-        persist: () => saveGroups(next),
-        onSuccess: () => {
-          props.notify.success("追加しました");
-        },
-        onFailure: () => {
-          props.notify.error("追加に失敗しました");
-        },
-      });
-    } else if (dialogMode === "edit" && editingGroup) {
-      // 編集
-      if (groups.some((g) => g.name === name && g.id !== editingGroup.id)) {
-        props.notify.info("既に同じ名前のグループが存在します");
-        return;
-      }
-
-      const next = groups.map((g) =>
-        g.id === editingGroup.id
-          ? { ...g, name, engineIds: selectedEngineIds }
-          : g
-      );
-      await persistWithRollback({
-        applyNext: () => {
-          setGroups(next);
-          closeDialog();
-        },
-        rollback: () => {
-          setGroups(groups);
-        },
-        persist: () => saveGroups(next),
-        onSuccess: () => {
-          props.notify.success("更新しました");
-        },
-        onFailure: () => {
-          props.notify.error("更新に失敗しました");
-        },
-      });
+  const toggleEngineInGroup = async (
+    groupId: string,
+    engineId: string,
+    isIncluded: boolean
+  ): Promise<void> => {
+    const group = groups.find((g) => g.id === groupId);
+    if (!group) {
+      return;
     }
+
+    // OFFにしようとした時、最後の1つなら防ぐ
+    if (!isIncluded && group.engineIds.length <= 1) {
+      props.notify.error("少なくとも1つの検索エンジンが必要です");
+      return;
+    }
+
+    let nextEngineIds: string[];
+    if (isIncluded) {
+      nextEngineIds = group.engineIds.includes(engineId)
+        ? group.engineIds
+        : [...group.engineIds, engineId];
+    } else {
+      nextEngineIds = group.engineIds.filter((id) => id !== engineId);
+    }
+
+    const next = groups.map((g) =>
+      g.id === groupId ? { ...g, engineIds: nextEngineIds } : g
+    );
+    await persistWithRollback({
+      applyNext: () => {
+        setGroups(next);
+      },
+      rollback: () => {
+        setGroups(groups);
+      },
+      persist: () => saveGroups(next),
+      onFailure: () => {
+        props.notify.error("保存に失敗しました");
+      },
+    });
+  };
+
+  const addNewGroup = async (): Promise<void> => {
+    const name = newGroupNameInput.trim();
+
+    if (!name) {
+      props.notify.error("グループ名を入力してください");
+      return;
+    }
+
+    if (engines.length === 0) {
+      props.notify.error("検索エンジンが読み込まれていません");
+      return;
+    }
+
+    if (groups.some((g) => g.name === name)) {
+      props.notify.info("既に同じ名前のグループが存在します");
+      return;
+    }
+
+    if (groups.length >= MAX_SEARCH_ENGINE_GROUPS) {
+      props.notify.error(`グループは最大${MAX_SEARCH_ENGINE_GROUPS}個までです`);
+      return;
+    }
+
+    // デフォルトで最初のエンジンのみON
+    const newGroup: SearchEngineGroup = {
+      id: generateGroupId(name),
+      name,
+      engineIds: [engines[0].id],
+      enabled: true,
+    };
+
+    const next = [...groups, newGroup];
+    await persistWithRollback({
+      applyNext: () => {
+        setGroups(next);
+        setNewGroupNameInput("");
+        setExpandedGroupId(newGroup.id);
+      },
+      rollback: () => {
+        setGroups(groups);
+      },
+      persist: () => saveGroups(next),
+      onSuccess: () => {
+        props.notify.success("追加しました");
+      },
+      onFailure: () => {
+        props.notify.error("追加に失敗しました");
+      },
+    });
   };
 
   const removeGroup = async (groupId: string): Promise<void> => {
@@ -232,6 +254,9 @@ export function SearchGroupsPane(
     await persistWithRollback({
       applyNext: () => {
         setGroups(next);
+        if (expandedGroupId === groupId) {
+          setExpandedGroupId(null);
+        }
       },
       rollback: () => {
         setGroups(groups);
@@ -250,6 +275,8 @@ export function SearchGroupsPane(
     await persistWithRollback({
       applyNext: () => {
         setGroups(DEFAULT_SEARCH_ENGINE_GROUPS);
+        setExpandedGroupId(null);
+        cancelEditingGroupName();
       },
       rollback: () => {
         setGroups(groups);
@@ -285,63 +312,146 @@ export function SearchGroupsPane(
   };
 
   return (
-    <>
-      <div className="card card-stack">
-        <div className="row-between">
-          <h2 className="pane-title">まとめて検索</h2>
-          <div className="row-gap">
-            <Button
-              className="btn btn-ghost btn-small"
-              data-testid="reset-search-groups"
-              onClick={() => {
-                resetToDefaults().catch(() => {
-                  // no-op
-                });
-              }}
-              type="button"
-            >
-              デフォルトに戻す
-            </Button>
-            <Button
-              className="btn btn-primary btn-small"
-              data-testid="add-search-group"
-              onClick={openCreateDialog}
-              type="button"
-            >
-              グループを追加
-            </Button>
-          </div>
+    <div className="card card-stack">
+      <div className="row-between">
+        <h2 className="pane-title">まとめて検索</h2>
+        <Button
+          className="btn btn-ghost btn-small"
+          data-testid="reset-search-groups"
+          onClick={() => {
+            resetToDefaults().catch(() => {
+              // no-op
+            });
+          }}
+          type="button"
+        >
+          デフォルトに戻す
+        </Button>
+      </div>
+
+      <div className="stack">
+        <div className="hint">複数の検索エンジンをまとめて実行できます。</div>
+        <div className="hint">
+          例:
+          「お買い物」グループでAmazon、楽天、ビックカメラ、ヨドバシを一括検索
         </div>
 
-        <div className="stack">
-          <div className="hint">複数の検索エンジンをまとめて実行できます。</div>
-          <div className="hint">
-            例:
-            「お買い物」グループでAmazon、楽天、ビックカメラ、ヨドバシを一括検索
-          </div>
+        <Form
+          className="pattern-input-group"
+          onFormSubmit={() => {
+            addNewGroup().catch(() => {
+              // no-op
+            });
+          }}
+        >
+          <Input
+            className="pattern-input"
+            data-testid="new-group-name"
+            onValueChange={setNewGroupNameInput}
+            placeholder="グループ名（例: お買い物）"
+            type="text"
+            value={newGroupNameInput}
+          />
+          <Button
+            className="btn btn-ghost btn-small"
+            data-testid="add-search-group"
+            disabled={engines.length === 0}
+            type="submit"
+          >
+            追加
+          </Button>
+        </Form>
 
-          {groups.length > 0 ? (
-            <SortableList
-              items={groups}
-              onReorder={(reordered) => {
-                handleReorder(reordered).catch(() => {
-                  // no-op
-                });
-              }}
-              renderItem={(group) => {
-                const groupEngines = group.engineIds
-                  .map((id) => engines.find((e) => e.id === id))
-                  .filter((e): e is SearchEngine => e !== undefined);
+        {groups.length > 0 ? (
+          <SortableList
+            items={groups}
+            onReorder={(reordered) => {
+              handleReorder(reordered).catch(() => {
+                // no-op
+              });
+            }}
+            renderItem={(group) => {
+              const isExpanded = expandedGroupId === group.id;
+              const isEditingName = editingNameGroupId === group.id;
+              const groupEngines = group.engineIds
+                .map((id) => engines.find((e) => e.id === id))
+                .filter((e): e is SearchEngine => e !== undefined);
 
-                return (
+              return (
+                <div>
                   <div className="search-engine-item">
+                    <button
+                      className="expand-indicator"
+                      data-testid={`expand-group-${group.id}`}
+                      onClick={() => {
+                        toggleGroupExpand(group.id);
+                      }}
+                      type="button"
+                    >
+                      {isExpanded ? (
+                        <ChevronDown size={14} />
+                      ) : (
+                        <ChevronRight size={14} />
+                      )}
+                    </button>
                     <div className="search-engine-content">
-                      <strong className="search-engine-name">
-                        {group.name}
-                      </strong>
-                      <code className="search-engine-url">
-                        {groupEngines.map((e) => e.name).join(", ")}
-                      </code>
+                      {isEditingName ? (
+                        <div className="inline-edit-row">
+                          <Input
+                            autoFocus
+                            className="pattern-input inline-edit-input"
+                            data-testid="edit-group-name-input"
+                            onKeyDown={(e: React.KeyboardEvent) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                saveGroupName(group.id).catch(() => {
+                                  // no-op
+                                });
+                              }
+                              if (e.key === "Escape") {
+                                cancelEditingGroupName();
+                              }
+                            }}
+                            onValueChange={setEditingNameValue}
+                            type="text"
+                            value={editingNameValue}
+                          />
+                          <Button
+                            className="btn btn-ghost btn-small"
+                            data-testid="save-group-name"
+                            onClick={() => {
+                              saveGroupName(group.id).catch(() => {
+                                // no-op
+                              });
+                            }}
+                            type="button"
+                          >
+                            保存
+                          </Button>
+                          <Button
+                            className="btn btn-ghost btn-small"
+                            onClick={cancelEditingGroupName}
+                            type="button"
+                          >
+                            取消
+                          </Button>
+                        </div>
+                      ) : (
+                        <button
+                          className="group-expand-button"
+                          onClick={() => {
+                            toggleGroupExpand(group.id);
+                          }}
+                          type="button"
+                        >
+                          <strong className="search-engine-name">
+                            {group.name}
+                          </strong>
+                          <code className="search-engine-url">
+                            {groupEngines.map((e) => e.name).join(", ")}
+                          </code>
+                        </button>
+                      )}
                     </div>
                     <div className="search-engine-controls">
                       <Switch.Root
@@ -357,16 +467,17 @@ export function SearchGroupsPane(
                       >
                         <Switch.Thumb className="mbu-switch-thumb" />
                       </Switch.Root>
-                      <Button
+                      <button
                         className="btn-edit"
                         data-testid={`edit-group-${group.id}`}
-                        onClick={() => {
-                          openEditDialog(group);
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          startEditingGroupName(group);
                         }}
                         type="button"
                       >
-                        編集
-                      </Button>
+                        <Pencil size={12} />
+                      </button>
                       <Button
                         className="btn-delete"
                         data-testid={`remove-group-${group.id}`}
@@ -381,93 +492,46 @@ export function SearchGroupsPane(
                       </Button>
                     </div>
                   </div>
-                );
-              }}
-            />
-          ) : (
-            <p className="empty-message">グループが登録されていません</p>
-          )}
-        </div>
-      </div>
 
-      <Dialog.Root onOpenChange={closeDialog} open={dialogMode !== "none"}>
-        <Dialog.Portal>
-          <Dialog.Backdrop className="dialog-backdrop" />
-          <Dialog.Popup className="dialog-popup">
-            <Dialog.Title className="dialog-title">
-              {dialogMode === "create" ? "グループを追加" : "グループを編集"}
-            </Dialog.Title>
-            <Form
-              className="stack"
-              onFormSubmit={() => {
-                saveGroup().catch(() => {
-                  // no-op
-                });
-              }}
-            >
-              <div className="form-field">
-                <label htmlFor="group-name-input">グループ名</label>
-                <Input
-                  className="pattern-input"
-                  data-testid="group-name-input"
-                  id="group-name-input"
-                  onValueChange={setNameInput}
-                  placeholder="例: お買い物"
-                  type="text"
-                  value={nameInput}
-                />
-              </div>
-
-              <div className="form-field">
-                <div className="form-label">検索エンジン</div>
-                <div className="checkbox-group">
-                  {engines.map((engine) => (
-                    <div className="checkbox-label" key={engine.id}>
-                      <Checkbox.Root
-                        checked={selectedEngineIds.includes(engine.id)}
-                        className="mbu-checkbox"
-                        data-testid={`checkbox-${engine.id}`}
-                        onCheckedChange={() => {
-                          toggleEngineSelection(engine.id);
-                        }}
-                      >
-                        <Checkbox.Indicator className="mbu-checkbox-indicator">
-                          ✓
-                        </Checkbox.Indicator>
-                      </Checkbox.Root>
-                      <span>{engine.name}</span>
+                  {isExpanded && (
+                    <div className="group-engines-list">
+                      {engines.map((engine) => {
+                        const isInGroup = group.engineIds.includes(engine.id);
+                        return (
+                          <div className="group-engine-item" key={engine.id}>
+                            <span className="group-engine-name">
+                              {engine.name}
+                            </span>
+                            <Switch.Root
+                              aria-label={`${group.name}に${engine.name}を含める`}
+                              checked={isInGroup}
+                              className="mbu-switch"
+                              data-testid={`group-engine-${group.id}-${engine.id}`}
+                              onCheckedChange={(checked) => {
+                                toggleEngineInGroup(
+                                  group.id,
+                                  engine.id,
+                                  checked
+                                ).catch(() => {
+                                  // no-op
+                                });
+                              }}
+                            >
+                              <Switch.Thumb className="mbu-switch-thumb" />
+                            </Switch.Root>
+                          </div>
+                        );
+                      })}
                     </div>
-                  ))}
+                  )}
                 </div>
-              </div>
-
-              <div className="dialog-actions">
-                <Button
-                  className="btn btn-ghost"
-                  data-testid="dialog-cancel"
-                  onClick={closeDialog}
-                  type="button"
-                >
-                  キャンセル
-                </Button>
-                <Button
-                  className="btn btn-primary"
-                  data-testid="dialog-save"
-                  onClick={() => {
-                    saveGroup().catch(() => {
-                      // no-op
-                    });
-                  }}
-                  type="button"
-                >
-                  保存
-                </Button>
-              </div>
-            </Form>
-            <Dialog.Close className="dialog-close" />
-          </Dialog.Popup>
-        </Dialog.Portal>
-      </Dialog.Root>
-    </>
+              );
+            }}
+          />
+        ) : (
+          <p className="empty-message">グループが登録されていません</p>
+        )}
+      </div>
+    </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { Result } from "@praha/byethrow";
 import {
+  copyToClipboard,
   copyToClipboardWithNotification,
   getClipboardErrorMessage,
 } from "@/content/clipboard";
@@ -51,7 +52,7 @@ export type MessageHandlerDeps = {
   enableTableSortWithNotification: () => void;
   startTableObserverWithNotification: () => void;
   showNotification: (message: string) => void;
-  getOrCreateToastMount: () => ToastMount;
+  getOrCreateToastMount: () => Promise<ToastMount | null>;
   showActionOverlay: (request: ActionOverlayRequest) => void;
   showSummaryOverlay: (request: SummaryOverlayRequest) => void;
 };
@@ -90,20 +91,33 @@ export function handleCopyToClipboard(
   sendResponse: (response: { ok: boolean; error?: string }) => void
 ): boolean {
   (async () => {
-    const mount = deps.getOrCreateToastMount();
-    const result = await copyToClipboardWithNotification(
-      text,
-      mount.notify,
-      successMessage
-    );
+    const mount = await deps.getOrCreateToastMount();
+    if (mount) {
+      const result = await copyToClipboardWithNotification(
+        text,
+        mount.notify,
+        successMessage
+      );
+      if (Result.isSuccess(result)) {
+        sendResponse({ ok: true });
+      } else {
+        sendResponse({
+          ok: false,
+          error: getClipboardErrorMessage(result.error),
+        });
+      }
+      return;
+    }
+
+    const result = await copyToClipboard(text);
     if (Result.isSuccess(result)) {
       sendResponse({ ok: true });
-    } else {
-      sendResponse({
-        ok: false,
-        error: getClipboardErrorMessage(result.error),
-      });
+      return;
     }
+    sendResponse({
+      ok: false,
+      error: getClipboardErrorMessage(result.error),
+    });
   })().catch(() => {
     sendResponse({ ok: false, error: "コピーに失敗しました" });
   });
@@ -118,6 +132,24 @@ export function handlePasteTemplate(
   content: string,
   sendResponse: (response: { ok: boolean; error?: string }) => void
 ): boolean {
+  const copyFallback = async (): Promise<void> => {
+    const mount = await deps.getOrCreateToastMount();
+    if (mount) {
+      await copyToClipboardFallback(content, mount, sendResponse);
+      return;
+    }
+
+    const result = await copyToClipboard(content);
+    if (Result.isSuccess(result)) {
+      sendResponse({ ok: true });
+      return;
+    }
+    sendResponse({
+      ok: false,
+      error: getClipboardErrorMessage(result.error),
+    });
+  };
+
   (async () => {
     const activeElement = document.activeElement;
 
@@ -144,15 +176,13 @@ export function handlePasteTemplate(
         return;
       } catch {
         // Selection API失敗時はクリップボードにフォールバック
-        const mount = deps.getOrCreateToastMount();
-        await copyToClipboardFallback(content, mount, sendResponse);
+        await copyFallback();
         return;
       }
     }
 
     // フォーカスがない場合はクリップボードにコピー
-    const mount = deps.getOrCreateToastMount();
-    await copyToClipboardFallback(content, mount, sendResponse);
+    await copyFallback();
   })().catch(() => {
     sendResponse({
       ok: false,

@@ -34,12 +34,6 @@ export type TextTemplate = {
  */
 export const DEFAULT_TEXT_TEMPLATES: TextTemplate[] = [
   {
-    id: "template:lgtm-0023a134",
-    title: "LGTM",
-    content: "LGTM :+1:",
-    hidden: false,
-  },
-  {
     id: "template:greptileai-review-390917b4",
     title: "greptileai review",
     content: "@greptileai review",
@@ -61,6 +55,12 @@ export const DEFAULT_TEXT_TEMPLATES: TextTemplate[] = [
     id: "template:coderabbit-review-0f6905e9",
     title: "coderabbitai review",
     content: "@coderabbitai review",
+    hidden: false,
+  },
+  {
+    id: "template:lgtm-0023a134",
+    title: "LGTM",
+    content: "LGTM :+1:",
     hidden: false,
   },
 ];

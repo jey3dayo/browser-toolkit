@@ -264,3 +264,93 @@ input[type="checkbox"] {
   word-break: break-all;
   line-height: 1.4;
 }
+
+/* Search Groups: expand indicator */
+.expand-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: var(--text-sub);
+  cursor: pointer;
+  padding: 2px;
+  flex-shrink: 0;
+}
+
+/* Search Groups: edit button */
+.btn-edit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: color-mix(
+    in oklab,
+    var(--color-primary) var(--accent-mix-14),
+    transparent
+  );
+  color: color-mix(in oklab, var(--color-primary) 65%, var(--color-text));
+  padding: var(--button-padding-sm);
+  border-radius: var(--button-radius-sm);
+  cursor: pointer;
+}
+
+.btn-edit:hover {
+  background: color-mix(in oklab, var(--color-primary) 25%, transparent);
+}
+
+/* Search Groups: inline name edit */
+.inline-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.inline-edit-input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Search Groups: expanded engine list */
+.group-engines-list {
+  border-top: 1px solid var(--line);
+  background: color-mix(in oklab, var(--color-surface) 85%, transparent);
+  padding: 6px 12px;
+  border-radius: 0 0 8px 8px;
+  margin-top: -1px;
+}
+
+.group-engine-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+
+.group-engine-item + .group-engine-item {
+  border-top: 1px solid color-mix(in oklab, var(--line) 50%, transparent);
+}
+
+.group-engine-name {
+  font-size: 13px;
+  color: var(--text);
+}
+
+/* Search Groups: clickable expand button */
+.group-expand-button {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  min-width: 0;
+  flex: 1;
+  font: inherit;
+  color: inherit;
+}
