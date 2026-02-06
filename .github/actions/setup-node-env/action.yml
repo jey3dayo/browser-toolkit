@@ -14,9 +14,9 @@ inputs:
     default: "false"
 
   pnpm-version:
-    description: "pnpm version to use"
+    description: "pnpm version to use (auto-detected from package.json packageManager field)"
     required: false
-    default: "10.28.0"
+    default: ""
 
 outputs:
   node-version:
