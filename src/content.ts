@@ -51,10 +51,6 @@ import { parseNumericValue } from "@/utils/number_parser";
     }
   })();
 
-  if (!supportsHtmlDocument) {
-    return;
-  }
-
   type NotificationModule = typeof import("./content/notification");
   type OverlayModule = typeof import("./content/overlay-helpers");
 
@@ -165,12 +161,15 @@ import { parseNumericValue } from "@/utils/number_parser";
   }
 
   // 2回目以降の初期化では副作用を追加しない（idempotent）
-  loadNotificationModule().catch(() => {
-    // no-op
-  });
-  loadOverlayModule().catch(() => {
-    // no-op
-  });
+  // overlay/toastのpreloadはHTMLドキュメントでのみ実行
+  if (supportsHtmlDocument) {
+    loadNotificationModule().catch(() => {
+      // no-op
+    });
+    loadOverlayModule().catch(() => {
+      // no-op
+    });
+  }
 
   if (globalState.initialized) {
     return;
@@ -212,6 +211,9 @@ import { parseNumericValue } from "@/utils/number_parser";
   // ========================================
 
   async function getOrCreateToastMount(): Promise<ToastMount | null> {
+    if (!supportsHtmlDocument) {
+      return null;
+    }
     const module = await loadNotificationModule();
     if (!module) {
       return null;
@@ -265,6 +267,9 @@ import { parseNumericValue } from "@/utils/number_parser";
   // ========================================
 
   async function getOrCreateOverlayMount(): Promise<OverlayMount | null> {
+    if (!supportsHtmlDocument) {
+      return null;
+    }
     const module = await loadOverlayModule();
     if (!module) {
       return null;
