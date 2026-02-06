@@ -4,8 +4,8 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 const dirname =
-  typeof __dirname !== "undefined"
-    ? __dirname
+  typeof import.meta.dirname !== "undefined"
+    ? import.meta.dirname
     : path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.join(dirname, "..");
 

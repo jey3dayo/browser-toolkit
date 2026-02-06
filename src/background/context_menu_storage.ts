@@ -11,6 +11,11 @@ import {
   normalizeContextActions,
 } from "@/context_actions";
 import {
+  DEFAULT_SEARCH_ENGINE_GROUPS,
+  normalizeSearchEngineGroups,
+  type SearchEngineGroup,
+} from "@/search_engine_groups";
+import {
   DEFAULT_SEARCH_ENGINES,
   normalizeSearchEngines,
   type SearchEngine,
@@ -174,6 +179,25 @@ export function ensureSearchEnginesInitialized(): Promise<SearchEngine[]> {
     normalize: normalizeSearchEngines,
     defaults: DEFAULT_SEARCH_ENGINES,
     functionName: "ensureSearchEnginesInitialized",
+    initializeOnEmpty: true,
+    logDetails: true,
+  });
+}
+
+/**
+ * Ensures search engine groups are initialized in storage.
+ * If no groups exist, saves and returns default groups.
+ *
+ * @returns Promise resolving to search engine groups array
+ */
+export function ensureSearchEngineGroupsInitialized(): Promise<
+  SearchEngineGroup[]
+> {
+  return ensureStorageInitialized({
+    storageKey: "searchEngineGroups",
+    normalize: normalizeSearchEngineGroups,
+    defaults: DEFAULT_SEARCH_ENGINE_GROUPS,
+    functionName: "ensureSearchEngineGroupsInitialized",
     initializeOnEmpty: true,
     logDetails: true,
   });

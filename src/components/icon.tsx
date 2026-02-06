@@ -5,6 +5,7 @@ import {
   Eye,
   EyeOff,
   FileText,
+  Layers,
   Link,
   type LucideProps,
   Menu,
@@ -27,6 +28,7 @@ export type IconName =
   | "eye"
   | "eye-off"
   | "file-text"
+  | "layers"
   | "link"
   | "menu"
   | "monitor"
@@ -46,6 +48,7 @@ const icons: Record<IconName, React.ComponentType<LucideProps>> = {
   eye: Eye,
   "eye-off": EyeOff,
   "file-text": FileText,
+  layers: Layers,
   link: Link,
   menu: Menu,
   monitor: Monitor,
