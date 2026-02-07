@@ -243,7 +243,7 @@ export function SearchEnginesPane(
         </div>
 
         <Form
-          className="pattern-input-group"
+          className="pattern-input-group pattern-input-group--wrap"
           onFormSubmit={() => {
             addEngine().catch(() => {
               // no-op
@@ -266,32 +266,34 @@ export function SearchEnginesPane(
             type="text"
             value={urlInput}
           />
-          <select
-            className="pattern-input"
-            data-testid="search-engine-encoding"
-            onChange={(e) =>
-              setEncodingInput(e.target.value as SearchEngineEncoding)
-            }
-            value={encodingInput}
-          >
-            {SEARCH_ENGINE_ENCODINGS.map((enc) => (
-              <option key={enc} value={enc}>
-                {ENCODING_LABELS[enc]}
-              </option>
-            ))}
-          </select>
-          <Button
-            className="btn btn-ghost btn-small"
-            data-testid="add-search-engine"
-            onClick={() => {
-              addEngine().catch(() => {
-                // no-op
-              });
-            }}
-            type="button"
-          >
-            追加
-          </Button>
+          <div className="pattern-input-row">
+            <select
+              className="pattern-input pattern-input--select"
+              data-testid="search-engine-encoding"
+              onChange={(e) =>
+                setEncodingInput(e.target.value as SearchEngineEncoding)
+              }
+              value={encodingInput}
+            >
+              {SEARCH_ENGINE_ENCODINGS.map((enc) => (
+                <option key={enc} value={enc}>
+                  {ENCODING_LABELS[enc]}
+                </option>
+              ))}
+            </select>
+            <Button
+              className="btn btn-ghost btn-small"
+              data-testid="add-search-engine"
+              onClick={() => {
+                addEngine().catch(() => {
+                  // no-op
+                });
+              }}
+              type="button"
+            >
+              追加
+            </Button>
+          </div>
         </Form>
 
         {engines.length > 0 ? (
