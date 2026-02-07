@@ -12,4 +12,9 @@ describe("openai/settings", () => {
     expect(normalizeOpenAiModel("gpt-5.2")).toBe("gpt-5.2");
     expect(normalizeOpenAiModel("  gpt-4o-mini  ")).toBe("gpt-4o-mini");
   });
+
+  it("migrates deprecated models to their replacements", () => {
+    expect(normalizeOpenAiModel("gpt-5.1")).toBe("gpt-5.2");
+    expect(normalizeOpenAiModel("gpt-4o")).toBe("gpt-4o-mini");
+  });
 });

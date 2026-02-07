@@ -75,13 +75,16 @@ export function isValidUrlTemplate(urlTemplate: string): boolean {
   return urlTemplate.includes("{query}");
 }
 
+function isValidByte(value: unknown): value is number {
+  return typeof value === "number" && value >= 0 && value <= 0xff;
+}
+
 function encodeShiftJis(query: string): string {
-  const sjisBytes = Array.from(
-    Encoding.convert(Encoding.stringToCode(query), {
-      to: "SJIS",
-      from: "UNICODE",
-    })
-  );
+  const converted = Encoding.convert(Encoding.stringToCode(query), {
+    to: "SJIS",
+    from: "UNICODE",
+  });
+  const sjisBytes = Array.from(converted).filter(isValidByte);
   return sjisBytes
     .map((byte) => `%${byte.toString(16).toUpperCase().padStart(2, "0")}`)
     .join("");
@@ -122,8 +125,20 @@ function isSearchEngineEncoding(value: unknown): value is SearchEngineEncoding {
   return SEARCH_ENGINE_ENCODINGS.includes(value as SearchEngineEncoding);
 }
 
+const ENCODING_ALIASES: Record<string, SearchEngineEncoding> = {
+  sjis: "shift_jis",
+  "shift-jis": "shift_jis",
+  shiftjis: "shift_jis",
+};
+
 function coerceEncoding(value: unknown): SearchEngineEncoding | undefined {
-  return isSearchEngineEncoding(value) ? value : undefined;
+  if (isSearchEngineEncoding(value)) {
+    return value;
+  }
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  return ENCODING_ALIASES[value.toLowerCase()];
 }
 
 function buildSearchEngine(parts: SearchEngineParts): SearchEngine | null {
