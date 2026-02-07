@@ -51,6 +51,23 @@
   margin: 0;
 }
 
+.pattern-input-group--wrap {
+  flex-wrap: wrap;
+}
+
+.pattern-input-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.pattern-input--select {
+  flex: 0 0 auto;
+  width: auto;
+  cursor: pointer;
+  appearance: auto;
+}
+
 .pattern-input,
 .token-input {
   flex: 1;

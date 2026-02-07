@@ -45,6 +45,7 @@ export const DEFAULT_SEARCH_ENGINE_GROUPS: SearchEngineGroup[] = [
       "builtin:rakuten",
       "builtin:biccamera",
       "builtin:yodobashi",
+      "builtin:mercari",
     ],
     enabled: true,
   },

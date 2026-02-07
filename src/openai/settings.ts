@@ -1,16 +1,15 @@
 import { Result } from "@praha/byethrow";
+import {
+  OPENAI_MODEL_OPTIONS as OPENAI_MODEL_OPTIONS_SCHEMA,
+  type OpenAiModelOption as OpenAiModelOptionSchema,
+  safeParseOpenAiModel,
+} from "@/schemas/openai";
 import type { LocalStorageData } from "@/storage/types";
 import { toErrorMessage } from "@/utils/errors";
 
 export const DEFAULT_OPENAI_MODEL = "gpt-5.2";
-export const OPENAI_MODEL_OPTIONS = [
-  "gpt-5.2",
-  "gpt-5.1",
-  "gpt-4o",
-  "gpt-4o-mini",
-] as const;
-
-export type OpenAiModelOption = (typeof OPENAI_MODEL_OPTIONS)[number];
+export const OPENAI_MODEL_OPTIONS = OPENAI_MODEL_OPTIONS_SCHEMA;
+export type OpenAiModelOption = OpenAiModelOptionSchema;
 
 export type OpenAiSettings = {
   token: string;
@@ -19,16 +18,8 @@ export type OpenAiSettings = {
 };
 
 export function normalizeOpenAiModel(value: unknown): OpenAiModelOption {
-  if (typeof value !== "string") {
-    return DEFAULT_OPENAI_MODEL;
-  }
-  const model = value.trim();
-  if (!model) {
-    return DEFAULT_OPENAI_MODEL;
-  }
-  return OPENAI_MODEL_OPTIONS.includes(model as OpenAiModelOption)
-    ? (model as OpenAiModelOption)
-    : DEFAULT_OPENAI_MODEL;
+  const parsed = safeParseOpenAiModel(value);
+  return parsed.success ? parsed.output : DEFAULT_OPENAI_MODEL;
 }
 
 export function loadOpenAiSettings(

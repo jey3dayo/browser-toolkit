@@ -15,10 +15,10 @@ import {
   normalizeSearchEngineGroups,
   type SearchEngineGroup,
 } from "@/search_engine_groups";
+import type { SearchEngine } from "@/search_engine_types";
 import {
   DEFAULT_SEARCH_ENGINES,
   normalizeSearchEngines,
-  type SearchEngine,
 } from "@/search_engines";
 import { DEFAULT_TEXT_TEMPLATES, type TextTemplate } from "@/text_templates";
 import { debugLog } from "@/utils/debug_log";
@@ -48,7 +48,14 @@ async function initializeOnEmptyPattern<T>(
   functionName: string,
   logDetails: boolean
 ): Promise<T[]> {
-  const existing = normalize ? normalize(raw) : ((raw as T[]) ?? []);
+  let existing: T[];
+  if (normalize) {
+    existing = normalize(raw);
+  } else if (Array.isArray(raw)) {
+    existing = raw as T[];
+  } else {
+    existing = [];
+  }
 
   if (logDetails) {
     await debugLog(functionName, "normalized existing", {
@@ -90,7 +97,10 @@ async function initializeOnUndefinedPattern<T>(
     await storageSyncSet({ [storageKey]: defaults });
     return defaults;
   }
-  return (raw as T[]) ?? defaults;
+  if (Array.isArray(raw)) {
+    return raw as T[];
+  }
+  return defaults;
 }
 
 /**

@@ -39,7 +39,7 @@ describe("popup Settings pane", () => {
           items.openaiCustomPrompt = "prompt";
         }
         if (keyList.includes("openaiModel")) {
-          items.openaiModel = "gpt-4o";
+          items.openaiModel = "gpt-5.2";
         }
         callback(items);
       }
@@ -189,7 +189,7 @@ describe("popup Settings pane", () => {
     );
     expect(modelSelect).not.toBeNull();
 
-    expect(modelSelect?.textContent).toContain("gpt-4o");
+    expect(modelSelect?.textContent).toContain("gpt-5.2");
 
     await act(async () => {
       await selectBaseUiOption(

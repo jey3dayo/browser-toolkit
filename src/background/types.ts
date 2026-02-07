@@ -1,7 +1,7 @@
 import type { Result } from "@praha/byethrow";
 import type { ContextAction } from "@/context_actions";
 import type { SearchEngineGroup } from "@/search_engine_groups";
-import type { SearchEngine } from "@/search_engines";
+import type { SearchEngine } from "@/search_engine_types";
 import type {
   CalendarRegistrationTarget,
   ExtractedEvent,

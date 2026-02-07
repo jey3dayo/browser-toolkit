@@ -1,12 +1,8 @@
+import { normalizeSearchEngineEncoding } from "@/schemas/search_engine_encoding";
+import type { SearchEngine, SearchEngineEncoding } from "@/search_engine_types";
+import { encodeShiftJisQuery } from "@/utils/encoding";
 import { isRecord } from "@/utils/guards";
 import { normalizeOptionalText } from "@/utils/text";
-
-export type SearchEngine = {
-  id: string;
-  name: string;
-  urlTemplate: string;
-  enabled: boolean;
-};
 
 export const DEFAULT_SEARCH_ENGINES: SearchEngine[] = [
   {
@@ -55,7 +51,14 @@ export const DEFAULT_SEARCH_ENGINES: SearchEngine[] = [
   {
     id: "builtin:biccamera",
     name: "ビックカメラ",
-    urlTemplate: "https://www.biccamera.com/bc/category/?q={query}",
+    urlTemplate: "https://www.biccamera.com/bc/category/?q={query}&sg=",
+    enabled: true,
+    encoding: "shift_jis",
+  },
+  {
+    id: "builtin:mercari",
+    name: "メルカリ",
+    urlTemplate: "https://jp.mercari.com/search?keyword={query}",
     enabled: true,
   },
 ];
@@ -72,8 +75,16 @@ export function isValidUrlTemplate(urlTemplate: string): boolean {
 /**
  * Replaces {query} placeholder with encoded search text
  */
-export function buildSearchUrl(urlTemplate: string, query: string): string {
-  return urlTemplate.replace("{query}", encodeURIComponent(query));
+export function buildSearchUrl(
+  urlTemplate: string,
+  query: string,
+  encoding?: SearchEngineEncoding
+): string {
+  const encoded =
+    encoding === "shift_jis"
+      ? encodeShiftJisQuery(query)
+      : encodeURIComponent(query);
+  return urlTemplate.replace("{query}", encoded);
 }
 
 function coerceUrlTemplate(value: unknown): string | null {
@@ -89,18 +100,23 @@ type SearchEngineParts = {
   name: string | undefined;
   urlTemplate: string | null;
   enabled: boolean;
+  encoding?: SearchEngineEncoding;
 };
 
 function buildSearchEngine(parts: SearchEngineParts): SearchEngine | null {
   if (!(parts.id && parts.name && parts.urlTemplate)) {
     return null;
   }
-  return {
+  const engine: SearchEngine = {
     id: parts.id,
     name: parts.name,
     urlTemplate: parts.urlTemplate,
     enabled: parts.enabled,
   };
+  if (parts.encoding) {
+    engine.encoding = parts.encoding;
+  }
+  return engine;
 }
 
 /**
@@ -116,6 +132,7 @@ function coerceSearchEngine(value: unknown): SearchEngine | null {
     name: normalizeOptionalText(raw.name),
     urlTemplate: coerceUrlTemplate(raw.urlTemplate),
     enabled: raw.enabled !== false,
+    encoding: normalizeSearchEngineEncoding(raw.encoding),
   });
 }
 

@@ -23,7 +23,7 @@ describe("background: OpenAI model selection", () => {
           items.openaiCustomPrompt = "";
         }
         if (keyList.includes("openaiModel")) {
-          items.openaiModel = "gpt-4o";
+          items.openaiModel = "gpt-5.2";
         }
         callback(items);
       }
@@ -73,6 +73,6 @@ describe("background: OpenAI model selection", () => {
     );
 
     await flush(setTimeout, 6);
-    expect(capturedModel).toBe("gpt-4o");
+    expect(capturedModel).toBe("gpt-5.2");
   });
 });

@@ -1,18 +1,25 @@
 import { Button } from "@base-ui/react/button";
 import { Form } from "@base-ui/react/form";
 import { Input } from "@base-ui/react/input";
+import { Select } from "@base-ui/react/select";
 import { Switch } from "@base-ui/react/switch";
 import { Result } from "@praha/byethrow";
 import { useEffect, useState } from "react";
 import { SortableList } from "@/components/SortableList";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { persistWithRollback } from "@/popup/utils/persist";
+import { isSearchEngineEncoding } from "@/schemas/search_engine_encoding";
+import {
+  ENCODING_LABELS,
+  SEARCH_ENGINE_ENCODINGS,
+  type SearchEngine,
+  type SearchEngineEncoding,
+} from "@/search_engine_types";
 import {
   DEFAULT_SEARCH_ENGINES,
   isValidUrlTemplate,
   MAX_SEARCH_ENGINES,
   normalizeSearchEngines,
-  type SearchEngine,
 } from "@/search_engines";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
@@ -25,6 +32,8 @@ export function SearchEnginesPane(
   const [engines, setEngines] = useState<SearchEngine[]>([]);
   const [nameInput, setNameInput] = useState("");
   const [urlInput, setUrlInput] = useState("");
+  const [encodingInput, setEncodingInput] =
+    useState<SearchEngineEncoding>("utf-8");
 
   useEffect(() => {
     let cancelled = false;
@@ -123,6 +132,9 @@ export function SearchEnginesPane(
       name,
       urlTemplate,
       enabled: true,
+      ...(encodingInput === "shift_jis"
+        ? { encoding: "shift_jis" as const }
+        : {}),
     };
 
     const next: SearchEngine[] = [...engines, newEngine];
@@ -131,6 +143,7 @@ export function SearchEnginesPane(
         setEngines(next);
         setNameInput("");
         setUrlInput("");
+        setEncodingInput("utf-8");
       },
       rollback: () => {
         setEngines(engines);
@@ -230,41 +243,88 @@ export function SearchEnginesPane(
         </div>
 
         <Form
-          className="pattern-input-group"
+          className="pattern-input-group pattern-input-group--wrap"
           onFormSubmit={() => {
             addEngine().catch(() => {
               // no-op
             });
           }}
         >
-          <Input
-            className="pattern-input"
-            data-testid="search-engine-name"
-            onValueChange={setNameInput}
-            placeholder="検索エンジン名（例: Google）"
-            type="text"
-            value={nameInput}
-          />
-          <Input
-            className="pattern-input"
-            data-testid="search-engine-url"
-            onValueChange={setUrlInput}
-            placeholder="URLテンプレート（例: https://google.com/search?q={query}）"
-            type="text"
-            value={urlInput}
-          />
-          <Button
-            className="btn btn-ghost btn-small"
-            data-testid="add-search-engine"
-            onClick={() => {
-              addEngine().catch(() => {
-                // no-op
-              });
-            }}
-            type="button"
-          >
-            追加
-          </Button>
+          <div className="pattern-input-row">
+            <Input
+              className="pattern-input"
+              data-testid="search-engine-name"
+              onValueChange={setNameInput}
+              placeholder="検索エンジン名（例: Google）"
+              type="text"
+              value={nameInput}
+            />
+            <Select.Root
+              onValueChange={(value) => {
+                if (isSearchEngineEncoding(value)) {
+                  setEncodingInput(value);
+                }
+              }}
+              value={encodingInput}
+            >
+              <Select.Trigger
+                aria-label="エンコーディング"
+                className="pattern-input mbu-select-trigger"
+                data-testid="search-engine-encoding"
+                type="button"
+              >
+                <Select.Value className="mbu-select-value" />
+                <Select.Icon className="mbu-select-icon">▾</Select.Icon>
+              </Select.Trigger>
+              <Select.Portal>
+                <Select.Positioner
+                  className="mbu-select-positioner"
+                  sideOffset={6}
+                >
+                  <Select.Popup className="mbu-select-popup">
+                    <Select.List className="mbu-select-list">
+                      {SEARCH_ENGINE_ENCODINGS.map((enc) => (
+                        <Select.Item
+                          className="mbu-select-item"
+                          key={enc}
+                          value={enc}
+                        >
+                          <Select.ItemText>
+                            {ENCODING_LABELS[enc]}
+                          </Select.ItemText>
+                          <Select.ItemIndicator className="mbu-select-indicator">
+                            ✓
+                          </Select.ItemIndicator>
+                        </Select.Item>
+                      ))}
+                    </Select.List>
+                  </Select.Popup>
+                </Select.Positioner>
+              </Select.Portal>
+            </Select.Root>
+          </div>
+          <div className="pattern-input-row">
+            <Input
+              className="pattern-input"
+              data-testid="search-engine-url"
+              onValueChange={setUrlInput}
+              placeholder="URLテンプレート（例: https://google.com/search?q={query}）"
+              type="text"
+              value={urlInput}
+            />
+            <Button
+              className="btn btn-ghost btn-small"
+              data-testid="add-search-engine"
+              onClick={() => {
+                addEngine().catch(() => {
+                  // no-op
+                });
+              }}
+              type="button"
+            >
+              追加
+            </Button>
+          </div>
         </Form>
 
         {engines.length > 0 ? (
@@ -278,7 +338,14 @@ export function SearchEnginesPane(
             renderItem={(engine) => (
               <div className="search-engine-item">
                 <div className="search-engine-content">
-                  <strong className="search-engine-name">{engine.name}</strong>
+                  <strong className="search-engine-name">
+                    {engine.name}
+                    {engine.encoding && engine.encoding !== "utf-8" && (
+                      <span className="badge badge-info">
+                        {ENCODING_LABELS[engine.encoding]}
+                      </span>
+                    )}
+                  </strong>
                   <code className="search-engine-url">
                     {engine.urlTemplate}
                   </code>
