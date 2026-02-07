@@ -5,8 +5,7 @@ import { toErrorMessage } from "@/utils/errors";
 export const DEFAULT_OPENAI_MODEL = "gpt-5.2";
 export const OPENAI_MODEL_OPTIONS = [
   "gpt-5.2",
-  "gpt-5.1",
-  "gpt-4o",
+  "gpt-5-mini",
   "gpt-4o-mini",
 ] as const;
 
