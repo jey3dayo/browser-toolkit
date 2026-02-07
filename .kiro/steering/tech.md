@@ -10,12 +10,15 @@
 Core UI dependencies:
 
 - `@base-ui/react`: Accessible UI primitives for React components (popup and in-page overlays)
+- `@dnd-kit/core` + `@dnd-kit/sortable` + `@dnd-kit/utilities`: Drag-and-drop ordering for popup lists
 - `lucide-react`: Icon library for consistent UI iconography
 - `react` / `react-dom`: UI framework (React 19+)
 - `@praha/byethrow`: Result-based error handling
 - `date-fns`: Date manipulation for calendar features
+- `encoding-japanese`: Shift_JIS query encoding for search engines that require non-UTF8 requests
 - `react-markdown` + `remark-gfm`: Markdown rendering in AI action outputs
 - `smol-toml`: TOML parsing for built-in action prompts
+- `valibot`: Schema validation/normalization for OpenAI outputs and stored data
 
 ## Language & Build
 
@@ -38,6 +41,11 @@ Core UI dependencies:
 - `chrome.storage.sync`: user preferences that can roam (domain patterns, action definitions, toggles).
 - `chrome.storage.local`: device-local data (OpenAI API token, OpenAI model/prompt, theme, recent-selection cache).
 - Wrapper helpers convert callback-based Chrome APIs to Promises and surface `chrome.runtime.lastError` as real errors.
+
+## Validation & Parsing
+
+- Untrusted inputs (OpenAI JSON outputs, model options, search engine encoding, storage-loaded data) are validated with `valibot` schemas under `src/schemas/`.
+- JSON parsing uses a tolerant helper that extracts a JSON object from text (first `{` to last `}`) before schema validation.
 
 ## OpenAI Integration (design constraints)
 

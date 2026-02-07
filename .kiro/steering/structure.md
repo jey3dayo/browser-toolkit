@@ -11,8 +11,12 @@
 - `src/` is intentionally modular: shared helpers live under `src/utils/` and feature code lives under folders like `src/popup/` and `src/content/`.
 - Background worker logic is split into focused modules under `src/background/`, with `src/background.ts` acting as the entrypoint/composer.
 - Built-in context-action prompts live in `src/prompts/` (TOML) and are assembled into defaults via `src/context_actions.ts`.
+- Search engines and grouped searches are defined in `src/search_engines.ts` and `src/search_engine_groups.ts`, including defaults, limits, and normalization for storage.
+- Text template defaults and ID generation live in `src/text_templates.ts` for context-menu insertion.
 - OpenAI settings/model defaults live under `src/openai/`, and storage schema typing lives under `src/storage/` for shared use across runtimes.
+- `src/schemas/` contains `valibot` schemas for untrusted inputs (OpenAI outputs, model options, search engine encoding).
 - `src/types/` contains module declaration shims (e.g., TOML/assets) needed by the bundler and TypeScript.
+- `src/utils/encoding.ts` provides Shift_JIS query encoding for search engines that need it.
 - Popup features are pane-based: add a new utility as a pane under `src/popup/panes/` and register it in `src/popup/panes.ts`.
 - `.storybook/` config supports developing/testing UI components outside the extension shell.
 - `dist/` is generated build output (bundled JS); it is treated as an artifact, not a source of truth.
