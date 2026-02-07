@@ -10,8 +10,8 @@ import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { persistWithRollback } from "@/popup/utils/persist";
 import {
   ENCODING_LABELS,
-  SEARCH_ENGINE_ENCODINGS,
   isSearchEngineEncoding,
+  SEARCH_ENGINE_ENCODINGS,
   type SearchEngine,
   type SearchEngineEncoding,
 } from "@/search_engine_types";

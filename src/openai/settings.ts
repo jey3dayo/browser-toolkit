@@ -1,14 +1,15 @@
 import { Result } from "@praha/byethrow";
 import {
+  OPENAI_MODEL_OPTIONS as OPENAI_MODEL_OPTIONS_SCHEMA,
+  type OpenAiModelOption as OpenAiModelOptionSchema,
   safeParseOpenAiModel,
-  type OpenAiModelOption,
 } from "@/schemas/openai";
 import type { LocalStorageData } from "@/storage/types";
 import { toErrorMessage } from "@/utils/errors";
 
 export const DEFAULT_OPENAI_MODEL = "gpt-5.2";
-export { OPENAI_MODEL_OPTIONS } from "@/schemas/openai";
-export type { OpenAiModelOption } from "@/schemas/openai";
+export const OPENAI_MODEL_OPTIONS = OPENAI_MODEL_OPTIONS_SCHEMA;
+export type OpenAiModelOption = OpenAiModelOptionSchema;
 
 export type OpenAiSettings = {
   token: string;

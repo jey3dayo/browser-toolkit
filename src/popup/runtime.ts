@@ -123,7 +123,7 @@ function fallbackStorageGet(
     try {
       data[key] = JSON.parse(raw) as unknown;
     } catch {
-      data[key] = raw;
+      // Keep parity with Chrome Storage: ignore invalid JSON payloads.
     }
   }
   return data;

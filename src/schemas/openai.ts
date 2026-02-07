@@ -1,4 +1,4 @@
-import * as v from "valibot";
+import { picklist, pipe, safeParse, string, transform, trim } from "valibot";
 
 export const OPENAI_MODEL_OPTIONS = [
   "gpt-5.2",
@@ -13,13 +13,13 @@ const DEPRECATED_MODEL_MAP: Record<string, OpenAiModelOption> = {
   "gpt-4o": "gpt-4o-mini",
 };
 
-const OpenAiModelSchema = v.pipe(
-  v.string(),
-  v.trim(),
-  v.transform((value) => DEPRECATED_MODEL_MAP[value] ?? value),
-  v.picklist(OPENAI_MODEL_OPTIONS)
+const OpenAiModelSchema = pipe(
+  string(),
+  trim(),
+  transform((value) => DEPRECATED_MODEL_MAP[value] ?? value),
+  picklist(OPENAI_MODEL_OPTIONS)
 );
 
 export function safeParseOpenAiModel(value: unknown) {
-  return v.safeParse(OpenAiModelSchema, value);
+  return safeParse(OpenAiModelSchema, value);
 }

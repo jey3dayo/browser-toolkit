@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
 import Encoding from "encoding-japanese";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { encodeShiftJisQuery } from "@/utils/encoding";
 

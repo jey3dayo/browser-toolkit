@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  OPENAI_MODEL_OPTIONS,
-  safeParseOpenAiModel,
-} from "@/schemas/openai";
+import { OPENAI_MODEL_OPTIONS, safeParseOpenAiModel } from "@/schemas/openai";
 
 describe("schemas/openai", () => {
   it("accepts supported models", () => {

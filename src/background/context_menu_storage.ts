@@ -48,7 +48,11 @@ async function initializeOnEmptyPattern<T>(
   functionName: string,
   logDetails: boolean
 ): Promise<T[]> {
-  const existing = normalize ? normalize(raw) : ((raw as T[]) ?? []);
+  const existing = normalize
+    ? normalize(raw)
+    : Array.isArray(raw)
+      ? (raw as T[])
+      : [];
 
   if (logDetails) {
     await debugLog(functionName, "normalized existing", {
@@ -90,7 +94,10 @@ async function initializeOnUndefinedPattern<T>(
     await storageSyncSet({ [storageKey]: defaults });
     return defaults;
   }
-  return (raw as T[]) ?? defaults;
+  if (Array.isArray(raw)) {
+    return raw as T[];
+  }
+  return defaults;
 }
 
 /**

@@ -12,7 +12,12 @@ function normalizeShiftJisBytes(value: unknown): number[] {
     return value.filter(isValidByte);
   }
   if (ArrayBuffer.isView(value)) {
-    return Array.from(value as ArrayLike<number>).filter(isValidByte);
+    const bytes = new Uint8Array(
+      value.buffer,
+      value.byteOffset,
+      value.byteLength
+    );
+    return Array.from(bytes).filter(isValidByte);
   }
   if (typeof value === "object" && "length" in value) {
     return Array.from(value as ArrayLike<number>).filter(isValidByte);
