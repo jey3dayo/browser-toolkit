@@ -10,6 +10,7 @@ import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { persistWithRollback } from "@/popup/utils/persist";
 import {
   DEFAULT_SEARCH_ENGINES,
+  ENCODING_LABELS,
   isValidUrlTemplate,
   MAX_SEARCH_ENGINES,
   normalizeSearchEngines,
@@ -19,11 +20,6 @@ import {
 } from "@/search_engines";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
-
-const ENCODING_LABELS: Record<SearchEngineEncoding, string> = {
-  "utf-8": "UTF-8",
-  shift_jis: "Shift_JIS",
-};
 
 export type SearchEnginesPaneProps = PopupPaneBaseProps;
 
