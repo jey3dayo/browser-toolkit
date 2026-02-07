@@ -48,11 +48,14 @@ async function initializeOnEmptyPattern<T>(
   functionName: string,
   logDetails: boolean
 ): Promise<T[]> {
-  const existing = normalize
-    ? normalize(raw)
-    : Array.isArray(raw)
-      ? (raw as T[])
-      : [];
+  let existing: T[];
+  if (normalize) {
+    existing = normalize(raw);
+  } else if (Array.isArray(raw)) {
+    existing = raw as T[];
+  } else {
+    existing = [];
+  }
 
   if (logDetails) {
     await debugLog(functionName, "normalized existing", {
