@@ -70,7 +70,6 @@ export const DEFAULT_SEARCH_ENGINES: SearchEngine[] = [
     name: "メルカリ",
     urlTemplate: "https://jp.mercari.com/search?keyword={query}",
     enabled: true,
-    encoding: "utf-8",
   },
 ];
 
@@ -84,10 +83,12 @@ export function isValidUrlTemplate(urlTemplate: string): boolean {
 }
 
 function encodeShiftJis(query: string): string {
-  const sjisBytes = Encoding.convert(Encoding.stringToCode(query), {
-    to: "SJIS",
-    from: "UNICODE",
-  });
+  const sjisBytes = Array.from(
+    Encoding.convert(Encoding.stringToCode(query), {
+      to: "SJIS",
+      from: "UNICODE",
+    }),
+  );
   return sjisBytes
     .map((byte) => `%${byte.toString(16).toUpperCase().padStart(2, "0")}`)
     .join("");
