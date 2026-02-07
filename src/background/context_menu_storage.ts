@@ -15,10 +15,10 @@ import {
   normalizeSearchEngineGroups,
   type SearchEngineGroup,
 } from "@/search_engine_groups";
+import type { SearchEngine } from "@/search_engine_types";
 import {
   DEFAULT_SEARCH_ENGINES,
   normalizeSearchEngines,
-  type SearchEngine,
 } from "@/search_engines";
 import { DEFAULT_TEXT_TEMPLATES, type TextTemplate } from "@/text_templates";
 import { debugLog } from "@/utils/debug_log";

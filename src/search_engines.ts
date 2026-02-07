@@ -1,18 +1,11 @@
 import Encoding from "encoding-japanese";
-import { isRecord } from "@/utils/guards";
-import { normalizeOptionalText } from "@/utils/text";
-
-export {
-  ENCODING_LABELS,
-  SEARCH_ENGINE_ENCODINGS,
-  type SearchEngine,
-  type SearchEngineEncoding,
-} from "@/search_engine_types";
 import {
   SEARCH_ENGINE_ENCODINGS,
   type SearchEngine,
   type SearchEngineEncoding,
 } from "@/search_engine_types";
+import { isRecord } from "@/utils/guards";
+import { normalizeOptionalText } from "@/utils/text";
 
 export const DEFAULT_SEARCH_ENGINES: SearchEngine[] = [
   {
@@ -87,7 +80,7 @@ function encodeShiftJis(query: string): string {
     Encoding.convert(Encoding.stringToCode(query), {
       to: "SJIS",
       from: "UNICODE",
-    }),
+    })
   );
   return sjisBytes
     .map((byte) => `%${byte.toString(16).toUpperCase().padStart(2, "0")}`)

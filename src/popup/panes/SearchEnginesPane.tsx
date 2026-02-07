@@ -9,14 +9,16 @@ import { SortableList } from "@/components/SortableList";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { persistWithRollback } from "@/popup/utils/persist";
 import {
-  DEFAULT_SEARCH_ENGINES,
   ENCODING_LABELS,
-  isValidUrlTemplate,
-  MAX_SEARCH_ENGINES,
-  normalizeSearchEngines,
   SEARCH_ENGINE_ENCODINGS,
   type SearchEngine,
   type SearchEngineEncoding,
+} from "@/search_engine_types";
+import {
+  DEFAULT_SEARCH_ENGINES,
+  isValidUrlTemplate,
+  MAX_SEARCH_ENGINES,
+  normalizeSearchEngines,
 } from "@/search_engines";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";

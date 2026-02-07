@@ -2,7 +2,7 @@ import { Result } from "@praha/byethrow";
 import type { SummaryTarget } from "@/background/types";
 import type { ContextAction } from "@/context_actions";
 import type { SearchEngineGroup } from "@/search_engine_groups";
-import type { SearchEngine } from "@/search_engines";
+import type { SearchEngine } from "@/search_engine_types";
 import type { CalendarRegistrationTarget } from "@/shared_types";
 import type { LocalStorageData } from "@/storage/types";
 import type { TextTemplate } from "@/text_templates";
