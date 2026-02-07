@@ -9,6 +9,7 @@ Browser Toolkit is a personal Chrome extension that adds small, high-leverage ut
 - Make tabular web UIs easier to work with (click-to-sort, including dynamically inserted tables).
 - Provide lightweight “AI actions” on selected text or page content from the context menu (e.g., summarize/translate; calendar extraction is supported).
 - Provide quick “link utilities” (copy the current tab’s title + URL) from the popup and/or context menu.
+- Provide fast selection utilities: search selected text with configurable engines/groups and insert reusable text templates from the context menu.
 
 ## Core Capabilities (patterns, not a catalog)
 
@@ -20,6 +21,7 @@ Browser Toolkit is a personal Chrome extension that adds small, high-leverage ut
   - Domain/path patterns saved by the user (wildcard `*` patterns; protocol is ignored).
     - Unless a pattern explicitly includes `?` or `#`, query/hash suffixes are treated as optional; simple patterns tolerate an optional trailing `/`.
 - Handle dynamic pages by watching DOM mutations and enabling sorting for newly added tables.
+- Optional row filtering hides rows with “empty/zero-ish” values (e.g., 0, hyphen, empty, N/A) based on per-pattern settings.
 
 ### AI actions (OpenAI integration)
 
@@ -37,6 +39,17 @@ Browser Toolkit is a personal Chrome extension that adds small, high-leverage ut
 
 - Provide a small popup utility to copy the current tab’s title + URL in a reusable format (e.g. Markdown), without leaving the page.
 - Offer a context-menu “copy title + link” action for one-step capture; if direct clipboard copy fails, fall back to an in-page overlay that the user can copy from manually.
+
+### Search utilities (non-AI)
+
+- Provide context-menu search engines that open selected text with user-defined URL templates.
+- Support search engine groups that trigger multiple searches in one action.
+- Keep ordering and enable/disable state aligned between popup lists and context menus (drag-and-drop reorder in the popup).
+
+### Text templates (non-AI)
+
+- Provide reusable text snippets that can be inserted from the context menu.
+- Allow user-defined templates with ordering/visibility controlled in the popup (drag-and-drop reorder).
 
 ## UX Principles
 

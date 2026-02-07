@@ -25,6 +25,15 @@ export async function debugLog(
   data?: unknown,
   level: "debug" | "info" | "warn" | "error" = "debug"
 ): Promise<void> {
+  // テスト環境ではdebug/infoレベルのログを抑制
+  // error/warnは重要な問題の検出のため出力を継続
+  const isTest =
+    (globalThis as unknown as { __MBU_IS_VITEST__?: boolean })
+      .__MBU_IS_VITEST__ === true;
+  if (isTest && (level === "debug" || level === "info")) {
+    return;
+  }
+
   const timestamp = new Date().toISOString();
   const logEntry: DebugLogEntry = {
     timestamp,
