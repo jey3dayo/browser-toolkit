@@ -8,9 +8,9 @@ import { useEffect, useState } from "react";
 import { SortableList } from "@/components/SortableList";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { persistWithRollback } from "@/popup/utils/persist";
+import { isSearchEngineEncoding } from "@/schemas/search_engine_encoding";
 import {
   ENCODING_LABELS,
-  isSearchEngineEncoding,
   SEARCH_ENGINE_ENCODINGS,
   type SearchEngine,
   type SearchEngineEncoding,

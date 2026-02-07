@@ -1,8 +1,5 @@
-import {
-  normalizeSearchEngineEncoding,
-  type SearchEngine,
-  type SearchEngineEncoding,
-} from "@/search_engine_types";
+import { normalizeSearchEngineEncoding } from "@/schemas/search_engine_encoding";
+import type { SearchEngine, SearchEngineEncoding } from "@/search_engine_types";
 import { encodeShiftJisQuery } from "@/utils/encoding";
 import { isRecord } from "@/utils/guards";
 import { normalizeOptionalText } from "@/utils/text";
