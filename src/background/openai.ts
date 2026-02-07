@@ -11,10 +11,11 @@ import {
 import { storageLocalGet, storageLocalGetTyped } from "@/background/storage";
 import type { BackgroundResponse, SummaryTarget } from "@/background/types";
 import { loadOpenAiModel } from "@/openai/settings";
+import { ExtractedEventSchema } from "@/schemas/extracted_event";
+import { safeParseJsonObject } from "@/schemas/json";
 import type { ExtractedEvent } from "@/shared_types";
 import type { LocalStorageData } from "@/storage/types";
 import { toErrorMessage } from "@/utils/errors";
-import { safeParseJsonObject } from "@/utils/json";
 import {
   fetchOpenAiChatCompletionOk,
   fetchOpenAiChatCompletionText,
@@ -269,15 +270,13 @@ export async function extractEventWithOpenAI(
     return Result.fail(contentResult.error);
   }
 
-  const eventResult = safeParseJsonObject<ExtractedEvent>(contentResult.value);
-  if (Result.isFailure(eventResult)) {
+  const eventResult = safeParseJsonObject(
+    ExtractedEventSchema,
+    contentResult.value
+  );
+  if (!eventResult.success) {
     return Result.fail("イベント情報の解析に失敗しました");
   }
 
-  const event = eventResult.value;
-  if (typeof event.title !== "string" || typeof event.start !== "string") {
-    return Result.fail("イベント情報の解析に失敗しました");
-  }
-
-  return Result.succeed(normalizeEvent(event));
+  return Result.succeed(normalizeEvent(eventResult.output));
 }

@@ -11,6 +11,7 @@ import { persistWithRollback } from "@/popup/utils/persist";
 import {
   ENCODING_LABELS,
   SEARCH_ENGINE_ENCODINGS,
+  isSearchEngineEncoding,
   type SearchEngine,
   type SearchEngineEncoding,
 } from "@/search_engine_types";
@@ -260,8 +261,8 @@ export function SearchEnginesPane(
             />
             <Select.Root
               onValueChange={(value) => {
-                if (typeof value === "string") {
-                  setEncodingInput(value as SearchEngineEncoding);
+                if (isSearchEngineEncoding(value)) {
+                  setEncodingInput(value);
                 }
               }}
               value={encodingInput}

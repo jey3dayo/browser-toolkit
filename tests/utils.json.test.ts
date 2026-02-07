@@ -1,28 +1,29 @@
-import { Result } from "@praha/byethrow";
 import { describe, expect, it } from "vitest";
-import { safeParseJsonObject } from "@/utils/json";
+import * as v from "valibot";
+import { safeParseJsonObject } from "@/schemas/json";
 
 describe("safeParseJsonObject", () => {
   it("parses JSON object", () => {
-    const result = safeParseJsonObject<{ a: number }>('{"a":1}');
-    expect(Result.isSuccess(result)).toBe(true);
-    if (Result.isSuccess(result)) {
-      expect(result.value).toEqual({ a: 1 });
+    const schema = v.object({ a: v.number() });
+    const result = safeParseJsonObject(schema, '{"a":1}');
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.output).toEqual({ a: 1 });
     }
   });
 
   it("parses JSON object with surrounding text", () => {
-    const result = safeParseJsonObject<{ ok: boolean }>(
-      'prefix {"ok":true} suffix'
-    );
-    expect(Result.isSuccess(result)).toBe(true);
-    if (Result.isSuccess(result)) {
-      expect(result.value).toEqual({ ok: true });
+    const schema = v.object({ ok: v.boolean() });
+    const result = safeParseJsonObject(schema, 'prefix {"ok":true} suffix');
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.output).toEqual({ ok: true });
     }
   });
 
   it("fails when JSON object is not found", () => {
-    const result = safeParseJsonObject("not a json");
-    expect(Result.isFailure(result)).toBe(true);
+    const schema = v.object({ ok: v.boolean() });
+    const result = safeParseJsonObject(schema, "not a json");
+    expect(result.success).toBe(false);
   });
 });

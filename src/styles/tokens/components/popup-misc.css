@@ -251,6 +251,7 @@ input[type="checkbox"] {
 }
 
 .search-engine-name {
+  /* Align engine name and encoding badge */
   font-size: 14px;
   font-weight: 500;
   color: var(--text);

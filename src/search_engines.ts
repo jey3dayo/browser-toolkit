@@ -1,9 +1,9 @@
-import Encoding from "encoding-japanese";
 import {
-  SEARCH_ENGINE_ENCODINGS,
+  normalizeSearchEngineEncoding,
   type SearchEngine,
   type SearchEngineEncoding,
 } from "@/search_engine_types";
+import { encodeShiftJisQuery } from "@/utils/encoding";
 import { isRecord } from "@/utils/guards";
 import { normalizeOptionalText } from "@/utils/text";
 
@@ -75,21 +75,6 @@ export function isValidUrlTemplate(urlTemplate: string): boolean {
   return urlTemplate.includes("{query}");
 }
 
-function isValidByte(value: unknown): value is number {
-  return typeof value === "number" && value >= 0 && value <= 0xff;
-}
-
-function encodeShiftJis(query: string): string {
-  const converted = Encoding.convert(Encoding.stringToCode(query), {
-    to: "SJIS",
-    from: "UNICODE",
-  });
-  const sjisBytes = Array.from(converted).filter(isValidByte);
-  return sjisBytes
-    .map((byte) => `%${byte.toString(16).toUpperCase().padStart(2, "0")}`)
-    .join("");
-}
-
 /**
  * Replaces {query} placeholder with encoded search text
  */
@@ -100,7 +85,7 @@ export function buildSearchUrl(
 ): string {
   const encoded =
     encoding === "shift_jis"
-      ? encodeShiftJis(query)
+      ? encodeShiftJisQuery(query)
       : encodeURIComponent(query);
   return urlTemplate.replace("{query}", encoded);
 }
@@ -120,26 +105,6 @@ type SearchEngineParts = {
   enabled: boolean;
   encoding?: SearchEngineEncoding;
 };
-
-function isSearchEngineEncoding(value: unknown): value is SearchEngineEncoding {
-  return SEARCH_ENGINE_ENCODINGS.includes(value as SearchEngineEncoding);
-}
-
-const ENCODING_ALIASES: Record<string, SearchEngineEncoding> = {
-  sjis: "shift_jis",
-  "shift-jis": "shift_jis",
-  shiftjis: "shift_jis",
-};
-
-function coerceEncoding(value: unknown): SearchEngineEncoding | undefined {
-  if (isSearchEngineEncoding(value)) {
-    return value;
-  }
-  if (typeof value !== "string") {
-    return undefined;
-  }
-  return ENCODING_ALIASES[value.toLowerCase()];
-}
 
 function buildSearchEngine(parts: SearchEngineParts): SearchEngine | null {
   if (!(parts.id && parts.name && parts.urlTemplate)) {
@@ -170,7 +135,7 @@ function coerceSearchEngine(value: unknown): SearchEngine | null {
     name: normalizeOptionalText(raw.name),
     urlTemplate: coerceUrlTemplate(raw.urlTemplate),
     enabled: raw.enabled !== false,
-    encoding: coerceEncoding(raw.encoding),
+    encoding: normalizeSearchEngineEncoding(raw.encoding),
   });
 }
 
