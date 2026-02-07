@@ -1,11 +1,16 @@
+import Encoding from "encoding-japanese";
 import { isRecord } from "@/utils/guards";
 import { normalizeOptionalText } from "@/utils/text";
+
+export const SEARCH_ENGINE_ENCODINGS = ["utf-8", "shift_jis"] as const;
+export type SearchEngineEncoding = (typeof SEARCH_ENGINE_ENCODINGS)[number];
 
 export type SearchEngine = {
   id: string;
   name: string;
   urlTemplate: string;
   enabled: boolean;
+  encoding?: SearchEngineEncoding;
 };
 
 export const DEFAULT_SEARCH_ENGINES: SearchEngine[] = [
@@ -55,8 +60,16 @@ export const DEFAULT_SEARCH_ENGINES: SearchEngine[] = [
   {
     id: "builtin:biccamera",
     name: "ビックカメラ",
-    urlTemplate: "https://www.biccamera.com/bc/category/?q={query}",
+    urlTemplate: "https://www.biccamera.com/bc/category/?q={query}&sg=",
     enabled: true,
+    encoding: "shift_jis",
+  },
+  {
+    id: "builtin:mercari",
+    name: "メルカリ",
+    urlTemplate: "https://jp.mercari.com/search?keyword={query}",
+    enabled: true,
+    encoding: "utf-8",
   },
 ];
 
@@ -69,11 +82,29 @@ export function isValidUrlTemplate(urlTemplate: string): boolean {
   return urlTemplate.includes("{query}");
 }
 
+function encodeShiftJis(query: string): string {
+  const sjisBytes = Encoding.convert(Encoding.stringToCode(query), {
+    to: "SJIS",
+    from: "UNICODE",
+  });
+  return sjisBytes
+    .map((byte) => `%${byte.toString(16).toUpperCase().padStart(2, "0")}`)
+    .join("");
+}
+
 /**
  * Replaces {query} placeholder with encoded search text
  */
-export function buildSearchUrl(urlTemplate: string, query: string): string {
-  return urlTemplate.replace("{query}", encodeURIComponent(query));
+export function buildSearchUrl(
+  urlTemplate: string,
+  query: string,
+  encoding?: SearchEngineEncoding
+): string {
+  const encoded =
+    encoding === "shift_jis"
+      ? encodeShiftJis(query)
+      : encodeURIComponent(query);
+  return urlTemplate.replace("{query}", encoded);
 }
 
 function coerceUrlTemplate(value: unknown): string | null {
@@ -89,18 +120,31 @@ type SearchEngineParts = {
   name: string | undefined;
   urlTemplate: string | null;
   enabled: boolean;
+  encoding?: SearchEngineEncoding;
 };
+
+function isSearchEngineEncoding(value: unknown): value is SearchEngineEncoding {
+  return SEARCH_ENGINE_ENCODINGS.includes(value as SearchEngineEncoding);
+}
+
+function coerceEncoding(value: unknown): SearchEngineEncoding | undefined {
+  return isSearchEngineEncoding(value) ? value : undefined;
+}
 
 function buildSearchEngine(parts: SearchEngineParts): SearchEngine | null {
   if (!(parts.id && parts.name && parts.urlTemplate)) {
     return null;
   }
-  return {
+  const engine: SearchEngine = {
     id: parts.id,
     name: parts.name,
     urlTemplate: parts.urlTemplate,
     enabled: parts.enabled,
   };
+  if (parts.encoding) {
+    engine.encoding = parts.encoding;
+  }
+  return engine;
 }
 
 /**
@@ -116,6 +160,7 @@ function coerceSearchEngine(value: unknown): SearchEngine | null {
     name: normalizeOptionalText(raw.name),
     urlTemplate: coerceUrlTemplate(raw.urlTemplate),
     enabled: raw.enabled !== false,
+    encoding: coerceEncoding(raw.encoding),
   });
 }
 

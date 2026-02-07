@@ -12,10 +12,17 @@ import {
   isValidUrlTemplate,
   MAX_SEARCH_ENGINES,
   normalizeSearchEngines,
+  SEARCH_ENGINE_ENCODINGS,
   type SearchEngine,
+  type SearchEngineEncoding,
 } from "@/search_engines";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
+
+const ENCODING_LABELS: Record<SearchEngineEncoding, string> = {
+  "utf-8": "UTF-8",
+  shift_jis: "Shift_JIS",
+};
 
 export type SearchEnginesPaneProps = PopupPaneBaseProps;
 
@@ -25,6 +32,8 @@ export function SearchEnginesPane(
   const [engines, setEngines] = useState<SearchEngine[]>([]);
   const [nameInput, setNameInput] = useState("");
   const [urlInput, setUrlInput] = useState("");
+  const [encodingInput, setEncodingInput] =
+    useState<SearchEngineEncoding>("utf-8");
 
   useEffect(() => {
     let cancelled = false;
@@ -123,6 +132,9 @@ export function SearchEnginesPane(
       name,
       urlTemplate,
       enabled: true,
+      ...(encodingInput === "shift_jis"
+        ? { encoding: "shift_jis" as const }
+        : {}),
     };
 
     const next: SearchEngine[] = [...engines, newEngine];
@@ -131,6 +143,7 @@ export function SearchEnginesPane(
         setEngines(next);
         setNameInput("");
         setUrlInput("");
+        setEncodingInput("utf-8");
       },
       rollback: () => {
         setEngines(engines);
@@ -253,6 +266,20 @@ export function SearchEnginesPane(
             type="text"
             value={urlInput}
           />
+          <select
+            className="pattern-input"
+            data-testid="search-engine-encoding"
+            onChange={(e) =>
+              setEncodingInput(e.target.value as SearchEngineEncoding)
+            }
+            value={encodingInput}
+          >
+            {SEARCH_ENGINE_ENCODINGS.map((enc) => (
+              <option key={enc} value={enc}>
+                {ENCODING_LABELS[enc]}
+              </option>
+            ))}
+          </select>
           <Button
             className="btn btn-ghost btn-small"
             data-testid="add-search-engine"
@@ -278,7 +305,14 @@ export function SearchEnginesPane(
             renderItem={(engine) => (
               <div className="search-engine-item">
                 <div className="search-engine-content">
-                  <strong className="search-engine-name">{engine.name}</strong>
+                  <strong className="search-engine-name">
+                    {engine.name}
+                    {engine.encoding && engine.encoding !== "utf-8" && (
+                      <span className="badge badge-info">
+                        {ENCODING_LABELS[engine.encoding]}
+                      </span>
+                    )}
+                  </strong>
                   <code className="search-engine-url">
                     {engine.urlTemplate}
                   </code>

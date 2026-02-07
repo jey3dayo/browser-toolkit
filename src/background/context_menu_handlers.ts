@@ -34,7 +34,11 @@ export async function handleSearchEngineClick(
     return;
   }
 
-  const searchUrl = buildSearchUrl(engine.urlTemplate, selectionText);
+  const searchUrl = buildSearchUrl(
+    engine.urlTemplate,
+    selectionText,
+    engine.encoding
+  );
   chrome.tabs.create({ url: searchUrl }).catch((error) => {
     debugLog(
       "handleSearchEngineClick",
@@ -90,7 +94,11 @@ export async function handleBatchSearchClick(
   // Open all tabs in parallel
   const results = await Promise.allSettled(
     enabledEngines.map((engine) => {
-      const searchUrl = buildSearchUrl(engine.urlTemplate, selectionText);
+      const searchUrl = buildSearchUrl(
+        engine.urlTemplate,
+        selectionText,
+        engine.encoding
+      );
       return chrome.tabs.create({ url: searchUrl });
     })
   );
