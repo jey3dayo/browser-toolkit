@@ -1,6 +1,7 @@
 import { Button } from "@base-ui/react/button";
 import { Form } from "@base-ui/react/form";
 import { Input } from "@base-ui/react/input";
+import { Select } from "@base-ui/react/select";
 import { Switch } from "@base-ui/react/switch";
 import { Result } from "@praha/byethrow";
 import { useEffect, useState } from "react";
@@ -250,37 +251,68 @@ export function SearchEnginesPane(
             });
           }}
         >
-          <Input
-            className="pattern-input"
-            data-testid="search-engine-name"
-            onValueChange={setNameInput}
-            placeholder="検索エンジン名（例: Google）"
-            type="text"
-            value={nameInput}
-          />
-          <Input
-            className="pattern-input"
-            data-testid="search-engine-url"
-            onValueChange={setUrlInput}
-            placeholder="URLテンプレート（例: https://google.com/search?q={query}）"
-            type="text"
-            value={urlInput}
-          />
           <div className="pattern-input-row">
-            <select
-              className="pattern-input pattern-input--select"
-              data-testid="search-engine-encoding"
-              onChange={(e) =>
-                setEncodingInput(e.target.value as SearchEngineEncoding)
-              }
+            <Input
+              className="pattern-input"
+              data-testid="search-engine-name"
+              onValueChange={setNameInput}
+              placeholder="検索エンジン名（例: Google）"
+              type="text"
+              value={nameInput}
+            />
+            <Select.Root
+              onValueChange={(value) => {
+                if (typeof value === "string") {
+                  setEncodingInput(value as SearchEngineEncoding);
+                }
+              }}
               value={encodingInput}
             >
-              {SEARCH_ENGINE_ENCODINGS.map((enc) => (
-                <option key={enc} value={enc}>
-                  {ENCODING_LABELS[enc]}
-                </option>
-              ))}
-            </select>
+              <Select.Trigger
+                aria-label="エンコーディング"
+                className="pattern-input mbu-select-trigger"
+                data-testid="search-engine-encoding"
+                type="button"
+              >
+                <Select.Value className="mbu-select-value" />
+                <Select.Icon className="mbu-select-icon">▾</Select.Icon>
+              </Select.Trigger>
+              <Select.Portal>
+                <Select.Positioner
+                  className="mbu-select-positioner"
+                  sideOffset={6}
+                >
+                  <Select.Popup className="mbu-select-popup">
+                    <Select.List className="mbu-select-list">
+                      {SEARCH_ENGINE_ENCODINGS.map((enc) => (
+                        <Select.Item
+                          className="mbu-select-item"
+                          key={enc}
+                          value={enc}
+                        >
+                          <Select.ItemText>
+                            {ENCODING_LABELS[enc]}
+                          </Select.ItemText>
+                          <Select.ItemIndicator className="mbu-select-indicator">
+                            ✓
+                          </Select.ItemIndicator>
+                        </Select.Item>
+                      ))}
+                    </Select.List>
+                  </Select.Popup>
+                </Select.Positioner>
+              </Select.Portal>
+            </Select.Root>
+          </div>
+          <div className="pattern-input-row">
+            <Input
+              className="pattern-input"
+              data-testid="search-engine-url"
+              onValueChange={setUrlInput}
+              placeholder="URLテンプレート（例: https://google.com/search?q={query}）"
+              type="text"
+              value={urlInput}
+            />
             <Button
               className="btn btn-ghost btn-small"
               data-testid="add-search-engine"
