@@ -128,18 +128,11 @@ export async function handleCopyTitleLinkContextMenuClick(
       )
     );
 
+    // Chrome通知の文字数制限を考慮してシンプルなメッセージにする
     await showErrorNotification({
       title: "コピーに失敗しました",
-      errorMessage: [
-        errorMessage,
-        "",
-        title ? `タイトル: ${title}` : null,
-        url ? `URL: ${url}` : null,
-        "",
-        "ポップアップの「リンク作成」タブからコピーできます。",
-      ]
-        .filter(Boolean)
-        .join("\n"),
+      errorMessage,
+      hint: "ポップアップの「リンク作成」タブからコピーできます。",
     });
 
     const overlayShown = await showCopyTitleLinkOverlay({

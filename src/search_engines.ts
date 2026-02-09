@@ -33,7 +33,8 @@ export const DEFAULT_SEARCH_ENGINES: SearchEngine[] = [
   {
     id: "builtin:rakuten",
     name: "楽天",
-    urlTemplate: "https://search.rakuten.co.jp/search/mall/{query}/?filter=fs-fsl",
+    urlTemplate:
+      "https://search.rakuten.co.jp/search/mall/{query}/?filter=fs-fsl",
     enabled: true,
   },
   {
