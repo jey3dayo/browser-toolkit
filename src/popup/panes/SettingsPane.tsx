@@ -48,6 +48,20 @@ function isTestAiTokenResponse(value: unknown): value is TestAiTokenResponse {
   return isRecord(value);
 }
 
+// プロバイダーからトークンキーへのマッピング
+function getTokenKey(provider: AiProvider): keyof LocalStorageData {
+  switch (provider) {
+    case "openai":
+      return "openaiApiToken";
+    case "anthropic":
+      return "anthropicApiToken";
+    case "zai":
+      return "zaiApiToken";
+    default:
+      return "openaiApiToken";
+  }
+}
+
 export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
   const [provider, setProvider] = useState<AiProvider>("openai");
   const [token, setToken] = useState("");
@@ -89,10 +103,11 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
     (async () => {
       const loaded = await props.runtime.storageLocalGet([
         "aiProvider",
-        "aiApiToken",
         "aiModel",
         "aiCustomPrompt",
         "openaiApiToken",
+        "anthropicApiToken",
+        "zaiApiToken",
         "openaiCustomPrompt",
         "openaiModel",
         "theme",
@@ -107,8 +122,10 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
       const resolvedProvider = safeParseAiProvider(providerValue) ?? "openai";
       setProvider(resolvedProvider);
 
-      // トークン（新キー優先、旧キーフォールバック）
-      setToken(raw.aiApiToken ?? raw.openaiApiToken ?? "");
+      // プロバイダー別トークン
+      const tokenKey = getTokenKey(resolvedProvider);
+      const tokenValue = raw[tokenKey];
+      setToken(typeof tokenValue === "string" ? tokenValue : "");
 
       // カスタムプロンプト（新キー優先、旧キーフォールバック）
       setCustomPrompt(raw.aiCustomPrompt ?? raw.openaiCustomPrompt ?? "");
@@ -138,11 +155,13 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
   }, [props.runtime]);
 
   const saveToken = async (): Promise<void> => {
-    await saveLocalString("aiApiToken", token);
+    const tokenKey = getTokenKey(provider);
+    await saveLocalString(tokenKey, token);
   };
 
   const clearToken = async (): Promise<void> => {
-    await clearLocalString("aiApiToken", () => setToken(""));
+    const tokenKey = getTokenKey(provider);
+    await clearLocalString(tokenKey, () => setToken(""));
   };
 
   const testToken = async (): Promise<void> => {
@@ -224,6 +243,22 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
                 // プロバイダー変更時にモデルをデフォルトにリセット
                 const defaultModel = PROVIDER_CONFIGS[newProvider].defaultModel;
                 setModel(defaultModel);
+                // プロバイダー別トークンをロード
+                const tokenKey = getTokenKey(newProvider);
+                props.runtime
+                  .storageLocalGet([tokenKey])
+                  .then((result) => {
+                    if (Result.isSuccess(result)) {
+                      const raw = result.value as Partial<LocalStorageData>;
+                      const tokenValue = raw[tokenKey];
+                      setToken(
+                        typeof tokenValue === "string" ? tokenValue : ""
+                      );
+                    }
+                  })
+                  .catch(() => {
+                    // no-op
+                  });
                 // 保存
                 saveProvider(newProvider).catch(() => {
                   // no-op
@@ -265,172 +300,6 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
           </Field.Item>
         </Fieldset.Root>
       </Field.Root>
-
-      <Separator className="mbu-separator" />
-
-      <Form
-        className="stack"
-        onFormSubmit={() => {
-          savePrompt().catch(() => {
-            // no-op
-          });
-        }}
-      >
-        <Fieldset.Root className="mbu-fieldset stack">
-          <Fieldset.Legend className="mbu-fieldset-legend">
-            追加指示（オプション）
-          </Fieldset.Legend>
-          <label className="field" htmlFor={promptInputId}>
-            <textarea
-              className="prompt-input"
-              data-testid="custom-prompt"
-              id={promptInputId}
-              name="aiCustomPrompt"
-              onChange={(event) => setCustomPrompt(event.currentTarget.value)}
-              rows={3}
-              value={customPrompt}
-            />
-          </label>
-        </Fieldset.Root>
-
-        <div className="button-row">
-          <Button
-            className="btn btn-primary btn-small"
-            data-testid="prompt-save"
-            onClick={() => {
-              savePrompt().catch(() => {
-                // no-op
-              });
-            }}
-            type="button"
-          >
-            保存
-          </Button>
-          <Button
-            className="btn-delete"
-            data-testid="prompt-clear"
-            onClick={() => {
-              clearPrompt().catch(() => {
-                // no-op
-              });
-            }}
-            type="button"
-          >
-            削除
-          </Button>
-        </div>
-      </Form>
-
-      <Separator className="mbu-separator" />
-
-      <Fieldset.Root className="mbu-fieldset stack">
-        <Fieldset.Legend className="mbu-fieldset-legend">
-          モデル
-        </Fieldset.Legend>
-
-        <div className="field">
-          <Select.Root
-            name="aiModel"
-            onValueChange={(value) => {
-              if (typeof value === "string") {
-                const normalized = normalizeAiModel(provider, value);
-                setModel(normalized);
-                saveModel(normalized).catch(() => {
-                  // no-op
-                });
-              }
-            }}
-            value={model}
-          >
-            <Select.Trigger
-              aria-label="モデル"
-              className="token-input mbu-select-trigger"
-              data-testid="ai-model"
-              type="button"
-            >
-              <Select.Value className="mbu-select-value" />
-              <Select.Icon className="mbu-select-icon">▾</Select.Icon>
-            </Select.Trigger>
-            <Select.Portal>
-              <Select.Positioner
-                className="mbu-select-positioner"
-                sideOffset={6}
-              >
-                <Select.Popup className="mbu-select-popup">
-                  <Select.List className="mbu-select-list">
-                    {PROVIDER_CONFIGS[provider].models.map((option) => (
-                      <Select.Item
-                        className="mbu-select-item"
-                        key={option}
-                        value={option}
-                      >
-                        <Select.ItemText>{option}</Select.ItemText>
-                        <Select.ItemIndicator className="mbu-select-indicator">
-                          ✓
-                        </Select.ItemIndicator>
-                      </Select.Item>
-                    ))}
-                  </Select.List>
-                </Select.Popup>
-              </Select.Positioner>
-            </Select.Portal>
-          </Select.Root>
-        </div>
-      </Fieldset.Root>
-
-      <Separator className="mbu-separator" />
-
-      <Field.Root name="theme">
-        <Fieldset.Root
-          className="mbu-fieldset"
-          render={
-            <RadioGroup
-              className="mbu-radio-group mbu-radio-group--horizontal"
-              onValueChange={(value) => {
-                if (!isTheme(value)) {
-                  return;
-                }
-                setTheme(value);
-                applyTheme(value, document);
-                saveTheme(value).catch(() => {
-                  // no-op
-                });
-              }}
-              value={theme}
-            />
-          }
-        >
-          <Fieldset.Legend className="mbu-fieldset-legend">
-            テーマ
-          </Fieldset.Legend>
-          <Field.Item>
-            <Field.Label className="mbu-radio-label">
-              <Radio.Root className="mbu-radio-root" value="auto">
-                <Radio.Indicator className="mbu-radio-indicator" />
-              </Radio.Root>
-              自動
-            </Field.Label>
-          </Field.Item>
-          <Field.Item>
-            <Field.Label className="mbu-radio-label">
-              <Radio.Root className="mbu-radio-root" value="light">
-                <Radio.Indicator className="mbu-radio-indicator" />
-              </Radio.Root>
-              ライト
-            </Field.Label>
-          </Field.Item>
-          <Field.Item>
-            <Field.Label className="mbu-radio-label">
-              <Radio.Root className="mbu-radio-root" value="dark">
-                <Radio.Indicator className="mbu-radio-indicator" />
-              </Radio.Root>
-              ダーク
-            </Field.Label>
-          </Field.Item>
-        </Fieldset.Root>
-      </Field.Root>
-
-      <Separator className="mbu-separator" />
 
       <Form
         className="stack"
@@ -516,6 +385,168 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
           </Button>
         </div>
       </Form>
+
+      <Fieldset.Root className="mbu-fieldset stack">
+        <Fieldset.Legend className="mbu-fieldset-legend">
+          モデル
+        </Fieldset.Legend>
+
+        <div className="field">
+          <Select.Root
+            name="aiModel"
+            onValueChange={(value) => {
+              if (typeof value === "string") {
+                const normalized = normalizeAiModel(provider, value);
+                setModel(normalized);
+                saveModel(normalized).catch(() => {
+                  // no-op
+                });
+              }
+            }}
+            value={model}
+          >
+            <Select.Trigger
+              aria-label="モデル"
+              className="token-input mbu-select-trigger"
+              data-testid="ai-model"
+              type="button"
+            >
+              <Select.Value className="mbu-select-value" />
+              <Select.Icon className="mbu-select-icon">▾</Select.Icon>
+            </Select.Trigger>
+            <Select.Portal>
+              <Select.Positioner
+                className="mbu-select-positioner"
+                sideOffset={6}
+              >
+                <Select.Popup className="mbu-select-popup">
+                  <Select.List className="mbu-select-list">
+                    {PROVIDER_CONFIGS[provider].models.map((option) => (
+                      <Select.Item
+                        className="mbu-select-item"
+                        key={option}
+                        value={option}
+                      >
+                        <Select.ItemText>{option}</Select.ItemText>
+                        <Select.ItemIndicator className="mbu-select-indicator">
+                          ✓
+                        </Select.ItemIndicator>
+                      </Select.Item>
+                    ))}
+                  </Select.List>
+                </Select.Popup>
+              </Select.Positioner>
+            </Select.Portal>
+          </Select.Root>
+        </div>
+      </Fieldset.Root>
+
+      <Separator className="mbu-separator" />
+
+      <Form
+        className="stack"
+        onFormSubmit={() => {
+          savePrompt().catch(() => {
+            // no-op
+          });
+        }}
+      >
+        <Fieldset.Root className="mbu-fieldset stack">
+          <Fieldset.Legend className="mbu-fieldset-legend">
+            追加指示（オプション）
+          </Fieldset.Legend>
+          <label className="field" htmlFor={promptInputId}>
+            <textarea
+              className="prompt-input"
+              data-testid="custom-prompt"
+              id={promptInputId}
+              name="aiCustomPrompt"
+              onChange={(event) => setCustomPrompt(event.currentTarget.value)}
+              rows={3}
+              value={customPrompt}
+            />
+          </label>
+        </Fieldset.Root>
+
+        <div className="button-row">
+          <Button
+            className="btn btn-primary btn-small"
+            data-testid="prompt-save"
+            onClick={() => {
+              savePrompt().catch(() => {
+                // no-op
+              });
+            }}
+            type="button"
+          >
+            保存
+          </Button>
+          <Button
+            className="btn-delete"
+            data-testid="prompt-clear"
+            onClick={() => {
+              clearPrompt().catch(() => {
+                // no-op
+              });
+            }}
+            type="button"
+          >
+            削除
+          </Button>
+        </div>
+      </Form>
+
+      <Separator className="mbu-separator" />
+
+      <Field.Root name="theme">
+        <Fieldset.Root
+          className="mbu-fieldset"
+          render={
+            <RadioGroup
+              className="mbu-radio-group mbu-radio-group--horizontal"
+              onValueChange={(value) => {
+                if (!isTheme(value)) {
+                  return;
+                }
+                setTheme(value);
+                applyTheme(value, document);
+                saveTheme(value).catch(() => {
+                  // no-op
+                });
+              }}
+              value={theme}
+            />
+          }
+        >
+          <Fieldset.Legend className="mbu-fieldset-legend">
+            テーマ
+          </Fieldset.Legend>
+          <Field.Item>
+            <Field.Label className="mbu-radio-label">
+              <Radio.Root className="mbu-radio-root" value="auto">
+                <Radio.Indicator className="mbu-radio-indicator" />
+              </Radio.Root>
+              自動
+            </Field.Label>
+          </Field.Item>
+          <Field.Item>
+            <Field.Label className="mbu-radio-label">
+              <Radio.Root className="mbu-radio-root" value="light">
+                <Radio.Indicator className="mbu-radio-indicator" />
+              </Radio.Root>
+              ライト
+            </Field.Label>
+          </Field.Item>
+          <Field.Item>
+            <Field.Label className="mbu-radio-label">
+              <Radio.Root className="mbu-radio-root" value="dark">
+                <Radio.Indicator className="mbu-radio-indicator" />
+              </Radio.Root>
+              ダーク
+            </Field.Label>
+          </Field.Item>
+        </Fieldset.Root>
+      </Field.Root>
     </div>
   );
 }

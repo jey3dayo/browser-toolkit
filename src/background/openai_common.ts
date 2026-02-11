@@ -128,10 +128,11 @@ export async function prepareAiInput(params: {
 }): Promise<Result.Result<PreparedAiInput, string>> {
   const storage = await storageLocalGetTyped([
     "aiProvider",
-    "aiApiToken",
     "aiModel",
     "aiCustomPrompt",
     "openaiApiToken",
+    "anthropicApiToken",
+    "zaiApiToken",
     "openaiModel",
     "openaiCustomPrompt",
   ]);

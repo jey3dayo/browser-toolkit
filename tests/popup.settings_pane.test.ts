@@ -117,7 +117,7 @@ describe("popup Settings pane", () => {
     });
 
     expect(chromeStub.storage.local.set).toHaveBeenCalledWith(
-      expect.objectContaining({ aiApiToken: "sk-new" }),
+      expect.objectContaining({ openaiApiToken: "sk-new" }),
       expect.any(Function)
     );
 
@@ -127,7 +127,7 @@ describe("popup Settings pane", () => {
     });
 
     expect(chromeStub.storage.local.remove).toHaveBeenCalledWith(
-      "aiApiToken",
+      "openaiApiToken",
       expect.any(Function)
     );
   });

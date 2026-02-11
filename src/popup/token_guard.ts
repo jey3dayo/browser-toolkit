@@ -30,7 +30,12 @@ export async function ensureOpenAiTokenConfigured(
 ): Result.ResultAsync<void, EnsureOpenAiTokenConfiguredError> {
   let loaded: Result.Result<Partial<LocalStorageData>, string>;
   try {
-    loaded = await deps.storageLocalGet(["aiApiToken", "openaiApiToken"]);
+    loaded = await deps.storageLocalGet([
+      "aiProvider",
+      "openaiApiToken",
+      "anthropicApiToken",
+      "zaiApiToken",
+    ]);
   } catch {
     deps.showNotification("AI設定の読み込みに失敗しました。", "error");
     deps.navigateToPane("pane-settings");
@@ -44,13 +49,25 @@ export async function ensureOpenAiTokenConfigured(
     return Result.fail("storage-error");
   }
 
-  // 新キー優先、旧キーフォールバック
-  const token = (
-    loaded.value.aiApiToken ??
-    loaded.value.openaiApiToken ??
-    ""
-  ).trim();
-  const tokenConfigured = token
+  // プロバイダー別トークン取得
+  const provider = loaded.value.aiProvider ?? "openai";
+  let token = "";
+  switch (provider) {
+    case "openai":
+      token = loaded.value.openaiApiToken ?? "";
+      break;
+    case "anthropic":
+      token = loaded.value.anthropicApiToken ?? "";
+      break;
+    case "zai":
+      token = loaded.value.zaiApiToken ?? "";
+      break;
+    default:
+      token = loaded.value.openaiApiToken ?? "";
+      break;
+  }
+
+  const tokenConfigured = token.trim()
     ? Result.succeed()
     : Result.fail("missing-token" as const);
 

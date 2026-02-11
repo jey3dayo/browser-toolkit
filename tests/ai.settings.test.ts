@@ -8,7 +8,7 @@ describe("ai/settings", () => {
     it("loads settings from new keys", () => {
       const storage: LocalStorageData = {
         aiProvider: "anthropic",
-        aiApiToken: "sk-test-token",
+        anthropicApiToken: "sk-test-token",
         aiModel: "claude-sonnet-4-5-20250929",
         aiCustomPrompt: "test prompt",
       };
@@ -44,17 +44,18 @@ describe("ai/settings", () => {
       }
     });
 
-    it("prefers new keys over old keys", () => {
+    it("uses provider-specific token key", () => {
       const storage: LocalStorageData = {
-        aiApiToken: "sk-new-token",
-        openaiApiToken: "sk-old-token",
+        aiProvider: "openai",
+        openaiApiToken: "sk-openai-token",
+        anthropicApiToken: "sk-anthropic-token",
       };
 
       const result = loadAiSettings(storage);
       expect(Result.isSuccess(result)).toBe(true);
 
       if (Result.isSuccess(result)) {
-        expect(result.value.token).toBe("sk-new-token");
+        expect(result.value.token).toBe("sk-openai-token");
       }
     });
 
@@ -72,7 +73,7 @@ describe("ai/settings", () => {
     it("normalizes invalid provider to openai", () => {
       const storage: LocalStorageData = {
         aiProvider: "invalid-provider",
-        aiApiToken: "sk-test-token",
+        openaiApiToken: "sk-test-token",
       };
 
       const result = loadAiSettings(storage);
@@ -86,7 +87,7 @@ describe("ai/settings", () => {
     it("normalizes invalid model to provider default", () => {
       const storage: LocalStorageData = {
         aiProvider: "anthropic",
-        aiApiToken: "sk-test-token",
+        anthropicApiToken: "sk-test-token",
         aiModel: "invalid-model",
       };
 
@@ -109,7 +110,7 @@ describe("ai/settings", () => {
         }),
         set: (items: Record<string, unknown>) => {
           expect(items.aiProvider).toBe("openai");
-          expect(items.aiApiToken).toBe("sk-old-token");
+          // openaiApiTokenはそのまま維持（プロバイダー別キー）
           expect(items.aiModel).toBe("gpt-4o-mini");
           expect(items.aiCustomPrompt).toBe("old prompt");
           return Promise.resolve();
@@ -124,7 +125,7 @@ describe("ai/settings", () => {
       const mockStorage = {
         get: async (_keys: string[]) => ({
           aiProvider: "anthropic",
-          aiApiToken: "sk-new-token",
+          anthropicApiToken: "sk-new-token",
           openaiApiToken: "sk-old-token",
         }),
         set: (_items: Record<string, unknown>) => {

@@ -247,10 +247,30 @@ async function resolveAiToken(
 
   try {
     const data = (await storageLocalGet([
-      "aiApiToken",
+      "aiProvider",
       "openaiApiToken",
+      "anthropicApiToken",
+      "zaiApiToken",
     ])) as LocalStorageData;
-    const storedToken = (data.aiApiToken ?? data.openaiApiToken)?.trim() ?? "";
+
+    // プロバイダー別トークン取得
+    const provider = data.aiProvider ?? "openai";
+    let storedToken = "";
+    switch (provider) {
+      case "openai":
+        storedToken = data.openaiApiToken?.trim() ?? "";
+        break;
+      case "anthropic":
+        storedToken = data.anthropicApiToken?.trim() ?? "";
+        break;
+      case "zai":
+        storedToken = data.zaiApiToken?.trim() ?? "";
+        break;
+      default:
+        storedToken = data.openaiApiToken?.trim() ?? "";
+        break;
+    }
+
     if (!storedToken) {
       return Result.fail(
         "API Tokenが未設定です（ポップアップの「設定」タブで設定してください）"
@@ -301,9 +321,10 @@ export async function testAiToken(
 
   const storage = await storageLocalGetTyped([
     "aiProvider",
-    "aiApiToken",
     "aiModel",
     "openaiApiToken",
+    "anthropicApiToken",
+    "zaiApiToken",
     "openaiModel",
   ]);
   const settingsResult = loadAiSettings(storage);

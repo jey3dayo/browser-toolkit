@@ -24,7 +24,7 @@ export type AiSettings = {
 /**
  * AI設定の読み込み
  *
- * 新キー優先、旧キーフォールバック
+ * プロバイダー別トークンキーを使用
  */
 export function loadAiSettings(
   storage: LocalStorageData
@@ -33,8 +33,23 @@ export function loadAiSettings(
   const providerValue = storage.aiProvider ?? "openai";
   const provider = safeParseAiProvider(providerValue) ?? "openai";
 
-  // トークン（新キー優先、旧キーフォールバック）
-  const token = storage.aiApiToken ?? storage.openaiApiToken ?? "";
+  // プロバイダー別トークン
+  let token = "";
+  switch (provider) {
+    case "openai":
+      token = storage.openaiApiToken ?? "";
+      break;
+    case "anthropic":
+      token = storage.anthropicApiToken ?? "";
+      break;
+    case "zai":
+      token = storage.zaiApiToken ?? "";
+      break;
+    default:
+      token = storage.openaiApiToken ?? "";
+      break;
+  }
+
   if (!token) {
     return Result.fail("APIトークンが設定されていません");
   }
@@ -69,7 +84,6 @@ export async function migrateToAiSettings(
 ): Promise<void> {
   const data = await storage.get([
     "aiProvider",
-    "aiApiToken",
     "aiModel",
     "aiCustomPrompt",
     "openaiApiToken",
@@ -78,12 +92,7 @@ export async function migrateToAiSettings(
   ]);
 
   // すでに新キーがある場合はマイグレーション不要
-  if (
-    data.aiProvider ||
-    data.aiApiToken ||
-    data.aiModel ||
-    data.aiCustomPrompt
-  ) {
+  if (data.aiProvider || data.aiModel || data.aiCustomPrompt) {
     return;
   }
 
@@ -92,7 +101,7 @@ export async function migrateToAiSettings(
 
   if (typeof data.openaiApiToken === "string") {
     updates.aiProvider = "openai";
-    updates.aiApiToken = data.openaiApiToken;
+    // openaiApiTokenはそのまま維持（プロバイダー別キー）
   }
 
   if (typeof data.openaiModel === "string") {
