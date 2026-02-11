@@ -1,4 +1,5 @@
 import { Result } from "@praha/byethrow";
+import { type AiSettings, loadAiSettings } from "@/ai/settings";
 import { storageLocalGetTyped } from "@/background/storage";
 import type { SummaryTarget } from "@/background/types";
 import { loadOpenAiSettings, type OpenAiSettings } from "@/openai/settings";
@@ -74,7 +75,7 @@ export function buildTemplateVariables(
 }
 
 /**
- * OpenAI入力の準備済みデータ
+ * OpenAI入力の準備済みデータ（レガシー互換）
  */
 export type PreparedOpenAiInput = {
   settings: OpenAiSettings;
@@ -83,7 +84,16 @@ export type PreparedOpenAiInput = {
 };
 
 /**
- * OpenAI呼び出しのための入力を準備
+ * AI入力の準備済みデータ（新版）
+ */
+export type PreparedAiInput = {
+  settings: AiSettings;
+  clippedText: string;
+  meta: string;
+};
+
+/**
+ * OpenAI呼び出しのための入力を準備（レガシー互換）
  */
 export async function prepareOpenAiInput(params: {
   target: SummaryTarget;
@@ -91,6 +101,41 @@ export async function prepareOpenAiInput(params: {
   includeMissingMeta?: boolean;
 }): Promise<Result.Result<PreparedOpenAiInput, string>> {
   const settingsResult = await loadOpenAiSettings(storageLocalGetTyped);
+  if (Result.isFailure(settingsResult)) {
+    return Result.fail(settingsResult.error);
+  }
+  const settings = settingsResult.value;
+
+  const clippedText = clipInputText(params.target.text);
+  if (!clippedText) {
+    return Result.fail(params.missingTextMessage);
+  }
+
+  const meta = buildTitleUrlMeta(params.target, {
+    includeMissing: params.includeMissingMeta,
+  });
+
+  return Result.succeed({ settings, clippedText, meta });
+}
+
+/**
+ * AI呼び出しのための入力を準備（新版）
+ */
+export async function prepareAiInput(params: {
+  target: SummaryTarget;
+  missingTextMessage: string;
+  includeMissingMeta?: boolean;
+}): Promise<Result.Result<PreparedAiInput, string>> {
+  const storage = await storageLocalGetTyped([
+    "aiProvider",
+    "aiApiToken",
+    "aiModel",
+    "aiCustomPrompt",
+    "openaiApiToken",
+    "openaiModel",
+    "openaiCustomPrompt",
+  ]);
+  const settingsResult = loadAiSettings(storage);
   if (Result.isFailure(settingsResult)) {
     return Result.fail(settingsResult.error);
   }

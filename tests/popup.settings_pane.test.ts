@@ -49,7 +49,7 @@ describe("popup Settings pane", () => {
       (message: unknown, callback: (resp: unknown) => void) => {
         chromeStub.runtime.lastError = null;
         const action = (message as { action?: unknown }).action;
-        if (action === "testOpenAiToken") {
+        if (action === "testAiToken" || action === "testOpenAiToken") {
           callback({ ok: true });
           return;
         }
@@ -117,7 +117,7 @@ describe("popup Settings pane", () => {
     });
 
     expect(chromeStub.storage.local.set).toHaveBeenCalledWith(
-      expect.objectContaining({ openaiApiToken: "sk-new" }),
+      expect.objectContaining({ aiApiToken: "sk-new" }),
       expect.any(Function)
     );
 
@@ -127,7 +127,7 @@ describe("popup Settings pane", () => {
     });
 
     expect(chromeStub.storage.local.remove).toHaveBeenCalledWith(
-      "openaiApiToken",
+      "aiApiToken",
       expect.any(Function)
     );
   });
@@ -144,7 +144,7 @@ describe("popup Settings pane", () => {
     });
 
     expect(chromeStub.runtime.sendMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ action: "testOpenAiToken" }),
+      expect.objectContaining({ action: "testAiToken" }),
       expect.any(Function)
     );
     expect(dom.window.document.body.textContent).toContain("トークン");
@@ -168,7 +168,7 @@ describe("popup Settings pane", () => {
     });
 
     expect(chromeStub.storage.local.set).toHaveBeenCalledWith(
-      expect.objectContaining({ openaiCustomPrompt: "custom prompt" }),
+      expect.objectContaining({ aiCustomPrompt: "custom prompt" }),
       expect.any(Function)
     );
 
@@ -178,14 +178,14 @@ describe("popup Settings pane", () => {
     });
 
     expect(chromeStub.storage.local.remove).toHaveBeenCalledWith(
-      "openaiCustomPrompt",
+      "aiCustomPrompt",
       expect.any(Function)
     );
   });
 
   it("saves the selected model using local storage", async () => {
     const modelSelect = dom.window.document.querySelector<HTMLButtonElement>(
-      '[data-testid="openai-model"]'
+      '[data-testid="ai-model"]'
     );
     expect(modelSelect).not.toBeNull();
 
@@ -201,7 +201,7 @@ describe("popup Settings pane", () => {
     });
 
     expect(chromeStub.storage.local.set).toHaveBeenCalledWith(
-      expect.objectContaining({ openaiModel: "gpt-4o-mini" }),
+      expect.objectContaining({ aiModel: "gpt-4o-mini" }),
       expect.any(Function)
     );
     expect(modelSelect?.textContent).toContain("gpt-4o-mini");

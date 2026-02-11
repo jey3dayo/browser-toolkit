@@ -13,6 +13,7 @@ import { sendMessageToTab } from "@/background/messaging";
 import {
   extractEventWithOpenAI,
   summarizeWithOpenAI,
+  testAiToken,
   testOpenAiToken,
 } from "@/background/openai";
 import { debugRuntimeHandlers } from "@/background/runtime_debug_handlers";
@@ -284,6 +285,35 @@ function handleTestOpenAiTokenRequest(
   return true;
 }
 
+function handleTestAiTokenRequest(
+  request: { action: "testAiToken"; token?: string },
+  sendResponse: RuntimeSendResponse
+): boolean {
+  (async () => {
+    try {
+      const result = await testAiToken(request.token);
+      if (Result.isFailure(result)) {
+        sendResponse(Result.fail(result.error));
+        return;
+      }
+      sendResponse(Result.succeed({}));
+    } catch (error) {
+      await debugLog(
+        "handleTestAiTokenRequest",
+        "Failed to test AI token",
+        { error, request },
+        "error"
+      );
+      sendResponse(
+        Result.fail(
+          error instanceof Error ? error.message : "トークン確認に失敗しました"
+        )
+      );
+    }
+  })();
+  return true;
+}
+
 function handleSummarizeEventRequest(
   request: SummarizeEventRequest,
   sendResponse: RuntimeSendResponse
@@ -328,6 +358,7 @@ export const runtimeHandlers = {
   summarizeText: handleSummarizeTextRequest,
   runContextAction: handleRunContextActionRequest,
   testOpenAiToken: handleTestOpenAiTokenRequest,
+  testAiToken: handleTestAiTokenRequest,
   summarizeEvent: handleSummarizeEventRequest,
   openPopupSettings: handleOpenPopupSettingsRequest,
   ...debugRuntimeHandlers,

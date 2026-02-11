@@ -30,29 +30,34 @@ export async function ensureOpenAiTokenConfigured(
 ): Result.ResultAsync<void, EnsureOpenAiTokenConfiguredError> {
   let loaded: Result.Result<Partial<LocalStorageData>, string>;
   try {
-    loaded = await deps.storageLocalGet(["openaiApiToken"]);
+    loaded = await deps.storageLocalGet(["aiApiToken", "openaiApiToken"]);
   } catch {
-    deps.showNotification("OpenAI設定の読み込みに失敗しました。", "error");
+    deps.showNotification("AI設定の読み込みに失敗しました。", "error");
     deps.navigateToPane("pane-settings");
     deps.focusTokenInput();
     return Result.fail("storage-error");
   }
   if (Result.isFailure(loaded)) {
-    deps.showNotification("OpenAI設定の読み込みに失敗しました。", "error");
+    deps.showNotification("AI設定の読み込みに失敗しました。", "error");
     deps.navigateToPane("pane-settings");
     deps.focusTokenInput();
     return Result.fail("storage-error");
   }
 
-  const token = loaded.value.openaiApiToken ?? "";
-  const tokenConfigured = token.trim()
+  // 新キー優先、旧キーフォールバック
+  const token = (
+    loaded.value.aiApiToken ??
+    loaded.value.openaiApiToken ??
+    ""
+  ).trim();
+  const tokenConfigured = token
     ? Result.succeed()
     : Result.fail("missing-token" as const);
 
   if (Result.isFailure(tokenConfigured)) {
     deps.showNotification(
       {
-        message: "OpenAI API Tokenが未設定です",
+        message: "API Tokenが未設定です",
         action: {
           label: "→ 設定を開く",
           onClick: () => {

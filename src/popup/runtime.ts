@@ -56,6 +56,12 @@ export type TestOpenAiTokenRequest = {
 };
 export type TestOpenAiTokenResponse = Result.Result<void, string>;
 
+export type TestAiTokenRequest = {
+  action: "testAiToken";
+  token?: string;
+};
+export type TestAiTokenResponse = Result.Result<void, string>;
+
 export type DownloadDebugLogsRequest = {
   action: "downloadDebugLogs";
 };

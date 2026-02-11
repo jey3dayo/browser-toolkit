@@ -1,5 +1,6 @@
 // Background Service Worker
 
+import { migrateToAiSettings } from "@/ai/settings";
 import { APP_NAME } from "@/app_meta";
 import {
   registerContextMenuHandlers,
@@ -12,6 +13,10 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log(`${APP_NAME} installed`);
   debugLog("background", "extension installed").catch(() => {
     // no-op
+  });
+  // 旧設定から新設定へのマイグレーション
+  migrateToAiSettings(chrome.storage.local).catch((error) => {
+    console.error("Failed to migrate AI settings:", error);
   });
   scheduleRefreshContextMenus();
 });

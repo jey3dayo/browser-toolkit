@@ -11,17 +11,19 @@ import { Toggle } from "@base-ui/react/toggle";
 import { Result } from "@praha/byethrow";
 import { useEffect, useId, useState } from "react";
 import { Icon } from "@/components/icon";
-import {
-  DEFAULT_OPENAI_MODEL,
-  normalizeOpenAiModel,
-  OPENAI_MODEL_OPTIONS,
-  type OpenAiModelOption,
-} from "@/openai/settings";
+import { DEFAULT_OPENAI_MODEL } from "@/openai/settings";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import type {
-  TestOpenAiTokenRequest,
+  TestAiTokenRequest,
+  TestAiTokenResponse,
   TestOpenAiTokenResponse,
 } from "@/popup/runtime";
+import {
+  type AiProvider,
+  normalizeAiModel,
+  PROVIDER_CONFIGS,
+  safeParseAiProvider,
+} from "@/schemas/provider";
 import type { LocalStorageData } from "@/storage/types";
 import { applyTheme, isTheme, type Theme } from "@/ui/theme";
 import { debugLog } from "@/utils/debug_log";
@@ -32,7 +34,7 @@ export type SettingsPaneProps = PopupPaneBaseProps & {
   tokenInputRef: React.RefObject<HTMLInputElement | null>;
 };
 
-function isTestOpenAiTokenResponse(
+function _isTestOpenAiTokenResponse(
   value: unknown
 ): value is TestOpenAiTokenResponse {
   // Result type is opaque, so we can't check its structure directly
@@ -40,19 +42,26 @@ function isTestOpenAiTokenResponse(
   return isRecord(value);
 }
 
+function isTestAiTokenResponse(value: unknown): value is TestAiTokenResponse {
+  // Result type is opaque, so we can't check its structure directly
+  // We assume the value is a TestAiTokenResponse if it's an object
+  return isRecord(value);
+}
+
 export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
+  const [provider, setProvider] = useState<AiProvider>("openai");
   const [token, setToken] = useState("");
   const [showToken, setShowToken] = useState(false);
   const [customPrompt, setCustomPrompt] = useState("");
-  const [model, setModel] = useState<OpenAiModelOption>(DEFAULT_OPENAI_MODEL);
+  const [model, setModel] = useState<string>(DEFAULT_OPENAI_MODEL);
   const [theme, setTheme] = useState<Theme>("auto");
   const tokenInputId = useId();
   const promptInputId = useId();
   const saveLocalString = async (
-    key: "openaiApiToken" | "openaiCustomPrompt",
+    key: keyof LocalStorageData,
     value: string
   ): Promise<void> => {
-    const payload: Partial<LocalStorageData> = {};
+    const payload: Record<string, string> = {};
     payload[key] = value;
     const saved = await props.runtime.storageLocalSet(payload);
     if (Result.isSuccess(saved)) {
@@ -63,7 +72,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
   };
 
   const clearLocalString = async (
-    key: "openaiApiToken" | "openaiCustomPrompt",
+    key: keyof LocalStorageData,
     onCleared: () => void
   ): Promise<void> => {
     const removed = await props.runtime.storageLocalRemove(key);
@@ -79,6 +88,10 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
     let cancelled = false;
     (async () => {
       const loaded = await props.runtime.storageLocalGet([
+        "aiProvider",
+        "aiApiToken",
+        "aiModel",
+        "aiCustomPrompt",
         "openaiApiToken",
         "openaiCustomPrompt",
         "openaiModel",
@@ -88,9 +101,24 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
         return;
       }
       const raw: Partial<LocalStorageData> = loaded.value;
-      setToken(raw.openaiApiToken ?? "");
-      setCustomPrompt(raw.openaiCustomPrompt ?? "");
-      setModel(normalizeOpenAiModel(raw.openaiModel));
+
+      // プロバイダー（新キー優先、旧キーフォールバック）
+      const providerValue = raw.aiProvider ?? "openai";
+      const resolvedProvider = safeParseAiProvider(providerValue) ?? "openai";
+      setProvider(resolvedProvider);
+
+      // トークン（新キー優先、旧キーフォールバック）
+      setToken(raw.aiApiToken ?? raw.openaiApiToken ?? "");
+
+      // カスタムプロンプト（新キー優先、旧キーフォールバック）
+      setCustomPrompt(raw.aiCustomPrompt ?? raw.openaiCustomPrompt ?? "");
+
+      // モデル（新キー優先、旧キーフォールバック、プロバイダー別に正規化）
+      const modelValue = raw.aiModel ?? raw.openaiModel;
+      const resolvedModel = normalizeAiModel(resolvedProvider, modelValue);
+      setModel(resolvedModel);
+
+      // テーマ
       const resolvedTheme: Theme = isTheme(raw.theme) ? raw.theme : "auto";
       setTheme(resolvedTheme);
       applyTheme(resolvedTheme, document);
@@ -110,20 +138,20 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
   }, [props.runtime]);
 
   const saveToken = async (): Promise<void> => {
-    await saveLocalString("openaiApiToken", token);
+    await saveLocalString("aiApiToken", token);
   };
 
   const clearToken = async (): Promise<void> => {
-    await clearLocalString("openaiApiToken", () => setToken(""));
+    await clearLocalString("aiApiToken", () => setToken(""));
   };
 
   const testToken = async (): Promise<void> => {
     const tokenOverride = token.trim() ? token.trim() : undefined;
     const responseUnknown = await props.runtime.sendMessageToBackground<
-      TestOpenAiTokenRequest,
+      TestAiTokenRequest,
       unknown
     >({
-      action: "testOpenAiToken",
+      action: "testAiToken",
       token: tokenOverride,
     });
 
@@ -132,7 +160,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
       return;
     }
 
-    if (!isTestOpenAiTokenResponse(responseUnknown.value)) {
+    if (!isTestAiTokenResponse(responseUnknown.value)) {
       props.notify.error("バックグラウンドの応答が不正です");
       return;
     }
@@ -147,17 +175,23 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
   };
 
   const savePrompt = async (): Promise<void> => {
-    await saveLocalString("openaiCustomPrompt", customPrompt);
+    await saveLocalString("aiCustomPrompt", customPrompt);
   };
 
   const clearPrompt = async (): Promise<void> => {
-    await clearLocalString("openaiCustomPrompt", () => setCustomPrompt(""));
+    await clearLocalString("aiCustomPrompt", () => setCustomPrompt(""));
   };
 
-  const saveModel = async (value: OpenAiModelOption): Promise<void> => {
-    const normalized = normalizeOpenAiModel(value);
+  const saveModel = async (value: string): Promise<void> => {
+    const normalized = normalizeAiModel(provider, value);
     await props.runtime.storageLocalSet({
-      openaiModel: normalized,
+      aiModel: normalized,
+    });
+  };
+
+  const saveProvider = async (value: AiProvider): Promise<void> => {
+    await props.runtime.storageLocalSet({
+      aiProvider: value,
     });
   };
 
@@ -172,8 +206,67 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
     <div className="card card-stack">
       <div className="stack-sm">
         <h2 className="pane-title">設定</h2>
-        <p className="hint">OpenAI設定はこの端末のみ（同期されません）</p>
+        <p className="hint">AI設定はこの端末のみ（同期されません）</p>
       </div>
+
+      <Field.Root name="aiProvider">
+        <Fieldset.Root
+          className="mbu-fieldset"
+          render={
+            <RadioGroup
+              className="mbu-radio-group mbu-radio-group--horizontal"
+              onValueChange={(value) => {
+                const newProvider = safeParseAiProvider(value);
+                if (!newProvider) {
+                  return;
+                }
+                setProvider(newProvider);
+                // プロバイダー変更時にモデルをデフォルトにリセット
+                const defaultModel = PROVIDER_CONFIGS[newProvider].defaultModel;
+                setModel(defaultModel);
+                // 保存
+                saveProvider(newProvider).catch(() => {
+                  // no-op
+                });
+                saveModel(defaultModel).catch(() => {
+                  // no-op
+                });
+              }}
+              value={provider}
+            />
+          }
+        >
+          <Fieldset.Legend className="mbu-fieldset-legend">
+            AIプロバイダー
+          </Fieldset.Legend>
+          <Field.Item>
+            <Field.Label className="mbu-radio-label">
+              <Radio.Root className="mbu-radio-root" value="openai">
+                <Radio.Indicator className="mbu-radio-indicator" />
+              </Radio.Root>
+              OpenAI
+            </Field.Label>
+          </Field.Item>
+          <Field.Item>
+            <Field.Label className="mbu-radio-label">
+              <Radio.Root className="mbu-radio-root" value="anthropic">
+                <Radio.Indicator className="mbu-radio-indicator" />
+              </Radio.Root>
+              Anthropic (Claude)
+            </Field.Label>
+          </Field.Item>
+          <Field.Item>
+            <Field.Label className="mbu-radio-label">
+              <Radio.Root className="mbu-radio-root" value="zai">
+                <Radio.Indicator className="mbu-radio-indicator" />
+              </Radio.Root>
+              z.ai
+            </Field.Label>
+          </Field.Item>
+        </Fieldset.Root>
+      </Field.Root>
+
+      <Separator className="mbu-separator" />
 
       <Form
         className="stack"
@@ -237,10 +330,10 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
 
         <div className="field">
           <Select.Root
-            name="openaiModel"
+            name="aiModel"
             onValueChange={(value) => {
               if (typeof value === "string") {
-                const normalized = normalizeOpenAiModel(value);
+                const normalized = normalizeAiModel(provider, value);
                 setModel(normalized);
                 saveModel(normalized).catch(() => {
                   // no-op
@@ -252,7 +345,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
             <Select.Trigger
               aria-label="モデル"
               className="token-input mbu-select-trigger"
-              data-testid="openai-model"
+              data-testid="ai-model"
               type="button"
             >
               <Select.Value className="mbu-select-value" />
@@ -265,7 +358,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
               >
                 <Select.Popup className="mbu-select-popup">
                   <Select.List className="mbu-select-list">
-                    {OPENAI_MODEL_OPTIONS.map((option) => (
+                    {PROVIDER_CONFIGS[provider].models.map((option) => (
                       <Select.Item
                         className="mbu-select-item"
                         key={option}
@@ -349,7 +442,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
       >
         <Fieldset.Root className="mbu-fieldset stack">
           <Fieldset.Legend className="mbu-fieldset-legend">
-            OpenAI API トークン
+            {PROVIDER_CONFIGS[provider].label} API トークン
           </Fieldset.Legend>
 
           <label className="field" htmlFor={tokenInputId}>
