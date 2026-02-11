@@ -79,7 +79,7 @@ describe("popup Settings pane", () => {
 
   it("toggles token visibility without changing the token value", async () => {
     const token = dom.window.document.querySelector<HTMLInputElement>(
-      '[data-testid="openai-token"]'
+      '[data-testid="ai-token"]'
     );
     const toggle = dom.window.document.querySelector<HTMLButtonElement>(
       '[data-testid="token-visible"]'
@@ -101,7 +101,7 @@ describe("popup Settings pane", () => {
 
   it("saves and clears the token using local storage", async () => {
     const token = dom.window.document.querySelector<HTMLInputElement>(
-      '[data-testid="openai-token"]'
+      '[data-testid="ai-token"]'
     );
     const save = dom.window.document.querySelector<HTMLButtonElement>(
       '[data-testid="token-save"]'

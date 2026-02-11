@@ -38,7 +38,7 @@ export const Basic: Story = {
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);
 
-    const tokenInput = canvas.getByTestId("openai-token");
+    const tokenInput = canvas.getByTestId("ai-token");
     await userEvent.clear(tokenInput);
     await userEvent.type(tokenInput, "sk-test");
 

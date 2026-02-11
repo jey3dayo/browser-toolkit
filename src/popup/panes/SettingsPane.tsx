@@ -285,7 +285,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
               className="prompt-input"
               data-testid="custom-prompt"
               id={promptInputId}
-              name="openaiCustomPrompt"
+              name="aiCustomPrompt"
               onChange={(event) => setCustomPrompt(event.currentTarget.value)}
               rows={3}
               value={customPrompt}
@@ -450,7 +450,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
             <div className="input-with-icon">
               <Input
                 className="token-input token-input--with-icon"
-                data-testid="openai-token"
+                data-testid="ai-token"
                 id={tokenInputId}
                 onValueChange={setToken}
                 ref={props.tokenInputRef}
