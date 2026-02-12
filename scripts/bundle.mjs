@@ -7,7 +7,6 @@ const RAW_QUERY_REGEX = /\?raw$/;
 const ANY_FILE_REGEX = /.*/;
 
 const isWatch = process.argv.includes("--watch");
-const isDevelopment = process.env.NODE_ENV === "development";
 const projectRoot = process.cwd();
 const stylesSrc = path.join(projectRoot, "src/styles");
 const stylesDest = path.join(projectRoot, "dist/styles");
