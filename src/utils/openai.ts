@@ -1,11 +1,9 @@
 import { Result } from "@praha/byethrow";
 import type { ChatCompletionAdapter, ChatRequestBody } from "@/ai/adapter";
 import { isAllowedApiOrigin } from "@/constants/api-endpoints";
+import { FetchTimeoutError } from "@/utils/custom-errors";
 import { toErrorMessage } from "@/utils/errors";
-import {
-  FetchTimeoutError,
-  fetchWithTimeout,
-} from "@/utils/fetch-with-timeout";
+import { fetchWithTimeout } from "@/utils/fetch-with-timeout";
 
 export function extractChatCompletionText(json: unknown): string | null {
   if (typeof json !== "object" || json === null) {

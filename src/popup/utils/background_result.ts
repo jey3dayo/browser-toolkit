@@ -13,7 +13,8 @@ export async function sendBackgroundResult<TRequest, TResponse>(params: {
   // timeoutMs === null でタイムアウト無効化
   // timeoutMs === undefined でデフォルト30秒
   // timeoutMs === 数値 でカスタムタイムアウト
-  const timeout = params.timeoutMs === null ? null : params.timeoutMs ?? 30_000;
+  const timeout =
+    params.timeoutMs === null ? null : (params.timeoutMs ?? 30_000);
 
   const responseUnknown =
     timeout === null

@@ -7,8 +7,6 @@
 
 import { FetchTimeoutError } from "@/utils/custom-errors";
 
-export { FetchTimeoutError };
-
 /**
  * タイムアウト付きfetch
  *
