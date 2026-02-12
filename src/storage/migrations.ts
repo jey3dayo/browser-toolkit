@@ -199,16 +199,54 @@ export async function restoreFromBackup(timestamp: number): Promise<void> {
   }
 
   try {
+    // Get current data to identify keys to remove
+    const currentSyncData = (await storageSyncGet([])) as Record<
+      string,
+      unknown
+    >;
+    const currentLocalData = (await storageLocalGet([])) as Record<
+      string,
+      unknown
+    >;
+
+    // Clear keys that don't exist in backup (except backup keys and schema version)
+    const syncKeysToRemove = Object.keys(currentSyncData).filter(
+      (key) => !(key in backup.syncData)
+    );
+    const localKeysToRemove = Object.keys(currentLocalData).filter(
+      (key) =>
+        !(key in backup.localData || key.startsWith(BACKUP_KEY_PREFIX)) &&
+        key !== SCHEMA_VERSION_KEY &&
+        key !== MIGRATION_LOG_KEY
+    );
+
+    // Remove keys not in backup
+    if (syncKeysToRemove.length > 0) {
+      const removeSync = Object.fromEntries(
+        syncKeysToRemove.map((key) => [key, undefined])
+      );
+      await storageSyncSet(removeSync);
+    }
+
+    if (localKeysToRemove.length > 0) {
+      const removeLocal = Object.fromEntries(
+        localKeysToRemove.map((key) => [key, undefined])
+      );
+      await storageLocalSet(removeLocal);
+    }
+
     // Restore sync data
     if (backup.syncData && Object.keys(backup.syncData).length > 0) {
       await storageSyncSet(backup.syncData);
     }
 
-    // Restore local data (excluding backup keys and schema version)
+    // Restore local data (excluding backup keys, schema version, and migration log)
     const localDataToRestore = Object.fromEntries(
       Object.entries(backup.localData).filter(
         ([key]) =>
-          !key.startsWith(BACKUP_KEY_PREFIX) && key !== SCHEMA_VERSION_KEY
+          !key.startsWith(BACKUP_KEY_PREFIX) &&
+          key !== SCHEMA_VERSION_KEY &&
+          key !== MIGRATION_LOG_KEY
       )
     );
 

@@ -96,15 +96,44 @@ function createStorageWrapper<TArgs extends unknown[], TResult>(
     });
 }
 
+/**
+ * Fallback marker key to track which keys are stored in local storage
+ */
+const FALLBACK_KEYS_MARKER = "__storage_fallback_keys__";
+
 export const storageSyncGet = createStorageWrapper<[string[]], unknown>(
   (resolve, reject, keys) => {
-    chrome.storage.sync.get(keys, (items) => {
+    chrome.storage.sync.get(keys, (syncItems) => {
       const err = chrome.runtime.lastError;
       if (err) {
         reject(new Error(err.message));
         return;
       }
-      resolve(items);
+
+      // Check if any keys are marked as fallback to local storage
+      chrome.storage.local.get([FALLBACK_KEYS_MARKER], (markerData) => {
+        const fallbackKeys =
+          (markerData[FALLBACK_KEYS_MARKER] as string[]) ?? [];
+        const keysInLocal = keys.filter((key) => fallbackKeys.includes(key));
+
+        if (keysInLocal.length === 0) {
+          // No fallback keys, return sync data
+          resolve(syncItems);
+          return;
+        }
+
+        // Fetch fallback keys from local storage
+        chrome.storage.local.get(keysInLocal, (localItems) => {
+          const localErr = chrome.runtime.lastError;
+          if (localErr) {
+            reject(new Error(localErr.message));
+            return;
+          }
+
+          // Merge sync and local data (local takes precedence)
+          resolve({ ...syncItems, ...localItems });
+        });
+      });
     });
   }
 );
@@ -135,13 +164,27 @@ export const storageSyncSet = createStorageWrapper<
       });
 
     // chrome.storage.local にフォールバック（同期はされない）
-    chrome.storage.local.set(items, () => {
-      const err = chrome.runtime.lastError;
-      if (err) {
-        reject(new Error(err.message));
-        return;
-      }
-      resolve();
+    // フォールバックキーをマーカーに記録
+    chrome.storage.local.get([FALLBACK_KEYS_MARKER], (markerData) => {
+      const fallbackKeys = (markerData[FALLBACK_KEYS_MARKER] as string[]) ?? [];
+      const newFallbackKeys = [
+        ...new Set([...fallbackKeys, ...Object.keys(items)]),
+      ];
+
+      chrome.storage.local.set(
+        {
+          ...items,
+          [FALLBACK_KEYS_MARKER]: newFallbackKeys,
+        },
+        () => {
+          const err = chrome.runtime.lastError;
+          if (err) {
+            reject(new Error(err.message));
+            return;
+          }
+          resolve();
+        }
+      );
     });
     return;
   }
@@ -168,13 +211,28 @@ export const storageSyncSet = createStorageWrapper<
             console.error("Failed to create notification:", notifErr);
           });
 
-        chrome.storage.local.set(items, () => {
-          const localErr = chrome.runtime.lastError;
-          if (localErr) {
-            reject(new Error(localErr.message));
-            return;
-          }
-          resolve();
+        // フォールバックキーをマーカーに記録
+        chrome.storage.local.get([FALLBACK_KEYS_MARKER], (markerData) => {
+          const fallbackKeys =
+            (markerData[FALLBACK_KEYS_MARKER] as string[]) ?? [];
+          const newFallbackKeys = [
+            ...new Set([...fallbackKeys, ...Object.keys(items)]),
+          ];
+
+          chrome.storage.local.set(
+            {
+              ...items,
+              [FALLBACK_KEYS_MARKER]: newFallbackKeys,
+            },
+            () => {
+              const localErr = chrome.runtime.lastError;
+              if (localErr) {
+                reject(new Error(localErr.message));
+                return;
+              }
+              resolve();
+            }
+          );
         });
         return;
       }

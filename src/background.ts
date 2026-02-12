@@ -22,8 +22,8 @@ chrome.runtime.onInstalled.addListener((details) => {
     // no-op
   });
 
-  // 拡張機能更新時にストレージマイグレーションを実行
-  if (details.reason === "update") {
+  // 拡張機能インストール・更新時にストレージマイグレーションを実行
+  if (details.reason === "install" || details.reason === "update") {
     runMigrations()
       .then(() => {
         console.log("Storage migrations completed");
