@@ -2,7 +2,6 @@ import { Result } from "@praha/byethrow";
 import { type AiSettings, loadAiSettings } from "@/ai/settings";
 import { storageLocalGetTyped } from "@/background/storage";
 import type { SummaryTarget } from "@/background/types";
-import { loadOpenAiSettings, type OpenAiSettings } from "@/openai/settings";
 
 const MAX_INPUT_CHARS = 20_000;
 
@@ -75,16 +74,7 @@ export function buildTemplateVariables(
 }
 
 /**
- * OpenAI入力の準備済みデータ（レガシー互換）
- */
-export type PreparedOpenAiInput = {
-  settings: OpenAiSettings;
-  clippedText: string;
-  meta: string;
-};
-
-/**
- * AI入力の準備済みデータ（新版）
+ * AI入力の準備済みデータ
  */
 export type PreparedAiInput = {
   settings: AiSettings;
@@ -93,33 +83,7 @@ export type PreparedAiInput = {
 };
 
 /**
- * OpenAI呼び出しのための入力を準備（レガシー互換）
- */
-export async function prepareOpenAiInput(params: {
-  target: SummaryTarget;
-  missingTextMessage: string;
-  includeMissingMeta?: boolean;
-}): Promise<Result.Result<PreparedOpenAiInput, string>> {
-  const settingsResult = await loadOpenAiSettings(storageLocalGetTyped);
-  if (Result.isFailure(settingsResult)) {
-    return Result.fail(settingsResult.error);
-  }
-  const settings = settingsResult.value;
-
-  const clippedText = clipInputText(params.target.text);
-  if (!clippedText) {
-    return Result.fail(params.missingTextMessage);
-  }
-
-  const meta = buildTitleUrlMeta(params.target, {
-    includeMissing: params.includeMissingMeta,
-  });
-
-  return Result.succeed({ settings, clippedText, meta });
-}
-
-/**
- * AI呼び出しのための入力を準備（新版）
+ * AI呼び出しのための入力を準備
  */
 export async function prepareAiInput(params: {
   target: SummaryTarget;

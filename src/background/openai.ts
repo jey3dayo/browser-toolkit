@@ -9,35 +9,16 @@ import {
   buildTemplateVariables,
   clipInputText,
   type PreparedAiInput,
-  type PreparedOpenAiInput,
   prepareAiInput,
-  prepareOpenAiInput,
 } from "@/background/openai_common";
-import { storageLocalGet, storageLocalGetTyped } from "@/background/storage";
+import { storageLocalGetTyped } from "@/background/storage";
 import type { BackgroundResponse, SummaryTarget } from "@/background/types";
-import { loadOpenAiModel } from "@/openai/settings";
 import { ExtractedEventSchema } from "@/schemas/extracted_event";
 import { safeParseJsonObject } from "@/schemas/json";
 import { type AiProvider, safeParseAiProvider } from "@/schemas/provider";
 import type { ExtractedEvent } from "@/shared_types";
 import type { LocalStorageData } from "@/storage/types";
-import { toErrorMessage } from "@/utils/errors";
-import {
-  fetchChatCompletionOk,
-  fetchChatCompletionText,
-  fetchOpenAiChatCompletionOk,
-  fetchOpenAiChatCompletionText,
-} from "@/utils/openai";
-
-type OpenAiTextRequest = {
-  target: SummaryTarget;
-  missingTextMessage: string;
-  includeMissingMeta?: boolean;
-  buildBody: (params: PreparedOpenAiInput) => {
-    body: unknown;
-    emptyContentMessage: string;
-  };
-};
+import { fetchChatCompletionOk, fetchChatCompletionText } from "@/utils/openai";
 
 type AiTextRequest = {
   target: SummaryTarget;
@@ -48,33 +29,6 @@ type AiTextRequest = {
     emptyContentMessage: string;
   };
 };
-
-async function _requestOpenAiText(
-  params: OpenAiTextRequest
-): Promise<Result.Result<string, string>> {
-  const preparedResult = await prepareOpenAiInput({
-    target: params.target,
-    missingTextMessage: params.missingTextMessage,
-    includeMissingMeta: params.includeMissingMeta,
-  });
-  if (Result.isFailure(preparedResult)) {
-    return Result.fail(preparedResult.error);
-  }
-
-  const { settings, clippedText, meta } = preparedResult.value;
-  const { body, emptyContentMessage } = params.buildBody({
-    settings,
-    clippedText,
-    meta,
-  });
-
-  return await fetchOpenAiChatCompletionText(
-    fetch,
-    settings.token,
-    body,
-    emptyContentMessage
-  );
-}
 
 async function requestAiText(
   params: AiTextRequest
@@ -210,106 +164,6 @@ export function renderInstructionTemplate(
   const variables = buildTemplateVariables(target, shortText);
 
   return applyTemplateVariables(raw, variables).trim();
-}
-
-async function resolveOpenAiToken(
-  tokenOverride?: string
-): Promise<Result.Result<string, string>> {
-  const overrideToken = tokenOverride?.trim() ?? "";
-  if (overrideToken) {
-    return Result.succeed(overrideToken);
-  }
-
-  try {
-    const data = (await storageLocalGet([
-      "openaiApiToken",
-    ])) as LocalStorageData;
-    const storedToken = data.openaiApiToken?.trim() ?? "";
-    if (!storedToken) {
-      return Result.fail(
-        "OpenAI API Tokenが未設定です（ポップアップの「設定」タブで設定してください）"
-      );
-    }
-    return Result.succeed(storedToken);
-  } catch (error) {
-    return Result.fail(
-      toErrorMessage(error, "OpenAI設定の読み込みに失敗しました")
-    );
-  }
-}
-
-async function _resolveAiToken(
-  tokenOverride?: string
-): Promise<Result.Result<string, string>> {
-  const overrideToken = tokenOverride?.trim() ?? "";
-  if (overrideToken) {
-    return Result.succeed(overrideToken);
-  }
-
-  try {
-    const data = (await storageLocalGet([
-      "aiProvider",
-      "openaiApiToken",
-      "anthropicApiToken",
-      "zaiApiToken",
-    ])) as LocalStorageData;
-
-    // プロバイダー別トークン取得
-    const provider = data.aiProvider ?? "openai";
-    let storedToken = "";
-    switch (provider) {
-      case "openai":
-        storedToken = data.openaiApiToken?.trim() ?? "";
-        break;
-      case "anthropic":
-        storedToken = data.anthropicApiToken?.trim() ?? "";
-        break;
-      case "zai":
-        storedToken = data.zaiApiToken?.trim() ?? "";
-        break;
-      default:
-        storedToken = data.openaiApiToken?.trim() ?? "";
-        break;
-    }
-
-    if (!storedToken) {
-      return Result.fail(
-        "API Tokenが未設定です（ポップアップの「設定」タブで設定してください）"
-      );
-    }
-    return Result.succeed(storedToken);
-  } catch (error) {
-    return Result.fail(toErrorMessage(error, "AI設定の読み込みに失敗しました"));
-  }
-}
-
-export async function testOpenAiToken(
-  tokenOverride?: string
-): Promise<Result.Result<void, string>> {
-  const tokenResult = await resolveOpenAiToken(tokenOverride);
-  if (Result.isFailure(tokenResult)) {
-    return Result.fail(tokenResult.error);
-  }
-
-  const checkResult = await fetchOpenAiChatCompletionOk(
-    fetch,
-    tokenResult.value,
-    {
-      model: await loadOpenAiModel(storageLocalGetTyped),
-      max_completion_tokens: 5,
-      temperature: 0,
-      messages: [
-        { role: "system", content: "You are a health check bot." },
-        { role: "user", content: "Reply with OK." },
-      ],
-    }
-  );
-
-  if (Result.isFailure(checkResult)) {
-    return Result.fail(checkResult.error);
-  }
-
-  return Result.succeed(undefined);
 }
 
 export async function testAiToken(

@@ -14,7 +14,6 @@ import {
   extractEventWithOpenAI,
   summarizeWithOpenAI,
   testAiToken,
-  testOpenAiToken,
 } from "@/background/openai";
 import { debugRuntimeHandlers } from "@/background/runtime_debug_handlers";
 import type {
@@ -262,7 +261,7 @@ function handleTestOpenAiTokenRequest(
 ): boolean {
   (async () => {
     try {
-      const result = await testOpenAiToken(request.token);
+      const result = await testAiToken(request.token);
       if (Result.isFailure(result)) {
         sendResponse(Result.fail(result.error));
         return;
@@ -271,7 +270,7 @@ function handleTestOpenAiTokenRequest(
     } catch (error) {
       await debugLog(
         "handleTestOpenAiTokenRequest",
-        "Failed to test OpenAI token",
+        "Failed to test AI token",
         { error, request },
         "error"
       );

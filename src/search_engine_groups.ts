@@ -6,6 +6,7 @@
  */
 
 import { isRecord } from "@/utils/guards";
+import { generateId } from "@/utils/id_generator";
 import { normalizeOptionalText } from "@/utils/text";
 
 /**
@@ -63,23 +64,6 @@ export const DEFAULT_SEARCH_ENGINE_GROUPS: SearchEngineGroup[] = [
 export const MAX_SEARCH_ENGINE_GROUPS = 10;
 
 /**
- * 文字列の簡易ハッシュを生成（非ASCII文字対応）
- * @param str 入力文字列
- * @returns 8桁の16進数ハッシュ
- */
-function simpleHash(str: string): string {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    // biome-ignore lint/suspicious/noBitwiseOperators: Required for hash calculation
-    hash = (hash << 5) - hash + char;
-    // biome-ignore lint/suspicious/noBitwiseOperators: Required for 32-bit conversion
-    hash &= hash; // Convert to 32bit integer
-  }
-  return Math.abs(hash).toString(16).padStart(8, "0");
-}
-
-/**
  * グループIDを生成
  * @param name グループ名
  * @returns "group:xxx" 形式のID
@@ -88,21 +72,7 @@ function simpleHash(str: string): string {
  * 例: "お買い物" → "group:9f3b2d1a"
  */
 export function generateGroupId(name: string): string {
-  const slug = name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-
-  // 名前のハッシュを短縮（最初の8文字）
-  const hash = simpleHash(name).substring(0, 8);
-
-  // slugが空の場合（非ASCII文字のみ）、ハッシュのみを使用
-  if (slug.length === 0) {
-    return `group:${hash}`;
-  }
-
-  // slugとハッシュを組み合わせて一意性を保証
-  return `group:${slug}-${hash}`;
+  return generateId(name, "group");
 }
 
 type SearchEngineGroupParts = {
