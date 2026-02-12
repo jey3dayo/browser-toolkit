@@ -117,8 +117,9 @@
 
 1. `mise` を使う場合は `mise trust` でリポジトリを信頼します（シェル起動時のエラー回避）。
 2. 依存関係をインストールします: `pnpm install`
-3. ローカルで検証する場合はウォッチビルドまたは Storybook を起動します:
-   - `pnpm run watch`（content script / popup のバンドルを watch）
+3. ローカルで検証する場合は開発サーバーまたは Storybook を起動します:
+   - `pnpm run dev`（開発サーバー: 自動ビルド + 拡張機能の自動リロード）
+   - `pnpm run watch`（自動ビルドのみ、リロードは手動）
    - `pnpm run storybook`（UI をブラウザで確認）
 4. 準備ができたら `pnpm run build` を実行し、`manifest.json` があるリポジトリ直下（`browser-toolkit/`）を Chrome に読み込みます（`dist/` ではありません）。
 
@@ -135,8 +136,31 @@
 
 その他:
 
+- `pnpm run dev`（開発サーバー: 自動ビルド + 拡張機能の自動リロード）
 - `pnpm run watch`（bundle の watch）
 - `pnpm run storybook`（`http://localhost:6006`）
+
+### 開発モード（自動リロード）
+
+`pnpm run dev` を使うと、ソースコード変更時に自動的に拡張機能がリロードされます。
+
+**使い方:**
+
+1. 拡張機能をChromeに読み込む（通常通り）
+2. ターミナルで `pnpm run dev` を実行
+3. ソースコードを編集・保存
+4. 自動的にビルド → 拡張機能リロードされる（手動リロード不要）
+
+**仕組み:**
+
+- WebSocketサーバー（`ws://localhost:8090`）がファイル変更を検知
+- 開発ビルドのbackground scriptが接続し、変更通知を受信
+- `chrome.runtime.reload()` で拡張機能を自動リロード
+
+**注意:**
+
+- プロダクションビルド（`pnpm run build`）には自動リロードコードは含まれません
+- Content Scriptの変更は拡張機能リロード後、ページのリロードも必要です
 
 ## プロジェクト構成
 

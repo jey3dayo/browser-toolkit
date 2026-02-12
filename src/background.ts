@@ -9,6 +9,11 @@ import {
 import { registerRuntimeMessageHandlers } from "@/background/runtime";
 import { debugLog } from "@/utils/debug_log";
 
+// Development-only auto-reload
+if (process.env.NODE_ENV === "development") {
+  import("@/background/dev-reload");
+}
+
 chrome.runtime.onInstalled.addListener(() => {
   console.log(`${APP_NAME} installed`);
   debugLog("background", "extension installed").catch(() => {

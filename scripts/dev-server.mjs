@@ -1,13 +1,13 @@
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
+import { watch as chokidarWatch } from "chokidar";
 import { build } from "esbuild";
+import { WebSocketServer } from "ws";
 
 const RAW_QUERY_REGEX = /\?raw$/;
 const ANY_FILE_REGEX = /.*/;
 
-const isWatch = process.argv.includes("--watch");
-const isDevelopment = process.env.NODE_ENV === "development";
 const projectRoot = process.cwd();
 const stylesSrc = path.join(projectRoot, "src/styles");
 const stylesDest = path.join(projectRoot, "dist/styles");
@@ -70,6 +70,37 @@ function watchStyles() {
   });
 }
 
+// WebSocket server for auto-reload
+const wss = new WebSocketServer({ port: 8090 });
+const clients = new Set();
+
+wss.on("connection", (ws) => {
+  console.log("🔌 Extension connected to dev server");
+  clients.add(ws);
+  ws.on("close", () => {
+    console.log("🔌 Extension disconnected from dev server");
+    clients.delete(ws);
+  });
+  ws.on("error", (error) => {
+    console.error("WebSocket error:", error);
+    clients.delete(ws);
+  });
+});
+
+function notifyClients(type) {
+  let successCount = 0;
+  for (const client of clients) {
+    if (client.readyState === 1) {
+      // WebSocket.OPEN
+      client.send(JSON.stringify({ type }));
+      successCount++;
+    }
+  }
+  if (successCount > 0) {
+    console.log(`🔄 Sent ${type} signal to ${successCount} client(s)`);
+  }
+}
+
 const buildOptions = {
   entryPoints: ["src/background.ts", "src/content.ts", "src/popup.ts"],
   bundle: true,
@@ -82,37 +113,75 @@ const buildOptions = {
     "@": "./src",
   },
   define: {
-    "process.env.NODE_ENV": '"production"',
+    "process.env.NODE_ENV": '"development"',
   },
   loader: {
     ".toml": "text",
     ".css": "css",
   },
   outdir: "dist",
-  sourcemap: true,
+  sourcemap: "inline",
   plugins: [cssRawPlugin],
 };
 
-try {
-  if (isWatch) {
-    await copyStyles();
-    watchStyles();
-    await build({
-      ...buildOptions,
-      watch: {
-        onRebuild(error) {
-          if (error) {
-            console.error("[esbuild] rebuild failed", error);
-          } else {
-            console.log("[esbuild] rebuild succeeded");
-          }
-        },
-      },
-    });
-  } else {
-    await build(buildOptions);
+let isBuilding = false;
+let buildQueued = false;
+
+async function performBuild() {
+  if (isBuilding) {
+    buildQueued = true;
+    return;
   }
-} catch (error) {
-  console.error(error);
-  process.exit(1);
+
+  isBuilding = true;
+  console.log("🔨 Building...");
+
+  try {
+    await build(buildOptions);
+    console.log("✅ Build complete");
+    notifyClients("reload");
+  } catch (error) {
+    console.error("❌ Build failed:", error);
+  } finally {
+    isBuilding = false;
+    if (buildQueued) {
+      buildQueued = false;
+      setTimeout(() => performBuild(), 100);
+    }
+  }
 }
+
+// Initial build
+await copyStyles();
+await performBuild();
+
+// Watch for file changes
+watchStyles();
+
+const watcher = chokidarWatch("src/**/*.{ts,tsx,toml}", {
+  ignored: /(^|[/\\])\../,
+  persistent: true,
+  ignoreInitial: true,
+});
+
+watcher.on("change", (filePath) => {
+  console.log(`📝 ${filePath} changed`);
+  performBuild();
+});
+
+watcher.on("add", (filePath) => {
+  console.log(`📝 ${filePath} added`);
+  performBuild();
+});
+
+watcher.on("error", (error) => {
+  console.error("❌ Watcher error:", error);
+});
+
+console.log("");
+console.log("🚀 Dev server running");
+console.log("📡 WebSocket server: ws://localhost:8090");
+console.log("👀 Watching: src/**/*.{ts,tsx,toml,css}");
+console.log("");
+console.log("Press Ctrl+C to stop");
+console.log("");

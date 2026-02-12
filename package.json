@@ -15,6 +15,7 @@
     "copy:styles": "mkdir -p dist/styles && cp -R src/styles/* dist/styles/",
     "typecheck": "tsc --noEmit",
     "watch": "node scripts/bundle.mjs --watch",
+    "dev": "node scripts/dev-server.mjs",
     "clean": "rm -rf dist",
     "test": "vitest run --project=unit",
     "test:watch": "vitest --project=unit",
@@ -58,15 +59,18 @@
     "@types/jsdom": "^27.0.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@types/ws": "^8.18.1",
     "@vitest/browser-playwright": "^4.0.18",
     "@vitest/coverage-v8": "^4.0.18",
+    "chokidar": "^5.0.0",
     "esbuild": "^0.27.3",
     "jsdom": "^28.0.0",
     "playwright": "^1.58.2",
     "storybook": "^10.2.8",
     "typescript": "^5.9.3",
     "ultracite": "7.1.5",
-    "vitest": "^4.0.18"
+    "vitest": "^4.0.18",
+    "ws": "^8.19.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

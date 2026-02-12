@@ -99,6 +99,16 @@ async function processData(): Promise<
 
 - UI surfaces errors as notifications/overlays, not console-only.
 
+## Development Workflow
+
+- **Development mode** (`pnpm run dev`): WebSocket-based auto-reload for faster iteration.
+  - File watcher (`chokidar`) detects changes in `src/**/*.{ts,tsx,toml,css}`.
+  - Triggers automatic rebuild and extension reload via `chrome.runtime.reload()`.
+  - Development server runs on `ws://localhost:8090`.
+  - Auto-reload code is excluded from production builds (`process.env.NODE_ENV === "development"`).
+- **Watch mode** (`pnpm run watch`): Automatic rebuild without auto-reload (manual reload required).
+- **Production build** (`pnpm run build`): Clean build with `NODE_ENV=production`, optimized for distribution.
+
 ## Quality Gates
 
 - Tests: `vitest` (unit `jsdom`) + Storybook tests (Vitest browser + Playwright) to keep UI behavior/a11y from drifting.
