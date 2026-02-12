@@ -97,23 +97,56 @@ function createStorageWrapper<TArgs extends unknown[], TResult>(
 }
 
 /**
- * Fallback marker key to track which keys are stored in local storage
+ * Storage reserved keys (internal use only)
  */
-export const FALLBACK_KEYS_MARKER = "__storage_fallback_keys__";
+export const STORAGE_RESERVED_KEYS = {
+  SCHEMA_VERSION: "schemaVersion",
+  MIGRATION_LOG: "migrationLog",
+  FALLBACK_KEYS_MARKER: "__storage_fallback_keys__",
+  BACKUP_PREFIX: "backup_",
+} as const;
+
+type ReservedKey =
+  (typeof STORAGE_RESERVED_KEYS)[keyof typeof STORAGE_RESERVED_KEYS];
+
+/**
+ * Check if a key is a reserved storage key
+ */
+export function isReservedStorageKey(key: string): key is ReservedKey {
+  return (
+    Object.values(STORAGE_RESERVED_KEYS).includes(key as ReservedKey) ||
+    key.startsWith(STORAGE_RESERVED_KEYS.BACKUP_PREFIX)
+  );
+}
+
+/**
+ * Filter out reserved keys from user data
+ */
+export function filterReservedKeys(keys: string[]): string[] {
+  return keys.filter((key) => !isReservedStorageKey(key));
+}
+
+/**
+ * Fallback marker key to track which keys are stored in local storage
+ * @deprecated Use STORAGE_RESERVED_KEYS.FALLBACK_KEYS_MARKER instead
+ */
+export const FALLBACK_KEYS_MARKER = STORAGE_RESERVED_KEYS.FALLBACK_KEYS_MARKER;
 
 function clearFallbackStateForKeys(
   keys: string[],
   resolve: () => void,
   reject: (reason: Error) => void
 ): void {
-  chrome.storage.local.get([FALLBACK_KEYS_MARKER], (markerData) => {
+  const markerKey = STORAGE_RESERVED_KEYS.FALLBACK_KEYS_MARKER;
+
+  chrome.storage.local.get([markerKey], (markerData) => {
     const markerErr = chrome.runtime.lastError;
     if (markerErr) {
       reject(new Error(markerErr.message));
       return;
     }
 
-    const fallbackKeys = (markerData[FALLBACK_KEYS_MARKER] as string[]) ?? [];
+    const fallbackKeys = (markerData[markerKey] as string[]) ?? [];
     const keysToClear = keys.filter((key) => fallbackKeys.includes(key));
 
     if (keysToClear.length === 0) {
@@ -133,7 +166,7 @@ function clearFallbackStateForKeys(
       }
 
       if (newFallbackKeys.length === 0) {
-        chrome.storage.local.remove(FALLBACK_KEYS_MARKER, () => {
+        chrome.storage.local.remove(markerKey, () => {
           const markerRemoveErr = chrome.runtime.lastError;
           if (markerRemoveErr) {
             reject(new Error(markerRemoveErr.message));
@@ -146,7 +179,7 @@ function clearFallbackStateForKeys(
 
       chrome.storage.local.set(
         {
-          [FALLBACK_KEYS_MARKER]: newFallbackKeys,
+          [markerKey]: newFallbackKeys,
         },
         () => {
           const setErr = chrome.runtime.lastError;
@@ -171,7 +204,8 @@ export const storageSyncGet = createStorageWrapper<[string[]], unknown>(
       }
 
       // Check if any keys are marked as fallback to local storage
-      chrome.storage.local.get([FALLBACK_KEYS_MARKER], (markerData) => {
+      const markerKey = STORAGE_RESERVED_KEYS.FALLBACK_KEYS_MARKER;
+      chrome.storage.local.get([markerKey], (markerData) => {
         const markerErr = chrome.runtime.lastError;
         if (markerErr) {
           console.error(
@@ -183,8 +217,7 @@ export const storageSyncGet = createStorageWrapper<[string[]], unknown>(
           return;
         }
 
-        const fallbackKeys =
-          (markerData[FALLBACK_KEYS_MARKER] as string[]) ?? [];
+        const fallbackKeys = (markerData[markerKey] as string[]) ?? [];
         const keysInLocal = keys.filter((key) => fallbackKeys.includes(key));
 
         if (keysInLocal.length === 0) {
@@ -236,8 +269,9 @@ export const storageSyncSet = createStorageWrapper<
 
     // chrome.storage.local にフォールバック（同期はされない）
     // フォールバックキーをマーカーに記録
-    chrome.storage.local.get([FALLBACK_KEYS_MARKER], (markerData) => {
-      const fallbackKeys = (markerData[FALLBACK_KEYS_MARKER] as string[]) ?? [];
+    const markerKey = STORAGE_RESERVED_KEYS.FALLBACK_KEYS_MARKER;
+    chrome.storage.local.get([markerKey], (markerData) => {
+      const fallbackKeys = (markerData[markerKey] as string[]) ?? [];
       const newFallbackKeys = [
         ...new Set([...fallbackKeys, ...Object.keys(items)]),
       ];
@@ -245,7 +279,7 @@ export const storageSyncSet = createStorageWrapper<
       chrome.storage.local.set(
         {
           ...items,
-          [FALLBACK_KEYS_MARKER]: newFallbackKeys,
+          [markerKey]: newFallbackKeys,
         },
         () => {
           const err = chrome.runtime.lastError;
@@ -283,9 +317,9 @@ export const storageSyncSet = createStorageWrapper<
           });
 
         // フォールバックキーをマーカーに記録
-        chrome.storage.local.get([FALLBACK_KEYS_MARKER], (markerData) => {
-          const fallbackKeys =
-            (markerData[FALLBACK_KEYS_MARKER] as string[]) ?? [];
+        const markerKey = STORAGE_RESERVED_KEYS.FALLBACK_KEYS_MARKER;
+        chrome.storage.local.get([markerKey], (markerData) => {
+          const fallbackKeys = (markerData[markerKey] as string[]) ?? [];
           const newFallbackKeys = [
             ...new Set([...fallbackKeys, ...Object.keys(items)]),
           ];
@@ -293,7 +327,7 @@ export const storageSyncSet = createStorageWrapper<
           chrome.storage.local.set(
             {
               ...items,
-              [FALLBACK_KEYS_MARKER]: newFallbackKeys,
+              [markerKey]: newFallbackKeys,
             },
             () => {
               const localErr = chrome.runtime.lastError;

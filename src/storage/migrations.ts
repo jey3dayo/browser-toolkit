@@ -1,5 +1,6 @@
 import {
-  FALLBACK_KEYS_MARKER,
+  isReservedStorageKey,
+  STORAGE_RESERVED_KEYS,
   storageLocalGet,
   storageLocalSet,
   storageSyncGet,
@@ -80,9 +81,9 @@ export interface BackupData {
   localData: Record<string, unknown>;
 }
 
-const SCHEMA_VERSION_KEY = "schemaVersion";
-const MIGRATION_LOG_KEY = "migrationLog";
-const BACKUP_KEY_PREFIX = "backup_";
+const SCHEMA_VERSION_KEY = STORAGE_RESERVED_KEYS.SCHEMA_VERSION;
+const MIGRATION_LOG_KEY = STORAGE_RESERVED_KEYS.MIGRATION_LOG;
+const BACKUP_KEY_PREFIX = STORAGE_RESERVED_KEYS.BACKUP_PREFIX;
 
 /**
  * Get current schema version
@@ -210,16 +211,12 @@ export async function restoreFromBackup(timestamp: number): Promise<void> {
       unknown
     >;
 
-    // Clear keys that don't exist in backup (except backup keys and schema version)
+    // Clear keys that don't exist in backup (except reserved keys)
     const syncKeysToRemove = Object.keys(currentSyncData).filter(
       (key) => !(key in backup.syncData)
     );
     const localKeysToRemove = Object.keys(currentLocalData).filter(
-      (key) =>
-        !(key in backup.localData || key.startsWith(BACKUP_KEY_PREFIX)) &&
-        key !== SCHEMA_VERSION_KEY &&
-        key !== MIGRATION_LOG_KEY &&
-        key !== FALLBACK_KEYS_MARKER
+      (key) => !(key in backup.localData || isReservedStorageKey(key))
     );
 
     // Remove keys not in backup
@@ -242,13 +239,10 @@ export async function restoreFromBackup(timestamp: number): Promise<void> {
       await storageSyncSet(backup.syncData);
     }
 
-    // Restore local data (excluding backup keys, schema version, and migration log)
+    // Restore local data (excluding reserved keys)
     const localDataToRestore = Object.fromEntries(
       Object.entries(backup.localData).filter(
-        ([key]) =>
-          !key.startsWith(BACKUP_KEY_PREFIX) &&
-          key !== SCHEMA_VERSION_KEY &&
-          key !== MIGRATION_LOG_KEY
+        ([key]) => !isReservedStorageKey(key)
       )
     );
 
