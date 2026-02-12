@@ -1,19 +1,8 @@
 import { Result } from "@praha/byethrow";
 import type { PopupRuntime } from "@/popup/runtime";
+import { ClientTimeoutError } from "@/utils/timeout-errors";
 
 type ErrorHandler = (message: string) => void;
-
-/**
- * クライアント側タイムアウトエラー
- */
-class ClientTimeoutError extends Error {
-  constructor(timeoutMs: number) {
-    super(
-      `リクエストがタイムアウトしました（${timeoutMs / 1000}秒）。テキストを短くして再試行してください。`
-    );
-    this.name = "ClientTimeoutError";
-  }
-}
 
 export async function sendBackgroundResult<TRequest, TResponse>(params: {
   runtime: Pick<PopupRuntime, "sendMessageToBackground">;

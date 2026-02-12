@@ -5,15 +5,10 @@
  * API呼び出しに明示的なタイムアウトを設定します。
  */
 
-/**
- * タイムアウトエラー
- */
-export class FetchTimeoutError extends Error {
-  constructor(timeoutMs: number) {
-    super(`API呼び出しがタイムアウトしました（${timeoutMs / 1000}秒）`);
-    this.name = "FetchTimeoutError";
-  }
-}
+import { FetchTimeoutError } from "@/utils/timeout-errors";
+
+// Re-export for convenience
+export { FetchTimeoutError };
 
 /**
  * タイムアウト付きfetch
