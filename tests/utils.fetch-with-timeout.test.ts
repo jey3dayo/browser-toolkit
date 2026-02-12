@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { fetchWithTimeout } from "@/utils/fetch-with-timeout";
-import { FetchTimeoutError } from "@/utils/timeout-errors";
+import { FetchTimeoutError } from "@/utils/custom-errors";
 
 describe("fetchWithTimeout", () => {
   it("正常なレスポンスを返す", async () => {

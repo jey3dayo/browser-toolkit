@@ -5,9 +5,8 @@
  * API呼び出しに明示的なタイムアウトを設定します。
  */
 
-import { FetchTimeoutError } from "@/utils/timeout-errors";
+import { FetchTimeoutError } from "@/utils/custom-errors";
 
-// Re-export for convenience
 export { FetchTimeoutError };
 
 /**

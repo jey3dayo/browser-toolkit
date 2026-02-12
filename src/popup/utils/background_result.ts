@@ -1,6 +1,6 @@
 import { Result } from "@praha/byethrow";
 import type { PopupRuntime } from "@/popup/runtime";
-import { ClientTimeoutError } from "@/utils/timeout-errors";
+import { ClientTimeoutError } from "@/utils/custom-errors";
 
 type ErrorHandler = (message: string) => void;
 
