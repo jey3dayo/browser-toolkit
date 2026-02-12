@@ -22,7 +22,7 @@ describe("ai/adapter", () => {
   describe("openaiAdapter", () => {
     it("builds request with correct URL and headers", () => {
       const { url, init } = openaiAdapter.buildRequest("test-token", {
-        model: "gpt-4o-mini",
+        model: "OPENAI_MODELS.GPT_4O_MINI",
         messages: [{ role: "user", content: "test" }],
       });
 
@@ -139,7 +139,7 @@ describe("ai/adapter", () => {
   describe("zaiAdapter", () => {
     it("builds request with correct URL and headers", () => {
       const { url, init } = zaiAdapter.buildRequest("test-token", {
-        model: "glm-4.7",
+        model: "ZAI_MODELS.GLM_4_7",
         messages: [{ role: "user", content: "test" }],
       });
 

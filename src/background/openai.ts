@@ -238,7 +238,7 @@ async function resolveOpenAiToken(
   }
 }
 
-async function resolveAiToken(
+async function _resolveAiToken(
   tokenOverride?: string
 ): Promise<Result.Result<string, string>> {
   const overrideToken = tokenOverride?.trim() ?? "";
@@ -376,6 +376,8 @@ function getTokenKeyForProvider(provider: AiProvider): keyof LocalStorageData {
       return "anthropicApiToken";
     case "zai":
       return "zaiApiToken";
+    default:
+      return "openaiApiToken";
   }
 }
 

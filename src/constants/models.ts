@@ -39,8 +39,11 @@ export const ZAI_MODELS = {
 
 /**
  * OpenAIモデル一覧（配列）
+ * 非推奨モデル（gpt-4o）は除外
  */
-export const OPENAI_MODEL_LIST = Object.values(OPENAI_MODELS);
+export const OPENAI_MODEL_LIST = Object.values(OPENAI_MODELS).filter(
+  (model) => model !== "gpt-4o"
+);
 
 /**
  * Anthropicモデル一覧（配列）
