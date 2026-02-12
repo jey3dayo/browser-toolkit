@@ -1,5 +1,6 @@
 import { Result } from "@praha/byethrow";
 import type { ChatCompletionAdapter, ChatRequestBody } from "@/ai/adapter";
+import { isAllowedApiOrigin } from "@/constants/api-endpoints";
 import { toErrorMessage } from "@/utils/errors";
 
 export function extractChatCompletionText(json: unknown): string | null {
@@ -125,6 +126,15 @@ export function fetchChatCompletionText(
 ): Result.ResultAsync<string, string> {
   const { url, init } = adapter.buildRequest(token, body);
 
+  // SECURITY: ホワイトリストチェック
+  if (!isAllowedApiOrigin(url)) {
+    return Promise.resolve(
+      Result.fail(
+        `セキュリティエラー: 許可されていないAPIエンドポイント (${new URL(url).origin})`
+      )
+    );
+  }
+
   return Result.pipe(
     Result.try({
       immediate: true,
@@ -165,6 +175,15 @@ export function fetchChatCompletionOk(
   body: ChatRequestBody
 ): Result.ResultAsync<void, string> {
   const { url, init } = adapter.buildRequest(token, body);
+
+  // SECURITY: ホワイトリストチェック
+  if (!isAllowedApiOrigin(url)) {
+    return Promise.resolve(
+      Result.fail(
+        `セキュリティエラー: 許可されていないAPIエンドポイント (${new URL(url).origin})`
+      )
+    );
+  }
 
   return Result.pipe(
     Result.try({
