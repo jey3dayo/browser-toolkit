@@ -7,3 +7,7 @@ npm-debug.log*
 *storybook.log
 storybook-static
 .grepai/
+
+# Visual regression test snapshots
+__snapshots__/
+__image_snapshots__/

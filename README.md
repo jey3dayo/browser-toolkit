@@ -142,6 +142,8 @@
 - `pnpm run test:e2e`（E2Eテスト実行）
 - `pnpm run test:e2e:ui`（E2EテストをUIモードで実行）
 - `pnpm run test:e2e:debug`（E2Eテストをデバッグモードで実行）
+- `pnpm run test:visual`（Visual Regression Testing）
+- `pnpm run test:visual:update`（スナップショットの更新）
 
 ### 開発モード（自動リロード）
 
@@ -164,6 +166,8 @@
 
 - プロダクションビルド（`pnpm run build`）には自動リロードコードは含まれません
 - Content Scriptの変更は拡張機能リロード後、ページのリロードも必要です
+
+<<<<<<< HEAD
 
 ### E2Eテスト
 
@@ -195,6 +199,45 @@ pnpm run test:e2e:debug
 - E2Eテストは `headless: false` で実行されるため、Chromeウィンドウが表示されます
 - テスト中にChrome拡張機能が自動的に読み込まれます
 - テストfixtureは `tests/e2e/fixtures/` に配置されています
+
+# ||||||| 7d68139
+
+### Visual Regression Testing
+
+Storybook Test Runner + Playwright Snapshotsを使用して、UIの視覚的な変更を自動検出します。
+
+**実行方法:**
+
+```bash
+# Storybookを起動（別ターミナル）
+pnpm run storybook
+
+# Visual Regression Testを実行
+pnpm run test:visual
+
+# スナップショットを更新（意図的な変更の場合）
+pnpm run test:visual:update
+```
+
+**テスト内容:**
+
+- すべてのStoriesでライト/ダークモードのスナップショットを取得
+- 視覚的な差異を自動検出（1%の許容誤差）
+- CSSやコンポーネント変更時のリグレッション防止
+
+**スナップショット管理:**
+
+- スナップショットは `__snapshots__/` に保存
+- Gitには追跡されない（`.gitignore`で除外）
+- ローカルで検証し、意図的な変更のみ承認
+
+**注意:**
+
+- Storybookが起動している状態で実行してください
+- 初回実行時はすべてのスナップショットが作成されます
+- UIの意図的な変更後は `test:visual:update` でスナップショットを更新してください
+
+> > > > > > > feature/visual-regression-testing
 
 ## プロジェクト構成
 
