@@ -1,11 +1,16 @@
 import { Result } from "@praha/byethrow";
+import type { ChatRequestBody } from "@/ai/adapter";
+import { getAdapter } from "@/ai/get-adapter";
+import { loadAiSettings } from "@/ai/settings";
 import { normalizeEvent } from "@/background/calendar";
 import {
   applyTemplateVariables,
   buildSystemMessage,
   buildTemplateVariables,
   clipInputText,
+  type PreparedAiInput,
   type PreparedOpenAiInput,
+  prepareAiInput,
   prepareOpenAiInput,
 } from "@/background/openai_common";
 import { storageLocalGet, storageLocalGetTyped } from "@/background/storage";
@@ -13,10 +18,13 @@ import type { BackgroundResponse, SummaryTarget } from "@/background/types";
 import { loadOpenAiModel } from "@/openai/settings";
 import { ExtractedEventSchema } from "@/schemas/extracted_event";
 import { safeParseJsonObject } from "@/schemas/json";
+import { type AiProvider, safeParseAiProvider } from "@/schemas/provider";
 import type { ExtractedEvent } from "@/shared_types";
 import type { LocalStorageData } from "@/storage/types";
 import { toErrorMessage } from "@/utils/errors";
 import {
+  fetchChatCompletionOk,
+  fetchChatCompletionText,
   fetchOpenAiChatCompletionOk,
   fetchOpenAiChatCompletionText,
 } from "@/utils/openai";
@@ -31,7 +39,17 @@ type OpenAiTextRequest = {
   };
 };
 
-async function requestOpenAiText(
+type AiTextRequest = {
+  target: SummaryTarget;
+  missingTextMessage: string;
+  includeMissingMeta?: boolean;
+  buildBody: (params: PreparedAiInput) => {
+    body: ChatRequestBody;
+    emptyContentMessage: string;
+  };
+};
+
+async function _requestOpenAiText(
   params: OpenAiTextRequest
 ): Promise<Result.Result<string, string>> {
   const preparedResult = await prepareOpenAiInput({
@@ -58,10 +76,40 @@ async function requestOpenAiText(
   );
 }
 
+async function requestAiText(
+  params: AiTextRequest
+): Promise<Result.Result<string, string>> {
+  const preparedResult = await prepareAiInput({
+    target: params.target,
+    missingTextMessage: params.missingTextMessage,
+    includeMissingMeta: params.includeMissingMeta,
+  });
+  if (Result.isFailure(preparedResult)) {
+    return Result.fail(preparedResult.error);
+  }
+
+  const { settings, clippedText, meta } = preparedResult.value;
+  const { body, emptyContentMessage } = params.buildBody({
+    settings,
+    clippedText,
+    meta,
+  });
+
+  const adapter = getAdapter(settings.provider);
+
+  return await fetchChatCompletionText(
+    fetch,
+    adapter,
+    settings.token,
+    body,
+    emptyContentMessage
+  );
+}
+
 export async function summarizeWithOpenAI(
   target: SummaryTarget
 ): Promise<BackgroundResponse> {
-  const summaryResult = await requestOpenAiText({
+  const summaryResult = await requestAiText({
     target,
     missingTextMessage: "要約対象のテキストが見つかりませんでした",
     includeMissingMeta: true,
@@ -109,7 +157,7 @@ export async function runPromptActionWithOpenAI(
   target: SummaryTarget,
   promptTemplate: string
 ): Promise<Result.Result<string, string>> {
-  return await requestOpenAiText({
+  return await requestAiText({
     target,
     missingTextMessage: "対象のテキストが見つかりませんでした",
     buildBody: ({ settings, clippedText, meta }) => {
@@ -190,6 +238,51 @@ async function resolveOpenAiToken(
   }
 }
 
+async function _resolveAiToken(
+  tokenOverride?: string
+): Promise<Result.Result<string, string>> {
+  const overrideToken = tokenOverride?.trim() ?? "";
+  if (overrideToken) {
+    return Result.succeed(overrideToken);
+  }
+
+  try {
+    const data = (await storageLocalGet([
+      "aiProvider",
+      "openaiApiToken",
+      "anthropicApiToken",
+      "zaiApiToken",
+    ])) as LocalStorageData;
+
+    // プロバイダー別トークン取得
+    const provider = data.aiProvider ?? "openai";
+    let storedToken = "";
+    switch (provider) {
+      case "openai":
+        storedToken = data.openaiApiToken?.trim() ?? "";
+        break;
+      case "anthropic":
+        storedToken = data.anthropicApiToken?.trim() ?? "";
+        break;
+      case "zai":
+        storedToken = data.zaiApiToken?.trim() ?? "";
+        break;
+      default:
+        storedToken = data.openaiApiToken?.trim() ?? "";
+        break;
+    }
+
+    if (!storedToken) {
+      return Result.fail(
+        "API Tokenが未設定です（ポップアップの「設定」タブで設定してください）"
+      );
+    }
+    return Result.succeed(storedToken);
+  } catch (error) {
+    return Result.fail(toErrorMessage(error, "AI設定の読み込みに失敗しました"));
+  }
+}
+
 export async function testOpenAiToken(
   tokenOverride?: string
 ): Promise<Result.Result<void, string>> {
@@ -219,11 +312,80 @@ export async function testOpenAiToken(
   return Result.succeed(undefined);
 }
 
+export async function testAiToken(
+  tokenOverride?: string
+): Promise<Result.Result<void, string>> {
+  const storage = await storageLocalGetTyped([
+    "aiProvider",
+    "aiModel",
+    "openaiApiToken",
+    "anthropicApiToken",
+    "zaiApiToken",
+    "openaiModel",
+  ]);
+
+  // tokenOverrideがある場合は、ストレージの設定に上書き
+  let effectiveStorage = storage;
+  if (tokenOverride) {
+    const provider = safeParseAiProvider(storage.aiProvider) ?? "openai";
+    const tokenKey = getTokenKeyForProvider(provider);
+    effectiveStorage = {
+      ...storage,
+      [tokenKey]: tokenOverride,
+    };
+  }
+
+  const settingsResult = loadAiSettings(effectiveStorage);
+  if (Result.isFailure(settingsResult)) {
+    return Result.fail(settingsResult.error);
+  }
+
+  const settings = settingsResult.value;
+  const adapter = getAdapter(settings.provider);
+
+  const checkResult = await fetchChatCompletionOk(
+    fetch,
+    adapter,
+    settings.token,
+    {
+      model: settings.model,
+      max_completion_tokens: 5,
+      temperature: 0,
+      messages: [
+        { role: "system", content: "You are a health check bot." },
+        { role: "user", content: "Reply with OK." },
+      ],
+    }
+  );
+
+  if (Result.isFailure(checkResult)) {
+    return Result.fail(checkResult.error);
+  }
+
+  return Result.succeed(undefined);
+}
+
+/**
+ * プロバイダーに応じたトークンキー名を取得
+ */
+function getTokenKeyForProvider(provider: AiProvider): keyof LocalStorageData {
+  switch (provider) {
+    case "openai":
+      return "openaiApiToken";
+    case "anthropic":
+      return "anthropicApiToken";
+    case "zai":
+      return "zaiApiToken";
+    default:
+      return "openaiApiToken";
+  }
+}
+
 export async function extractEventWithOpenAI(
   target: SummaryTarget,
   extraInstruction?: string
 ): Promise<Result.Result<ExtractedEvent, string>> {
-  const contentResult = await requestOpenAiText({
+  const contentResult = await requestAiText({
     target,
     missingTextMessage: "要約対象のテキストが見つかりませんでした",
     includeMissingMeta: true,
@@ -238,30 +400,37 @@ export async function extractEventWithOpenAI(
         "description はイベントの概要を日本語で短くまとめる。",
       ].join("\n");
 
+      // Anthropicでは response_format が非対応なので、プロバイダーに応じて分岐
+      const body: ChatRequestBody = {
+        model: settings.model,
+        temperature: 0.2,
+        messages: [
+          {
+            role: "system",
+            content: buildSystemMessage(
+              baseSystemContent,
+              settings.customPrompt,
+              extraInstruction
+            ),
+          },
+          {
+            role: "user",
+            content: [
+              "次のテキストからイベント情報を抽出し、JSONで返してください。",
+              "",
+              clippedText + meta,
+            ].join("\n"),
+          },
+        ],
+      };
+
+      // OpenAIとz.aiのみ response_format をサポート
+      if (settings.provider === "openai" || settings.provider === "zai") {
+        body.response_format = { type: "json_object" };
+      }
+
       return {
-        body: {
-          model: settings.model,
-          temperature: 0.2,
-          response_format: { type: "json_object" },
-          messages: [
-            {
-              role: "system",
-              content: buildSystemMessage(
-                baseSystemContent,
-                settings.customPrompt,
-                extraInstruction
-              ),
-            },
-            {
-              role: "user",
-              content: [
-                "次のテキストからイベント情報を抽出し、JSONで返してください。",
-                "",
-                clippedText + meta,
-              ].join("\n"),
-            },
-          ],
-        },
+        body,
         emptyContentMessage: "イベント要約結果の取得に失敗しました",
       };
     },

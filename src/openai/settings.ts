@@ -1,4 +1,5 @@
 import { Result } from "@praha/byethrow";
+import { OPENAI_MODELS } from "@/constants/models";
 import {
   OPENAI_MODEL_OPTIONS as OPENAI_MODEL_OPTIONS_SCHEMA,
   type OpenAiModelOption as OpenAiModelOptionSchema,
@@ -7,7 +8,7 @@ import {
 import type { LocalStorageData } from "@/storage/types";
 import { toErrorMessage } from "@/utils/errors";
 
-export const DEFAULT_OPENAI_MODEL = "gpt-5.2";
+export const DEFAULT_OPENAI_MODEL = OPENAI_MODELS.GPT_5_2;
 export const OPENAI_MODEL_OPTIONS = OPENAI_MODEL_OPTIONS_SCHEMA;
 export type OpenAiModelOption = OpenAiModelOptionSchema;
 

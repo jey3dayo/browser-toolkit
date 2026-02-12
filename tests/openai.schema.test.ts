@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-
+import { OPENAI_MODELS } from "@/constants/models";
 import { OPENAI_MODEL_OPTIONS, safeParseOpenAiModel } from "@/schemas/openai";
 
 describe("schemas/openai", () => {
@@ -15,8 +15,8 @@ describe("schemas/openai", () => {
 
   it("migrates deprecated models", () => {
     const legacyModels = [
-      { input: "gpt-5.1", expected: "gpt-5.2" },
-      { input: "gpt-4o", expected: "gpt-4o-mini" },
+      { input: "gpt-5.1", expected: OPENAI_MODELS.GPT_5_2 },
+      { input: "gpt-4o", expected: OPENAI_MODELS.GPT_4O_MINI },
     ];
 
     for (const { input, expected } of legacyModels) {

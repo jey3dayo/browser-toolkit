@@ -30,21 +30,43 @@ export async function ensureOpenAiTokenConfigured(
 ): Result.ResultAsync<void, EnsureOpenAiTokenConfiguredError> {
   let loaded: Result.Result<Partial<LocalStorageData>, string>;
   try {
-    loaded = await deps.storageLocalGet(["openaiApiToken"]);
+    loaded = await deps.storageLocalGet([
+      "aiProvider",
+      "openaiApiToken",
+      "anthropicApiToken",
+      "zaiApiToken",
+    ]);
   } catch {
-    deps.showNotification("OpenAI設定の読み込みに失敗しました。", "error");
+    deps.showNotification("AI設定の読み込みに失敗しました。", "error");
     deps.navigateToPane("pane-settings");
     deps.focusTokenInput();
     return Result.fail("storage-error");
   }
   if (Result.isFailure(loaded)) {
-    deps.showNotification("OpenAI設定の読み込みに失敗しました。", "error");
+    deps.showNotification("AI設定の読み込みに失敗しました。", "error");
     deps.navigateToPane("pane-settings");
     deps.focusTokenInput();
     return Result.fail("storage-error");
   }
 
-  const token = loaded.value.openaiApiToken ?? "";
+  // プロバイダー別トークン取得
+  const provider = loaded.value.aiProvider ?? "openai";
+  let token = "";
+  switch (provider) {
+    case "openai":
+      token = loaded.value.openaiApiToken ?? "";
+      break;
+    case "anthropic":
+      token = loaded.value.anthropicApiToken ?? "";
+      break;
+    case "zai":
+      token = loaded.value.zaiApiToken ?? "";
+      break;
+    default:
+      token = loaded.value.openaiApiToken ?? "";
+      break;
+  }
+
   const tokenConfigured = token.trim()
     ? Result.succeed()
     : Result.fail("missing-token" as const);
@@ -52,7 +74,7 @@ export async function ensureOpenAiTokenConfigured(
   if (Result.isFailure(tokenConfigured)) {
     deps.showNotification(
       {
-        message: "OpenAI API Tokenが未設定です",
+        message: "API Tokenが未設定です",
         action: {
           label: "→ 設定を開く",
           onClick: () => {

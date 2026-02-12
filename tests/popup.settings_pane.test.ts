@@ -1,6 +1,7 @@
 import type { JSDOM } from "jsdom";
 import { act } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { OPENAI_MODELS } from "@/constants/models";
 import { flush } from "./helpers/async";
 import { inputValue, selectBaseUiOption } from "./helpers/forms";
 import {
@@ -39,7 +40,7 @@ describe("popup Settings pane", () => {
           items.openaiCustomPrompt = "prompt";
         }
         if (keyList.includes("openaiModel")) {
-          items.openaiModel = "gpt-5.2";
+          items.openaiModel = "OPENAI_MODELS.GPT_5_2";
         }
         callback(items);
       }
@@ -49,7 +50,7 @@ describe("popup Settings pane", () => {
       (message: unknown, callback: (resp: unknown) => void) => {
         chromeStub.runtime.lastError = null;
         const action = (message as { action?: unknown }).action;
-        if (action === "testOpenAiToken") {
+        if (action === "testAiToken" || action === "testOpenAiToken") {
           callback({ ok: true });
           return;
         }
@@ -79,7 +80,7 @@ describe("popup Settings pane", () => {
 
   it("toggles token visibility without changing the token value", async () => {
     const token = dom.window.document.querySelector<HTMLInputElement>(
-      '[data-testid="openai-token"]'
+      '[data-testid="ai-token"]'
     );
     const toggle = dom.window.document.querySelector<HTMLButtonElement>(
       '[data-testid="token-visible"]'
@@ -101,7 +102,7 @@ describe("popup Settings pane", () => {
 
   it("saves and clears the token using local storage", async () => {
     const token = dom.window.document.querySelector<HTMLInputElement>(
-      '[data-testid="openai-token"]'
+      '[data-testid="ai-token"]'
     );
     const save = dom.window.document.querySelector<HTMLButtonElement>(
       '[data-testid="token-save"]'
@@ -144,7 +145,7 @@ describe("popup Settings pane", () => {
     });
 
     expect(chromeStub.runtime.sendMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ action: "testOpenAiToken" }),
+      expect.objectContaining({ action: "testAiToken" }),
       expect.any(Function)
     );
     expect(dom.window.document.body.textContent).toContain("トークン");
@@ -168,7 +169,7 @@ describe("popup Settings pane", () => {
     });
 
     expect(chromeStub.storage.local.set).toHaveBeenCalledWith(
-      expect.objectContaining({ openaiCustomPrompt: "custom prompt" }),
+      expect.objectContaining({ aiCustomPrompt: "custom prompt" }),
       expect.any(Function)
     );
 
@@ -178,32 +179,32 @@ describe("popup Settings pane", () => {
     });
 
     expect(chromeStub.storage.local.remove).toHaveBeenCalledWith(
-      "openaiCustomPrompt",
+      ["aiCustomPrompt", "openaiCustomPrompt"],
       expect.any(Function)
     );
   });
 
   it("saves the selected model using local storage", async () => {
     const modelSelect = dom.window.document.querySelector<HTMLButtonElement>(
-      '[data-testid="openai-model"]'
+      '[data-testid="ai-model"]'
     );
     expect(modelSelect).not.toBeNull();
 
-    expect(modelSelect?.textContent).toContain("gpt-5.2");
+    expect(modelSelect?.textContent).toContain(OPENAI_MODELS.GPT_5_2);
 
     await act(async () => {
       await selectBaseUiOption(
         dom.window,
         modelSelect as HTMLButtonElement,
-        "gpt-4o-mini"
+        OPENAI_MODELS.GPT_4O_MINI
       );
       await flush(dom.window);
     });
 
     expect(chromeStub.storage.local.set).toHaveBeenCalledWith(
-      expect.objectContaining({ openaiModel: "gpt-4o-mini" }),
+      expect.objectContaining({ aiModel: OPENAI_MODELS.GPT_4O_MINI }),
       expect.any(Function)
     );
-    expect(modelSelect?.textContent).toContain("gpt-4o-mini");
+    expect(modelSelect?.textContent).toContain(OPENAI_MODELS.GPT_4O_MINI);
   });
 });

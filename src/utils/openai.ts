@@ -1,4 +1,5 @@
 import { Result } from "@praha/byethrow";
+import type { ChatCompletionAdapter, ChatRequestBody } from "@/ai/adapter";
 import { toErrorMessage } from "@/utils/errors";
 
 export function extractChatCompletionText(json: unknown): string | null {
@@ -108,6 +109,85 @@ export function fetchOpenAiChatCompletionOk(
       }
 
       return Result.fail(extractOpenAiApiErrorMessage(json, response.status));
+    })
+  );
+}
+
+/**
+ * アダプター経由でチャット補完テキストを取得（新版）
+ */
+export function fetchChatCompletionText(
+  fetchFn: typeof fetch,
+  adapter: ChatCompletionAdapter,
+  token: string,
+  body: ChatRequestBody,
+  emptyContentMessage: string
+): Result.ResultAsync<string, string> {
+  const { url, init } = adapter.buildRequest(token, body);
+
+  return Result.pipe(
+    Result.try({
+      immediate: true,
+      try: () => fetchFn(url, init),
+      catch: (error) =>
+        toErrorMessage(error, "APIへのリクエストに失敗しました"),
+    }),
+    Result.andThen(async (response) => {
+      const json = await Result.unwrap(
+        Result.try({
+          immediate: true,
+          try: () => response.json(),
+          catch: () => null,
+        }),
+        null
+      );
+
+      if (!response.ok) {
+        return Result.fail(adapter.extractError(json, response.status));
+      }
+
+      const text = adapter.extractText(json);
+      if (!text) {
+        return Result.fail(emptyContentMessage);
+      }
+      return Result.succeed(text);
+    })
+  );
+}
+
+/**
+ * アダプター経由でチャット補完の成否を確認（新版）
+ */
+export function fetchChatCompletionOk(
+  fetchFn: typeof fetch,
+  adapter: ChatCompletionAdapter,
+  token: string,
+  body: ChatRequestBody
+): Result.ResultAsync<void, string> {
+  const { url, init } = adapter.buildRequest(token, body);
+
+  return Result.pipe(
+    Result.try({
+      immediate: true,
+      try: () => fetchFn(url, init),
+      catch: (error) =>
+        toErrorMessage(error, "APIへのリクエストに失敗しました"),
+    }),
+    Result.andThen(async (response) => {
+      const json = await Result.unwrap(
+        Result.try({
+          immediate: true,
+          try: () => response.json(),
+          catch: () => null,
+        }),
+        null
+      );
+
+      if (response.ok) {
+        return Result.succeed();
+      }
+
+      return Result.fail(adapter.extractError(json, response.status));
     })
   );
 }

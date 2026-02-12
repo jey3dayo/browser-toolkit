@@ -45,7 +45,7 @@ describe("ensureOpenAiTokenConfigured", () => {
 
     expect(showNotification).toHaveBeenCalledWith(
       {
-        message: "OpenAI API Tokenが未設定です",
+        message: "API Tokenが未設定です",
         action: {
           label: "→ 設定を開く",
           onClick: expect.any(Function),

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { OPENAI_MODELS } from "@/constants/models";
 import { flush } from "./helpers/async";
 import { type ChromeStub, createChromeStub } from "./helpers/chromeStub";
 
@@ -23,7 +24,7 @@ describe("background: OpenAI model selection", () => {
           items.openaiCustomPrompt = "";
         }
         if (keyList.includes("openaiModel")) {
-          items.openaiModel = "gpt-5.2";
+          items.openaiModel = OPENAI_MODELS.GPT_5_2;
         }
         callback(items);
       }
@@ -73,6 +74,6 @@ describe("background: OpenAI model selection", () => {
     );
 
     await flush(setTimeout, 6);
-    expect(capturedModel).toBe("gpt-5.2");
+    expect(capturedModel).toBe(OPENAI_MODELS.GPT_5_2);
   });
 });
