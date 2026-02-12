@@ -229,4 +229,81 @@ describe("Storage Migrations", () => {
       expect(version).toBe(5);
     });
   });
+
+  describe("Migration v1: AI Settings", () => {
+    it("should migrate openaiModel to aiModel", async () => {
+      mockStorage.set("openaiModel", "gpt-4");
+
+      await runMigrations();
+
+      expect(mockStorage.get("aiModel")).toBe("gpt-4");
+      const version = await getCurrentSchemaVersion();
+      expect(version).toBe(1);
+    });
+
+    it("should migrate openaiCustomPrompt to aiCustomPrompt", async () => {
+      mockStorage.set("openaiCustomPrompt", "Custom prompt");
+
+      await runMigrations();
+
+      expect(mockStorage.get("aiCustomPrompt")).toBe("Custom prompt");
+      const version = await getCurrentSchemaVersion();
+      expect(version).toBe(1);
+    });
+
+    it("should set aiProvider to openai when openaiApiToken exists", async () => {
+      mockStorage.set("openaiApiToken", "sk-test123");
+
+      await runMigrations();
+
+      expect(mockStorage.get("aiProvider")).toBe("openai");
+      const version = await getCurrentSchemaVersion();
+      expect(version).toBe(1);
+    });
+
+    it("should not overwrite existing aiModel", async () => {
+      mockStorage.set("openaiModel", "gpt-4");
+      mockStorage.set("aiModel", "gpt-3.5-turbo");
+
+      await runMigrations();
+
+      // Should keep existing aiModel
+      expect(mockStorage.get("aiModel")).toBe("gpt-3.5-turbo");
+    });
+
+    it("should not overwrite existing aiProvider", async () => {
+      mockStorage.set("openaiApiToken", "sk-test123");
+      mockStorage.set("aiProvider", "anthropic");
+
+      await runMigrations();
+
+      // Should keep existing aiProvider
+      expect(mockStorage.get("aiProvider")).toBe("anthropic");
+    });
+
+    it("should be idempotent (multiple runs produce same result)", async () => {
+      mockStorage.set("openaiModel", "gpt-4");
+      mockStorage.set("openaiCustomPrompt", "Custom");
+
+      await runMigrations();
+      const aiModelAfterFirst = mockStorage.get("aiModel");
+      const aiCustomPromptAfterFirst = mockStorage.get("aiCustomPrompt");
+
+      // Run again
+      await runMigrations();
+      const aiModelAfterSecond = mockStorage.get("aiModel");
+      const aiCustomPromptAfterSecond = mockStorage.get("aiCustomPrompt");
+
+      expect(aiModelAfterFirst).toBe(aiModelAfterSecond);
+      expect(aiCustomPromptAfterFirst).toBe(aiCustomPromptAfterSecond);
+    });
+
+    it("should handle missing old keys gracefully", async () => {
+      // No old keys present
+      await expect(runMigrations()).resolves.not.toThrow();
+
+      const version = await getCurrentSchemaVersion();
+      expect(version).toBe(1);
+    });
+  });
 });

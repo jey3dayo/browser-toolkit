@@ -77,42 +77,15 @@ export function loadAiSettings(
 /**
  * 旧キーから新キーへのマイグレーション
  *
- * ストレージに新キーがなく、旧キーがある場合に実行
+ * @deprecated This function is now integrated into the Migration System (src/storage/migrations.ts).
+ * See migration v1 for the implementation.
  */
-export async function migrateToAiSettings(
-  storage: chrome.storage.LocalStorageArea
+export function migrateToAiSettings(
+  _storage: chrome.storage.LocalStorageArea
 ): Promise<void> {
-  const data = await storage.get([
-    "aiProvider",
-    "aiModel",
-    "aiCustomPrompt",
-    "openaiApiToken",
-    "openaiModel",
-    "openaiCustomPrompt",
-  ]);
-
-  // すでに新キーがある場合はマイグレーション不要
-  if (data.aiProvider || data.aiModel || data.aiCustomPrompt) {
-    return;
-  }
-
-  // 旧キーから新キーへコピー
-  const updates: Partial<LocalStorageData> = {};
-
-  if (typeof data.openaiApiToken === "string") {
-    updates.aiProvider = "openai";
-    // openaiApiTokenはそのまま維持（プロバイダー別キー）
-  }
-
-  if (typeof data.openaiModel === "string") {
-    updates.aiModel = data.openaiModel;
-  }
-
-  if (typeof data.openaiCustomPrompt === "string") {
-    updates.aiCustomPrompt = data.openaiCustomPrompt;
-  }
-
-  if (Object.keys(updates).length > 0) {
-    await storage.set(updates);
-  }
+  console.warn(
+    "[migrateToAiSettings] This function is deprecated. Migration is now handled by the Migration System."
+  );
+  // No-op: マイグレーションはsrc/storage/migrations.tsで処理される
+  return Promise.resolve();
 }

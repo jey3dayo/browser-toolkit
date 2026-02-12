@@ -1,6 +1,5 @@
 // Background Service Worker
 
-import { migrateToAiSettings } from "@/ai/settings";
 import { APP_NAME } from "@/app_meta";
 import {
   registerContextMenuHandlers,
@@ -33,11 +32,6 @@ chrome.runtime.onInstalled.addListener((details) => {
         console.error("Failed to run storage migrations:", error);
       });
   }
-
-  // 旧設定から新設定へのマイグレーション
-  migrateToAiSettings(chrome.storage.local).catch((error) => {
-    console.error("Failed to migrate AI settings:", error);
-  });
 
   scheduleRefreshContextMenus();
 });

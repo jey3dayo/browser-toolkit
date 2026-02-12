@@ -4,6 +4,7 @@ import {
   storageSyncGet,
   storageSyncSet,
 } from "@/background/storage";
+import type { LocalStorageData } from "@/storage/types";
 
 /**
  * Migration function interface
@@ -18,18 +19,43 @@ export interface Migration {
  * All migrations in order
  */
 export const migrations: Migration[] = [
-  // Future migrations will be added here
-  // Example:
-  // {
-  //   version: 1,
-  //   description: "Add default theme setting",
-  //   migrate: async () => {
-  //     const data = await storageSyncGet(['theme']);
-  //     if (!data.theme) {
-  //       await storageSyncSet({ theme: 'light' });
-  //     }
-  //   },
-  // },
+  {
+    version: 1,
+    description: "Migrate legacy OpenAI settings to unified AI settings",
+    migrate: async () => {
+      const data = (await storageLocalGet([
+        "aiProvider",
+        "aiModel",
+        "aiCustomPrompt",
+        "openaiApiToken",
+        "openaiModel",
+        "openaiCustomPrompt",
+      ])) as Record<string, unknown>;
+
+      const updates: Partial<LocalStorageData> = {};
+
+      // Migrate openaiModel to aiModel (if aiModel doesn't exist)
+      if (typeof data.openaiModel === "string" && !data.aiModel) {
+        updates.aiModel = data.openaiModel;
+      }
+
+      // Migrate openaiCustomPrompt to aiCustomPrompt (if aiCustomPrompt doesn't exist)
+      if (typeof data.openaiCustomPrompt === "string" && !data.aiCustomPrompt) {
+        updates.aiCustomPrompt = data.openaiCustomPrompt;
+      }
+
+      // Set aiProvider to "openai" if openaiApiToken exists and aiProvider doesn't exist
+      if (typeof data.openaiApiToken === "string" && !data.aiProvider) {
+        updates.aiProvider = "openai";
+      }
+
+      // Apply updates if any
+      if (Object.keys(updates).length > 0) {
+        await storageLocalSet(updates);
+        console.log("[migration v1] AI settings migrated:", updates);
+      }
+    },
+  },
 ];
 
 /**
