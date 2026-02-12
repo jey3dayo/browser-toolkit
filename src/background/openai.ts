@@ -18,6 +18,7 @@ import type { BackgroundResponse, SummaryTarget } from "@/background/types";
 import { loadOpenAiModel } from "@/openai/settings";
 import { ExtractedEventSchema } from "@/schemas/extracted_event";
 import { safeParseJsonObject } from "@/schemas/json";
+import { type AiProvider, safeParseAiProvider } from "@/schemas/provider";
 import type { ExtractedEvent } from "@/shared_types";
 import type { LocalStorageData } from "@/storage/types";
 import { toErrorMessage } from "@/utils/errors";
@@ -314,11 +315,6 @@ export async function testOpenAiToken(
 export async function testAiToken(
   tokenOverride?: string
 ): Promise<Result.Result<void, string>> {
-  const tokenResult = await resolveAiToken(tokenOverride);
-  if (Result.isFailure(tokenResult)) {
-    return Result.fail(tokenResult.error);
-  }
-
   const storage = await storageLocalGetTyped([
     "aiProvider",
     "aiModel",
@@ -327,7 +323,19 @@ export async function testAiToken(
     "zaiApiToken",
     "openaiModel",
   ]);
-  const settingsResult = loadAiSettings(storage);
+
+  // tokenOverrideがある場合は、ストレージの設定に上書き
+  let effectiveStorage = storage;
+  if (tokenOverride) {
+    const provider = safeParseAiProvider(storage.aiProvider) ?? "openai";
+    const tokenKey = getTokenKeyForProvider(provider);
+    effectiveStorage = {
+      ...storage,
+      [tokenKey]: tokenOverride,
+    };
+  }
+
+  const settingsResult = loadAiSettings(effectiveStorage);
   if (Result.isFailure(settingsResult)) {
     return Result.fail(settingsResult.error);
   }
@@ -338,7 +346,7 @@ export async function testAiToken(
   const checkResult = await fetchChatCompletionOk(
     fetch,
     adapter,
-    tokenResult.value,
+    settings.token,
     {
       model: settings.model,
       max_completion_tokens: 5,
@@ -355,6 +363,20 @@ export async function testAiToken(
   }
 
   return Result.succeed(undefined);
+}
+
+/**
+ * プロバイダーに応じたトークンキー名を取得
+ */
+function getTokenKeyForProvider(provider: AiProvider): keyof LocalStorageData {
+  switch (provider) {
+    case "openai":
+      return "openaiApiToken";
+    case "anthropic":
+      return "anthropicApiToken";
+    case "zai":
+      return "zaiApiToken";
+  }
 }
 
 export async function extractEventWithOpenAI(

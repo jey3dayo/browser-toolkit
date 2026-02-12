@@ -67,7 +67,7 @@ describe("ai/adapter", () => {
   describe("anthropicAdapter", () => {
     it("builds request with correct URL and headers", () => {
       const { url, init } = anthropicAdapter.buildRequest("test-token", {
-        model: "claude-sonnet-4-5-20250929",
+        model: "ANTHROPIC_MODELS.CLAUDE_SONNET_4_5",
         messages: [{ role: "user", content: "test" }],
       });
 
@@ -82,7 +82,7 @@ describe("ai/adapter", () => {
 
     it("separates system messages in request body", () => {
       const { init } = anthropicAdapter.buildRequest("test-token", {
-        model: "claude-sonnet-4-5-20250929",
+        model: "ANTHROPIC_MODELS.CLAUDE_SONNET_4_5",
         messages: [
           { role: "system", content: "You are helpful" },
           { role: "user", content: "Hello" },
@@ -96,7 +96,7 @@ describe("ai/adapter", () => {
 
     it("converts max_completion_tokens to max_tokens", () => {
       const { init } = anthropicAdapter.buildRequest("test-token", {
-        model: "claude-sonnet-4-5-20250929",
+        model: "ANTHROPIC_MODELS.CLAUDE_SONNET_4_5",
         messages: [{ role: "user", content: "test" }],
         max_completion_tokens: 100,
       });

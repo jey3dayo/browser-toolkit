@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  ANTHROPIC_MODELS,
+  OPENAI_MODELS,
+  ZAI_MODELS,
+} from "@/constants/models";
+import {
   AI_PROVIDERS,
   normalizeAiModel,
   PROVIDER_CONFIGS,
@@ -30,28 +35,36 @@ describe("schemas/provider", () => {
 
   describe("normalizeAiModel", () => {
     it("returns the value if it is a valid model for the provider", () => {
-      expect(normalizeAiModel("openai", "gpt-5.2")).toBe("gpt-5.2");
-      expect(normalizeAiModel("openai", "gpt-4o-mini")).toBe("gpt-4o-mini");
-      expect(normalizeAiModel("anthropic", "claude-sonnet-4-5-20250929")).toBe(
-        "claude-sonnet-4-5-20250929"
+      expect(normalizeAiModel("openai", OPENAI_MODELS.GPT_5_2)).toBe(
+        OPENAI_MODELS.GPT_5_2
       );
-      expect(normalizeAiModel("zai", "glm-4.7")).toBe("glm-4.7");
+      expect(normalizeAiModel("openai", OPENAI_MODELS.GPT_4O_MINI)).toBe(
+        OPENAI_MODELS.GPT_4O_MINI
+      );
+      expect(
+        normalizeAiModel("anthropic", ANTHROPIC_MODELS.CLAUDE_SONNET_4_5)
+      ).toBe(ANTHROPIC_MODELS.CLAUDE_SONNET_4_5);
+      expect(normalizeAiModel("zai", ZAI_MODELS.GLM_4_7)).toBe(
+        ZAI_MODELS.GLM_4_7
+      );
     });
 
     it("returns the default model if value is undefined", () => {
-      expect(normalizeAiModel("openai", undefined)).toBe("gpt-5.2");
+      expect(normalizeAiModel("openai", undefined)).toBe(OPENAI_MODELS.GPT_5_2);
       expect(normalizeAiModel("anthropic", undefined)).toBe(
-        "claude-sonnet-4-5-20250929"
+        ANTHROPIC_MODELS.CLAUDE_SONNET_4_5
       );
-      expect(normalizeAiModel("zai", undefined)).toBe("glm-4.7");
+      expect(normalizeAiModel("zai", undefined)).toBe(ZAI_MODELS.GLM_4_7);
     });
 
     it("returns the default model if value is invalid for the provider", () => {
-      expect(normalizeAiModel("openai", "invalid-model")).toBe("gpt-5.2");
-      expect(normalizeAiModel("anthropic", "gpt-4")).toBe(
-        "claude-sonnet-4-5-20250929"
+      expect(normalizeAiModel("openai", "invalid-model")).toBe(
+        OPENAI_MODELS.GPT_5_2
       );
-      expect(normalizeAiModel("zai", "gpt-4")).toBe("glm-4.7");
+      expect(normalizeAiModel("anthropic", "gpt-4")).toBe(
+        ANTHROPIC_MODELS.CLAUDE_SONNET_4_5
+      );
+      expect(normalizeAiModel("zai", "gpt-4")).toBe(ZAI_MODELS.GLM_4_7);
     });
   });
 

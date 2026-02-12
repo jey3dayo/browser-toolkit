@@ -33,7 +33,7 @@ export function loadAiSettings(
   const providerValue = storage.aiProvider ?? "openai";
   const provider = safeParseAiProvider(providerValue) ?? "openai";
 
-  // プロバイダー別トークン
+  // プロバイダー別トークン（レガシーフォールバックなし）
   let token = "";
   switch (provider) {
     case "openai":
@@ -46,8 +46,7 @@ export function loadAiSettings(
       token = storage.zaiApiToken ?? "";
       break;
     default:
-      token = storage.openaiApiToken ?? "";
-      break;
+      token = "";
   }
 
   if (!token) {

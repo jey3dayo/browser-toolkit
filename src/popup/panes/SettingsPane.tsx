@@ -234,7 +234,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
           render={
             <RadioGroup
               className="mbu-radio-group mbu-radio-group--horizontal"
-              onValueChange={(value) => {
+              onValueChange={async (value) => {
                 const newProvider = safeParseAiProvider(value);
                 if (!newProvider) {
                   return;
@@ -243,29 +243,29 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
                 // プロバイダー変更時にモデルをデフォルトにリセット
                 const defaultModel = PROVIDER_CONFIGS[newProvider].defaultModel;
                 setModel(defaultModel);
-                // プロバイダー別トークンをロード
+
+                // プロバイダー別トークンをロード（完了を待つ）
                 const tokenKey = getTokenKey(newProvider);
-                props.runtime
-                  .storageLocalGet([tokenKey])
-                  .then((result) => {
-                    if (Result.isSuccess(result)) {
-                      const raw = result.value as Partial<LocalStorageData>;
-                      const tokenValue = raw[tokenKey];
-                      setToken(
-                        typeof tokenValue === "string" ? tokenValue : ""
-                      );
-                    }
-                  })
-                  .catch(() => {
-                    // no-op
-                  });
-                // 保存
-                saveProvider(newProvider).catch(() => {
+                try {
+                  const result = await props.runtime.storageLocalGet([
+                    tokenKey,
+                  ]);
+                  if (Result.isSuccess(result)) {
+                    const raw = result.value as Partial<LocalStorageData>;
+                    const tokenValue = raw[tokenKey];
+                    setToken(typeof tokenValue === "string" ? tokenValue : "");
+                  }
+                } catch {
                   // no-op
-                });
-                saveModel(defaultModel).catch(() => {
+                }
+
+                // トークンロード完了後に保存
+                try {
+                  await saveProvider(newProvider);
+                  await saveModel(defaultModel);
+                } catch {
                   // no-op
-                });
+                }
               }}
               value={provider}
             />

@@ -2,6 +2,14 @@
  * AIプロバイダー設定スキーマ
  */
 import { check, pipe, safeParse, string } from "valibot";
+import {
+  ANTHROPIC_MODEL_LIST,
+  ANTHROPIC_MODELS,
+  OPENAI_MODEL_LIST,
+  OPENAI_MODELS,
+  ZAI_MODEL_LIST,
+  ZAI_MODELS,
+} from "@/constants/models";
 
 export const AI_PROVIDERS = ["openai", "anthropic", "zai"] as const;
 export type AiProvider = (typeof AI_PROVIDERS)[number];
@@ -17,20 +25,20 @@ export const PROVIDER_CONFIGS: Record<
 > = {
   openai: {
     label: "OpenAI",
-    defaultModel: "gpt-5.2",
-    models: ["gpt-5.2", "gpt-5-mini", "gpt-4o-mini"],
+    defaultModel: OPENAI_MODELS.GPT_5_2,
+    models: OPENAI_MODEL_LIST,
     baseUrl: "https://api.openai.com/v1",
   },
   anthropic: {
     label: "Anthropic (Claude)",
-    defaultModel: "claude-sonnet-4-5-20250929",
-    models: ["claude-sonnet-4-5-20250929", "claude-haiku-4-5-20251001"],
+    defaultModel: ANTHROPIC_MODELS.CLAUDE_SONNET_4_5,
+    models: ANTHROPIC_MODEL_LIST,
     baseUrl: "https://api.anthropic.com/v1",
   },
   zai: {
     label: "z.ai",
-    defaultModel: "glm-4.7",
-    models: ["glm-4.7"],
+    defaultModel: ZAI_MODELS.GLM_4_7,
+    models: ZAI_MODEL_LIST,
     baseUrl: "https://api.z.ai/api/paas/v4",
   },
 };
