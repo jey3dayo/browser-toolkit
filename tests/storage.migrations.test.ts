@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  type BackupData,
   backupBeforeMigration,
   cleanOldBackups,
   getCurrentSchemaVersion,
@@ -8,7 +9,6 @@ import {
   restoreFromBackup,
   runMigrations,
   setSchemaVersion,
-  type BackupData,
 } from "@/storage/migrations";
 
 // Chrome API のモック
@@ -29,7 +29,11 @@ function setupChromeMocks() {
           ) {
             // Get all items
             for (const [key, value] of mockStorage.entries()) {
-              if (!key.startsWith("backup_") && key !== "schemaVersion" && key !== "migrationLog") {
+              if (
+                !key.startsWith("backup_") &&
+                key !== "schemaVersion" &&
+                key !== "migrationLog"
+              ) {
                 result[key] = value;
               }
             }
@@ -50,7 +54,9 @@ function setupChromeMocks() {
               mockStorage.set(key, value);
             }
           }
-          if (callback) callback();
+          if (callback) {
+            callback();
+          }
         }),
       },
       local: {
@@ -83,7 +89,9 @@ function setupChromeMocks() {
               mockStorage.set(key, value);
             }
           }
-          if (callback) callback();
+          if (callback) {
+            callback();
+          }
         }),
       },
     },
@@ -191,7 +199,7 @@ describe("Storage Migrations", () => {
 
       const version = await getCurrentSchemaVersion();
       expect(version).toBe(1);
-      
+
       // Check if data was restored
       expect(mockStorage.get("syncKey")).toBe("syncValue");
       expect(mockStorage.get("localKey")).toBe("localValue");

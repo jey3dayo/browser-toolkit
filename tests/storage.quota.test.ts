@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  QUOTA_BYTES,
-  QUOTA_BYTES_PER_ITEM,
   checkStorageQuota,
   getStorageSyncBytesInUse,
+  QUOTA_BYTES,
+  QUOTA_BYTES_PER_ITEM,
 } from "@/background/storage";
 
 // Chrome API のモック
