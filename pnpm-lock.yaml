@@ -848,11 +848,6 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@playwright/test@1.58.2':
-    resolution: {integrity: sha512-akea+6bHYBBfA9uQqSYmlJXn61cTa+jbO87xVLCWbTqbWadRVmhxlXATaOjOgcBaWU4ePo0wB41KMFv3o35IXA==}
-    engines: {node: '>=18'}
-    hasBin: true
-
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
@@ -4525,10 +4520,6 @@ snapshots:
 
   '@oxlint/win32-x64@1.36.0':
     optional: true
-
-  '@playwright/test@1.58.2':
-    dependencies:
-      playwright: 1.58.2
 
   '@pkgjs/parseargs@0.11.0':
     optional: true
