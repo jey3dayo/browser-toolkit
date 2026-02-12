@@ -1,4 +1,5 @@
 import {
+  FALLBACK_KEYS_MARKER,
   storageLocalGet,
   storageLocalSet,
   storageSyncGet,
@@ -217,7 +218,8 @@ export async function restoreFromBackup(timestamp: number): Promise<void> {
       (key) =>
         !(key in backup.localData || key.startsWith(BACKUP_KEY_PREFIX)) &&
         key !== SCHEMA_VERSION_KEY &&
-        key !== MIGRATION_LOG_KEY
+        key !== MIGRATION_LOG_KEY &&
+        key !== FALLBACK_KEYS_MARKER
     );
 
     // Remove keys not in backup
