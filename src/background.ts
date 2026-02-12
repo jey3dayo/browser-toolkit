@@ -1,23 +1,38 @@
 // Background Service Worker
 
-import { migrateToAiSettings } from "@/ai/settings";
 import { APP_NAME } from "@/app_meta";
 import {
   registerContextMenuHandlers,
   scheduleRefreshContextMenus,
 } from "@/background/context_menu_registry";
 import { registerRuntimeMessageHandlers } from "@/background/runtime";
+import { runMigrations } from "@/storage/migrations";
 import { debugLog } from "@/utils/debug_log";
 
-chrome.runtime.onInstalled.addListener(() => {
-  console.log(`${APP_NAME} installed`);
-  debugLog("background", "extension installed").catch(() => {
+// Development-only auto-reload
+if (process.env.NODE_ENV === "development") {
+  import("@/background/dev-reload");
+}
+
+chrome.runtime.onInstalled.addListener((details) => {
+  console.log(`${APP_NAME} installed (reason: ${details.reason})`);
+  debugLog("background", "extension installed", {
+    reason: details.reason,
+  }).catch(() => {
     // no-op
   });
-  // 旧設定から新設定へのマイグレーション
-  migrateToAiSettings(chrome.storage.local).catch((error) => {
-    console.error("Failed to migrate AI settings:", error);
-  });
+
+  // 拡張機能インストール・更新時にストレージマイグレーションを実行
+  if (details.reason === "install" || details.reason === "update") {
+    runMigrations()
+      .then(() => {
+        console.log("Storage migrations completed");
+      })
+      .catch((error) => {
+        console.error("Failed to run storage migrations:", error);
+      });
+  }
+
   scheduleRefreshContextMenus();
 });
 

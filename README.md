@@ -117,8 +117,9 @@
 
 1. `mise` を使う場合は `mise trust` でリポジトリを信頼します（シェル起動時のエラー回避）。
 2. 依存関係をインストールします: `pnpm install`
-3. ローカルで検証する場合はウォッチビルドまたは Storybook を起動します:
-   - `pnpm run watch`（content script / popup のバンドルを watch）
+3. ローカルで検証する場合は開発サーバーまたは Storybook を起動します:
+   - `pnpm run dev`（開発サーバー: 自動ビルド + 拡張機能の自動リロード）
+   - `pnpm run watch`（自動ビルドのみ、リロードは手動）
    - `pnpm run storybook`（UI をブラウザで確認）
 4. 準備ができたら `pnpm run build` を実行し、`manifest.json` があるリポジトリ直下（`browser-toolkit/`）を Chrome に読み込みます（`dist/` ではありません）。
 
@@ -135,8 +136,102 @@
 
 その他:
 
+- `pnpm run dev`（開発サーバー: 自動ビルド + 拡張機能の自動リロード）
 - `pnpm run watch`（bundle の watch）
 - `pnpm run storybook`（`http://localhost:6006`）
+- `pnpm run test:e2e`（E2Eテスト実行）
+- `pnpm run test:e2e:ui`（E2EテストをUIモードで実行）
+- `pnpm run test:e2e:debug`（E2Eテストをデバッグモードで実行）
+- `pnpm run test:visual`（Visual Regression Testing）
+- `pnpm run test:visual:update`（スナップショットの更新）
+
+### 開発モード（自動リロード）
+
+`pnpm run dev` を使うと、ソースコード変更時に自動的に拡張機能がリロードされます。
+
+**使い方:**
+
+1. 拡張機能をChromeに読み込む（通常通り）
+2. ターミナルで `pnpm run dev` を実行
+3. ソースコードを編集・保存
+4. 自動的にビルド → 拡張機能リロードされる（手動リロード不要）
+
+**仕組み:**
+
+- WebSocketサーバー（`ws://localhost:8090`）がファイル変更を検知
+- 開発ビルドのbackground scriptが接続し、変更通知を受信
+- `chrome.runtime.reload()` で拡張機能を自動リロード
+
+**注意:**
+
+- プロダクションビルド（`pnpm run build`）には自動リロードコードは含まれません
+- Content Scriptの変更は拡張機能リロード後、ページのリロードも必要です
+
+### E2Eテスト
+
+Playwright を使用したE2Eテストで、拡張機能の動作を自動検証します。
+
+**実行方法:**
+
+```bash
+# 拡張機能をビルド（最初に1回）
+pnpm run build
+
+# E2Eテストを実行
+pnpm run test:e2e
+
+# UIモードで実行（推奨: デバッグに便利）
+pnpm run test:e2e:ui
+
+# デバッグモードで実行
+pnpm run test:e2e:debug
+```
+
+**テスト内容:**
+
+- テーブルソート機能（基本ソート、動的テーブル挿入）
+- ポップアップUI（ナビゲーション、テーマ永続化、設定表示）
+
+**注意:**
+
+- E2Eテストは `headless: false` で実行されるため、Chromeウィンドウが表示されます
+- テスト中にChrome拡張機能が自動的に読み込まれます
+- テストfixtureは `tests/e2e/fixtures/` に配置されています
+
+### Visual Regression Testing
+
+Storybook Test Runner + Playwright Snapshotsを使用して、UIの視覚的な変更を自動検出します。
+
+**実行方法:**
+
+```bash
+# Storybookを起動（別ターミナル）
+pnpm run storybook
+
+# Visual Regression Testを実行
+pnpm run test:visual
+
+# スナップショットを更新（意図的な変更の場合）
+pnpm run test:visual:update
+```
+
+**テスト内容:**
+
+- すべてのStoriesでライト/ダークモードのスナップショットを取得
+- 視覚的な差異を自動検出（1%の許容誤差）
+- CSSやコンポーネント変更時のリグレッション防止
+
+**スナップショット管理:**
+
+- スナップショットは `__snapshots__/` に保存
+- Gitには追跡されない（`.gitignore`で除外）
+- ローカルで検証し、意図的な変更のみ承認
+
+**注意:**
+
+- Storybookが起動している状態で実行してください
+- 初回実行時はすべてのスナップショットが作成されます
+- UIの意図的な変更後は `test:visual:update` でスナップショットを更新してください
 
 ## プロジェクト構成
 
