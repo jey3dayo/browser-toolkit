@@ -167,8 +167,6 @@
 - プロダクションビルド（`pnpm run build`）には自動リロードコードは含まれません
 - Content Scriptの変更は拡張機能リロード後、ページのリロードも必要です
 
-<<<<<<< HEAD
-
 ### E2Eテスト
 
 Playwright を使用したE2Eテストで、拡張機能の動作を自動検証します。
@@ -199,8 +197,6 @@ pnpm run test:e2e:debug
 - E2Eテストは `headless: false` で実行されるため、Chromeウィンドウが表示されます
 - テスト中にChrome拡張機能が自動的に読み込まれます
 - テストfixtureは `tests/e2e/fixtures/` に配置されています
-
-# ||||||| 7d68139
 
 ### Visual Regression Testing
 
@@ -236,8 +232,6 @@ pnpm run test:visual:update
 - Storybookが起動している状態で実行してください
 - 初回実行時はすべてのスナップショットが作成されます
 - UIの意図的な変更後は `test:visual:update` でスナップショットを更新してください
-
-> > > > > > > feature/visual-regression-testing
 
 ## プロジェクト構成
 
