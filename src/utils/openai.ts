@@ -2,6 +2,10 @@ import { Result } from "@praha/byethrow";
 import type { ChatCompletionAdapter, ChatRequestBody } from "@/ai/adapter";
 import { isAllowedApiOrigin } from "@/constants/api-endpoints";
 import { toErrorMessage } from "@/utils/errors";
+import {
+  FetchTimeoutError,
+  fetchWithTimeout,
+} from "@/utils/fetch-with-timeout";
 
 export function extractChatCompletionText(json: unknown): string | null {
   if (typeof json !== "object" || json === null) {
@@ -49,16 +53,25 @@ function fetchOpenAiChatCompletionRaw(
     Result.try({
       immediate: true,
       try: () =>
-        fetchFn("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
+        fetchWithTimeout(
+          fetchFn,
+          "https://api.openai.com/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
           },
-          body: JSON.stringify(body),
-        }),
-      catch: (error) =>
-        toErrorMessage(error, "OpenAI APIへのリクエストに失敗しました"),
+          25_000 // Service Workerタイムアウト（30秒）より短く設定
+        ),
+      catch: (error) => {
+        if (error instanceof FetchTimeoutError) {
+          return error.message;
+        }
+        return toErrorMessage(error, "OpenAI APIへのリクエストに失敗しました");
+      },
     }),
     Result.andThen(async (response) => {
       const json = await Result.unwrap(
@@ -138,9 +151,13 @@ export function fetchChatCompletionText(
   return Result.pipe(
     Result.try({
       immediate: true,
-      try: () => fetchFn(url, init),
-      catch: (error) =>
-        toErrorMessage(error, "APIへのリクエストに失敗しました"),
+      try: () => fetchWithTimeout(fetchFn, url, init, 25_000),
+      catch: (error) => {
+        if (error instanceof FetchTimeoutError) {
+          return error.message;
+        }
+        return toErrorMessage(error, "APIへのリクエストに失敗しました");
+      },
     }),
     Result.andThen(async (response) => {
       const json = await Result.unwrap(
@@ -188,9 +205,13 @@ export function fetchChatCompletionOk(
   return Result.pipe(
     Result.try({
       immediate: true,
-      try: () => fetchFn(url, init),
-      catch: (error) =>
-        toErrorMessage(error, "APIへのリクエストに失敗しました"),
+      try: () => fetchWithTimeout(fetchFn, url, init, 25_000),
+      catch: (error) => {
+        if (error instanceof FetchTimeoutError) {
+          return error.message;
+        }
+        return toErrorMessage(error, "APIへのリクエストに失敗しました");
+      },
     }),
     Result.andThen(async (response) => {
       const json = await Result.unwrap(

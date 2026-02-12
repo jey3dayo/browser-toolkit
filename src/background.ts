@@ -69,3 +69,17 @@ registerContextMenuHandlers();
 registerRuntimeMessageHandlers();
 
 scheduleRefreshContextMenus();
+
+// Service Worker Keep-Alive
+// Manifest V3のService Workerは30秒でスリープするため、
+// chrome.alarmsを使って定期的にService Workerを起こし続ける
+if (typeof chrome !== "undefined" && chrome.alarms) {
+  chrome.alarms.create("keep-alive", { periodInMinutes: 0.5 });
+  chrome.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === "keep-alive") {
+      debugLog("background", "Service Worker keep-alive ping").catch(() => {
+        // no-op
+      });
+    }
+  });
+}
