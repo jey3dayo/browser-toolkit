@@ -8,21 +8,37 @@ export async function sendBackgroundResult<TRequest, TResponse>(params: {
   runtime: Pick<PopupRuntime, "sendMessageToBackground">;
   message: TRequest;
   onError: ErrorHandler;
-  timeoutMs?: number;
+  timeoutMs?: number | null;
 }): Promise<TResponse | null> {
-  const timeout = params.timeoutMs ?? 30_000; // デフォルト30秒
+  // timeoutMs === null でタイムアウト無効化
+  // timeoutMs === undefined でデフォルト30秒
+  // timeoutMs === 数値 でカスタムタイムアウト
+  const timeout = params.timeoutMs === null ? null : params.timeoutMs ?? 30_000;
 
-  const responseUnknown = await Promise.race([
-    params.runtime.sendMessageToBackground<TRequest, unknown>(params.message),
-    new Promise<Result.Result<never, string>>((_, reject) =>
-      setTimeout(() => reject(new ClientTimeoutError(timeout)), timeout)
-    ),
-  ]).catch((error: unknown) => {
-    if (error instanceof ClientTimeoutError) {
-      return Result.fail(error.message);
-    }
-    return Result.fail(error instanceof Error ? error.message : "不明なエラー");
-  });
+  const responseUnknown =
+    timeout === null
+      ? await params.runtime
+          .sendMessageToBackground<TRequest, unknown>(params.message)
+          .catch((error: unknown) => {
+            return Result.fail(
+              error instanceof Error ? error.message : "不明なエラー"
+            );
+          })
+      : await Promise.race([
+          params.runtime.sendMessageToBackground<TRequest, unknown>(
+            params.message
+          ),
+          new Promise<Result.Result<never, string>>((_, reject) =>
+            setTimeout(() => reject(new ClientTimeoutError(timeout)), timeout)
+          ),
+        ]).catch((error: unknown) => {
+          if (error instanceof ClientTimeoutError) {
+            return Result.fail(error.message);
+          }
+          return Result.fail(
+            error instanceof Error ? error.message : "不明なエラー"
+          );
+        });
 
   if (Result.isFailure(responseUnknown)) {
     params.onError(responseUnknown.error);

@@ -33,7 +33,9 @@ export function fetchWithTimeout(
 
   return fetchFn(url, {
     ...init,
-    signal: controller.signal,
+    signal: init.signal
+      ? AbortSignal.any([controller.signal, init.signal])
+      : controller.signal,
   })
     .then((response) => {
       clearTimeout(timeoutId);

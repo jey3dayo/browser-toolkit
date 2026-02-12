@@ -139,6 +139,9 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
       runtime: props.runtime,
       message: { action },
       onError: props.notify.error,
+      // downloadDebugLogs はユーザーのファイル保存ダイアログを待つため
+      // タイムアウトを無効化
+      timeoutMs: action === "downloadDebugLogs" ? null : undefined,
     });
     return result !== null;
   };
