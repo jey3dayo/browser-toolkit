@@ -71,6 +71,34 @@ describe("ai/settings", () => {
       }
     });
 
+    it("trims token before returning settings", () => {
+      const storage: LocalStorageData = {
+        aiProvider: "openai",
+        openaiApiToken: "  sk-test-token\n",
+      };
+
+      const result = loadAiSettings(storage);
+      expect(Result.isSuccess(result)).toBe(true);
+
+      if (Result.isSuccess(result)) {
+        expect(result.value.token).toBe("sk-test-token");
+      }
+    });
+
+    it("fails when token is whitespace only", () => {
+      const storage: LocalStorageData = {
+        aiProvider: "openai",
+        openaiApiToken: "   \n\t",
+      };
+
+      const result = loadAiSettings(storage);
+      expect(Result.isFailure(result)).toBe(true);
+
+      if (Result.isFailure(result)) {
+        expect(result.error).toBe("APIトークンが設定されていません");
+      }
+    });
+
     it("normalizes invalid provider to openai", () => {
       const storage: LocalStorageData = {
         aiProvider: "invalid-provider",

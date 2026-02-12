@@ -86,10 +86,10 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
   };
 
   const clearLocalString = async (
-    key: keyof LocalStorageData,
+    keys: (keyof LocalStorageData)[] | keyof LocalStorageData,
     onCleared: () => void
   ): Promise<void> => {
-    const removed = await props.runtime.storageLocalRemove(key);
+    const removed = await props.runtime.storageLocalRemove(keys);
     if (Result.isSuccess(removed)) {
       onCleared();
       props.notify.success("削除しました");
@@ -198,7 +198,9 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
   };
 
   const clearPrompt = async (): Promise<void> => {
-    await clearLocalString("aiCustomPrompt", () => setCustomPrompt(""));
+    await clearLocalString(["aiCustomPrompt", "openaiCustomPrompt"], () =>
+      setCustomPrompt("")
+    );
   };
 
   const saveModel = async (value: string): Promise<void> => {

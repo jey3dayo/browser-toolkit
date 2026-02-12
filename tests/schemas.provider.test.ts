@@ -66,6 +66,13 @@ describe("schemas/provider", () => {
       );
       expect(normalizeAiModel("zai", "gpt-4")).toBe(ZAI_MODELS.GLM_4_7);
     });
+
+    it("maps deprecated openai model ids to supported ones", () => {
+      expect(normalizeAiModel("openai", "gpt-5.1")).toBe(OPENAI_MODELS.GPT_5_2);
+      expect(normalizeAiModel("openai", OPENAI_MODELS.GPT_4O)).toBe(
+        OPENAI_MODELS.GPT_4O_MINI
+      );
+    });
   });
 
   describe("PROVIDER_CONFIGS", () => {

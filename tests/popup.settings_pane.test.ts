@@ -179,7 +179,7 @@ describe("popup Settings pane", () => {
     });
 
     expect(chromeStub.storage.local.remove).toHaveBeenCalledWith(
-      "aiCustomPrompt",
+      ["aiCustomPrompt", "openaiCustomPrompt"],
       expect.any(Function)
     );
   });

@@ -61,6 +61,11 @@ export function safeParseAiProvider(value: unknown): AiProvider | null {
   return result.success ? (result.output as AiProvider) : null;
 }
 
+const LEGACY_OPENAI_MODEL_MAP: Record<string, string> = {
+  [OPENAI_MODELS.GPT_4O]: OPENAI_MODELS.GPT_4O_MINI,
+  "gpt-5.1": OPENAI_MODELS.GPT_5_2,
+};
+
 /**
  * プロバイダーに応じたモデルの正規化
  */
@@ -72,10 +77,11 @@ export function normalizeAiModel(
     return PROVIDER_CONFIGS[provider].defaultModel;
   }
 
+  const normalizedValue =
+    provider === "openai" ? (LEGACY_OPENAI_MODEL_MAP[value] ?? value) : value;
   const config = PROVIDER_CONFIGS[provider];
-  const valueAsModel = value as (typeof config.models)[number];
-  if (config.models.includes(valueAsModel)) {
-    return value;
+  if (config.models.includes(normalizedValue)) {
+    return normalizedValue;
   }
 
   return config.defaultModel;

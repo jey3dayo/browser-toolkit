@@ -49,6 +49,7 @@ export function loadAiSettings(
       token = "";
   }
 
+  token = token.trim();
   if (!token) {
     return Result.fail("APIトークンが設定されていません");
   }
