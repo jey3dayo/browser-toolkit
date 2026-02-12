@@ -139,6 +139,9 @@
 - `pnpm run dev`（開発サーバー: 自動ビルド + 拡張機能の自動リロード）
 - `pnpm run watch`（bundle の watch）
 - `pnpm run storybook`（`http://localhost:6006`）
+- `pnpm run test:e2e`（E2Eテスト実行）
+- `pnpm run test:e2e:ui`（E2EテストをUIモードで実行）
+- `pnpm run test:e2e:debug`（E2Eテストをデバッグモードで実行）
 
 ### 開発モード（自動リロード）
 
@@ -161,6 +164,37 @@
 
 - プロダクションビルド（`pnpm run build`）には自動リロードコードは含まれません
 - Content Scriptの変更は拡張機能リロード後、ページのリロードも必要です
+
+### E2Eテスト
+
+Playwright を使用したE2Eテストで、拡張機能の動作を自動検証します。
+
+**実行方法:**
+
+```bash
+# 拡張機能をビルド（最初に1回）
+pnpm run build
+
+# E2Eテストを実行
+pnpm run test:e2e
+
+# UIモードで実行（推奨: デバッグに便利）
+pnpm run test:e2e:ui
+
+# デバッグモードで実行
+pnpm run test:e2e:debug
+```
+
+**テスト内容:**
+
+- テーブルソート機能（基本ソート、動的テーブル挿入）
+- ポップアップUI（ナビゲーション、テーマ永続化、設定表示）
+
+**注意:**
+
+- E2Eテストは `headless: false` で実行されるため、Chromeウィンドウが表示されます
+- テスト中にChrome拡張機能が自動的に読み込まれます
+- テストfixtureは `tests/e2e/fixtures/` に配置されています
 
 ## プロジェクト構成
 
