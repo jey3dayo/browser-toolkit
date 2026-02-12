@@ -26,10 +26,8 @@ chrome.runtime.onInstalled.addListener((details) => {
   // 拡張機能更新時にストレージマイグレーションを実行
   if (details.reason === "update") {
     runMigrations()
-      .then((count) => {
-        console.log(
-          `Storage migrations completed (${count} migrations executed)`
-        );
+      .then(() => {
+        console.log("Storage migrations completed");
       })
       .catch((error) => {
         console.error("Failed to run storage migrations:", error);
