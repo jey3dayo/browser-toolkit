@@ -94,6 +94,8 @@ browser-toolkit/
 
 ### セキュリティ
 
+**重要**: 詳細なセキュリティガイドラインは [.claude/rules/security.md](.claude/rules/security.md) を参照してください。
+
 - **XSS対策必須**: ユーザー入力をDOMに挿入する前に必ずエスケープ
 - **innerHTML禁止**: `textContent` または `createElement` を使用
 - **入力検証**: 長さ、文字種、形式をチェック

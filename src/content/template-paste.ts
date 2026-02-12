@@ -46,7 +46,8 @@ export function pasteToContentEditable(
   const range = selection.getRangeAt(0);
   range.deleteContents();
 
-  // テキストノードを作成して挿入
+  // SECURITY: createTextNode() is safe - it creates plain text nodes only
+  // Do NOT replace with innerHTML or insertAdjacentHTML
   const textNode = document.createTextNode(content);
   range.insertNode(textNode);
 
