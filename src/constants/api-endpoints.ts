@@ -42,7 +42,7 @@ export function isAllowedApiOrigin(url: string): boolean {
  * @param options - fetchオプション
  * @throws Error ホワイトリストに含まれていない場合
  */
-export async function fetchWithOriginCheck(
+export function fetchWithOriginCheck(
   url: string,
   options?: RequestInit
 ): Promise<Response> {

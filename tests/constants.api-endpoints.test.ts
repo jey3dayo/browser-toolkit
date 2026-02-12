@@ -7,15 +7,21 @@ import {
 describe("API Endpoints Whitelist", () => {
   describe("isAllowedApiOrigin", () => {
     it("should allow OpenAI API", () => {
-      expect(isAllowedApiOrigin("https://api.openai.com/v1/chat/completions")).toBe(true);
+      expect(
+        isAllowedApiOrigin("https://api.openai.com/v1/chat/completions")
+      ).toBe(true);
     });
 
     it("should allow Anthropic API", () => {
-      expect(isAllowedApiOrigin("https://api.anthropic.com/v1/messages")).toBe(true);
+      expect(isAllowedApiOrigin("https://api.anthropic.com/v1/messages")).toBe(
+        true
+      );
     });
 
     it("should allow z.ai API", () => {
-      expect(isAllowedApiOrigin("https://api.z.ai/api/paas/v4/chat/completions")).toBe(true);
+      expect(
+        isAllowedApiOrigin("https://api.z.ai/api/paas/v4/chat/completions")
+      ).toBe(true);
     });
 
     it("should reject unknown API origins", () => {
@@ -29,7 +35,9 @@ describe("API Endpoints Whitelist", () => {
     });
 
     it("should reject subdomain attacks", () => {
-      expect(isAllowedApiOrigin("https://api.openai.com.evil.com/")).toBe(false);
+      expect(isAllowedApiOrigin("https://api.openai.com.evil.com/")).toBe(
+        false
+      );
       expect(isAllowedApiOrigin("https://evil.com/api.openai.com")).toBe(false);
     });
   });
