@@ -20,13 +20,9 @@
 
 ### カレンダー登録
 
-![カレンダー登録](docs/images/calendar-registration.png)
+![カレンダー登録](docs/images/calendar-registration-example.png)
 
-選択範囲やページ本文からイベント情報を抽出し、GoogleカレンダーやiCalに登録できます。
-
-![カレンダー登録の実行例](docs/images/calendar-registration-example.png)
-
-イベントページで実行すると、自動的にタイトル・日時・場所・概要を抽出してカレンダーに登録できます。
+イベントページで実行すると、自動的にタイトル・日時・場所・概要を抽出してGoogleカレンダーやiCalに登録できます。
 
 ### 検索エンジン
 
