@@ -215,6 +215,10 @@ import { parseNumericValue } from "@/utils/number_parser";
       // 最新の設定を再取得してタイミング問題を回避（非同期初期化対応）
       refreshTableConfig()
         .then(() => {
+          // 非同期処理中にタブが再び非表示になった場合は処理をスキップ（競合状態を回避）
+          if (document.hidden) {
+            return;
+          }
           if (tableConfig.domainPatternConfigs.length > 0) {
             const shouldObserve = matchesAnyPattern(
               tableConfig.domainPatternConfigs.map((c) => c.pattern)
