@@ -206,6 +206,37 @@ import { parseNumericValue } from "@/utils/number_parser";
 
   window.addEventListener("pagehide", stopTableObserver);
 
+  // タブが非アクティブ時にMutationObserverを停止し、メモリとCPUを節約
+  // アクティブ時は再開（既存テーブルの処理も含む）
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      stopTableObserver();
+    } else {
+      // 最新の設定を再取得してタイミング問題を回避（非同期初期化対応）
+      refreshTableConfig()
+        .then(() => {
+          // 非同期処理中にタブが再び非表示になった場合は処理をスキップ（競合状態を回避）
+          if (document.hidden) {
+            return;
+          }
+          if (tableConfig.domainPatternConfigs.length > 0) {
+            const shouldObserve = matchesAnyPattern(
+              tableConfig.domainPatternConfigs.map((c) => c.pattern)
+            );
+            if (shouldObserve) {
+              // タブ非アクティブ中に挿入された既存テーブルを処理
+              enableTableSortWithNotification();
+              // 新しいテーブルの監視を開始
+              startTableObserverWithNotification();
+            }
+          }
+        })
+        .catch(() => {
+          // 設定読み込み失敗時は何もしない（エラーログは不要）
+        });
+    }
+  });
+
   // ========================================
   // 4. 通知・クリップボード（モジュール化済み）
   // ========================================
