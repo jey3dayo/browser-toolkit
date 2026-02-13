@@ -12,6 +12,12 @@
 
 ## スクリーンショット
 
+### Context Actions（要約）
+
+![要約機能](docs/images/context-action-summary.png)
+
+記事やページ本文を選択して「要約」を実行すると、AIが内容を要約してオーバーレイ表示します。結果はコピーしたり、固定表示したりできます。
+
 ### カレンダー登録
 
 ![カレンダー登録](docs/images/calendar-registration.png)
