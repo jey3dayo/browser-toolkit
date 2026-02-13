@@ -7,6 +7,7 @@ import {
 } from "@/background/context_menu_registry";
 import { registerRuntimeMessageHandlers } from "@/background/runtime";
 import { runMigrations } from "@/storage/migrations";
+import { trackError } from "@/utils/analytics";
 import { debugLog } from "@/utils/debug_log";
 
 // Development-only auto-reload
@@ -30,6 +31,12 @@ chrome.runtime.onInstalled.addListener((details) => {
       })
       .catch((error) => {
         console.error("Failed to run storage migrations:", error);
+        trackError(
+          error instanceof Error ? error : new Error(String(error)),
+          "background"
+        ).catch(() => {
+          // no-op
+        });
       });
   }
 

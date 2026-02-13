@@ -262,6 +262,27 @@ browser-toolkit/
 - 選択テキストは安定動作のためローカルに短時間キャッシュされることがあります（fresh 判定は約30秒）
 - OpenAI への送信は **Context Action を明示的に実行した場合のみ** 発生します
 
+### エラー監視（Google Analytics 4）
+
+本番環境でのエラー発生を検知するため、Google Analytics 4 (GA4) Measurement Protocolを使用してエラー情報を収集します。
+
+**収集される情報:**
+
+- エラーメッセージ（スタックトレース）
+- エラー発生場所（background/content/popup）
+- 拡張機能のバージョン
+
+**収集されない情報（プライバシー保護）:**
+
+- OpenAI API Key（自動的に除去）
+- URLのパスパラメータ（ドメインのみ）
+- ユーザー入力テキスト
+
+**送信タイミング:**
+
+- 本番環境（`process.env.NODE_ENV === "production"`）でのみ送信
+- 開発環境では送信されません（コンソールログのみ）
+
 ## ライセンス
 
 ISC
