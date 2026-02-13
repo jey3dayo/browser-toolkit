@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { API_FETCH_TIMEOUT_MS } from "@/constants/timeouts";
 import { FetchTimeoutError } from "@/utils/custom-errors";
 import { fetchWithTimeout } from "@/utils/fetch-with-timeout";
 
@@ -113,7 +114,7 @@ describe("fetchWithTimeout", () => {
   });
 
   it("FetchTimeoutErrorのメッセージが正しい", () => {
-    const error = new FetchTimeoutError(25_000);
+    const error = new FetchTimeoutError(API_FETCH_TIMEOUT_MS);
     expect(error.message).toBe(
       "API呼び出しがタイムアウトしました（25秒）。テキストを短くして再試行してください。"
     );

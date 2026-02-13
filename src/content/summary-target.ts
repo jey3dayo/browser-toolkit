@@ -1,5 +1,6 @@
 // 要約対象テキスト取得
 import { Result } from "@praha/byethrow";
+import { SELECTED_TEXT_CACHE_TIMEOUT_MS } from "@/constants/timeouts";
 import type { SummarySource } from "@/shared_types";
 import { storageLocalGet } from "@/storage/helpers";
 
@@ -71,7 +72,7 @@ export async function getCachedSelectionTarget(): Promise<SummaryTarget | null> 
   const stored = result.value;
   const selection = stored.selectedText?.trim() ?? "";
   const updatedAt = stored.selectedTextUpdatedAt ?? 0;
-  const isFresh = Date.now() - updatedAt <= 30_000;
+  const isFresh = Date.now() - updatedAt <= SELECTED_TEXT_CACHE_TIMEOUT_MS;
   if (!(isFresh && selection)) {
     return null;
   }

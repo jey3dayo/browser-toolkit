@@ -5,6 +5,7 @@
  * API呼び出しに明示的なタイムアウトを設定します。
  */
 
+import { API_FETCH_TIMEOUT_MS } from "@/constants/timeouts";
 import { FetchTimeoutError } from "@/utils/custom-errors";
 
 /**
@@ -24,7 +25,7 @@ export function fetchWithTimeout(
   fetchFn: typeof fetch,
   url: string,
   init: RequestInit = {},
-  timeoutMs = 25_000
+  timeoutMs = API_FETCH_TIMEOUT_MS
 ): Promise<Response> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);

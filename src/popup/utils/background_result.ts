@@ -1,4 +1,5 @@
 import { Result } from "@praha/byethrow";
+import { CLIENT_MESSAGE_TIMEOUT_MS } from "@/constants/timeouts";
 import type { PopupRuntime } from "@/popup/runtime";
 import { ClientTimeoutError } from "@/utils/custom-errors";
 
@@ -14,7 +15,9 @@ export async function sendBackgroundResult<TRequest, TResponse>(params: {
   // timeoutMs === undefined でデフォルト30秒
   // timeoutMs === 数値 でカスタムタイムアウト
   const timeout =
-    params.timeoutMs === null ? null : (params.timeoutMs ?? 30_000);
+    params.timeoutMs === null
+      ? null
+      : (params.timeoutMs ?? CLIENT_MESSAGE_TIMEOUT_MS);
 
   const responseUnknown =
     timeout === null
