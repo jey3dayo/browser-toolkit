@@ -189,6 +189,35 @@ describe("analytics", () => {
       );
     });
 
+    it("エラーメッセージから最新のOpenAI API Key形式を除去", async () => {
+      const error = new Error(
+        "API error with sk-proj-abc123xyz789 and sk-svcacct-def456uvw012"
+      );
+
+      await trackError(error, "background");
+
+      const fetchCall = mockFetch.mock.calls[0];
+      const body = JSON.parse(fetchCall[1].body);
+      const sanitized = body.events[0].params.description;
+      expect(sanitized).not.toContain("sk-proj-abc123xyz789");
+      expect(sanitized).not.toContain("sk-svcacct-def456uvw012");
+      expect(sanitized).toContain("[REDACTED_API_KEY]");
+    });
+
+    it("エラーメッセージからAnthropic API Keyを除去", async () => {
+      const error = new Error(
+        "Failed to call Anthropic API with key: sk-ant-abc123xyz789def456"
+      );
+
+      await trackError(error, "background");
+
+      const fetchCall = mockFetch.mock.calls[0];
+      const body = JSON.parse(fetchCall[1].body);
+      expect(body.events[0].params.description).toBe(
+        "Failed to call Anthropic API with key: [REDACTED_API_KEY]"
+      );
+    });
+
     it("エラーメッセージからURLパスを除去", async () => {
       const error = new Error(
         "Failed to fetch https://example.com/user/12345/profile"

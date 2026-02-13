@@ -164,7 +164,8 @@ function handleSummarizeTabRequest(
         { error, request },
         "error"
       );
-      await trackError(
+      // trackErrorは非同期でバックグラウンド実行（パフォーマンス最適化）
+      trackError(
         error instanceof Error ? error : new Error(String(error)),
         "background"
       ).catch(() => {
@@ -194,7 +195,8 @@ function handleSummarizeTextRequest(
         { error, request },
         "error"
       );
-      await trackError(
+      // trackErrorは非同期でバックグラウンド実行（パフォーマンス最適化）
+      trackError(
         error instanceof Error ? error : new Error(String(error)),
         "background"
       ).catch(() => {
@@ -356,7 +358,8 @@ function handleSummarizeEventRequest(
         { error, request },
         "error"
       );
-      await trackError(
+      // trackErrorは非同期でバックグラウンド実行（パフォーマンス最適化）
+      trackError(
         error instanceof Error ? error : new Error(String(error)),
         "background"
       ).catch(() => {

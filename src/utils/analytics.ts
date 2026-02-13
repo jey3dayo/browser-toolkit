@@ -198,9 +198,15 @@ export function trackError(
  * @returns サニタイズされたメッセージ
  */
 function sanitizeErrorMessage(message: string): string {
-  // OpenAI API Key のパターン（sk-から始まる文字列）を除去
-  // 最小10文字以上で十分広範にマッチさせる
-  let sanitized = message.replace(/sk-[A-Za-z0-9]{10,}/g, "[REDACTED_API_KEY]");
+  // API Key のパターンを除去
+  // - OpenAI: sk-, sk-proj-, sk-svcacct- などのプレフィックス
+  // - Anthropic: sk-ant- で始まるキー
+  // - その他のAIプロバイダー: 一般的な sk- プレフィックスキー
+  // ハイフン区切りの形式にも対応（例: sk-proj-abc123xyz789）
+  let sanitized = message.replace(
+    /sk-(?:proj-|svcacct-|ant-)?[A-Za-z0-9_-]{10,}/g,
+    "[REDACTED_API_KEY]"
+  );
 
   // URL パスパラメータを除去（ドメインのみ残す）
   // 例: https://example.com/user/12345 → https://example.com/[PATH]
