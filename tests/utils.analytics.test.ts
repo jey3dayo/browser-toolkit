@@ -32,6 +32,9 @@ describe("analytics", () => {
     clearClientIdCache();
     // デフォルトは本番環境
     process.env.NODE_ENV = "production";
+    // GA4認証情報をテスト用に設定
+    process.env.GA4_MEASUREMENT_ID = "G-TEST123";
+    process.env.GA4_API_SECRET = "test-secret";
     // crypto.randomUUID のモック
     vi.stubGlobal("crypto", {
       ...crypto,

@@ -82,6 +82,12 @@ const buildOptions = {
   },
   define: {
     "process.env.NODE_ENV": '"production"',
+    "process.env.GA4_MEASUREMENT_ID": JSON.stringify(
+      process.env.GA4_MEASUREMENT_ID || ""
+    ),
+    "process.env.GA4_API_SECRET": JSON.stringify(
+      process.env.GA4_API_SECRET || ""
+    ),
   },
   loader: {
     ".toml": "text",

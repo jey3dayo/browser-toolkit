@@ -19,9 +19,19 @@ import { fetchWithTimeout } from "@/utils/fetch-with-timeout";
 // Configuration
 // ============================================
 
-const MEASUREMENT_ID = "G-59TVSQ4E82";
-const API_SECRET = "lBk9VjVeQc2tAhB5BRrv6A";
 const GA4_ENDPOINT = "https://www.google-analytics.com/mp/collect";
+
+/**
+ * GA4認証情報を取得
+ * ビルド時に環境変数 GA4_MEASUREMENT_ID と GA4_API_SECRET から注入される
+ * @returns {measurement_id, api_secret}
+ */
+function getGA4Credentials(): { measurement_id: string; api_secret: string } {
+  return {
+    measurement_id: process.env.GA4_MEASUREMENT_ID || "",
+    api_secret: process.env.GA4_API_SECRET || "",
+  };
+}
 
 /**
  * GA4クライアントID（拡張機能のインストールごとに一意）
@@ -114,6 +124,15 @@ export async function trackEvent(
     return Result.succeed(undefined);
   }
 
+  // 環境変数が設定されていない場合はスキップ
+  const { measurement_id, api_secret } = getGA4Credentials();
+  if (!(measurement_id && api_secret)) {
+    console.warn(
+      "[Analytics] GA4 credentials not configured. Skipping event tracking."
+    );
+    return Result.succeed(undefined);
+  }
+
   // クライアントID取得
   const clientIdResult = await getOrCreateClientId();
   if (Result.isFailure(clientIdResult)) {
@@ -136,7 +155,7 @@ export async function trackEvent(
   };
 
   try {
-    const url = `${GA4_ENDPOINT}?measurement_id=${MEASUREMENT_ID}&api_secret=${API_SECRET}`;
+    const url = `${GA4_ENDPOINT}?measurement_id=${measurement_id}&api_secret=${api_secret}`;
     const response = await fetchWithTimeout(fetch, url, {
       method: "POST",
       headers: {
