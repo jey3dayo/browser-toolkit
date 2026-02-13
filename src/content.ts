@@ -206,6 +206,22 @@ import { parseNumericValue } from "@/utils/number_parser";
 
   window.addEventListener("pagehide", stopTableObserver);
 
+  // タブが非アクティブ時にMutationObserverを停止し、メモリとCPUを節約
+  // アクティブ時は再開（startTableObserver内で重複チェックあり）
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      stopTableObserver();
+    } else if (tableConfig.domainPatternConfigs.length > 0) {
+      // パターンが設定されている場合のみ再開
+      const shouldObserve = matchesAnyPattern(
+        tableConfig.domainPatternConfigs.map((c) => c.pattern)
+      );
+      if (shouldObserve) {
+        startTableObserverWithNotification();
+      }
+    }
+  });
+
   // ========================================
   // 4. 通知・クリップボード（モジュール化済み）
   // ========================================
