@@ -37,14 +37,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@base-ui/react": "^1.1.0",
+    "@base-ui/react": "^1.2.0",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@praha/byethrow": "^0.9.0",
     "date-fns": "^4.1.0",
     "encoding-japanese": "^2.2.0",
-    "lucide-react": "^0.563.0",
+    "lucide-react": "^0.564.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-markdown": "^10.1.0",
@@ -53,7 +53,7 @@
     "valibot": "^1.2.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.3.14",
+    "@biomejs/biome": "2.3.15",
     "@chromatic-com/storybook": "^5.0.1",
     "@playwright/test": "^1.58.2",
     "@storybook/addon-a11y": "^10.2.8",
@@ -85,6 +85,9 @@
     "onlyBuiltDependencies": [
       "esbuild",
       "unrs-resolver"
+    ],
+    "ignoredBuiltDependencies": [
+      "@swc/core"
     ]
   },
   "packageManager": "pnpm@10.29.3"
