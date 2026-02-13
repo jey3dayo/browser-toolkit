@@ -17,7 +17,7 @@
     "https://api.z.ai/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://api.openai.com https://api.anthropic.com https://api.z.ai"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://api.openai.com https://api.anthropic.com https://api.z.ai https://www.google-analytics.com"
   },
   "action": {
     "default_popup": "popup.html",

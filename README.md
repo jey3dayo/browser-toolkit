@@ -117,11 +117,16 @@
 
 1. `mise` を使う場合は `mise trust` でリポジトリを信頼します（シェル起動時のエラー回避）。
 2. 依存関係をインストールします: `pnpm install`
-3. ローカルで検証する場合は開発サーバーまたは Storybook を起動します:
+3. **本番ビルドの場合**: GA4エラー監視用の環境変数を設定します（開発ビルドでは不要）:
+   ```bash
+   cp .env.example .env
+   # .env ファイルを編集して GA4_MEASUREMENT_ID と GA4_API_SECRET を設定
+   ```
+4. ローカルで検証する場合は開発サーバーまたは Storybook を起動します:
    - `pnpm run dev`（開発サーバー: 自動ビルド + 拡張機能の自動リロード）
    - `pnpm run watch`（自動ビルドのみ、リロードは手動）
    - `pnpm run storybook`（UI をブラウザで確認）
-4. 準備ができたら `pnpm run build` を実行し、`manifest.json` があるリポジトリ直下（`browser-toolkit/`）を Chrome に読み込みます（`dist/` ではありません）。
+5. 準備ができたら `pnpm run build` を実行し、`manifest.json` があるリポジトリ直下（`browser-toolkit/`）を Chrome に読み込みます（`dist/` ではありません）。
 
 ### コマンド
 
@@ -261,6 +266,33 @@ browser-toolkit/
 - URL パターン/アクション定義などの非機密設定は `chrome.storage.sync` に保存
 - 選択テキストは安定動作のためローカルに短時間キャッシュされることがあります（fresh 判定は約30秒）
 - OpenAI への送信は **Context Action を明示的に実行した場合のみ** 発生します
+
+### エラー監視（Google Analytics 4）
+
+本番環境でのエラー発生を検知するため、Google Analytics 4 (GA4) Measurement Protocolを使用してエラー情報を収集します。
+
+**収集される情報:**
+
+- エラーメッセージ（スタックトレース）
+- エラー発生場所（background/content/popup）
+- 拡張機能のバージョン
+
+**収集されない情報（プライバシー保護）:**
+
+- OpenAI API Key（自動的に除去）
+- URLのパスパラメータ（ドメインのみ）
+- ユーザー入力テキスト
+
+**送信タイミング:**
+
+- 本番環境（`process.env.NODE_ENV === "production"`）でのみ送信
+- 開発環境では送信されません（コンソールログのみ）
+
+**認証情報の管理:**
+
+- GA4認証情報（Measurement ID、API Secret）は環境変数から注入されます
+- ソースコードにはハードコードされません（`.env.example` を参照）
+- ビルド時に環境変数 `GA4_MEASUREMENT_ID` と `GA4_API_SECRET` を設定してください
 
 ## ライセンス
 
