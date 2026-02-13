@@ -207,18 +207,29 @@ import { parseNumericValue } from "@/utils/number_parser";
   window.addEventListener("pagehide", stopTableObserver);
 
   // タブが非アクティブ時にMutationObserverを停止し、メモリとCPUを節約
-  // アクティブ時は再開（startTableObserver内で重複チェックあり）
+  // アクティブ時は再開（既存テーブルの処理も含む）
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
       stopTableObserver();
-    } else if (tableConfig.domainPatternConfigs.length > 0) {
-      // パターンが設定されている場合のみ再開
-      const shouldObserve = matchesAnyPattern(
-        tableConfig.domainPatternConfigs.map((c) => c.pattern)
-      );
-      if (shouldObserve) {
-        startTableObserverWithNotification();
-      }
+    } else {
+      // 最新の設定を再取得してタイミング問題を回避（非同期初期化対応）
+      refreshTableConfig()
+        .then(() => {
+          if (tableConfig.domainPatternConfigs.length > 0) {
+            const shouldObserve = matchesAnyPattern(
+              tableConfig.domainPatternConfigs.map((c) => c.pattern)
+            );
+            if (shouldObserve) {
+              // タブ非アクティブ中に挿入された既存テーブルを処理
+              enableTableSortWithNotification();
+              // 新しいテーブルの監視を開始
+              startTableObserverWithNotification();
+            }
+          }
+        })
+        .catch(() => {
+          // 設定読み込み失敗時は何もしない（エラーログは不要）
+        });
     }
   });
 
