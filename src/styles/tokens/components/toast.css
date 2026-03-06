@@ -18,10 +18,6 @@
   align-items: flex-end;
 }
 
-.mbu-toast-viewport[data-placement="surface"] .mbu-toast-root {
-  max-width: min(360px, calc(100vw - 56px));
-}
-
 .mbu-toast-positioner {
   pointer-events: none;
 }
@@ -51,6 +47,10 @@
 
 .mbu-toast-root[data-type="success"] {
   --toast-accent: var(--color-primary);
+}
+
+.mbu-toast-viewport[data-placement="surface"] .mbu-toast-root {
+  max-width: min(360px, calc(100vw - 56px));
 }
 
 .mbu-toast-content {
