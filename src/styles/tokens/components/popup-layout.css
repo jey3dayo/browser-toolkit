@@ -48,10 +48,6 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
-#pane-table .card-grid {
-  grid-template-columns: 1fr;
-}
-
 .pane-eyebrow {
   margin: 0 0 6px;
   font-size: 11px;
@@ -162,6 +158,10 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 14px;
+}
+
+#pane-table .card-grid {
+  grid-template-columns: 1fr;
 }
 
 .card {

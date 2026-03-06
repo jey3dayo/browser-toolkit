@@ -6,6 +6,21 @@
   min-width: 0;
 }
 
+.mbu-overlay-status {
+  font-size: 12px;
+  font-weight: 750;
+  color: var(--mbu-text-muted);
+}
+
+.mbu-overlay-primary-text,
+.mbu-overlay-secondary-text {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .mbu-overlay-primary-block .mbu-overlay-primary-text {
   flex: 1;
   min-width: 0;
@@ -27,21 +42,6 @@
   margin-left: 0;
   display: block;
   z-index: 1;
-}
-
-.mbu-overlay-status {
-  font-size: 12px;
-  font-weight: 750;
-  color: var(--mbu-text-muted);
-}
-
-.mbu-overlay-primary-text,
-.mbu-overlay-secondary-text {
-  margin: 0;
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-size: 13px;
-  line-height: 1.5;
 }
 
 .mbu-overlay-primary-markdown {

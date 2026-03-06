@@ -49,11 +49,6 @@ body.is-extension {
   max-width: none;
 }
 
-.is-extension #root {
-  width: 100%;
-  height: 100%;
-}
-
 #root {
   min-height: 0;
 }
@@ -65,4 +60,9 @@ body.is-extension {
 
 #root > * {
   min-height: 0;
+}
+
+.is-extension #root {
+  width: 100%;
+  height: 100%;
 }
