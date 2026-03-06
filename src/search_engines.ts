@@ -20,7 +20,7 @@ export const DEFAULT_SEARCH_ENGINES: SearchEngine[] = [
   },
   {
     id: "builtin:x-twitter-exact",
-    name: "X（完全一致）",
+    name: "X（完全一致・日本語）",
     urlTemplate:
       "https://x.com/search?q=%22{query}%22%20lang%3Aja&f=live&src=typed_query",
     enabled: true,
@@ -71,7 +71,7 @@ export const DEFAULT_SEARCH_ENGINES: SearchEngine[] = [
   },
 ];
 
-export const MAX_SEARCH_ENGINES = 10;
+export const MAX_SEARCH_ENGINES = 20;
 
 /**
  * Validates URL template contains {query} placeholder
