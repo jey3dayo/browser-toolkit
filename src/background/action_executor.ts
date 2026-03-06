@@ -18,16 +18,16 @@ export type ActionExecutionResult<T> = Result.Result<T, string>;
  * Event action execution parameters
  */
 export interface EventActionParams {
-  target: SummaryTarget;
   action: ContextAction;
+  target: SummaryTarget;
 }
 
 /**
  * Prompt action execution parameters
  */
 export interface PromptActionParams {
-  target: SummaryTarget;
   action: ContextAction;
+  target: SummaryTarget;
 }
 
 /**
@@ -43,8 +43,8 @@ export interface EventActionResult {
  * Prompt action execution result
  */
 export interface PromptActionResult {
-  text: string;
   source: SummaryTarget["source"];
+  text: string;
 }
 
 /**

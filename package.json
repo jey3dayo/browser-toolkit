@@ -41,10 +41,10 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
-    "@praha/byethrow": "^0.9.0",
+    "@praha/byethrow": "^0.10.0",
     "date-fns": "^4.1.0",
     "encoding-japanese": "^2.2.0",
-    "lucide-react": "^0.564.0",
+    "lucide-react": "^0.577.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-markdown": "^10.1.0",
@@ -53,18 +53,18 @@
     "valibot": "^1.2.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.3.15",
+    "@biomejs/biome": "2.4.6",
     "@chromatic-com/storybook": "^5.0.1",
     "@playwright/test": "^1.58.2",
-    "@storybook/addon-a11y": "^10.2.8",
-    "@storybook/addon-docs": "^10.2.8",
-    "@storybook/addon-vitest": "^10.2.8",
-    "@storybook/react-vite": "^10.2.8",
+    "@storybook/addon-a11y": "^10.2.16",
+    "@storybook/addon-docs": "^10.2.16",
+    "@storybook/addon-vitest": "^10.2.16",
+    "@storybook/react-vite": "^10.2.16",
     "@storybook/test-runner": "^0.24.2",
-    "@types/chrome": "^0.1.36",
+    "@types/chrome": "^0.1.37",
     "@types/encoding-japanese": "^2.2.1",
     "@types/jest-image-snapshot": "^6.4.1",
-    "@types/jsdom": "^27.0.0",
+    "@types/jsdom": "^28.0.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@types/ws": "^8.18.1",
@@ -73,11 +73,11 @@
     "chokidar": "^5.0.0",
     "esbuild": "^0.27.3",
     "jest-image-snapshot": "^6.5.1",
-    "jsdom": "^28.0.0",
+    "jsdom": "^28.1.0",
     "playwright": "^1.58.2",
-    "storybook": "^10.2.8",
+    "storybook": "^10.2.16",
     "typescript": "^5.9.3",
-    "ultracite": "7.1.5",
+    "ultracite": "7.2.5",
     "vitest": "^4.0.18",
     "ws": "^8.19.0"
   },
@@ -90,5 +90,5 @@
       "@swc/core"
     ]
   },
-  "packageManager": "pnpm@10.29.3"
+  "packageManager": "pnpm@10.30.3"
 }

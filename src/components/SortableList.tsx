@@ -75,8 +75,8 @@ export function SortableList<T extends { id: string }>({
 }
 
 interface SortableItemProps {
-  id: string;
   children: React.ReactNode;
+  id: string;
 }
 
 /**

@@ -190,7 +190,6 @@ async function wrapChromeApi<T>(
   errorMessage: string
 ): Promise<Result.Result<T, string>> {
   return await Result.try({
-    immediate: true,
     try: () =>
       new Promise<T>((resolve, reject) => {
         operation(resolve, reject);

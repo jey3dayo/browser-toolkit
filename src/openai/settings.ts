@@ -30,7 +30,6 @@ export function loadOpenAiSettings(
 ): Result.ResultAsync<OpenAiSettings, string> {
   return Result.pipe(
     Result.try({
-      immediate: true,
       try: () =>
         storageLocalGet([
           "openaiApiToken",
