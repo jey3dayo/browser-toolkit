@@ -19,6 +19,13 @@ export const DEFAULT_SEARCH_ENGINES: SearchEngine[] = [
     enabled: true,
   },
   {
+    id: "builtin:x-twitter-exact",
+    name: "X（完全一致）",
+    urlTemplate:
+      "https://x.com/search?q=%22{query}%22%20lang%3Aja&f=live&src=typed_query",
+    enabled: true,
+  },
+  {
     id: "builtin:youtube",
     name: "YouTube",
     urlTemplate: "https://www.youtube.com/results?search_query={query}",
