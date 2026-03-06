@@ -11,7 +11,8 @@
       },
       "style": {
         "useConsistentTypeDefinitions": "off",
-        "useFilenamingConvention": "off"
+        "useFilenamingConvention": "off",
+        "noDescendingSpecificity": "off"
       }
     }
   }
