@@ -22,7 +22,7 @@ export const DEFAULT_SEARCH_ENGINES: SearchEngine[] = [
     id: "builtin:x-twitter-exact",
     name: "X（完全一致・日本語）",
     urlTemplate:
-      "https://x.com/search?q=%22{query}%22%20lang%3Aja&f=live&src=typed_query",
+      "https://x.com/search?q=%2522{query}%2522%20lang%3Aja&f=live&src=typed_query",
     enabled: true,
   },
   {
