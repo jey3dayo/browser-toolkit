@@ -13,8 +13,10 @@
 - Built-in context-action prompts live in `src/prompts/` (TOML) and are assembled into defaults via `src/context_actions.ts`.
 - Search engines and grouped searches are defined in `src/search_engines.ts` and `src/search_engine_groups.ts`, including defaults, limits, and normalization for storage.
 - Text template defaults and ID generation live in `src/text_templates.ts` for context-menu insertion.
-- OpenAI settings/model defaults live under `src/openai/`, and storage schema typing lives under `src/storage/` for shared use across runtimes.
-- `src/schemas/` contains `valibot` schemas for untrusted inputs (OpenAI outputs, model options, search engine encoding).
+- Provider-agnostic AI settings/adapters live under `src/ai/`; compatibility-oriented OpenAI helpers may still exist under `src/openai/`.
+- `src/storage/` owns shared storage schema typing and migration flows (`src/storage/migrations.ts`) used by the background worker on install/update.
+- `src/schemas/` contains `valibot` schemas for untrusted inputs (AI outputs, model options, search engine encoding).
+- `src/constants/` centralizes cross-runtime constants (timeouts, models, endpoint allowlists) so behavior stays aligned between background/content/popup.
 - `src/types/` contains module declaration shims (e.g., TOML/assets) needed by the bundler and TypeScript.
 - `src/utils/encoding.ts` provides Shift_JIS query encoding for search engines that need it.
 - Popup features are pane-based: add a new utility as a pane under `src/popup/panes/` and register it in `src/popup/panes.ts`.
@@ -25,7 +27,7 @@
 ## Entry Points & Responsibilities
 
 - `src/background.ts`: background service worker
-  - Owns context menu setup/refresh and OpenAI requests.
+  - Owns context menu setup/refresh and AI provider requests.
   - Bridges requests between popup/content and privileged APIs.
 - `src/content.ts`: content script injected into pages
   - Implements table sorting + MutationObserver-based auto-detection.
@@ -44,7 +46,7 @@
   - Handle missing APIs in non-extension contexts (tests/storybook)
   - Surface `lastError` reliably
 - Where direct exports are awkward (e.g., content-script internals), tests may opt-in to a small `globalThis.__MBU_TEST_HOOKS__` surface to reach specific helpers without changing production APIs.
-- Cross-cutting features prefer “thin shared modules” (e.g. OpenAI fetch/JSON parsing/date handling) rather than large shared frameworks.
+- Cross-cutting features prefer “thin shared modules” (e.g. provider-agnostic AI fetch/JSON parsing/date handling) rather than large shared frameworks.
 
 ## Naming & Conventions
 

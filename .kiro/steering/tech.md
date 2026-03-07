@@ -18,7 +18,7 @@ Core UI dependencies:
 - `encoding-japanese`: Shift_JIS query encoding for search engines that require non-UTF8 requests
 - `react-markdown` + `remark-gfm`: Markdown rendering in AI action outputs
 - `smol-toml`: TOML parsing for built-in action prompts
-- `valibot`: Schema validation/normalization for OpenAI outputs and stored data
+- `valibot`: Schema validation/normalization for AI outputs and stored data
 
 ## Language & Build
 
@@ -33,7 +33,7 @@ Core UI dependencies:
 ## Runtime Boundaries (important for design)
 
 - **Content script** runs in the page context: DOM access, overlays, table sorting.
-- **Background service worker** owns privileged APIs: context menus, OpenAI fetch calls, storage orchestration.
+- **Background service worker** owns privileged APIs: context menus, AI provider fetch calls, storage orchestration.
 - **Popup** is the settings/control surface: saves preferences, manages custom actions, can trigger behaviors on the active tab.
 
 ## Service Worker Lifecycle
@@ -65,7 +65,7 @@ All timeouts are derived from `SERVICE_WORKER_TIMEOUT_MS = 30_000` in `src/const
 ## Storage & Configuration
 
 - `chrome.storage.sync`: user preferences that can roam (domain patterns, action definitions, toggles).
-- `chrome.storage.local`: device-local data (OpenAI API token, OpenAI model/prompt, theme, recent-selection cache).
+- `chrome.storage.local`: device-local data (AI provider/token/model/prompt, theme, recent-selection cache).
 - Wrapper helpers convert callback-based Chrome APIs to Promises and surface `chrome.runtime.lastError` as real errors.
 
 ### Selection Cache
@@ -80,16 +80,22 @@ This design survives SW restarts between the user's selection and the context me
 
 ## Validation & Parsing
 
-- Untrusted inputs (OpenAI JSON outputs, model options, search engine encoding, storage-loaded data) are validated with `valibot` schemas under `src/schemas/`.
+- Untrusted inputs (AI JSON outputs, model options, search engine encoding, storage-loaded data) are validated with `valibot` schemas under `src/schemas/`.
 - JSON parsing uses a tolerant helper that extracts a JSON object from text (first `{` to last `}`) before schema validation.
 
-## OpenAI Integration (design constraints)
+## AI Provider Integration (design constraints)
 
-- Uses OpenAI Chat Completions over HTTPS from the background worker.
-- Token is loaded from local storage at call time; calls fail with actionable errors when missing.
-- Input text is clipped to a safe maximum before sending; prompts are deterministic-ish (low temperature) to keep output consistent.
-- Model is configurable, with a single default used across the extension.
-- “Event” actions request structured JSON output and validate/normalize it before generating calendar handoff artifacts (URL / `.ics`).
+- AI requests are issued from the background worker through a provider adapter layer (`src/ai/`), with provider-specific request/response mapping hidden behind a shared interface.
+- Provider/token/model/custom-prompt settings are loaded from local storage at call time; calls fail with actionable errors when the active provider token is missing.
+- Input text is clipped to a safe maximum before sending; prompts are deterministic-ish (low temperature) to keep output consistent across providers.
+- Event extraction is normalized after parsing; OpenAI/z.ai can use `response_format`, while Anthropic relies on prompt-based JSON shaping.
+- Provider endpoint allowlists are centralized in `src/constants/api-endpoints.ts`; endpoint changes must stay aligned with `manifest.json` `host_permissions` and `content_security_policy`.
+
+## Production Error Telemetry (optional)
+
+- Error telemetry uses GA4 Measurement Protocol (`src/utils/analytics.ts`) and sends events only in production builds.
+- Credentials are injected at build time (`GA4_MEASUREMENT_ID`, `GA4_API_SECRET`); if missing, telemetry should no-op without blocking user flows.
+- Telemetry payloads must stay privacy-safe (redacted API keys, domain-only URL context, no user-selected/page text).
 
 ## Error Handling Style
 
