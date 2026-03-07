@@ -36,11 +36,47 @@ Core UI dependencies:
 - **Background service worker** owns privileged APIs: context menus, OpenAI fetch calls, storage orchestration.
 - **Popup** is the settings/control surface: saves preferences, manages custom actions, can trigger behaviors on the active tab.
 
+## Service Worker Lifecycle
+
+MV3 Service Workers idle-terminate after ~30 seconds. Two mechanisms prevent this from breaking user flows:
+
+- **Keep-alive alarm** (`background.ts`): `chrome.alarms.create("keep-alive", { periodInMinutes: 1 })` fires every minute, waking the SW before Chrome can terminate it. The `chrome.alarms` minimum period is 1 minute, which is sufficient to prevent the 30-second timeout.
+- **Top-level context menu registration** (`background.ts`): `registerContextMenuHandlers()` and `scheduleRefreshContextMenus()` run at module top-level (not only inside `onInstalled`/`onStartup`). This means context menus are automatically re-registered each time the SW restarts from cold.
+
+Together these ensure the background worker is always ready to handle context menu clicks and popup messages without requiring a page reload.
+
+## Timeout Strategy
+
+All timeouts are derived from `SERVICE_WORKER_TIMEOUT_MS = 30_000` in `src/constants/timeouts.ts`:
+
+| Constant                         | Value | Purpose                                                                                                                                        |
+| -------------------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SERVICE_WORKER_TIMEOUT_MS`      | 30 s  | Chrome MV3 SW idle limit (source of truth)                                                                                                     |
+| `API_FETCH_TIMEOUT_MS`           | 25 s  | `fetchWithTimeout` aborts OpenAI/Anthropic calls 5 s before the SW limit, ensuring a typed error is thrown rather than a silent SW termination |
+| `CLIENT_MESSAGE_TIMEOUT_MS`      | 30 s  | Popup→Background `sendMessage` race in `sendBackgroundResult`                                                                                  |
+| `SELECTED_TEXT_CACHE_TIMEOUT_MS` | 30 s  | Staleness threshold for the selection cache (see below)                                                                                        |
+
+**Implementation details:**
+
+- `fetchWithTimeout` (`src/utils/fetch-with-timeout.ts`): wraps `fetch` with `AbortController`; supports signal composition via `AbortSignal.any()`.
+- `FetchTimeoutError` / `ClientTimeoutError` (`src/utils/custom-errors.ts`): typed error classes surfaced to the UI for user-friendly messages.
+- The 5-second margin between `API_FETCH_TIMEOUT_MS` and `SERVICE_WORKER_TIMEOUT_MS` is intentional—it gives the background worker time to send a `sendResponse` before Chrome terminates the SW.
+
 ## Storage & Configuration
 
 - `chrome.storage.sync`: user preferences that can roam (domain patterns, action definitions, toggles).
 - `chrome.storage.local`: device-local data (OpenAI API token, OpenAI model/prompt, theme, recent-selection cache).
 - Wrapper helpers convert callback-based Chrome APIs to Promises and surface `chrome.runtime.lastError` as real errors.
+
+### Selection Cache
+
+The content script persists the user's most recent text selection to `chrome.storage.local` (`selectedText` + `selectedTextUpdatedAt`) on every `mouseup` event. The background worker reads this cache when a context menu action fires:
+
+1. **Write**: `content.ts` → `mouseup` listener → `storageLocalSet({ selectedText, selectedTextUpdatedAt: Date.now() })`
+2. **Read + freshness check**: background handler compares `Date.now() - selectedTextUpdatedAt` against `SELECTED_TEXT_CACHE_TIMEOUT_MS` (30 s).
+3. **Fallback**: if the cache is stale or empty, the action falls back to requesting the full page text.
+
+This design survives SW restarts between the user's selection and the context menu click because `chrome.storage.local` is persistent across SW lifecycles.
 
 ## Validation & Parsing
 
