@@ -91,12 +91,6 @@ This design survives SW restarts between the user's selection and the context me
 - Event extraction is normalized after parsing; OpenAI/z.ai can use `response_format`, while Anthropic relies on prompt-based JSON shaping.
 - Provider endpoint allowlists are centralized in `src/constants/api-endpoints.ts`; endpoint changes must stay aligned with `manifest.json` `host_permissions` and `content_security_policy`.
 
-## Production Error Telemetry (optional)
-
-- Error telemetry uses GA4 Measurement Protocol (`src/utils/analytics.ts`) and sends events only in production builds.
-- Credentials are injected at build time (`GA4_MEASUREMENT_ID`, `GA4_API_SECRET`); if missing, telemetry should no-op without blocking user flows.
-- Telemetry payloads must stay privacy-safe (redacted API keys, domain-only URL context, no user-selected/page text).
-
 ## Error Handling Style
 
 ### Result Type Usage
