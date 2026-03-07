@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
+import type { ChatMessage } from "@/background/runtime_types";
 import type { ExtractedEvent, SummarySource } from "@/shared_types";
 import { applyTheme, type Theme } from "@/ui/theme";
 import { nextTheme } from "@/ui/themeCycle";
@@ -16,7 +17,11 @@ import {
   themeFromHost,
 } from "@/ui/themeStorage";
 import { createNotifications, ToastHost } from "@/ui/toast";
-import { OverlayBody, OverlayHeaderActions } from "./OverlayComponents";
+import {
+  OverlayBody,
+  OverlayChatInput,
+  OverlayHeaderActions,
+} from "./OverlayComponents";
 import {
   copyTextToClipboard,
   downloadIcsFile,
@@ -88,6 +93,10 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
   const [pinnedPos, setPinnedPos] = useState<Point | null>(null);
   const [dragging, setDragging] = useState(false);
   const dragOffsetRef = useRef<DragOffset | null>(null);
+
+  // Chat state
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [isChatting, setIsChatting] = useState(false);
 
   useEffect(() => {
     let disposed = false;
@@ -284,6 +293,51 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
     setMarkdownView((current) => !current);
   };
 
+  const handleChatSend = (text: string): void => {
+    if (!text.trim() || isChatting) {
+      return;
+    }
+    const userMessage: ChatMessage = { role: "user", content: text.trim() };
+    const nextMessages = [...chatMessages, userMessage];
+    setChatMessages(nextMessages);
+    setIsChatting(true);
+
+    chrome.runtime
+      .sendMessage({
+        action: "chatFollowUp",
+        messages: nextMessages,
+        context: viewModel.primary,
+      })
+      .then((response: unknown) => {
+        const res = response as
+          | { ok: boolean; value?: { text: string }; error?: string }
+          | undefined;
+        if (res?.ok && res.value?.text) {
+          setChatMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: res.value?.text ?? "" },
+          ]);
+        } else {
+          setChatMessages((prev) => [
+            ...prev,
+            {
+              role: "assistant",
+              content: `エラー: ${res?.error ?? "応答の取得に失敗しました"}`,
+            },
+          ]);
+        }
+      })
+      .catch(() => {
+        setChatMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: "エラー: チャット応答に失敗しました" },
+        ]);
+      })
+      .finally(() => {
+        setIsChatting(false);
+      });
+  };
+
   const sourceLabel = sourceLabelFromSource(viewModel.source);
   const statusLabel = statusLabelFromStatus(viewModel.status);
   const { selectionText, secondaryText } = deriveSecondaryText(
@@ -294,6 +348,7 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
   const canOpenCalendar = canOpenCalendarFromViewModel(viewModel);
   const canDownloadIcs = canDownloadIcsFromViewModel(viewModel);
   const showMarkdownToggle = viewModel.mode === "text";
+  const showChat = viewModel.mode === "text" && viewModel.status === "ready";
 
   return (
     <div className="mbu-overlay-surface">
@@ -349,6 +404,14 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
           status={viewModel.status}
           statusLabel={statusLabel}
         />
+
+        {showChat ? (
+          <OverlayChatInput
+            chatMessages={chatMessages}
+            isChatting={isChatting}
+            onSend={handleChatSend}
+          />
+        ) : null}
       </div>
     </div>
   );

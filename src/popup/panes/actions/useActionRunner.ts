@@ -177,6 +177,27 @@ export function useActionRunner(params: {
 
     setOutput(parsed.value);
     params.notify.success("完了しました");
+
+    if (parsed.value.status === "ready") {
+      const newEntry = {
+        id: crypto.randomUUID(),
+        actionTitle: action.title,
+        text: parsed.value.text,
+        createdAt: Date.now(),
+      };
+      params.runtime
+        .storageLocalGet(["actionHistory"])
+        .then((result) => {
+          const existing = Result.isSuccess(result)
+            ? (result.value.actionHistory ?? [])
+            : [];
+          const updated = [newEntry, ...existing].slice(0, 20);
+          return params.runtime.storageLocalSet({ actionHistory: updated });
+        })
+        .catch(() => {
+          // no-op
+        });
+    }
   };
 
   const copyOutput = async (): Promise<void> => {

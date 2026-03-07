@@ -11,12 +11,14 @@ import {
 import { loadContextActions } from "@/background/context_menu_storage";
 import { sendMessageToTab } from "@/background/messaging";
 import {
+  chatFollowUpWithOpenAI,
   extractEventWithOpenAI,
   summarizeWithOpenAI,
   testAiToken,
 } from "@/background/openai";
 import { debugRuntimeHandlers } from "@/background/runtime_debug_handlers";
 import type {
+  ChatFollowUpRequest,
   RuntimeSendResponse,
   SummarizeEventRequest,
   SummarizeTextRequest,
@@ -352,6 +354,38 @@ function handleOpenPopupSettingsRequest(
   return true;
 }
 
+function handleChatFollowUpRequest(
+  request: ChatFollowUpRequest,
+  sendResponse: RuntimeSendResponse
+): boolean {
+  (async () => {
+    try {
+      const result = await chatFollowUpWithOpenAI(
+        request.messages,
+        request.context
+      );
+      if (Result.isFailure(result)) {
+        sendResponse(Result.fail(result.error));
+        return;
+      }
+      sendResponse(Result.succeed({ text: result.value }));
+    } catch (error) {
+      await debugLog(
+        "handleChatFollowUpRequest",
+        "Failed to chat follow up",
+        { error, request },
+        "error"
+      );
+      sendResponse(
+        Result.fail(
+          error instanceof Error ? error.message : "チャット応答に失敗しました"
+        )
+      );
+    }
+  })();
+  return true;
+}
+
 export const runtimeHandlers = {
   summarizeTab: handleSummarizeTabRequest,
   summarizeText: handleSummarizeTextRequest,
@@ -360,5 +394,6 @@ export const runtimeHandlers = {
   testAiToken: handleTestAiTokenRequest,
   summarizeEvent: handleSummarizeEventRequest,
   openPopupSettings: handleOpenPopupSettingsRequest,
+  chatFollowUp: handleChatFollowUpRequest,
   ...debugRuntimeHandlers,
 } as const;
