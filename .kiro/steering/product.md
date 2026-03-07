@@ -7,7 +7,7 @@ Browser Toolkit is a personal Chrome extension that adds small, high-leverage ut
 ## Primary Value
 
 - Make tabular web UIs easier to work with (click-to-sort, including dynamically inserted tables).
-- Provide lightweight “AI actions” on selected text or page content from the context menu (e.g., summarize/translate; calendar extraction is supported).
+- Provide lightweight “AI actions” on selected text or page content from the context menu (e.g., summarize/translate; calendar extraction is supported), with a user-selectable AI provider.
 - Provide quick “link utilities” (copy the current tab’s title + URL) from the popup and/or context menu.
 - Provide fast selection utilities: search selected text with configurable engines/groups and insert reusable text templates from the context menu.
 
@@ -23,16 +23,17 @@ Browser Toolkit is a personal Chrome extension that adds small, high-leverage ut
 - Handle dynamic pages by watching DOM mutations and enabling sorting for newly added tables.
 - Optional row filtering hides rows with “empty/zero-ish” values (e.g., 0, hyphen, empty, N/A) based on per-pattern settings.
 
-### AI actions (OpenAI integration)
+### AI actions (provider-based integration)
 
 - Actions are invoked from the browser context menu and the popup “Actions” view; target text is resolved as:
   - Prefer the current selection (context-menu `selectionText` or live `window.getSelection()`), or
   - For popup-triggered flows, fall back to a timestamped “recent selection” cache (treated as fresh for ~30s; local-only), or
   - Extracted page text (fallback).
 - Built-in actions include summarize/translate/code review (text) plus calendar extraction (event); user-defined actions are editable in the popup UI.
+- AI calls are provider-selectable in settings (OpenAI/Anthropic/z.ai), while action templates and UX remain provider-agnostic.
 - Results are surfaced in the popup output panel and/or in-page as a lightweight overlay (Shadow DOM), anchored to the selection when possible, with copy/calendar handoff affordances.
 - Actions support simple template variables (e.g. `{{text}}`, `{{title}}`, `{{url}}`, `{{source}}`) to reuse metadata in prompts.
-- Secrets (OpenAI API token) are configured by the user; the extension guides the user to settings when missing.
+- Secrets (provider API tokens) are configured by the user; the extension guides the user to settings when missing.
 - “Calendar” actions extract a structured event and provide handoff options (Google Calendar link; optional `.ics` export).
 
 ### Link utilities (non-AI)
@@ -62,9 +63,9 @@ Browser Toolkit is a personal Chrome extension that adds small, high-leverage ut
 ## Data & Privacy Expectations
 
 - Store non-sensitive settings (domain patterns, action definitions) in synced extension storage.
-- Store secrets (OpenAI token) locally on the device.
-- Cache the most recent selection locally with a timestamp to improve context-menu behavior (treated as fresh for ~30s); it is never synced and is only sent to OpenAI when the user triggers an AI action.
-- Only send text to the OpenAI API when the user explicitly triggers an AI action.
+- Store secrets (AI provider tokens) locally on the device.
+- Cache the most recent selection locally with a timestamp to improve context-menu behavior (treated as fresh for ~30s); it is never synced and is only sent to the selected provider when the user triggers an AI action.
+- Only send text to the selected AI provider when the user explicitly triggers an AI action.
 
 ## Non-goals
 

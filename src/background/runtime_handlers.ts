@@ -30,7 +30,6 @@ import type {
   SummaryTarget,
 } from "@/background/types";
 import type { ContextAction } from "@/context_actions";
-import { trackError } from "@/utils/analytics";
 import { debugLog } from "@/utils/debug_log";
 import { showErrorNotification } from "@/utils/notifications";
 
@@ -164,13 +163,6 @@ function handleSummarizeTabRequest(
         { error, request },
         "error"
       );
-      // trackErrorは非同期でバックグラウンド実行（パフォーマンス最適化）
-      trackError(
-        error instanceof Error ? error : new Error(String(error)),
-        "background"
-      ).catch(() => {
-        // no-op
-      });
       sendResponse({
         ok: false,
         error: error instanceof Error ? error.message : "要約に失敗しました",
@@ -195,13 +187,6 @@ function handleSummarizeTextRequest(
         { error, request },
         "error"
       );
-      // trackErrorは非同期でバックグラウンド実行（パフォーマンス最適化）
-      trackError(
-        error instanceof Error ? error : new Error(String(error)),
-        "background"
-      ).catch(() => {
-        // no-op
-      });
       sendResponse({
         ok: false,
         error: error instanceof Error ? error.message : "要約に失敗しました",
@@ -258,13 +243,6 @@ function handleRunContextActionRequest(
         { error, request },
         "error"
       );
-      // trackErrorは非同期でバックグラウンド実行（パフォーマンス最適化）
-      trackError(
-        error instanceof Error ? error : new Error(String(error)),
-        "background"
-      ).catch(() => {
-        // no-op
-      });
       sendResponse(
         Result.fail(
           error instanceof Error
@@ -296,13 +274,6 @@ function handleTestOpenAiTokenRequest(
         { error, request },
         "error"
       );
-      // trackErrorは非同期でバックグラウンド実行（パフォーマンス最適化）
-      trackError(
-        error instanceof Error ? error : new Error(String(error)),
-        "background"
-      ).catch(() => {
-        // no-op
-      });
       sendResponse(
         Result.fail(
           error instanceof Error ? error.message : "トークン確認に失敗しました"
@@ -332,13 +303,6 @@ function handleTestAiTokenRequest(
         { error, request },
         "error"
       );
-      // trackErrorは非同期でバックグラウンド実行（パフォーマンス最適化）
-      trackError(
-        error instanceof Error ? error : new Error(String(error)),
-        "background"
-      ).catch(() => {
-        // no-op
-      });
       sendResponse(
         Result.fail(
           error instanceof Error ? error.message : "トークン確認に失敗しました"
@@ -361,13 +325,6 @@ function handleSummarizeEventRequest(
         { error, request },
         "error"
       );
-      // trackErrorは非同期でバックグラウンド実行（パフォーマンス最適化）
-      trackError(
-        error instanceof Error ? error : new Error(String(error)),
-        "background"
-      ).catch(() => {
-        // no-op
-      });
       sendResponse({
         ok: false,
         error:
