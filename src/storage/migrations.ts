@@ -12,9 +12,9 @@ import type { LocalStorageData } from "@/storage/types";
  * Migration function interface
  */
 export interface Migration {
-  version: number;
   description: string;
   migrate: () => Promise<void>;
+  version: number;
 }
 
 /**
@@ -64,21 +64,21 @@ export const migrations: Migration[] = [
  * Migration log entry
  */
 export interface MigrationLogEntry {
-  version: number;
-  timestamp: number;
   description: string;
-  success: boolean;
   error?: string;
+  success: boolean;
+  timestamp: number;
+  version: number;
 }
 
 /**
  * Backup data structure
  */
 export interface BackupData {
+  localData: Record<string, unknown>;
+  syncData: Record<string, unknown>;
   timestamp: number;
   version: number;
-  syncData: Record<string, unknown>;
-  localData: Record<string, unknown>;
 }
 
 const SCHEMA_VERSION_KEY = STORAGE_RESERVED_KEYS.SCHEMA_VERSION;

@@ -1,11 +1,11 @@
 .pattern-list {
+  position: relative;
   max-height: 400px;
+  padding: 10px;
+  margin: 0;
+  background: rgba(255, 255, 255, 0.02);
   border: 1px dashed var(--line);
   border-radius: 12px;
-  padding: 10px;
-  background: rgba(255, 255, 255, 0.02);
-  margin: 0;
-  position: relative;
 }
 
 .pattern-scrollarea {
@@ -13,8 +13,8 @@
 }
 
 .pattern-list-inner {
-  margin: 0;
   padding: 0;
+  margin: 0;
   list-style: none;
 }
 
@@ -22,12 +22,12 @@
   display: flex;
   justify-content: center;
   width: 0.35rem;
-  border-radius: 999px;
   margin: 0.5rem;
-  opacity: 0;
-  transition: opacity 150ms;
   pointer-events: none;
   background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  opacity: 0;
+  transition: opacity 150ms;
 }
 
 .pattern-scrollbar[data-state="hidden"] {
@@ -40,26 +40,26 @@
 
 .pattern-scrollbar[data-hovering],
 .pattern-scrollbar[data-scrolling] {
-  opacity: 1;
   pointer-events: auto;
+  opacity: 1;
 }
 
 .pattern-thumb {
   width: 100%;
-  border-radius: inherit;
   background: rgba(255, 255, 255, 0.38);
+  border-radius: inherit;
 }
 
 .pattern-item {
   display: grid;
   grid-template-columns: 1fr auto auto;
-  align-items: center;
   gap: 8px;
+  align-items: center;
+  min-height: 44px;
   padding: 8px 10px;
   margin-bottom: 6px;
   background: var(--panel-soft);
   border-radius: 10px;
-  min-height: 44px;
 }
 
 .pattern-item:last-child {
@@ -69,10 +69,10 @@
 .pattern-text {
   flex: 1;
   min-width: 0;
+  padding-right: 8px;
+  line-height: 1.4;
   word-break: break-all;
   overflow-wrap: anywhere;
-  line-height: 1.4;
-  padding-right: 8px;
 }
 
 .pattern-item .mbu-switch {
@@ -80,22 +80,22 @@
 }
 
 .btn-delete {
-  border: none;
+  padding: var(--button-padding-sm);
+  color: color-mix(in oklab, var(--color-danger) 65%, var(--color-text));
+  cursor: pointer;
   background: color-mix(
     in oklab,
     var(--color-danger) var(--accent-mix-14),
     transparent
   );
-  color: color-mix(in oklab, var(--color-danger) 65%, var(--color-text));
-  padding: var(--button-padding-sm);
+  border: none;
   border-radius: var(--button-radius-sm);
-  cursor: pointer;
 }
 
 .btn-delete:disabled,
 .btn-delete[data-disabled] {
-  opacity: 0.6;
   cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .btn-delete:hover:not(:disabled):not([data-disabled]) {
@@ -103,22 +103,22 @@
 }
 
 .pattern-item .btn-delete {
-  white-space: nowrap;
   flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .bullet-list {
-  margin: 0;
   padding-left: 16px;
-  color: var(--text-sub);
+  margin: 0;
   line-height: 1.6;
+  color: var(--text-sub);
 }
 
 .token-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   align-items: center;
-  flex-wrap: wrap;
   margin: 8px 0 6px;
 }
 
@@ -134,14 +134,14 @@
   width: 100%;
   min-height: 110px;
   padding: 12px;
-  border-radius: var(--input-radius);
-  border: var(--input-border);
-  background: var(--input-bg);
-  color: var(--input-text);
   font: inherit;
-  resize: vertical;
-  line-height: 1.5;
   font-size: 13px;
+  line-height: 1.5;
+  color: var(--input-text);
+  resize: vertical;
+  background: var(--input-bg);
+  border: var(--input-border);
+  border-radius: var(--input-radius);
 }
 
 .prompt-input::placeholder {
@@ -152,14 +152,14 @@
   width: 100%;
   min-height: 160px;
   padding: 12px;
-  border-radius: var(--input-radius);
-  border: var(--input-border);
-  background: var(--input-bg);
-  color: var(--input-text);
   font: inherit;
-  resize: vertical;
-  line-height: 1.5;
   font-size: 13px;
+  line-height: 1.5;
+  color: var(--input-text);
+  resize: vertical;
+  background: var(--input-bg);
+  border: var(--input-border);
+  border-radius: var(--input-radius);
 }
 
 .summary-output--sm {
@@ -179,9 +179,9 @@
 
 .hint {
   margin: 0;
-  color: var(--text-sub);
   font-size: 12px;
   line-height: 1.5;
+  color: var(--text-sub);
 }
 
 input[type="checkbox"] {
@@ -195,40 +195,40 @@ input[type="checkbox"] {
 .empty-message {
   margin: 0;
   font-size: 12px;
-  color: var(--text-sub);
   line-height: 1.5;
+  color: var(--text-sub);
 }
 
 .mbu-build-error {
   position: fixed;
-  left: 12px;
   right: 12px;
   bottom: 12px;
+  left: 12px;
   z-index: 2147483647;
   padding: 10px 12px;
-  border-radius: 12px;
-  background: rgba(229, 57, 53, 0.92);
-  color: #fff;
   font-size: 12px;
   font-weight: 700;
+  color: #fff;
+  background: rgba(229, 57, 53, 0.92);
+  border-radius: 12px;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
 }
 
 /* Search Engine Settings UI */
 .search-engines-list {
-  margin: 0;
   padding: 0;
+  margin: 0;
   list-style: none;
 }
 
 .search-engine-item {
   display: flex;
-  align-items: center;
   gap: 12px;
+  align-items: center;
   padding: 8px 12px;
+  background: var(--color-surface);
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: var(--color-surface);
 }
 
 .search-engine-item + .search-engine-item {
@@ -236,8 +236,8 @@ input[type="checkbox"] {
 }
 
 .search-engine-content {
-  flex: 1;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 4px;
   min-width: 0;
@@ -245,59 +245,60 @@ input[type="checkbox"] {
 
 .search-engine-controls {
   display: flex;
-  align-items: center;
-  gap: 8px;
   flex-shrink: 0;
+  gap: 8px;
+  align-items: center;
 }
 
 .search-engine-name {
   /* Align engine name and encoding badge */
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  /* Align engine name and encoding badge */
   font-size: 14px;
   font-weight: 500;
-  color: var(--text);
   line-height: 1.4;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  color: var(--text);
 }
 
 .badge {
   display: inline-block;
+  padding: 1px 6px;
   font-size: 10px;
   font-weight: 600;
-  padding: 1px 6px;
-  border-radius: 4px;
   line-height: 1.4;
+  border-radius: 4px;
 }
 
 .badge-info {
+  color: color-mix(in oklab, var(--color-primary) 65%, var(--color-text));
   background: color-mix(
     in oklab,
     var(--color-primary) var(--accent-mix-14),
     transparent
   );
-  color: color-mix(in oklab, var(--color-primary) 65%, var(--color-text));
 }
 
 .search-engine-url {
-  font-size: 11px;
   font-family: "Consolas", "Monaco", "Courier New", monospace;
+  font-size: 11px;
+  line-height: 1.4;
   color: var(--text-secondary);
   word-break: break-all;
-  line-height: 1.4;
 }
 
 /* Search Groups: expand indicator */
 .expand-indicator {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  border: none;
-  background: none;
+  padding: 2px;
   color: var(--text-sub);
   cursor: pointer;
-  padding: 2px;
-  flex-shrink: 0;
+  background: none;
+  border: none;
 }
 
 /* Search Groups: edit button */
@@ -305,16 +306,16 @@ input[type="checkbox"] {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
+  padding: var(--button-padding-sm);
+  color: color-mix(in oklab, var(--color-primary) 65%, var(--color-text));
+  cursor: pointer;
   background: color-mix(
     in oklab,
     var(--color-primary) var(--accent-mix-14),
     transparent
   );
-  color: color-mix(in oklab, var(--color-primary) 65%, var(--color-text));
-  padding: var(--button-padding-sm);
+  border: none;
   border-radius: var(--button-radius-sm);
-  cursor: pointer;
 }
 
 .btn-edit:hover {
@@ -324,9 +325,9 @@ input[type="checkbox"] {
 /* Search Groups: inline name edit */
 .inline-edit-row {
   display: flex;
-  align-items: center;
-  gap: 6px;
   flex: 1;
+  gap: 6px;
+  align-items: center;
   min-width: 0;
 }
 
@@ -337,11 +338,11 @@ input[type="checkbox"] {
 
 /* Search Groups: expanded engine list */
 .group-engines-list {
-  border-top: 1px solid var(--line);
-  background: color-mix(in oklab, var(--color-surface) 85%, transparent);
   padding: 6px 12px;
-  border-radius: 0 0 8px 8px;
   margin-top: -1px;
+  background: color-mix(in oklab, var(--color-surface) 85%, transparent);
+  border-top: 1px solid var(--line);
+  border-radius: 0 0 8px 8px;
 }
 
 .group-engine-item {
@@ -363,16 +364,16 @@ input[type="checkbox"] {
 /* Search Groups: clickable expand button */
 .group-expand-button {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 4px;
   align-items: flex-start;
-  border: none;
-  background: none;
-  padding: 0;
-  cursor: pointer;
-  text-align: left;
   min-width: 0;
-  flex: 1;
+  padding: 0;
   font: inherit;
   color: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: none;
+  border: none;
 }

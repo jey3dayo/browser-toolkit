@@ -8,11 +8,11 @@
 }
 
 .mbu-accordion-item {
-  border-radius: 14px;
-  border: 1px solid var(--line);
-  background: var(--panel);
-  box-shadow: var(--shadow);
   overflow: hidden;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
 }
 
 .mbu-accordion-header {
@@ -20,17 +20,17 @@
 }
 
 .mbu-accordion-trigger {
-  width: 100%;
   display: flex;
+  gap: 12px;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  width: 100%;
   padding: 10px 12px;
-  border: 0;
-  background: transparent;
-  color: var(--text);
   font: inherit;
+  color: var(--text);
   cursor: pointer;
+  background: transparent;
+  border: 0;
 }
 
 .mbu-accordion-title {
@@ -48,17 +48,17 @@
 }
 
 .mbu-accordion-panel {
-  padding: 0 12px 12px;
   display: grid;
   gap: 8px;
+  padding: 0 12px 12px;
 }
 
 .mbu-accordion-meta,
 .mbu-accordion-note {
   margin: 0;
   font-size: 11px;
-  color: var(--text-sub);
   line-height: 1.4;
+  color: var(--text-sub);
 }
 
 .mbu-accordion-text {
@@ -82,22 +82,22 @@
   align-items: center;
   justify-content: center;
   padding: 6px;
+  color: var(--text-sub);
+
+  /* Interaction */
+  cursor: pointer;
+  background: color-mix(in oklab, var(--panel) 90%, transparent);
 
   /* Appearance */
   border: none;
   border-radius: var(--primitive-radius-10);
-  background: color-mix(in oklab, var(--panel) 90%, transparent);
-  backdrop-filter: blur(8px);
-  color: var(--text-sub);
 
   /* Shadow */
   box-shadow:
     0 0 0 1px var(--line),
     0 2px 8px rgba(0, 0, 0, 0.08);
-
-  /* Interaction */
-  cursor: pointer;
   opacity: 0;
+  backdrop-filter: blur(8px);
   transition:
     opacity 0.2s ease,
     background 0.15s ease,
@@ -112,8 +112,8 @@
 
 /* Button hover state */
 .mbu-accordion-copy-btn:hover:not(:disabled) {
-  background: color-mix(in oklab, var(--panel) 100%, transparent);
   color: var(--text);
+  background: color-mix(in oklab, var(--panel) 100%, transparent);
   transform: scale(1.05);
 }
 
@@ -124,9 +124,9 @@
 
 /* Button focus state (keyboard navigation) */
 .mbu-accordion-copy-btn:focus-visible {
-  opacity: 1;
   outline: 2px solid var(--primitive-color-blue-500);
   outline-offset: 2px;
+  opacity: 1;
 }
 
 /* Button disabled state */

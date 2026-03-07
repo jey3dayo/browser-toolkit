@@ -10,13 +10,13 @@ body {
 }
 
 body {
-  margin: 0 auto;
+  --toast-surface-inset: 12px calc(var(--rail, 0px) + 12px) auto auto;
+  position: relative;
   width: 100%;
   max-width: var(--layout-popup-width);
   height: 100vh;
+  margin: 0 auto;
   overflow: hidden;
-  position: relative;
-  --toast-surface-inset: 12px calc(var(--rail, 0px) + 12px) auto auto;
   font-family: var(--primitive-font-sans);
   font-size: var(--primitive-font-size-14);
   color: var(--color-text);
@@ -43,10 +43,10 @@ body {
 }
 
 body.is-extension {
-  margin: 0;
   width: var(--layout-popup-width);
-  height: var(--layout-popup-height);
   max-width: none;
+  height: var(--layout-popup-height);
+  margin: 0;
 }
 
 #root {

@@ -146,10 +146,10 @@
 }
 
 :host {
+  --toast-surface-inset: auto 12px 12px auto;
   position: fixed;
   z-index: 2147483647;
   display: block;
-  --toast-surface-inset: auto 12px 12px auto;
 }
 
 :host:not([data-theme]),
@@ -173,9 +173,9 @@
 }
 
 :host(#browser-toolkit-overlay) {
+  --toast-surface-inset: calc(100% + 8px) 0 auto 12px;
   top: 16px;
   left: 16px;
-  --toast-surface-inset: calc(100% + 8px) 0 auto 12px;
 }
 
 :host,

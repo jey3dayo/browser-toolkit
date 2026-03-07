@@ -61,7 +61,6 @@ function fetchOpenAiChatCompletionRaw(
 ): Result.ResultAsync<{ response: Response; json: unknown }, string> {
   return Result.pipe(
     Result.try({
-      immediate: true,
       try: () =>
         fetchWithTimeout(
           fetchFn,
@@ -82,7 +81,6 @@ function fetchOpenAiChatCompletionRaw(
     Result.andThen(async (response) => {
       const json = await Result.unwrap(
         Result.try({
-          immediate: true,
           try: () => response.json(),
           catch: () => null,
         }),
@@ -156,7 +154,6 @@ export function fetchChatCompletionText(
 
   return Result.pipe(
     Result.try({
-      immediate: true,
       try: () => fetchWithTimeout(fetchFn, url, init, API_FETCH_TIMEOUT_MS),
       catch: (error) =>
         handleFetchError(error, "APIへのリクエストに失敗しました"),
@@ -164,7 +161,6 @@ export function fetchChatCompletionText(
     Result.andThen(async (response) => {
       const json = await Result.unwrap(
         Result.try({
-          immediate: true,
           try: () => response.json(),
           catch: () => null,
         }),
@@ -206,7 +202,6 @@ export function fetchChatCompletionOk(
 
   return Result.pipe(
     Result.try({
-      immediate: true,
       try: () => fetchWithTimeout(fetchFn, url, init, API_FETCH_TIMEOUT_MS),
       catch: (error) =>
         handleFetchError(error, "APIへのリクエストに失敗しました"),
@@ -214,7 +209,6 @@ export function fetchChatCompletionOk(
     Result.andThen(async (response) => {
       const json = await Result.unwrap(
         Result.try({
-          immediate: true,
           try: () => response.json(),
           catch: () => null,
         }),
