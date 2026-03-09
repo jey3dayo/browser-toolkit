@@ -9,6 +9,8 @@ const mockChromeNotifications = {
   create: vi.fn(),
 };
 
+const MOCK_ICON_URL = "chrome-extension://mock/images/icon128.png";
+
 /**
  * テスト用の正規表現パターン（パフォーマンス最適化のためトップレベルで定義）
  */
@@ -17,9 +19,12 @@ const TRUNCATED_MESSAGE_PATTERN = /^B+\.\.\.$/;
 
 describe("utils/notifications", () => {
   beforeEach(() => {
-    // chrome.notifications API をモック
+    // chrome API をモック
     global.chrome = {
       notifications: mockChromeNotifications,
+      runtime: {
+        getURL: vi.fn((path: string) => `chrome-extension://mock/${path}`),
+      },
     } as any;
 
     mockChromeNotifications.create.mockResolvedValue("notification-id");
@@ -38,7 +43,7 @@ describe("utils/notifications", () => {
 
       expect(mockChromeNotifications.create).toHaveBeenCalledWith({
         type: "basic",
-        iconUrl: "",
+        iconUrl: MOCK_ICON_URL,
         title: "テストタイトル",
         message: "テストメッセージ",
         priority: 1,
