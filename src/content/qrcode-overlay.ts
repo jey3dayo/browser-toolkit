@@ -7,8 +7,13 @@ const QR_HOST_ID = "browser-toolkit-qrcode";
 const QR_ROOT_ID = "mtk-qrcode-root";
 
 let currentQrHost: HTMLDivElement | null = null;
+let currentHandleKeyDown: ((e: KeyboardEvent) => void) | null = null;
 
 function removeCurrentOverlay(): void {
+  if (currentHandleKeyDown) {
+    document.removeEventListener("keydown", currentHandleKeyDown);
+    currentHandleKeyDown = null;
+  }
   if (currentQrHost) {
     currentQrHost.remove();
     currentQrHost = null;
@@ -122,9 +127,9 @@ export function showQrCodeOverlay(url: string, theme: Theme): void {
 
   const handleKeyDown = (e: KeyboardEvent): void => {
     if (e.key === "Escape") {
-      document.removeEventListener("keydown", handleKeyDown);
       onClose();
     }
   };
+  currentHandleKeyDown = handleKeyDown;
   document.addEventListener("keydown", handleKeyDown);
 }
