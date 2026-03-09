@@ -1,3 +1,4 @@
+import { Result } from "@praha/byethrow";
 import {
   useEffect,
   useId,
@@ -6,7 +7,10 @@ import {
   useRef,
   useState,
 } from "react";
-import type { ChatMessage } from "@/background/runtime_types";
+import type {
+  ChatFollowUpResponse,
+  ChatMessage,
+} from "@/background/runtime_types";
 import type { ExtractedEvent, SummarySource } from "@/shared_types";
 import { applyTheme, type Theme } from "@/ui/theme";
 import { nextTheme } from "@/ui/themeCycle";
@@ -328,21 +332,20 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
         if (requestId !== chatRequestIdRef.current) {
           return;
         }
-        const res = response as
-          | { ok: boolean; value?: { text: string }; error?: string }
-          | undefined;
-        if (res?.ok && res.value?.text) {
+        const res = response as ChatFollowUpResponse | undefined;
+        if (res && Result.isSuccess(res) && res.value.text) {
           setChatMessages((prev) => [
             ...prev,
-            { role: "assistant", content: res.value?.text ?? "" },
+            { role: "assistant", content: res.value.text },
           ]);
         } else {
+          const errorMsg =
+            res && Result.isFailure(res)
+              ? res.error
+              : "応答の取得に失敗しました";
           setChatMessages((prev) => [
             ...prev,
-            {
-              role: "assistant",
-              content: `エラー: ${res?.error ?? "応答の取得に失敗しました"}`,
-            },
+            { role: "assistant", content: `エラー: ${errorMsg}` },
           ]);
         }
       })
