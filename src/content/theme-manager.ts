@@ -2,15 +2,11 @@
 import { Result } from "@praha/byethrow";
 import type { GlobalContentState } from "@/content/types";
 import { storageLocalGet } from "@/storage/helpers";
-import { applyTheme, isTheme, type Theme } from "@/ui/theme";
-
-function normalizeTheme(value: unknown): Theme {
-  return isTheme(value) ? value : "auto";
-}
+import { applyTheme, type Theme } from "@/ui/theme";
+import { normalizeTheme } from "@/ui/themeStorage";
 
 export type ThemeManager = {
   getCurrentTheme: () => Theme;
-  applyThemeToMounts: () => void;
   refreshThemeFromStorage: () => Promise<void>;
   handleThemeChange: (newValue: unknown) => void;
 };
@@ -46,7 +42,6 @@ export function createThemeManager(
 
   return {
     getCurrentTheme: () => currentTheme,
-    applyThemeToMounts,
     refreshThemeFromStorage,
     handleThemeChange,
   };

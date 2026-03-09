@@ -25,34 +25,29 @@ export type TableAutoExecResult = {
 export function setupTableAutoExec(
   deps: TableAutoExecDeps
 ): TableAutoExecResult {
-  let tableConfig: { domainPatternConfigs: DomainPatternConfig[] } = {
-    domainPatternConfigs: [],
-  };
+  let tableConfig: DomainPatternConfig[] = [];
 
   function getCurrentPatternRowFilterSetting() {
     return getCurrentPatternRowFilterSettingFromConfig(
-      tableConfig.domainPatternConfigs,
+      tableConfig,
       window.location.href
     );
   }
 
   function enableTableSortWithNotification(): void {
-    enableTableSort(
-      (message: string) => deps.showNotification(message),
-      getCurrentPatternRowFilterSetting
-    );
+    enableTableSort(deps.showNotification, getCurrentPatternRowFilterSetting);
   }
 
   function startTableObserverWithNotification(): void {
     startTableObserver(
-      (message: string) => deps.showNotification(message),
+      deps.showNotification,
       getCurrentPatternRowFilterSetting
     );
   }
 
   function maybeEnableTableSortFromConfig(): void {
-    if (tableConfig.domainPatternConfigs.length > 0) {
-      const patterns = tableConfig.domainPatternConfigs.map((c) => c.pattern);
+    if (tableConfig.length > 0) {
+      const patterns = tableConfig.map((c) => c.pattern);
       if (matchesAnyPattern(patterns, window.location.href)) {
         enableTableSortWithNotification();
         startTableObserverWithNotification();
@@ -60,13 +55,8 @@ export function setupTableAutoExec(
     }
   }
 
-  async function refreshTableConfigAndUpdate(): Promise<void> {
-    const configs = await refreshTableConfig();
-    tableConfig = { domainPatternConfigs: configs };
-  }
-
   async function refreshTableConfigAndMaybeEnable(): Promise<void> {
-    await refreshTableConfigAndUpdate();
+    tableConfig = await refreshTableConfig();
     maybeEnableTableSortFromConfig();
   }
 
@@ -96,8 +86,7 @@ export function setupTableAutoExec(
     if (!("theme" in changes)) {
       return;
     }
-    const change = changes.theme as chrome.storage.StorageChange | undefined;
-    deps.handleThemeChange(change?.newValue);
+    deps.handleThemeChange(changes.theme.newValue);
   }
 
   refreshTableConfigAndMaybeEnable().catch(() => {
@@ -123,17 +112,17 @@ export function setupTableAutoExec(
     if (document.hidden) {
       stopTableObserver();
     } else {
-      // 最新の設定を再取得してタイミング問題を回避（非同期初期化対応）
+      // 最新の設定を再取得してから判定（タイミング問題を回避）
       refreshTableConfig()
-        .then(() => {
+        .then((configs) => {
+          tableConfig = configs;
           // 非同期処理中にタブが再び非表示になった場合は処理をスキップ（競合状態を回避）
           if (document.hidden) {
             return;
           }
-          if (tableConfig.domainPatternConfigs.length > 0) {
-            const shouldObserve = matchesAnyPattern(
-              tableConfig.domainPatternConfigs.map((c) => c.pattern)
-            );
+          if (tableConfig.length > 0) {
+            const patterns = tableConfig.map((c) => c.pattern);
+            const shouldObserve = matchesAnyPattern(patterns);
             if (shouldObserve) {
               // タブ非アクティブ中に挿入された既存テーブルを処理
               enableTableSortWithNotification();

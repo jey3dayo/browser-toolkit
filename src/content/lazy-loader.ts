@@ -1,12 +1,5 @@
 // 遅延ローダーファクトリ
 
-function unwrapModule<T>(module: T | { default: T }): T {
-  if (module && typeof module === "object" && "default" in module) {
-    return (module as { default: T }).default;
-  }
-  return module as T;
-}
-
 export function createLazyLoader<T>(
   importFn: () => Promise<T>
 ): () => Promise<T | null> {
@@ -20,7 +13,7 @@ export function createLazyLoader<T>(
       promise = importFn();
     }
     try {
-      module = unwrapModule(await promise);
+      module = await promise;
       return module;
     } catch {
       promise = null;
