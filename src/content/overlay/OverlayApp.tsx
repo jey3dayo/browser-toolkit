@@ -206,6 +206,7 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
       prevPrimaryRef.current !== viewModel.primary
     ) {
       setChatMessages([]);
+      setIsChatting(false);
       chatRequestIdRef.current += 1;
     }
     prevPrimaryRef.current = viewModel.primary ?? null;

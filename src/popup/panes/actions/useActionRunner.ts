@@ -18,6 +18,7 @@ import {
   resolveActiveTabId,
 } from "@/popup/utils/summary_target";
 import type { Notifier } from "@/ui/toast";
+import { debugLog } from "@/utils/debug_log";
 import type { OutputState } from "./types";
 import { parseRunContextActionResponseToOutput } from "./types";
 
@@ -194,8 +195,15 @@ export function useActionRunner(params: {
           const updated = [newEntry, ...existing].slice(0, 20);
           return params.runtime.storageLocalSet({ actionHistory: updated });
         })
-        .catch(() => {
-          // no-op
+        .catch((error) => {
+          debugLog(
+            "useActionRunner.runAction",
+            "Failed to save action history",
+            { error },
+            "error"
+          ).catch(() => {
+            // no-op
+          });
         });
     }
   };

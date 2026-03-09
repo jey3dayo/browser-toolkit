@@ -46,7 +46,8 @@ export type ContentRequest =
       calendarUrl?: string;
       ics?: string;
       event?: ExtractedEvent;
-    };
+    }
+  | { action: "showQrCodeOverlay"; url: string };
 
 export type MessageHandlerDeps = {
   enableTableSortWithNotification: () => void;
@@ -55,6 +56,7 @@ export type MessageHandlerDeps = {
   getOrCreateToastMount: () => Promise<ToastMount | null>;
   showActionOverlay: (request: ActionOverlayRequest) => void;
   showSummaryOverlay: (request: SummaryOverlayRequest) => void;
+  showQrCodeOverlay: (url: string) => void;
 };
 
 /**
@@ -282,6 +284,11 @@ export function createMessageListener(deps: MessageHandlerDeps) {
       }
       case "showActionOverlay": {
         handleShowActionOverlay(deps, request, sendResponse);
+        return;
+      }
+      case "showQrCodeOverlay": {
+        deps.showQrCodeOverlay(request.url);
+        sendResponse({ ok: true });
         return;
       }
       default: {

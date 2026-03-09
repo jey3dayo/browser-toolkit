@@ -330,6 +330,7 @@ export async function chatFollowUpWithOpenAI(
     settings.customPrompt
   );
 
+  const MAX_CHAT_TURNS = 20;
   const body: ChatRequestBody = {
     model: settings.model,
     temperature: 0.2,
@@ -347,7 +348,7 @@ export async function chatFollowUpWithOpenAI(
             },
           ]
         : []),
-      ...messages,
+      ...messages.slice(-MAX_CHAT_TURNS),
     ],
   };
 

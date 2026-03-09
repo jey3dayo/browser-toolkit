@@ -13,4 +13,5 @@ export const CONTEXT_MENU_CUSTOM_SEPARATOR_ID = "mbu-separator:custom";
 export const CONTEXT_MENU_TEMPLATE_ROOT_ID = "mbu-template-root";
 export const CONTEXT_MENU_TEMPLATE_PREFIX = "mbu-template:";
 export const CONTEXT_MENU_TEMPLATE_SEPARATOR_ID = "mbu-separator:template";
+export const CONTEXT_MENU_QR_CODE_ID = "mbu-qr-code";
 export const CONTEXT_MENU_SETTINGS_ID = "mbu-settings";

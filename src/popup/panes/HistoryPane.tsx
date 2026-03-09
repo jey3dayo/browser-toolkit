@@ -62,7 +62,9 @@ export function HistoryPane(props: PopupPaneBaseProps): React.JSX.Element {
           <Button
             className="btn btn-ghost btn-small"
             onClick={() => {
-              void clearHistory();
+              clearHistory().catch(() => {
+                // no-op
+              });
             }}
             type="button"
           >

@@ -40,7 +40,8 @@ export type ContentScriptMessage =
       calendarUrl?: string;
       ics?: string;
       event?: ExtractedEvent;
-    };
+    }
+  | { action: "showQrCodeOverlay"; url: string };
 
 export type BackgroundRequest =
   | { action: "summarizeTab"; tabId: number }

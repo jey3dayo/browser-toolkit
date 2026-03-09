@@ -257,37 +257,8 @@ function handleRunContextActionRequest(
   return true;
 }
 
-function handleTestOpenAiTokenRequest(
-  request: { action: "testOpenAiToken"; token?: string },
-  sendResponse: RuntimeSendResponse
-): boolean {
-  (async () => {
-    try {
-      const result = await testAiToken(request.token);
-      if (Result.isFailure(result)) {
-        sendResponse(Result.fail(result.error));
-        return;
-      }
-      sendResponse(Result.succeed({}));
-    } catch (error) {
-      await debugLog(
-        "handleTestOpenAiTokenRequest",
-        "Failed to test AI token",
-        { error, request },
-        "error"
-      );
-      sendResponse(
-        Result.fail(
-          error instanceof Error ? error.message : "トークン確認に失敗しました"
-        )
-      );
-    }
-  })();
-  return true;
-}
-
 function handleTestAiTokenRequest(
-  request: { action: "testAiToken"; token?: string },
+  request: { action: "testAiToken" | "testOpenAiToken"; token?: string },
   sendResponse: RuntimeSendResponse
 ): boolean {
   (async () => {
@@ -390,7 +361,7 @@ export const runtimeHandlers = {
   summarizeTab: handleSummarizeTabRequest,
   summarizeText: handleSummarizeTextRequest,
   runContextAction: handleRunContextActionRequest,
-  testOpenAiToken: handleTestOpenAiTokenRequest,
+  testOpenAiToken: handleTestAiTokenRequest,
   testAiToken: handleTestAiTokenRequest,
   summarizeEvent: handleSummarizeEventRequest,
   openPopupSettings: handleOpenPopupSettingsRequest,
