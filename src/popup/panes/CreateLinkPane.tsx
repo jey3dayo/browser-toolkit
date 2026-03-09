@@ -127,13 +127,18 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
 
   useEffect(() => {
     const canvas = qrCanvasRef.current;
-    if (!(showQr && canvas && url.trim())) {
+    if (!canvas) {
+      return;
+    }
+    if (!(showQr && url.trim())) {
+      const ctx = canvas.getContext("2d");
+      ctx?.clearRect(0, 0, canvas.width, canvas.height);
       return;
     }
     QRCode.toCanvas(canvas, url.trim(), { width: 200, margin: 2 }).catch(() => {
-      // no-op
+      props.notify.error("QRコードの生成に失敗しました");
     });
-  }, [showQr, url]);
+  }, [showQr, url, props.notify]);
 
   const handleFormatChange = useCallback(
     async (value: string): Promise<void> => {

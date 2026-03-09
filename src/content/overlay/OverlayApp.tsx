@@ -97,6 +97,8 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
   // Chat state
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isChatting, setIsChatting] = useState(false);
+  const chatRequestIdRef = useRef(0);
+  const prevPrimaryRef = useRef<string | null>(null);
 
   useEffect(() => {
     let disposed = false;
@@ -196,6 +198,18 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
       observer.disconnect();
     };
   }, [viewModel.open]);
+
+  // [1] Reset chat state when AI result changes to a new context
+  useEffect(() => {
+    if (
+      prevPrimaryRef.current !== null &&
+      prevPrimaryRef.current !== viewModel.primary
+    ) {
+      setChatMessages([]);
+      chatRequestIdRef.current += 1;
+    }
+    prevPrimaryRef.current = viewModel.primary ?? null;
+  }, [viewModel.primary]);
 
   useLayoutEffect(() => {
     const updatePosition = (): void => {
@@ -297,6 +311,7 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
     if (!text.trim() || isChatting) {
       return;
     }
+    const requestId = ++chatRequestIdRef.current;
     const userMessage: ChatMessage = { role: "user", content: text.trim() };
     const nextMessages = [...chatMessages, userMessage];
     setChatMessages(nextMessages);
@@ -309,6 +324,9 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
         context: viewModel.primary,
       })
       .then((response: unknown) => {
+        if (requestId !== chatRequestIdRef.current) {
+          return;
+        }
         const res = response as
           | { ok: boolean; value?: { text: string }; error?: string }
           | undefined;
@@ -328,12 +346,18 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
         }
       })
       .catch(() => {
+        if (requestId !== chatRequestIdRef.current) {
+          return;
+        }
         setChatMessages((prev) => [
           ...prev,
           { role: "assistant", content: "エラー: チャット応答に失敗しました" },
         ]);
       })
       .finally(() => {
+        if (requestId !== chatRequestIdRef.current) {
+          return;
+        }
         setIsChatting(false);
       });
   };

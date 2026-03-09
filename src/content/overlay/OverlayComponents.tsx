@@ -1,5 +1,5 @@
 import { Button } from "@base-ui/react/button";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ChatMessage } from "@/background/runtime_types";
@@ -416,7 +416,6 @@ export function OverlayChatInput(
   props: OverlayChatInputProps
 ): React.JSX.Element {
   const [input, setInput] = useState("");
-  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSend = (): void => {
     const text = input.trim();
@@ -467,7 +466,6 @@ export function OverlayChatInput(
           }}
           onKeyDown={handleKeyDown}
           placeholder="フォローアップの質問を入力（Enter で送信）"
-          ref={inputRef}
           rows={2}
           value={input}
         />

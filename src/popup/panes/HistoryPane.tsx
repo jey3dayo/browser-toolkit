@@ -26,9 +26,13 @@ export function HistoryPane(props: PopupPaneBaseProps): React.JSX.Element {
   }, [props.runtime]);
 
   const clearHistory = async (): Promise<void> => {
-    await props.runtime.storageLocalSet({ actionHistory: [] });
-    setHistory([]);
-    props.notify.success("履歴を削除しました");
+    try {
+      await props.runtime.storageLocalSet({ actionHistory: [] });
+      setHistory([]);
+      props.notify.success("履歴を削除しました");
+    } catch {
+      props.notify.error("履歴の削除に失敗しました");
+    }
   };
 
   const copyEntry = async (text: string): Promise<void> => {
@@ -58,9 +62,7 @@ export function HistoryPane(props: PopupPaneBaseProps): React.JSX.Element {
           <Button
             className="btn btn-ghost btn-small"
             onClick={() => {
-              clearHistory().catch(() => {
-                // no-op
-              });
+              void clearHistory();
             }}
             type="button"
           >
