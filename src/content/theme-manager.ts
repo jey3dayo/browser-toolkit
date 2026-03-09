@@ -8,7 +8,7 @@ import { normalizeTheme } from "@/ui/themeStorage";
 export type ThemeManager = {
   getCurrentTheme: () => Theme;
   refreshThemeFromStorage: () => Promise<void>;
-  handleThemeChange: (newValue: unknown) => void;
+  setupStorageListener: () => void;
 };
 
 export function createThemeManager(
@@ -40,9 +40,19 @@ export function createThemeManager(
     applyThemeToMounts();
   }
 
+  function setupStorageListener(): void {
+    if (chrome.storage?.onChanged) {
+      chrome.storage.onChanged.addListener((changes, areaName) => {
+        if (areaName === "local" && "theme" in changes) {
+          handleThemeChange(changes.theme.newValue);
+        }
+      });
+    }
+  }
+
   return {
     getCurrentTheme: () => currentTheme,
     refreshThemeFromStorage,
-    handleThemeChange,
+    setupStorageListener,
   };
 }

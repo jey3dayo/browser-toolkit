@@ -110,6 +110,7 @@ import { parseNumericValue } from "@/utils/number_parser";
   themeManager.refreshThemeFromStorage().catch(() => {
     // no-op
   });
+  themeManager.setupStorageListener();
 
   // ========================================
   // 4. 通知・クリップボード（モジュール化済み）
@@ -248,7 +249,7 @@ import { parseNumericValue } from "@/utils/number_parser";
   }
 
   // ========================================
-  // 8. 自動実行ロジック（SPA URL変化も含む）
+  // 7. 自動実行ロジック（SPA URL変化も含む）
   // ========================================
 
   const {
@@ -262,13 +263,12 @@ import { parseNumericValue } from "@/utils/number_parser";
         module.resetSummarizeOverlayTitleState();
       }
     },
-    handleThemeChange: themeManager.handleThemeChange,
   });
 
   window.addEventListener("pagehide", stopTableObserver);
 
   // ========================================
-  // 7. メッセージリスナー
+  // 8. メッセージリスナー
   // ========================================
 
   const messageHandlerDeps: MessageHandlerDeps = {

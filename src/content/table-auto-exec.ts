@@ -14,7 +14,6 @@ import type { DomainPatternConfig } from "@/popup/runtime";
 export type TableAutoExecDeps = {
   showNotification: (message: string) => void;
   onContextActionsChange: () => Promise<void>;
-  handleThemeChange: (newValue: unknown) => void;
 };
 
 export type TableAutoExecResult = {
@@ -80,15 +79,6 @@ export function setupTableAutoExec(
     });
   }
 
-  function handleLocalStorageChange(
-    changes: Record<string, chrome.storage.StorageChange>
-  ): void {
-    if (!("theme" in changes)) {
-      return;
-    }
-    deps.handleThemeChange(changes.theme.newValue);
-  }
-
   refreshTableConfigAndMaybeEnable().catch(() => {
     // no-op
   });
@@ -97,11 +87,6 @@ export function setupTableAutoExec(
     chrome.storage.onChanged.addListener((changes, areaName) => {
       if (areaName === "sync") {
         handleSyncStorageChange(changes);
-        return;
-      }
-
-      if (areaName === "local") {
-        handleLocalStorageChange(changes);
       }
     });
   }
