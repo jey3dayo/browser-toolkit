@@ -49,10 +49,6 @@ export async function showNotification(
     const formattedTitle = formatTitle(params.title);
     const formattedMessage = formatMessage(params.message);
 
-    // iconUrlを指定しない場合、manifest.jsonで定義されたアイコンが自動的に使用される
-    // Service Workerからの画像参照が失敗するケースがあるため、明示的な指定を避ける
-
-    // カスタムアイコンが明示的に指定された場合のみ使用
     if (params.iconUrl) {
       await chrome.notifications.create({
         type: "basic",
@@ -62,10 +58,9 @@ export async function showNotification(
         priority: params.priority ?? 1,
       });
     } else {
-      // iconUrlを省略することで、manifest.jsonで定義されたアイコンが使用される
       await chrome.notifications.create({
         type: "basic",
-        iconUrl: "", // 空文字列を指定することでデフォルトアイコンが使用される
+        iconUrl: chrome.runtime.getURL("images/icon128.png"),
         title: formattedTitle,
         message: formattedMessage,
         priority: params.priority ?? 1,
