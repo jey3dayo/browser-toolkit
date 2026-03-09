@@ -190,7 +190,7 @@ describe("popup Settings pane", () => {
     );
     expect(modelSelect).not.toBeNull();
 
-    expect(modelSelect?.textContent).toContain(OPENAI_MODELS.GPT_5_2);
+    expect(modelSelect?.textContent).toContain(OPENAI_MODELS.GPT_5_4);
 
     await act(async () => {
       await selectBaseUiOption(

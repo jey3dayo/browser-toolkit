@@ -2,7 +2,16 @@ import { Button } from "@base-ui/react/button";
 import { Input } from "@base-ui/react/input";
 import { Select } from "@base-ui/react/select";
 import { Result } from "@praha/byethrow";
-import { useCallback, useEffect, useId, useMemo, useState } from "react";
+import QRCode from "qrcode";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { Icon } from "@/components/icon";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { persistWithRollback } from "@/popup/utils/persist";
 import { debugLog } from "@/utils/debug_log";
@@ -23,6 +32,8 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
   const [format, setFormat] = useState<LinkFormat>("markdown");
+  const [showQr, setShowQr] = useState(false);
+  const qrCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const titleInputId = useId();
   const urlInputId = useId();
@@ -114,6 +125,21 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
     };
   }, [props.initialFormat, props.runtime]);
 
+  useEffect(() => {
+    const canvas = qrCanvasRef.current;
+    if (!canvas) {
+      return;
+    }
+    if (!(showQr && url.trim())) {
+      const ctx = canvas.getContext("2d");
+      ctx?.clearRect(0, 0, canvas.width, canvas.height);
+      return;
+    }
+    QRCode.toCanvas(canvas, url.trim(), { width: 200, margin: 2 }).catch(() => {
+      props.notify.error("QRコードの生成に失敗しました");
+    });
+  }, [showQr, url, props.notify]);
+
   const handleFormatChange = useCallback(
     async (value: string): Promise<void> => {
       const next = coerceLinkFormat(value);
@@ -163,6 +189,18 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
       <div className="row-between">
         <h2 className="pane-title">リンク作成</h2>
         <div className="button-row">
+          <Button
+            className="btn btn-ghost btn-small"
+            data-testid="create-link-qr"
+            disabled={!url.trim()}
+            onClick={() => {
+              setShowQr((prev) => !prev);
+            }}
+            title="QRコード"
+            type="button"
+          >
+            <Icon aria-hidden="true" name="qr-code" size={16} />
+          </Button>
           <Button
             className="btn btn-primary btn-small"
             data-testid="create-link-copy"
@@ -261,6 +299,15 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
           </Select.Root>
         </div>
       </div>
+
+      {showQr ? (
+        <section className="output-panel">
+          <div className="meta-title">QRコード</div>
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <canvas ref={qrCanvasRef} />
+          </div>
+        </section>
+      ) : null}
 
       <section className="output-panel">
         <div className="row-between">

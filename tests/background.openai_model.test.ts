@@ -24,7 +24,7 @@ describe("background: OpenAI model selection", () => {
           items.openaiCustomPrompt = "";
         }
         if (keyList.includes("openaiModel")) {
-          items.openaiModel = OPENAI_MODELS.GPT_5_2;
+          items.openaiModel = OPENAI_MODELS.GPT_5_4;
         }
         callback(items);
       }
@@ -74,6 +74,6 @@ describe("background: OpenAI model selection", () => {
     );
 
     await flush(setTimeout, 6);
-    expect(capturedModel).toBe(OPENAI_MODELS.GPT_5_2);
+    expect(capturedModel).toBe(OPENAI_MODELS.GPT_5_4);
   });
 });

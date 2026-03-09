@@ -1,6 +1,13 @@
 import type { Theme } from "@/ui/theme";
 import type { LinkFormat } from "@/utils/link_format";
 
+export type ActionHistoryEntry = {
+  id: string;
+  actionTitle: string;
+  text: string;
+  createdAt: number;
+};
+
 export type CopyTitleLinkFailure = {
   occurredAt: number;
   tabId: number;
@@ -27,4 +34,5 @@ export type LocalStorageData = {
   theme?: Theme;
   lastCopyTitleLinkFailure?: CopyTitleLinkFailure;
   debugMode?: boolean;
+  actionHistory?: ActionHistoryEntry[];
 };

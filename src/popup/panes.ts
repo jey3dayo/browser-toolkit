@@ -6,6 +6,7 @@ export const PANE_IDS = [
   "pane-search-engines",
   "pane-search-groups",
   "pane-templates",
+  "pane-history",
   "pane-debug",
   "pane-settings",
 ] as const;

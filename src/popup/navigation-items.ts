@@ -52,6 +52,12 @@ export const navigationItems: NavigationItem[] = [
     ariaLabel: "テンプレート",
   },
   {
+    id: "pane-history",
+    label: "履歴",
+    icon: "clock",
+    ariaLabel: "アクション履歴",
+  },
+  {
     id: "pane-debug",
     label: "デバッグ",
     icon: "bug",

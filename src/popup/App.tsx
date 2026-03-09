@@ -9,6 +9,7 @@ import { ActionsPane } from "@/popup/panes/ActionsPane";
 import { CalendarPane } from "@/popup/panes/CalendarPane";
 import { CreateLinkPane } from "@/popup/panes/CreateLinkPane";
 import { DebugPane } from "@/popup/panes/DebugPane";
+import { HistoryPane } from "@/popup/panes/HistoryPane";
 import { SearchEnginesPane } from "@/popup/panes/SearchEnginesPane";
 import { SearchGroupsPane } from "@/popup/panes/SearchGroupsPane";
 import { SettingsPane } from "@/popup/panes/SettingsPane";
@@ -176,6 +177,9 @@ export function PopupApp(): React.JSX.Element {
             </Tabs.Panel>
             <Tabs.Panel data-pane="pane-templates" value="pane-templates">
               <TemplatesPane notify={notifications.notify} runtime={runtime} />
+            </Tabs.Panel>
+            <Tabs.Panel data-pane="pane-history" value="pane-history">
+              <HistoryPane notify={notifications.notify} runtime={runtime} />
             </Tabs.Panel>
             <Tabs.Panel data-pane="pane-debug" value="pane-debug">
               <DebugPane notify={notifications.notify} runtime={runtime} />

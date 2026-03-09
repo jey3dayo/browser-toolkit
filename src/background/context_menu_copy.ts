@@ -68,11 +68,12 @@ async function loadLinkFormatPreference(): Promise<LinkFormat> {
 }
 
 export async function handleCopyTitleLinkContextMenuClick(
-  params: ContextMenuTabParams
+  params: ContextMenuTabParams,
+  formatOverride?: LinkFormat
 ): Promise<void> {
   const title = params.tab?.title?.trim() ?? "";
   const url = params.tab?.url?.trim() ?? "";
-  const format = await loadLinkFormatPreference();
+  const format = formatOverride ?? (await loadLinkFormatPreference());
   const formatted = formatLink({ title, url }, format);
   const fallback = title && url ? `${title}\n${url}` : url || title;
   const text = formatted || fallback;

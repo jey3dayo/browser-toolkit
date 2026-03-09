@@ -27,8 +27,10 @@ import {
   CONTEXT_MENU_BATCH_SEARCH_PREFIX,
   CONTEXT_MENU_BUILTIN_SEPARATOR_ID,
   CONTEXT_MENU_CALENDAR_ID,
+  CONTEXT_MENU_COPY_LINK_PREFIX,
   CONTEXT_MENU_COPY_TITLE_LINK_ID,
   CONTEXT_MENU_CUSTOM_SEPARATOR_ID,
+  CONTEXT_MENU_QR_CODE_ID,
   CONTEXT_MENU_ROOT_ID,
   CONTEXT_MENU_SEARCH_PARENT_ID,
   CONTEXT_MENU_SEARCH_PREFIX,
@@ -37,6 +39,7 @@ import {
   CONTEXT_MENU_TEMPLATE_PREFIX,
   CONTEXT_MENU_TEMPLATE_ROOT_ID,
 } from "@/background/context_menu_ids";
+import { handleQrCodeContextMenuClick } from "@/background/context_menu_qrcode";
 import {
   ensureContextActionsInitialized,
   ensureSearchEngineGroupsInitialized,
@@ -45,8 +48,47 @@ import {
 } from "@/background/context_menu_storage";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
+import {
+  CONTEXT_MENU_LINK_FORMATS,
+  coerceLinkFormat,
+  LINK_FORMAT_OPTIONS,
+} from "@/utils/link_format";
 
 let contextMenuRefreshQueue: Promise<void> = Promise.resolve();
+
+/**
+ * Exact-match menu items ハンドラー。処理した場合 true を返す。
+ */
+function handleExactMenuItemClick(
+  menuItemId: string,
+  tabId: number,
+  tab: chrome.tabs.Tab | undefined,
+  info: chrome.contextMenus.OnClickData
+): boolean {
+  if (menuItemId === CONTEXT_MENU_QR_CODE_ID) {
+    handleQrCodeContextMenuClick({ tabId, tab }).catch(() => {
+      // no-op
+    });
+    return true;
+  }
+  if (menuItemId === CONTEXT_MENU_CALENDAR_ID) {
+    handleCalendarContextMenuClick({ tabId, info, tab }).catch(() => {
+      // no-op
+    });
+    return true;
+  }
+  if (menuItemId === CONTEXT_MENU_SETTINGS_ID) {
+    chrome.tabs
+      .create({
+        url: chrome.runtime.getURL("popup.html#pane-settings"),
+      })
+      .catch(() => {
+        // no-op
+      });
+    return true;
+  }
+  return false;
+}
 
 /**
  * Registers click handlers for all context menu items.
@@ -66,28 +108,18 @@ export function registerContextMenuHandlers(): void {
 
       const menuItemId = info.menuItemId;
 
-      if (menuItemId === CONTEXT_MENU_COPY_TITLE_LINK_ID) {
-        handleCopyTitleLinkContextMenuClick({ tabId, tab }).catch(() => {
-          // no-op
-        });
-        return;
-      }
-
-      if (menuItemId === CONTEXT_MENU_CALENDAR_ID) {
-        handleCalendarContextMenuClick({ tabId, info, tab }).catch(() => {
-          // no-op
-        });
-        return;
-      }
-
-      if (menuItemId === CONTEXT_MENU_SETTINGS_ID) {
-        chrome.tabs
-          .create({
-            url: chrome.runtime.getURL("popup.html#pane-settings"),
-          })
-          .catch(() => {
+      if (menuItemId.startsWith(CONTEXT_MENU_COPY_LINK_PREFIX)) {
+        const formatId = menuItemId.slice(CONTEXT_MENU_COPY_LINK_PREFIX.length);
+        const format = coerceLinkFormat(formatId) ?? undefined;
+        handleCopyTitleLinkContextMenuClick({ tabId, tab }, format).catch(
+          () => {
             // no-op
-          });
+          }
+        );
+        return;
+      }
+
+      if (handleExactMenuItemClick(menuItemId, tabId, tab, info)) {
         return;
       }
 
@@ -252,6 +284,24 @@ export async function refreshContextMenus(): Promise<void> {
       id: CONTEXT_MENU_COPY_TITLE_LINK_ID,
       parentId: CONTEXT_MENU_ROOT_ID,
       title: "タイトルとリンクをコピー",
+      contexts: ["page", "selection", "editable"],
+    });
+
+    for (const format of CONTEXT_MENU_LINK_FORMATS) {
+      const option = LINK_FORMAT_OPTIONS.find((o) => o.value === format);
+      const label = option?.label ?? format;
+      await createMenuItem({
+        id: `${CONTEXT_MENU_COPY_LINK_PREFIX}${format}`,
+        parentId: CONTEXT_MENU_COPY_TITLE_LINK_ID,
+        title: label,
+        contexts: ["page", "selection", "editable"],
+      });
+    }
+
+    await createMenuItem({
+      id: CONTEXT_MENU_QR_CODE_ID,
+      parentId: CONTEXT_MENU_ROOT_ID,
+      title: "QRコードを表示",
       contexts: ["page", "selection", "editable"],
     });
 

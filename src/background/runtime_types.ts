@@ -7,6 +7,19 @@ import type {
   SummaryTarget,
 } from "@/background/types";
 
+export type ChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
+export type ChatFollowUpRequest = {
+  action: "chatFollowUp";
+  messages: ChatMessage[];
+  context: string;
+};
+
+export type ChatFollowUpResponse = Result.Result<{ text: string }, string>;
+
 export type RuntimeRequest =
   | BackgroundRequest
   | { action: "summarizeText"; target: SummaryTarget }
@@ -16,7 +29,8 @@ export type RuntimeRequest =
   | { action: "downloadDebugLogs" }
   | { action: "clearDebugLogs" }
   | { action: "getDebugLogStats" }
-  | { action: "getDebugLogs" };
+  | { action: "getDebugLogs" }
+  | ChatFollowUpRequest;
 
 export type TestOpenAiTokenResponse = Result.Result<
   Record<string, never>,
@@ -38,6 +52,7 @@ type RuntimeResponse =
   | TestOpenAiTokenResponse
   | DownloadDebugLogsResponse
   | ClearDebugLogsResponse
+  | ChatFollowUpResponse
   | { ok: true }
   | { ok: false; error: string }
   | {

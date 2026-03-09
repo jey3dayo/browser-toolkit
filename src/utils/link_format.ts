@@ -23,6 +23,13 @@ export function coerceLinkFormat(value: unknown): LinkFormat | null {
   return LINK_FORMAT_SET.has(value) ? (value as LinkFormat) : null;
 }
 
+export const CONTEXT_MENU_LINK_FORMATS: readonly LinkFormat[] = [
+  "url",
+  "text",
+  "markdown",
+  "html",
+];
+
 export const LINK_FORMAT_OPTIONS: ReadonlyArray<{
   value: LinkFormat;
   label: string;

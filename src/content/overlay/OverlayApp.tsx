@@ -1,3 +1,4 @@
+import { Result } from "@praha/byethrow";
 import {
   useEffect,
   useId,
@@ -6,6 +7,10 @@ import {
   useRef,
   useState,
 } from "react";
+import type {
+  ChatFollowUpResponse,
+  ChatMessage,
+} from "@/background/runtime_types";
 import type { ExtractedEvent, SummarySource } from "@/shared_types";
 import { applyTheme, type Theme } from "@/ui/theme";
 import { nextTheme } from "@/ui/themeCycle";
@@ -16,7 +21,11 @@ import {
   themeFromHost,
 } from "@/ui/themeStorage";
 import { createNotifications, ToastHost } from "@/ui/toast";
-import { OverlayBody, OverlayHeaderActions } from "./OverlayComponents";
+import {
+  OverlayBody,
+  OverlayChatInput,
+  OverlayHeaderActions,
+} from "./OverlayComponents";
 import {
   copyTextToClipboard,
   downloadIcsFile,
@@ -88,6 +97,12 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
   const [pinnedPos, setPinnedPos] = useState<Point | null>(null);
   const [dragging, setDragging] = useState(false);
   const dragOffsetRef = useRef<DragOffset | null>(null);
+
+  // Chat state
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [isChatting, setIsChatting] = useState(false);
+  const chatRequestIdRef = useRef(0);
+  const prevPrimaryRef = useRef<string | null>(null);
 
   useEffect(() => {
     let disposed = false;
@@ -188,6 +203,19 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
     };
   }, [viewModel.open]);
 
+  // [1] Reset chat state when AI result changes to a new context
+  useEffect(() => {
+    if (
+      prevPrimaryRef.current !== null &&
+      prevPrimaryRef.current !== viewModel.primary
+    ) {
+      setChatMessages([]);
+      setIsChatting(false);
+      chatRequestIdRef.current += 1;
+    }
+    prevPrimaryRef.current = viewModel.primary ?? null;
+  }, [viewModel.primary]);
+
   useLayoutEffect(() => {
     const updatePosition = (): void => {
       positionOverlayHost({
@@ -284,6 +312,60 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
     setMarkdownView((current) => !current);
   };
 
+  const handleChatSend = (text: string): void => {
+    if (!text.trim() || isChatting) {
+      return;
+    }
+    const requestId = ++chatRequestIdRef.current;
+    const userMessage: ChatMessage = { role: "user", content: text.trim() };
+    const nextMessages = [...chatMessages, userMessage];
+    setChatMessages(nextMessages);
+    setIsChatting(true);
+
+    chrome.runtime
+      .sendMessage({
+        action: "chatFollowUp",
+        messages: nextMessages,
+        context: viewModel.primary,
+      })
+      .then((response: unknown) => {
+        if (requestId !== chatRequestIdRef.current) {
+          return;
+        }
+        const res = response as ChatFollowUpResponse | undefined;
+        if (res && Result.isSuccess(res) && res.value.text) {
+          setChatMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: res.value.text },
+          ]);
+        } else {
+          const errorMsg =
+            res && Result.isFailure(res)
+              ? res.error
+              : "応答の取得に失敗しました";
+          setChatMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: `エラー: ${errorMsg}` },
+          ]);
+        }
+      })
+      .catch(() => {
+        if (requestId !== chatRequestIdRef.current) {
+          return;
+        }
+        setChatMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: "エラー: チャット応答に失敗しました" },
+        ]);
+      })
+      .finally(() => {
+        if (requestId !== chatRequestIdRef.current) {
+          return;
+        }
+        setIsChatting(false);
+      });
+  };
+
   const sourceLabel = sourceLabelFromSource(viewModel.source);
   const statusLabel = statusLabelFromStatus(viewModel.status);
   const { selectionText, secondaryText } = deriveSecondaryText(
@@ -294,6 +376,7 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
   const canOpenCalendar = canOpenCalendarFromViewModel(viewModel);
   const canDownloadIcs = canDownloadIcsFromViewModel(viewModel);
   const showMarkdownToggle = viewModel.mode === "text";
+  const showChat = viewModel.mode === "text" && viewModel.status === "ready";
 
   return (
     <div className="mbu-overlay-surface">
@@ -349,6 +432,14 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
           status={viewModel.status}
           statusLabel={statusLabel}
         />
+
+        {showChat ? (
+          <OverlayChatInput
+            chatMessages={chatMessages}
+            isChatting={isChatting}
+            onSend={handleChatSend}
+          />
+        ) : null}
       </div>
     </div>
   );

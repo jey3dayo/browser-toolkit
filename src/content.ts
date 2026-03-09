@@ -53,6 +53,7 @@ import { parseNumericValue } from "@/utils/number_parser";
 
   type NotificationModule = typeof import("./content/notification");
   type OverlayModule = typeof import("./content/overlay-helpers");
+  type QrCodeOverlayModule = typeof import("./content/qrcode-overlay");
 
   type GlobalContentState = {
     initialized: boolean;
@@ -77,6 +78,8 @@ import { parseNumericValue } from "@/utils/number_parser";
   let notificationModulePromise: Promise<NotificationModule> | null = null;
   let overlayModule: OverlayModule | null = null;
   let overlayModulePromise: Promise<OverlayModule> | null = null;
+  let qrCodeOverlayModule: QrCodeOverlayModule | null = null;
+  let qrCodeOverlayModulePromise: Promise<QrCodeOverlayModule> | null = null;
 
   function unwrapModule<T>(module: T | { default: T }): T {
     if (module && typeof module === "object" && "default" in module) {
@@ -113,6 +116,22 @@ import { parseNumericValue } from "@/utils/number_parser";
       return overlayModule;
     } catch (_error) {
       overlayModulePromise = null;
+      return null;
+    }
+  }
+
+  async function loadQrCodeOverlayModule(): Promise<QrCodeOverlayModule | null> {
+    if (qrCodeOverlayModule) {
+      return qrCodeOverlayModule;
+    }
+    if (!qrCodeOverlayModulePromise) {
+      qrCodeOverlayModulePromise = import("./content/qrcode-overlay");
+    }
+    try {
+      qrCodeOverlayModule = unwrapModule(await qrCodeOverlayModulePromise);
+      return qrCodeOverlayModule;
+    } catch (_error) {
+      qrCodeOverlayModulePromise = null;
       return null;
     }
   }
@@ -358,6 +377,21 @@ import { parseNumericValue } from "@/utils/number_parser";
     });
   }
 
+  function showQrCodeOverlay(url: string): void {
+    (async () => {
+      if (!supportsHtmlDocument) {
+        return;
+      }
+      const module = await loadQrCodeOverlayModule();
+      if (!module) {
+        return;
+      }
+      module.showQrCodeOverlay(url, currentTheme);
+    })().catch(() => {
+      // no-op
+    });
+  }
+
   // ========================================
   // 6.5. Template Paste Helpers (移動済み)
   // ========================================
@@ -374,6 +408,7 @@ import { parseNumericValue } from "@/utils/number_parser";
     getOrCreateToastMount,
     showActionOverlay,
     showSummaryOverlay,
+    showQrCodeOverlay,
   };
 
   chrome.runtime.onMessage.addListener(

@@ -1,6 +1,8 @@
 import { Button } from "@base-ui/react/button";
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import type { ChatMessage } from "@/background/runtime_types";
 import { AuxTextDisclosure } from "@/components/AuxTextDisclosure";
 import { Icon } from "@/components/icon";
 import { ThemeCycleButton } from "@/components/ThemeCycleButton";
@@ -397,6 +399,85 @@ export function OverlayHeaderActions(
           ×
         </Button>
       </OverlayPopover>
+    </div>
+  );
+}
+
+/**
+ * Chat input component for inline follow-up questions
+ */
+export type OverlayChatInputProps = {
+  chatMessages: ChatMessage[];
+  isChatting: boolean;
+  onSend: (text: string) => void;
+};
+
+export function OverlayChatInput(
+  props: OverlayChatInputProps
+): React.JSX.Element {
+  const [input, setInput] = useState("");
+
+  const handleSend = (): void => {
+    const text = input.trim();
+    if (!text || props.isChatting) {
+      return;
+    }
+    props.onSend(text);
+    setInput("");
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>): void => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  return (
+    <div className="mbu-overlay-chat">
+      {props.chatMessages.length > 0 ? (
+        <div className="mbu-overlay-chat-messages">
+          {props.chatMessages.map((msg, i) => (
+            <div
+              className={`mbu-overlay-chat-message mbu-overlay-chat-message--${msg.role}`}
+              // biome-ignore lint/suspicious/noArrayIndexKey: chat messages are append-only
+              key={i}
+            >
+              <span className="mbu-overlay-chat-role">
+                {msg.role === "user" ? "あなた" : "AI"}
+              </span>
+              <pre className="mbu-overlay-chat-text">{msg.content}</pre>
+            </div>
+          ))}
+          {props.isChatting ? (
+            <div className="mbu-overlay-chat-message mbu-overlay-chat-message--assistant">
+              <span className="mbu-overlay-chat-role">AI</span>
+              <span className="mbu-overlay-status">考え中...</span>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+      <div className="mbu-overlay-chat-input-row">
+        <textarea
+          className="mbu-overlay-chat-input"
+          disabled={props.isChatting}
+          onChange={(e) => {
+            setInput(e.target.value);
+          }}
+          onKeyDown={handleKeyDown}
+          placeholder="フォローアップの質問を入力（Enter で送信）"
+          rows={2}
+          value={input}
+        />
+        <Button
+          className="mbu-overlay-action"
+          disabled={!input.trim() || props.isChatting}
+          onClick={handleSend}
+          type="button"
+        >
+          <Icon aria-hidden="true" name="message-square" size={16} />
+        </Button>
+      </div>
     </div>
   );
 }

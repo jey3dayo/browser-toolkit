@@ -8,7 +8,7 @@ import {
 import type { LocalStorageData } from "@/storage/types";
 import { toErrorMessage } from "@/utils/errors";
 
-export const DEFAULT_OPENAI_MODEL = OPENAI_MODELS.GPT_5_2;
+export const DEFAULT_OPENAI_MODEL = OPENAI_MODELS.GPT_5_4;
 export const OPENAI_MODEL_OPTIONS = OPENAI_MODEL_OPTIONS_SCHEMA;
 export type OpenAiModelOption = OpenAiModelOptionSchema;
 

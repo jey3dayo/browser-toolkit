@@ -1,6 +1,7 @@
 export const CONTEXT_MENU_ROOT_ID = "mbu-root";
 export const CONTEXT_MENU_ACTION_PREFIX = "mbu-action:";
 export const CONTEXT_MENU_COPY_TITLE_LINK_ID = "mbu-copy-title-link";
+export const CONTEXT_MENU_COPY_LINK_PREFIX = "mbu-copy-link:";
 export const CONTEXT_MENU_CALENDAR_ID = "mbu-calendar-register";
 export const CONTEXT_MENU_SEARCH_PARENT_ID = "mbu-search-parent";
 export const CONTEXT_MENU_SEARCH_PREFIX = "mbu-search:";
@@ -12,4 +13,5 @@ export const CONTEXT_MENU_CUSTOM_SEPARATOR_ID = "mbu-separator:custom";
 export const CONTEXT_MENU_TEMPLATE_ROOT_ID = "mbu-template-root";
 export const CONTEXT_MENU_TEMPLATE_PREFIX = "mbu-template:";
 export const CONTEXT_MENU_TEMPLATE_SEPARATOR_ID = "mbu-separator:template";
+export const CONTEXT_MENU_QR_CODE_ID = "mbu-qr-code";
 export const CONTEXT_MENU_SETTINGS_ID = "mbu-settings";

@@ -11,6 +11,7 @@ import {
   type PreparedAiInput,
   prepareAiInput,
 } from "@/background/openai_common";
+import type { ChatMessage } from "@/background/runtime_types";
 import { storageLocalGetTyped } from "@/background/storage";
 import type { BackgroundResponse, SummaryTarget } from "@/background/types";
 import { ExtractedEventSchema } from "@/schemas/extracted_event";
@@ -302,4 +303,61 @@ export async function extractEventWithOpenAI(
   }
 
   return Result.succeed(normalizeEvent(eventResult.output));
+}
+
+export async function chatFollowUpWithOpenAI(
+  messages: ChatMessage[],
+  context: string
+): Promise<Result.Result<string, string>> {
+  const storage = await storageLocalGetTyped([
+    "aiProvider",
+    "aiModel",
+    "aiCustomPrompt",
+    "openaiApiToken",
+    "anthropicApiToken",
+    "zaiApiToken",
+    "openaiModel",
+    "openaiCustomPrompt",
+  ]);
+  const settingsResult = loadAiSettings(storage);
+  if (Result.isFailure(settingsResult)) {
+    return Result.fail(settingsResult.error);
+  }
+  const settings = settingsResult.value;
+
+  const systemContent = buildSystemMessage(
+    "あなたはユーザーのアシスタントです。ページのコンテキストをもとに、フォローアップの質問に答えてください。",
+    settings.customPrompt
+  );
+
+  const MAX_CHAT_TURNS = 20;
+  const body: ChatRequestBody = {
+    model: settings.model,
+    temperature: 0.2,
+    messages: [
+      { role: "system", content: systemContent },
+      ...(context.trim()
+        ? [
+            {
+              role: "user" as const,
+              content: `以下がページのコンテキストです:\n\n${clipInputText(context)}`,
+            },
+            {
+              role: "assistant" as const,
+              content: "了解しました。質問があればどうぞ。",
+            },
+          ]
+        : []),
+      ...messages.slice(-MAX_CHAT_TURNS),
+    ],
+  };
+
+  const adapter = getAdapter(settings.provider);
+  return await fetchChatCompletionText(
+    fetch,
+    adapter,
+    settings.token,
+    body,
+    "チャット応答の取得に失敗しました"
+  );
 }

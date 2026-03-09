@@ -5,9 +5,9 @@
 /* Overlay panel */
 .mbu-overlay-panel {
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto 1fr auto;
   width: min(520px, calc(100vw - 32px));
-  max-height: min(60vh, 720px);
+  max-height: min(70vh, 800px);
   overflow: hidden;
   color: var(--mbu-text);
   background: var(--mbu-surface);
@@ -247,4 +247,76 @@
   gap: 8px;
   align-items: center;
   justify-content: flex-end;
+}
+
+/* Chat section */
+.mbu-overlay-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  background: color-mix(in oklab, var(--mbu-surface-2) 40%, transparent);
+  border-top: 1px solid var(--mbu-border);
+}
+
+.mbu-overlay-chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.mbu-overlay-chat-message {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mbu-overlay-chat-role {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--mbu-text-muted);
+}
+
+.mbu-overlay-chat-message--user .mbu-overlay-chat-role {
+  color: var(--mbu-accent);
+}
+
+.mbu-overlay-chat-text {
+  margin: 0;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--mbu-text);
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.mbu-overlay-chat-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.mbu-overlay-chat-input {
+  flex: 1;
+  padding: 6px 10px;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--mbu-text);
+  resize: none;
+  outline: none;
+  background: var(--mbu-surface);
+  border: 1px solid var(--mbu-border);
+  border-radius: 8px;
+}
+
+.mbu-overlay-chat-input:focus {
+  border-color: color-mix(in oklab, var(--mbu-accent) 60%, var(--mbu-border));
+}
+
+.mbu-overlay-chat-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }

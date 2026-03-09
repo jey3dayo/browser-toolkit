@@ -9,8 +9,8 @@ describe("openai/settings", () => {
     expect(normalizeOpenAiModel("")).toBe(DEFAULT_OPENAI_MODEL);
     expect(normalizeOpenAiModel("  ")).toBe(DEFAULT_OPENAI_MODEL);
     expect(normalizeOpenAiModel("gpt-custom")).toBe(DEFAULT_OPENAI_MODEL);
-    expect(normalizeOpenAiModel(OPENAI_MODELS.GPT_5_2)).toBe(
-      OPENAI_MODELS.GPT_5_2
+    expect(normalizeOpenAiModel(OPENAI_MODELS.GPT_5_4)).toBe(
+      OPENAI_MODELS.GPT_5_4
     );
     expect(normalizeOpenAiModel(`  ${OPENAI_MODELS.GPT_4O_MINI}  `)).toBe(
       OPENAI_MODELS.GPT_4O_MINI
@@ -18,7 +18,8 @@ describe("openai/settings", () => {
   });
 
   it("migrates deprecated models to their replacements", () => {
-    expect(normalizeOpenAiModel("gpt-5.1")).toBe(OPENAI_MODELS.GPT_5_2);
+    expect(normalizeOpenAiModel("gpt-5.2")).toBe(OPENAI_MODELS.GPT_5_4);
+    expect(normalizeOpenAiModel("gpt-5.1")).toBe(OPENAI_MODELS.GPT_5_4);
     expect(normalizeOpenAiModel("gpt-4o")).toBe(OPENAI_MODELS.GPT_4O_MINI);
   });
 });
