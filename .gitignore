@@ -6,6 +6,7 @@ npm-debug.log*
 .env
 
 *storybook.log
+btop.log
 storybook-static
 .grepai/
 

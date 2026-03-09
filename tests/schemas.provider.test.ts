@@ -35,8 +35,8 @@ describe("schemas/provider", () => {
 
   describe("normalizeAiModel", () => {
     it("returns the value if it is a valid model for the provider", () => {
-      expect(normalizeAiModel("openai", OPENAI_MODELS.GPT_5_2)).toBe(
-        OPENAI_MODELS.GPT_5_2
+      expect(normalizeAiModel("openai", OPENAI_MODELS.GPT_5_4)).toBe(
+        OPENAI_MODELS.GPT_5_4
       );
       expect(normalizeAiModel("openai", OPENAI_MODELS.GPT_4O_MINI)).toBe(
         OPENAI_MODELS.GPT_4O_MINI
@@ -50,7 +50,7 @@ describe("schemas/provider", () => {
     });
 
     it("returns the default model if value is undefined", () => {
-      expect(normalizeAiModel("openai", undefined)).toBe(OPENAI_MODELS.GPT_5_2);
+      expect(normalizeAiModel("openai", undefined)).toBe(OPENAI_MODELS.GPT_5_4);
       expect(normalizeAiModel("anthropic", undefined)).toBe(
         ANTHROPIC_MODELS.CLAUDE_SONNET_4_5
       );
@@ -59,7 +59,7 @@ describe("schemas/provider", () => {
 
     it("returns the default model if value is invalid for the provider", () => {
       expect(normalizeAiModel("openai", "invalid-model")).toBe(
-        OPENAI_MODELS.GPT_5_2
+        OPENAI_MODELS.GPT_5_4
       );
       expect(normalizeAiModel("anthropic", "gpt-4")).toBe(
         ANTHROPIC_MODELS.CLAUDE_SONNET_4_5
@@ -68,7 +68,7 @@ describe("schemas/provider", () => {
     });
 
     it("maps deprecated openai model ids to supported ones", () => {
-      expect(normalizeAiModel("openai", "gpt-5.1")).toBe(OPENAI_MODELS.GPT_5_2);
+      expect(normalizeAiModel("openai", "gpt-5.1")).toBe(OPENAI_MODELS.GPT_5_4);
       expect(normalizeAiModel("openai", OPENAI_MODELS.GPT_4O)).toBe(
         OPENAI_MODELS.GPT_4O_MINI
       );

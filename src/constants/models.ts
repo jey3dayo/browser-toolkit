@@ -8,6 +8,8 @@
  * OpenAI モデル定数
  */
 export const OPENAI_MODELS = {
+  GPT_5_4: "gpt-5.4",
+  GPT_5_4_DATED: "gpt-5.4-2026-03-05",
   GPT_5_2: "gpt-5.2",
   GPT_5_MINI: "gpt-5-mini",
   GPT_5_NANO: "gpt-5-nano",
@@ -42,7 +44,7 @@ export const ZAI_MODELS = {
  * 非推奨モデル（gpt-4o）は除外
  */
 export const OPENAI_MODEL_LIST = Object.values(OPENAI_MODELS).filter(
-  (model) => model !== "gpt-4o"
+  (model) => model !== "gpt-4o" && model !== "gpt-5.2"
 );
 
 /**

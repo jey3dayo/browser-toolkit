@@ -6,7 +6,8 @@ export const OPENAI_MODEL_OPTIONS = OPENAI_MODEL_LIST;
 export type OpenAiModelOption = (typeof OPENAI_MODEL_OPTIONS)[number];
 
 const DEPRECATED_MODEL_MAP: Record<string, OpenAiModelOption> = {
-  "gpt-5.1": OPENAI_MODELS.GPT_5_2,
+  "gpt-5.2": OPENAI_MODELS.GPT_5_4,
+  "gpt-5.1": OPENAI_MODELS.GPT_5_4,
   "gpt-4o": OPENAI_MODELS.GPT_4O_MINI,
 };
 

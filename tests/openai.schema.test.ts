@@ -15,7 +15,8 @@ describe("schemas/openai", () => {
 
   it("migrates deprecated models", () => {
     const legacyModels = [
-      { input: "gpt-5.1", expected: OPENAI_MODELS.GPT_5_2 },
+      { input: "gpt-5.2", expected: OPENAI_MODELS.GPT_5_4 },
+      { input: "gpt-5.1", expected: OPENAI_MODELS.GPT_5_4 },
       { input: "gpt-4o", expected: OPENAI_MODELS.GPT_4O_MINI },
     ];
 

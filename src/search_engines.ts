@@ -12,6 +12,12 @@ export const DEFAULT_SEARCH_ENGINES: SearchEngine[] = [
     enabled: true,
   },
   {
+    id: "builtin:duckduckgo",
+    name: "DuckDuckGo",
+    urlTemplate: "https://duckduckgo.com/?q={query}",
+    enabled: true,
+  },
+  {
     id: "builtin:x-twitter",
     name: "X（日本語）",
     urlTemplate:
