@@ -70,7 +70,12 @@ function watchStyles() {
 }
 
 const buildOptions = {
-  entryPoints: ["src/background.ts", "src/content.ts", "src/popup.ts"],
+  entryPoints: [
+    "src/background.ts",
+    "src/content.ts",
+    "src/popup.ts",
+    "src/focus-override.ts",
+  ],
   bundle: true,
   format: "iife",
   platform: "browser",

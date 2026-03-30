@@ -16,9 +16,9 @@ test.describe("Table Sort Feature", () => {
     const popupPage = await page.context().newPage();
     await popupPage.goto(`chrome-extension://${extensionId}/popup.html`);
 
-    // Navigate to Table Sort pane
-    await popupPage.click('button[aria-label="テーブルソート"]');
-    await popupPage.waitForSelector("text=テーブルソート");
+    // Navigate to site-specific features pane
+    await popupPage.click('button[aria-label="サイト別機能"]');
+    await popupPage.waitForSelector("text=サイト別機能");
 
     // Enable for current tab
     await popupPage.click("text=このタブで有効化");
@@ -66,8 +66,8 @@ test.describe("Table Sort Feature", () => {
     // Enable table sort globally
     const popupPage = await page.context().newPage();
     await popupPage.goto(`chrome-extension://${extensionId}/popup.html`);
-    await popupPage.click('button[aria-label="テーブルソート"]');
-    await popupPage.waitForSelector("text=テーブルソート");
+    await popupPage.click('button[aria-label="サイト別機能"]');
+    await popupPage.waitForSelector("text=サイト別機能");
 
     // Enable global flag
     const globalToggle = popupPage.locator(

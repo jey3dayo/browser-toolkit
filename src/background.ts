@@ -5,6 +5,7 @@ import {
   registerContextMenuHandlers,
   scheduleRefreshContextMenus,
 } from "@/background/context_menu_registry";
+import { syncFocusOverrideContentScript } from "@/background/focus_override_registration";
 import { registerRuntimeMessageHandlers } from "@/background/runtime";
 import { runMigrations } from "@/storage/migrations";
 import { debugLog } from "@/utils/debug_log";
@@ -34,6 +35,9 @@ chrome.runtime.onInstalled.addListener((details) => {
   }
 
   scheduleRefreshContextMenus();
+  syncFocusOverrideContentScript().catch(() => {
+    // no-op
+  });
 });
 
 chrome.runtime.onStartup.addListener(() => {
@@ -41,34 +45,44 @@ chrome.runtime.onStartup.addListener(() => {
     // no-op
   });
   scheduleRefreshContextMenus();
+  syncFocusOverrideContentScript().catch(() => {
+    // no-op
+  });
 });
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
   if (areaName !== "sync") {
     return;
   }
-  if (
-    !(
-      "contextActions" in changes ||
-      "searchEngines" in changes ||
-      "searchEngineGroups" in changes ||
-      "textTemplates" in changes
-    )
-  ) {
-    return;
+
+  const hasMenuConfigChange =
+    "contextActions" in changes ||
+    "searchEngines" in changes ||
+    "searchEngineGroups" in changes ||
+    "textTemplates" in changes;
+  if (hasMenuConfigChange) {
+    debugLog("background", "storage changed, refreshing menus", {
+      changes,
+    }).catch(() => {
+      // no-op
+    });
+    scheduleRefreshContextMenus();
   }
-  debugLog("background", "storage changed, refreshing menus", {
-    changes,
-  }).catch(() => {
-    // no-op
-  });
-  scheduleRefreshContextMenus();
+
+  if ("focusOverridePatterns" in changes) {
+    syncFocusOverrideContentScript().catch(() => {
+      // no-op
+    });
+  }
 });
 
 registerContextMenuHandlers();
 registerRuntimeMessageHandlers();
 
 scheduleRefreshContextMenus();
+syncFocusOverrideContentScript().catch(() => {
+  // no-op
+});
 
 // Service Worker Keep-Alive
 // Manifest V3のService Workerは30秒でスリープするため、

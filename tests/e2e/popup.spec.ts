@@ -11,9 +11,9 @@ test.describe("Popup UI", () => {
     await page.click('button[aria-label="設定"]');
     await expect(page.locator("h2")).toHaveText("設定");
 
-    // Navigate to Table Sort
-    await page.click('button[aria-label="テーブルソート"]');
-    await expect(page.locator("h2")).toHaveText("テーブルソート");
+    // Navigate to site-specific features
+    await page.click('button[aria-label="サイト別機能"]');
+    await expect(page.locator("h2")).toHaveText("サイト別機能");
 
     // Navigate to Create Link
     await page.click('button[aria-label="リンク作成"]');
@@ -78,9 +78,9 @@ test.describe("Popup UI", () => {
   test("should manage table sort patterns", async ({ page, extensionId }) => {
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
 
-    // Navigate to Table Sort
-    await page.click('button[aria-label="テーブルソート"]');
-    await expect(page.locator("h2")).toHaveText("テーブルソート");
+    // Navigate to site-specific features
+    await page.click('button[aria-label="サイト別機能"]');
+    await expect(page.locator("h2")).toHaveText("サイト別機能");
 
     // Add a new pattern
     const patternInput = page.locator('input[placeholder*="ドメイン"]');
@@ -104,7 +104,7 @@ test.describe("Popup UI", () => {
     await page.close();
     const newPage = await page.context().newPage();
     await newPage.goto(`chrome-extension://${extensionId}/popup.html`);
-    await newPage.click('button[aria-label="テーブルソート"]');
+    await newPage.click('button[aria-label="サイト別機能"]');
 
     const checkbox = newPage.locator(
       'label:has-text("すべてのサイトで有効化") input[type="checkbox"]'

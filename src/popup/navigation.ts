@@ -64,7 +64,7 @@ function updateHero(
     heroChip.textContent = "設定";
     return;
   }
-  heroChip.textContent = "テーブルソート";
+  heroChip.textContent = "サイト別機能";
 }
 
 function resolveTargetId(

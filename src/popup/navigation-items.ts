@@ -23,9 +23,9 @@ export const navigationItems: NavigationItem[] = [
   },
   {
     id: "pane-table",
-    label: "テーブルソート",
+    label: "サイト別機能",
     icon: "table",
-    ariaLabel: "テーブルソート",
+    ariaLabel: "サイト別機能",
   },
   {
     id: "pane-create-link",

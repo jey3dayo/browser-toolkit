@@ -12,11 +12,11 @@
   "scripts": {
     "build": "pnpm run clean && pnpm run typecheck && pnpm run bundle && pnpm run copy:styles",
     "bundle": "node scripts/bundle.mjs",
-    "copy:styles": "mkdir -p dist/styles && cp -R src/styles/* dist/styles/",
+    "copy:styles": "node scripts/copy-styles.mjs",
     "typecheck": "tsc --noEmit",
     "watch": "node scripts/bundle.mjs --watch",
     "dev": "node scripts/dev-server.mjs",
-    "clean": "rm -rf dist",
+    "clean": "node scripts/clean.mjs",
     "test": "vitest run --project=unit",
     "test:watch": "vitest --project=unit",
     "test:storybook": "vitest run --project=storybook",

@@ -6,6 +6,10 @@ import { Switch } from "@base-ui/react/switch";
 import { Tooltip } from "@base-ui/react/tooltip";
 import { Result } from "@praha/byethrow";
 import { useEffect, useState } from "react";
+import {
+  normalizeFocusOverridePatterns,
+  toFocusOverrideMatchPattern,
+} from "@/focus-override/patterns";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import type {
   DomainPatternConfig,
@@ -77,12 +81,17 @@ function normalizeDomainPatternConfigsForPopup(
 export function TablePane(props: TablePaneProps): React.JSX.Element {
   const [patterns, setPatterns] = useState<DomainPatternConfig[]>([]);
   const [patternInput, setPatternInput] = useState("");
+  const [focusPatterns, setFocusPatterns] = useState<string[]>([]);
+  const [focusPatternInput, setFocusPatternInput] = useState("");
   const rowFilterTooltip = "0円・ハイフン・空白・N/A の行を非表示にします";
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const data = await props.runtime.storageSyncGet(["domainPatternConfigs"]);
+      const data = await props.runtime.storageSyncGet([
+        "domainPatternConfigs",
+        "focusOverridePatterns",
+      ]);
       if (Result.isFailure(data)) {
         return;
       }
@@ -92,6 +101,10 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
       const configsResult = normalizeDomainPatternConfigsForPopup(data.value);
       if (Result.isSuccess(configsResult)) {
         setPatterns(configsResult.value);
+      }
+      const focusPatternsResult = normalizeFocusOverridePatterns(data.value);
+      if (Result.isSuccess(focusPatternsResult)) {
+        setFocusPatterns(focusPatternsResult.value);
       }
     })().catch(() => {
       // no-op
@@ -215,10 +228,79 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
     });
   };
 
+  const parseFocusPatternInput = (): string | null => {
+    const raw = focusPatternInput.trim();
+    if (!raw) {
+      props.notify.error("パターンを入力してください");
+      return null;
+    }
+    const matchPatternResult = toFocusOverrideMatchPattern(raw);
+    if (Result.isFailure(matchPatternResult)) {
+      props.notify.error(matchPatternResult.error);
+      return null;
+    }
+    return raw;
+  };
+
+  const addFocusPattern = async (): Promise<void> => {
+    const raw = parseFocusPatternInput();
+    if (!raw) {
+      return;
+    }
+    if (focusPatterns.includes(raw)) {
+      props.notify.info("既に追加されています");
+      setFocusPatternInput("");
+      return;
+    }
+
+    const next = [...focusPatterns, raw];
+    await persistWithRollback({
+      applyNext: () => {
+        setFocusPatterns(next);
+        setFocusPatternInput("");
+      },
+      rollback: () => {
+        setFocusPatterns(focusPatterns);
+      },
+      persist: () =>
+        props.runtime.storageSyncSet({ focusOverridePatterns: next }),
+      onSuccess: () => {
+        props.notify.success(
+          "追加しました。ページを再読み込みすると有効になります"
+        );
+      },
+      onFailure: () => {
+        props.notify.error("追加に失敗しました");
+      },
+    });
+  };
+
+  const removeFocusPattern = async (pattern: string): Promise<void> => {
+    const next = focusPatterns.filter((item) => item !== pattern);
+    await persistWithRollback({
+      applyNext: () => {
+        setFocusPatterns(next);
+      },
+      rollback: () => {
+        setFocusPatterns(focusPatterns);
+      },
+      persist: () =>
+        props.runtime.storageSyncSet({ focusOverridePatterns: next }),
+      onSuccess: () => {
+        props.notify.success(
+          "削除しました。ページを再読み込みすると反映されます"
+        );
+      },
+      onFailure: () => {
+        props.notify.error("削除に失敗しました");
+      },
+    });
+  };
+
   return (
     <div className="card card-stack">
       <div className="row-between">
-        <h2 className="pane-title">テーブルソート</h2>
+        <h2 className="pane-title">サイト別機能</h2>
         <Button
           className="btn btn-primary"
           data-testid="enable-table-sort"
@@ -304,6 +386,83 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
                         data-pattern-remove={config.pattern}
                         onClick={() => {
                           removePattern(config.pattern).catch(() => {
+                            // no-op
+                          });
+                        }}
+                        type="button"
+                      >
+                        削除
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              </ScrollArea.Content>
+            </ScrollArea.Viewport>
+            <ScrollArea.Scrollbar className="pattern-scrollbar">
+              <ScrollArea.Thumb className="pattern-thumb" />
+            </ScrollArea.Scrollbar>
+          </ScrollArea.Root>
+        ) : (
+          <p className="empty-message">まだパターンが登録されていません</p>
+        )}
+      </div>
+
+      <div className="stack">
+        <div className="row-between">
+          <h3 className="pane-subtitle">フォーカス維持</h3>
+        </div>
+        <div className="hint">
+          タブが非アクティブでも常に表示中として扱わせたいサイト向けです
+        </div>
+        <div className="hint">
+          パターン追加・削除後は対象ページを再読み込みすると反映されます
+        </div>
+        <Form
+          className="pattern-input-group"
+          onFormSubmit={() => {
+            addFocusPattern().catch(() => {
+              // no-op
+            });
+          }}
+        >
+          <Input
+            className="pattern-input"
+            data-testid="focus-pattern-input"
+            onValueChange={setFocusPatternInput}
+            placeholder="example.com/title/*"
+            type="text"
+            value={focusPatternInput}
+          />
+          <Button
+            className="btn btn-ghost btn-small"
+            data-testid="focus-pattern-add"
+            onClick={() => {
+              addFocusPattern().catch(() => {
+                // no-op
+              });
+            }}
+            type="button"
+          >
+            追加
+          </Button>
+        </Form>
+
+        {focusPatterns.length > 0 ? (
+          <ScrollArea.Root className="pattern-scrollarea">
+            <ScrollArea.Viewport className="pattern-list">
+              <ScrollArea.Content>
+                <ul
+                  aria-label="フォーカス維持の登録済みパターン"
+                  className="pattern-list-inner"
+                >
+                  {focusPatterns.map((pattern) => (
+                    <li className="pattern-item" key={pattern}>
+                      <code className="pattern-text">{pattern}</code>
+                      <Button
+                        className="btn-delete"
+                        data-focus-pattern-remove={pattern}
+                        onClick={() => {
+                          removeFocusPattern(pattern).catch(() => {
                             // no-op
                           });
                         }}

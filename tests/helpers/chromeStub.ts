@@ -28,6 +28,11 @@ export type ChromeStub = {
   tabs: {
     sendMessage: ReturnType<typeof vi.fn>;
   };
+  scripting: {
+    getRegisteredContentScripts: ReturnType<typeof vi.fn>;
+    registerContentScripts: ReturnType<typeof vi.fn>;
+    unregisterContentScripts: ReturnType<typeof vi.fn>;
+  };
 };
 
 type Options = {
@@ -117,6 +122,11 @@ export function createChromeStub(options: Options = {}): ChromeStub {
           (last as (resp: unknown) => void)(tabsSendMessageResponse);
         }
       }),
+    },
+    scripting: {
+      getRegisteredContentScripts: vi.fn(async () => []),
+      registerContentScripts: vi.fn(() => Promise.resolve()),
+      unregisterContentScripts: vi.fn(() => Promise.resolve()),
     },
   };
 }

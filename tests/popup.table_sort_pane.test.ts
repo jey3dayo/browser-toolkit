@@ -37,6 +37,9 @@ describe("popup Table Sort pane", () => {
             { pattern: "example.com/foo*", enableRowFilter: false },
           ];
         }
+        if (keyList.includes("focusOverridePatterns")) {
+          items.focusOverridePatterns = ["pocket.shonenmagazine.com/title/*"];
+        }
         callback(items);
       }
     );
@@ -176,5 +179,56 @@ describe("popup Table Sort pane", () => {
       }),
       expect.any(Function)
     );
+  });
+
+  it("adds and removes focus override patterns in sync storage", async () => {
+    const pane = dom.window.document.querySelector('[data-pane="pane-table"]');
+    expect(pane).not.toBeNull();
+    expect(pane?.textContent ?? "").toContain("フォーカス維持");
+    expect(pane?.textContent ?? "").toContain(
+      "pocket.shonenmagazine.com/title/*"
+    );
+
+    const input = dom.window.document.querySelector<HTMLInputElement>(
+      '[data-testid="focus-pattern-input"]'
+    );
+    const add = dom.window.document.querySelector<HTMLButtonElement>(
+      '[data-testid="focus-pattern-add"]'
+    );
+    expect(input).not.toBeNull();
+    expect(add).not.toBeNull();
+
+    await act(async () => {
+      inputValue(dom.window, input as HTMLInputElement, "example.com/reader/*");
+      add?.click();
+      await flush(dom.window);
+    });
+
+    expect(chromeStub.storage.sync.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        focusOverridePatterns: expect.arrayContaining([
+          "pocket.shonenmagazine.com/title/*",
+          "example.com/reader/*",
+        ]),
+      }),
+      expect.any(Function)
+    );
+
+    const remove = dom.window.document.querySelector<HTMLButtonElement>(
+      'button[data-focus-pattern-remove="pocket.shonenmagazine.com/title/*"]'
+    );
+    expect(remove).not.toBeNull();
+
+    await act(async () => {
+      remove?.click();
+      await flush(dom.window);
+    });
+
+    const lastCall = chromeStub.storage.sync.set.mock.calls.at(-1)?.[0] as
+      | {
+          focusOverridePatterns?: string[];
+        }
+      | undefined;
+    expect(lastCall?.focusOverridePatterns).toEqual(["example.com/reader/*"]);
   });
 });
