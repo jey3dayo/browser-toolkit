@@ -66,7 +66,11 @@ function handleExactMenuItemClick(
   info: chrome.contextMenus.OnClickData
 ): boolean {
   if (menuItemId === CONTEXT_MENU_QR_CODE_ID) {
-    handleQrCodeContextMenuClick({ tabId, tab }).catch(() => {
+    handleQrCodeContextMenuClick({
+      tabId,
+      tab,
+      pageUrl: info.pageUrl,
+    }).catch(() => {
       // no-op
     });
     return true;
