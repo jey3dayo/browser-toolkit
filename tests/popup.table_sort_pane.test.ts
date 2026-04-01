@@ -130,6 +130,39 @@ afterEach(async () => {
 });
 
 describe("popup Table Sort pane", () => {
+  it("renders the summary and section-card layout", async () => {
+    const { dom } = await setupTablePane();
+
+    const summary = dom.window.document.querySelector<HTMLElement>(
+      '[data-testid="table-pane-summary"]'
+    );
+    const enable = dom.window.document.querySelector<HTMLButtonElement>(
+      '[data-testid="enable-table-sort"]'
+    );
+    const sections = [
+      ...dom.window.document.querySelectorAll<HTMLElement>(
+        '[data-testid="table-pane-section"]'
+      ),
+    ].map((element) => element.dataset.section);
+    const diagnostic = dom.window.document.querySelector<HTMLElement>(
+      '[data-testid="focus-diagnostic-panel"]'
+    );
+    const focusInput = dom.window.document.querySelector<HTMLElement>(
+      '[data-testid="focus-pattern-input"]'
+    );
+
+    expect(summary).not.toBeNull();
+    expect(summary?.textContent ?? "").toContain("自動ソート対象サイト");
+    expect(summary?.textContent ?? "").toContain("フォーカス維持");
+    expect(enable?.textContent).toContain("このタブで有効化");
+    expect(sections).toEqual(["url-patterns", "focus-override"]);
+    expect(diagnostic).not.toBeNull();
+    expect(focusInput).not.toBeNull();
+    expect(diagnostic?.compareDocumentPosition(focusInput as Node)).toBe(
+      dom.window.Node.DOCUMENT_POSITION_FOLLOWING
+    );
+  });
+
   it("sends enableTableSort to the active tab and shows feedback", async () => {
     const { dom, chromeStub } = await setupTablePane();
 

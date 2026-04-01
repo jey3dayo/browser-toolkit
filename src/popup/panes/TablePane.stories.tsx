@@ -50,3 +50,29 @@ export const Basic: Story = {
     });
   },
 };
+
+export const Populated: Story = {
+  args: {
+    runtime: createStoryPopupRuntime({
+      sync: {
+        domainPatternConfigs: [
+          { pattern: "example.com/foo*", enableRowFilter: true },
+          { pattern: "example.com/bar*", enableRowFilter: false },
+        ],
+        focusOverridePatterns: ["example.com/reader/*", "example.com/book/*"],
+      },
+      activeTab: {
+        id: 7,
+        title: "Reader",
+        url: "https://example.com/reader/42",
+      },
+      focusOverrideDiagnostic: {
+        markerPresent: true,
+        visibilityState: "visible",
+        hidden: false,
+        hasFocus: true,
+      },
+    }),
+    notify: { info: fn(), success: fn(), error: fn() },
+  },
+};
