@@ -46,39 +46,34 @@ export async function debugLog(
   // コンソール出力（常に実行）
   const consoleMessage = `[${level.toUpperCase()}] [${context}] ${message}`;
 
-  // データがある場合は構造化して出力
-  if (data !== undefined) {
-    switch (level) {
-      case "error":
-        console.error(consoleMessage);
-        console.error("Data:", data);
+  switch (level) {
+    case "error":
+      if (data !== undefined) {
+        console.error(consoleMessage, data);
         break;
-      case "warn":
-        console.warn(consoleMessage);
-        console.warn("Data:", data);
+      }
+      console.error(consoleMessage);
+      break;
+    case "warn":
+      if (data !== undefined) {
+        console.warn(consoleMessage, data);
         break;
-      case "info":
-        console.info(consoleMessage);
-        console.info("Data:", data);
+      }
+      console.warn(consoleMessage);
+      break;
+    case "info":
+      if (data !== undefined) {
+        console.info(consoleMessage, data);
         break;
-      default:
-        console.log(consoleMessage);
-        console.log("Data:", data);
-    }
-  } else {
-    switch (level) {
-      case "error":
-        console.error(consoleMessage);
+      }
+      console.info(consoleMessage);
+      break;
+    default:
+      if (data !== undefined) {
+        console.log(consoleMessage, data);
         break;
-      case "warn":
-        console.warn(consoleMessage);
-        break;
-      case "info":
-        console.info(consoleMessage);
-        break;
-      default:
-        console.log(consoleMessage);
-    }
+      }
+      console.log(consoleMessage);
   }
 
   // デバッグモード確認
