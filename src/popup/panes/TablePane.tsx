@@ -5,7 +5,7 @@ import { ScrollArea } from "@base-ui/react/scroll-area";
 import { Switch } from "@base-ui/react/switch";
 import { Tooltip } from "@base-ui/react/tooltip";
 import { Result } from "@praha/byethrow";
-import { useEffect, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import {
   normalizeFocusOverridePatterns,
   toFocusOverrideMatchPattern,
@@ -14,6 +14,7 @@ import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import type {
   DomainPatternConfig,
   EnableTableSortMessage,
+  FocusOverrideDiagnosticSnapshot,
   SyncStorageData,
 } from "@/popup/runtime";
 import { persistWithRollback } from "@/popup/utils/persist";
@@ -24,6 +25,23 @@ type TooltipSwitchProps = {
   tooltip: string;
   children: React.ReactElement;
 };
+
+type FocusDiagnosticKind =
+  | "not-configured"
+  | "active"
+  | "reload-required"
+  | "unavailable";
+
+type FocusDiagnosticView = {
+  kind: FocusDiagnosticKind;
+  tabId: number | null;
+  currentUrl: string | null;
+  matchedPattern: string | null;
+  label: string;
+  description: string;
+};
+
+const FOCUS_DIAGNOSTIC_SLOW_MS = 300;
 
 function TooltipSwitch(props: TooltipSwitchProps): React.JSX.Element {
   return (
@@ -46,7 +64,6 @@ function TooltipSwitch(props: TooltipSwitchProps): React.JSX.Element {
 function normalizeDomainPatternConfigsForPopup(
   data: Partial<SyncStorageData>
 ): Result.Result<DomainPatternConfig[], string> {
-  // 1. domainPatternConfigsが存在する場合はバリデーション
   if (data.domainPatternConfigs) {
     if (!Array.isArray(data.domainPatternConfigs)) {
       return Result.fail("domainPatternConfigs must be an array");
@@ -74,8 +91,55 @@ function normalizeDomainPatternConfigsForPopup(
     return Result.succeed(configs.slice(0, 200));
   }
 
-  // 2. 未設定 → 空配列
   return Result.succeed([]);
+}
+
+function summarizeUrl(url: string | undefined): string | null {
+  if (!url?.trim()) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(url);
+    return `${parsed.hostname}${parsed.pathname}${parsed.search}`;
+  } catch {
+    return url;
+  }
+}
+
+function isFocusOverrideApplied(
+  snapshot: FocusOverrideDiagnosticSnapshot
+): boolean {
+  return (
+    snapshot.markerPresent &&
+    snapshot.visibilityState === "visible" &&
+    snapshot.hidden === false &&
+    snapshot.hasFocus === true
+  );
+}
+
+function buildFocusDiagnosticView(params: {
+  kind: FocusDiagnosticKind;
+  tabId: number | null;
+  currentUrl: string | null;
+  matchedPattern?: string | null;
+  description: string;
+}): FocusDiagnosticView {
+  const labelMap: Record<FocusDiagnosticKind, string> = {
+    "not-configured": "未設定",
+    active: "有効",
+    "reload-required": "要リロード",
+    unavailable: "判定不可",
+  };
+
+  return {
+    kind: params.kind,
+    tabId: params.tabId,
+    currentUrl: params.currentUrl,
+    matchedPattern: params.matchedPattern ?? null,
+    label: labelMap[params.kind],
+    description: params.description,
+  };
 }
 
 export function TablePane(props: TablePaneProps): React.JSX.Element {
@@ -83,7 +147,17 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
   const [patternInput, setPatternInput] = useState("");
   const [focusPatterns, setFocusPatterns] = useState<string[]>([]);
   const [focusPatternInput, setFocusPatternInput] = useState("");
+  const [focusPatternsHydrated, setFocusPatternsHydrated] = useState(false);
+  const [focusDiagnostic, setFocusDiagnostic] =
+    useState<FocusDiagnosticView | null>(null);
+  const [focusDiagnosticRunning, setFocusDiagnosticRunning] = useState(false);
+  const [focusDiagnosticSlow, setFocusDiagnosticSlow] = useState(false);
   const rowFilterTooltip = "0円・ハイフン・空白・N/A の行を非表示にします";
+  const focusPatternsRef = useRef<string[]>([]);
+  const focusDiagnosticRequestIdRef = useRef(0);
+  const focusDiagnosticTimerRef = useRef<number | null>(null);
+
+  focusPatternsRef.current = focusPatterns;
 
   useEffect(() => {
     let cancelled = false;
@@ -93,6 +167,9 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
         "focusOverridePatterns",
       ]);
       if (Result.isFailure(data)) {
+        if (!cancelled) {
+          setFocusPatternsHydrated(true);
+        }
         return;
       }
       if (cancelled) {
@@ -106,13 +183,188 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
       if (Result.isSuccess(focusPatternsResult)) {
         setFocusPatterns(focusPatternsResult.value);
       }
+      setFocusPatternsHydrated(true);
     })().catch(() => {
-      // no-op
+      if (!cancelled) {
+        setFocusPatternsHydrated(true);
+      }
     });
     return () => {
       cancelled = true;
     };
   }, [props.runtime]);
+
+  useEffect(() => {
+    return () => {
+      focusDiagnosticRequestIdRef.current += 1;
+      if (focusDiagnosticTimerRef.current !== null) {
+        window.clearTimeout(focusDiagnosticTimerRef.current);
+      }
+    };
+  }, []);
+
+  async function resolveFocusDiagnostic(): Promise<FocusDiagnosticView> {
+    const activeTab = await props.runtime.getActiveTab();
+    if (Result.isFailure(activeTab)) {
+      return buildFocusDiagnosticView({
+        kind: "unavailable",
+        tabId: null,
+        currentUrl: null,
+        description: activeTab.error,
+      });
+    }
+
+    const tab = activeTab.value;
+    if (!(tab?.id && tab.url)) {
+      return buildFocusDiagnosticView({
+        kind: "unavailable",
+        tabId: tab?.id ?? null,
+        currentUrl: summarizeUrl(tab?.url),
+        description: "現在のタブのURLを確認できませんでした",
+      });
+    }
+
+    const currentUrl = summarizeUrl(tab.url);
+    const matchedPattern =
+      focusPatternsRef.current.find((pattern) =>
+        props.runtime.matchesFocusOverridePatterns([pattern], tab.url ?? "")
+      ) ?? null;
+
+    if (!matchedPattern) {
+      return buildFocusDiagnosticView({
+        kind: "not-configured",
+        tabId: tab.id,
+        currentUrl,
+        description:
+          focusPatternsRef.current.length === 0
+            ? "まだフォーカス維持パターンが登録されていません"
+            : "現在のタブのURLは登録済みパターンに一致しません",
+      });
+    }
+
+    const diagnosis = await props.runtime.diagnoseFocusOverride(tab.id);
+    if (Result.isFailure(diagnosis)) {
+      return buildFocusDiagnosticView({
+        kind: "unavailable",
+        tabId: tab.id,
+        currentUrl,
+        matchedPattern,
+        description: diagnosis.error,
+      });
+    }
+
+    if (isFocusOverrideApplied(diagnosis.value)) {
+      return buildFocusDiagnosticView({
+        kind: "active",
+        tabId: tab.id,
+        currentUrl,
+        matchedPattern,
+        description: "このタブではフォーカス維持が反映済みです",
+      });
+    }
+
+    return buildFocusDiagnosticView({
+      kind: "reload-required",
+      tabId: tab.id,
+      currentUrl,
+      matchedPattern,
+      description:
+        "登録は一致していますが、まだ反映前です。再読み込みで確実に反映されます",
+    });
+  }
+
+  function notifyFocusDiagnostic(view: FocusDiagnosticView): void {
+    switch (view.kind) {
+      case "active": {
+        props.notify.success("フォーカス維持は有効です");
+        return;
+      }
+      case "reload-required": {
+        props.notify.info("現在のタブでは再読み込みで反映されます");
+        return;
+      }
+      case "not-configured": {
+        props.notify.info("現在のタブはフォーカス維持の対象外です");
+        return;
+      }
+      case "unavailable": {
+        props.notify.error(view.description);
+        return;
+      }
+      default: {
+        return;
+      }
+    }
+  }
+
+  async function runFocusDiagnostic(showToast: boolean): Promise<void> {
+    const requestId = focusDiagnosticRequestIdRef.current + 1;
+    focusDiagnosticRequestIdRef.current = requestId;
+
+    if (focusDiagnosticTimerRef.current !== null) {
+      window.clearTimeout(focusDiagnosticTimerRef.current);
+    }
+    setFocusDiagnosticRunning(true);
+    setFocusDiagnosticSlow(false);
+    focusDiagnosticTimerRef.current = window.setTimeout(() => {
+      if (focusDiagnosticRequestIdRef.current === requestId) {
+        setFocusDiagnosticSlow(true);
+      }
+    }, FOCUS_DIAGNOSTIC_SLOW_MS);
+
+    let nextView: FocusDiagnosticView;
+    try {
+      nextView = await resolveFocusDiagnostic();
+    } catch {
+      nextView = buildFocusDiagnosticView({
+        kind: "unavailable",
+        tabId: null,
+        currentUrl: null,
+        description: "フォーカス維持の診断に失敗しました",
+      });
+    }
+
+    if (focusDiagnosticRequestIdRef.current !== requestId) {
+      return;
+    }
+
+    if (focusDiagnosticTimerRef.current !== null) {
+      window.clearTimeout(focusDiagnosticTimerRef.current);
+      focusDiagnosticTimerRef.current = null;
+    }
+    setFocusDiagnostic(nextView);
+    setFocusDiagnosticRunning(false);
+    setFocusDiagnosticSlow(false);
+
+    if (showToast) {
+      notifyFocusDiagnostic(nextView);
+    }
+  }
+
+  const requestFocusDiagnostic = useEffectEvent((showToast: boolean) => {
+    runFocusDiagnostic(showToast).catch(() => {
+      // no-op
+    });
+  });
+
+  useEffect(() => {
+    if (!focusPatternsHydrated) {
+      return;
+    }
+
+    const diagnoseIfVisible = (): void => {
+      if (window.location.hash !== "#pane-table") {
+        return;
+      }
+      requestFocusDiagnostic(false);
+    };
+
+    diagnoseIfVisible();
+    window.addEventListener("hashchange", diagnoseIfVisible);
+    return () => {
+      window.removeEventListener("hashchange", diagnoseIfVisible);
+    };
+  }, [focusPatternsHydrated]);
 
   const enableNow = async (): Promise<void> => {
     const tabIdResult = await props.runtime.getActiveTabId();
@@ -253,8 +505,18 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
       return;
     }
 
+    let addSuccessMessage = "追加しました";
+    const activeTab = await props.runtime.getActiveTab();
+    if (
+      Result.isSuccess(activeTab) &&
+      activeTab.value?.url &&
+      props.runtime.matchesFocusOverridePatterns([raw], activeTab.value.url)
+    ) {
+      addSuccessMessage = "追加しました。このタブでは再読み込みで反映されます";
+    }
+
     const next = [...focusPatterns, raw];
-    await persistWithRollback({
+    const saved = await persistWithRollback({
       applyNext: () => {
         setFocusPatterns(next);
         setFocusPatternInput("");
@@ -265,19 +527,21 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
       persist: () =>
         props.runtime.storageSyncSet({ focusOverridePatterns: next }),
       onSuccess: () => {
-        props.notify.success(
-          "追加しました。ページを再読み込みすると有効になります"
-        );
+        props.notify.success(addSuccessMessage);
       },
       onFailure: () => {
         props.notify.error("追加に失敗しました");
       },
     });
+
+    if (saved) {
+      await runFocusDiagnostic(false);
+    }
   };
 
   const removeFocusPattern = async (pattern: string): Promise<void> => {
     const next = focusPatterns.filter((item) => item !== pattern);
-    await persistWithRollback({
+    const saved = await persistWithRollback({
       applyNext: () => {
         setFocusPatterns(next);
       },
@@ -287,15 +551,39 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
       persist: () =>
         props.runtime.storageSyncSet({ focusOverridePatterns: next }),
       onSuccess: () => {
-        props.notify.success(
-          "削除しました。ページを再読み込みすると反映されます"
-        );
+        props.notify.success("削除しました");
       },
       onFailure: () => {
         props.notify.error("削除に失敗しました");
       },
     });
+
+    if (saved) {
+      await runFocusDiagnostic(false);
+    }
   };
+
+  const reloadCurrentTab = async (): Promise<void> => {
+    if (!focusDiagnostic?.tabId) {
+      props.notify.error("再読み込みできるタブが見つかりません");
+      return;
+    }
+
+    const reloaded = await props.runtime.reloadTab(focusDiagnostic.tabId);
+    if (Result.isFailure(reloaded)) {
+      props.notify.error(reloaded.error);
+      return;
+    }
+
+    props.notify.success("このタブを再読み込みしました");
+  };
+
+  let focusDiagnosticToneClass = "focus-diagnostic-status--neutral";
+  if (focusDiagnostic?.kind === "active") {
+    focusDiagnosticToneClass = "focus-diagnostic-status--active";
+  } else if (focusDiagnostic?.kind === "reload-required") {
+    focusDiagnosticToneClass = "focus-diagnostic-status--warning";
+  }
 
   return (
     <div className="card card-stack">
@@ -414,8 +702,77 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
         <div className="hint">
           タブが非アクティブでも常に表示中として扱わせたいサイト向けです
         </div>
+
+        <section
+          aria-live="polite"
+          className="focus-diagnostic-panel"
+          data-testid="focus-diagnostic-panel"
+        >
+          <div className="row-between">
+            <div className="stack-sm">
+              <p className="focus-diagnostic-eyebrow">現在のタブ診断</p>
+              <div className="focus-diagnostic-summary">
+                <span
+                  className={`focus-diagnostic-status ${focusDiagnosticToneClass}`}
+                  data-testid="focus-diagnostic-status"
+                >
+                  {focusDiagnostic?.label ?? "診断待ち"}
+                </span>
+                <code
+                  className="focus-diagnostic-url"
+                  data-testid="focus-diagnostic-summary"
+                >
+                  {focusDiagnostic?.currentUrl ?? "現在のURLを確認しています"}
+                </code>
+              </div>
+            </div>
+            <div className="button-row">
+              <Button
+                className="btn btn-ghost btn-small"
+                data-testid="focus-diagnostic-refresh"
+                disabled={focusDiagnosticRunning}
+                onClick={() => {
+                  runFocusDiagnostic(true).catch(() => {
+                    // no-op
+                  });
+                }}
+                type="button"
+              >
+                再診断
+              </Button>
+              {focusDiagnostic?.kind === "reload-required" ? (
+                <Button
+                  className="btn btn-primary btn-small"
+                  data-testid="focus-diagnostic-reload"
+                  onClick={() => {
+                    reloadCurrentTab().catch(() => {
+                      // no-op
+                    });
+                  }}
+                  type="button"
+                >
+                  このタブを再読み込み
+                </Button>
+              ) : null}
+            </div>
+          </div>
+
+          <p className="focus-diagnostic-description">
+            {focusDiagnostic?.description ??
+              "現在のタブにフォーカス維持が必要かどうかを確認できます"}
+          </p>
+          {focusDiagnostic?.matchedPattern ? (
+            <p className="focus-diagnostic-meta">
+              一致パターン: <code>{focusDiagnostic.matchedPattern}</code>
+            </p>
+          ) : null}
+          {focusDiagnosticSlow ? (
+            <p className="focus-diagnostic-loading">現在のタブを診断中です…</p>
+          ) : null}
+        </section>
+
         <div className="hint">
-          パターン追加・削除後は対象ページを再読み込みすると反映されます
+          パターン追加後、現在のタブが対象なら再読み込みで確実に反映されます
         </div>
         <Form
           className="pattern-input-group"

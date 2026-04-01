@@ -1,4 +1,5 @@
 const APPLIED_FLAG = "__MBU_FOCUS_OVERRIDE_APPLIED__";
+const APPLIED_ATTRIBUTE = "data-mbu-focus-override-applied";
 
 type FocusOverrideWindow = Window &
   typeof globalThis & {
@@ -67,6 +68,12 @@ export function applyAlwaysFocusedOverrides(
     return;
   }
   windowWithFlag[APPLIED_FLAG] = true;
+
+  try {
+    targetDocument.documentElement?.setAttribute(APPLIED_ATTRIBUTE, "true");
+  } catch {
+    // no-op
+  }
 
   defineGetter(targetDocument, "visibilityState", () => "visible");
   defineGetter(targetDocument, "hidden", () => false);

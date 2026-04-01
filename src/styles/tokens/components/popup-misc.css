@@ -199,6 +199,93 @@ input[type="checkbox"] {
   color: var(--text-sub);
 }
 
+.focus-diagnostic-panel {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  background: color-mix(in oklab, var(--panel-soft) 90%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.focus-diagnostic-eyebrow {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-sub);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.focus-diagnostic-summary {
+  display: grid;
+  gap: 8px;
+}
+
+.focus-diagnostic-status {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  border-radius: 999px;
+}
+
+.focus-diagnostic-status--neutral {
+  color: var(--text-sub);
+  background: color-mix(in oklab, var(--color-text) 8%, transparent);
+  border: 1px solid color-mix(in oklab, var(--line) 85%, transparent);
+}
+
+.focus-diagnostic-status--active {
+  color: color-mix(in oklab, var(--color-primary-2) 72%, var(--color-text));
+  background: color-mix(
+    in oklab,
+    var(--color-primary-2) var(--accent-mix-15),
+    transparent
+  );
+  border: 1px solid color-mix(in oklab, var(--color-primary-2) 34%, var(--line));
+}
+
+.focus-diagnostic-status--warning {
+  color: color-mix(in oklab, var(--color-danger) 72%, var(--color-text));
+  background: color-mix(
+    in oklab,
+    var(--color-danger) var(--accent-mix-15),
+    transparent
+  );
+  border: 1px solid color-mix(in oklab, var(--color-danger) 30%, var(--line));
+}
+
+.focus-diagnostic-url {
+  display: block;
+  padding: 8px 10px;
+  line-height: 1.45;
+  word-break: break-all;
+  overflow-wrap: anywhere;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed color-mix(in oklab, var(--line) 90%, transparent);
+  border-radius: 10px;
+}
+
+.focus-diagnostic-description,
+.focus-diagnostic-meta,
+.focus-diagnostic-loading {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.focus-diagnostic-description,
+.focus-diagnostic-meta {
+  color: var(--text-sub);
+}
+
+.focus-diagnostic-loading {
+  color: var(--text);
+}
+
 .mbu-build-error {
   position: fixed;
   right: 12px;

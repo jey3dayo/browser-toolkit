@@ -1,5 +1,6 @@
 import { Result } from "@praha/byethrow";
 import type { SummaryTarget } from "@/background/types";
+import { matchesAnyPattern } from "@/content/url-pattern";
 import type { ContextAction } from "@/context_actions";
 import type { FocusOverrideStorageData } from "@/focus-override/patterns";
 import type { SearchEngineGroup } from "@/search_engine_groups";
@@ -80,6 +81,13 @@ export type ActiveTabInfo = {
   url?: string;
 };
 
+export type FocusOverrideDiagnosticSnapshot = {
+  markerPresent: boolean;
+  visibilityState: string;
+  hidden: boolean;
+  hasFocus: boolean;
+};
+
 export type PopupRuntime = {
   isExtensionPage: boolean;
   storageSyncGet: (
@@ -99,6 +107,11 @@ export type PopupRuntime = {
   ) => Result.ResultAsync<void, string>;
   getActiveTab: () => Result.ResultAsync<ActiveTabInfo | null, string>;
   getActiveTabId: () => Result.ResultAsync<number | null, string>;
+  matchesFocusOverridePatterns: (patterns: string[], url: string) => boolean;
+  diagnoseFocusOverride: (
+    tabId: number
+  ) => Result.ResultAsync<FocusOverrideDiagnosticSnapshot, string>;
+  reloadTab: (tabId: number) => Result.ResultAsync<void, string>;
   sendMessageToBackground: <TRequest, TResponse>(
     message: TRequest
   ) => Result.ResultAsync<TResponse, string>;
@@ -331,6 +344,72 @@ export function createPopupRuntime(): PopupRuntime {
     return Result.succeed(activeTab.value?.id ?? null);
   };
 
+  const matchesFocusOverridePatterns: PopupRuntime["matchesFocusOverridePatterns"] =
+    (patterns, url) => {
+      if (!url.trim()) {
+        return false;
+      }
+      return matchesAnyPattern(patterns, url);
+    };
+
+  const diagnoseFocusOverride: PopupRuntime["diagnoseFocusOverride"] = async (
+    tabId
+  ) => {
+    if (!hasChromeApi(isExtensionPage, "scripting")) {
+      return Result.fail(
+        "拡張機能として開いてください（chrome-extension://...）"
+      );
+    }
+
+    return await Result.try({
+      try: async () => {
+        const injected = await chrome.scripting.executeScript<
+          [],
+          FocusOverrideDiagnosticSnapshot
+        >({
+          target: { tabId },
+          world: "MAIN",
+          func: () => ({
+            markerPresent:
+              document.documentElement?.getAttribute(
+                "data-mbu-focus-override-applied"
+              ) === "true",
+            visibilityState: document.visibilityState,
+            hidden: document.hidden,
+            hasFocus: document.hasFocus(),
+          }),
+        });
+
+        const snapshot = injected.at(0)?.result;
+        if (!snapshot) {
+          throw new Error("診断結果を取得できませんでした");
+        }
+        return snapshot;
+      },
+      catch: (error) =>
+        toErrorMessage(error, "フォーカス維持の診断に失敗しました"),
+    });
+  };
+
+  const reloadTab: PopupRuntime["reloadTab"] = async (tabId) => {
+    if (!hasChromeApi(isExtensionPage, "tabs")) {
+      return Result.fail(
+        "拡張機能として開いてください（chrome-extension://...）"
+      );
+    }
+
+    return await wrapChromeApi<void>((resolve, reject) => {
+      chrome.tabs.reload(tabId, undefined, () => {
+        const err = chrome.runtime.lastError;
+        if (err) {
+          reject(new Error(err.message));
+          return;
+        }
+        resolve();
+      });
+    }, "タブの再読み込みに失敗しました");
+  };
+
   const sendMessageToBackground: PopupRuntime["sendMessageToBackground"] =
     async <TRequest, TResponse>(
       message: TRequest
@@ -397,6 +476,9 @@ export function createPopupRuntime(): PopupRuntime {
     storageLocalRemove,
     getActiveTab,
     getActiveTabId,
+    matchesFocusOverridePatterns,
+    diagnoseFocusOverride,
+    reloadTab,
     sendMessageToBackground,
     sendMessageToTab,
     openUrl,

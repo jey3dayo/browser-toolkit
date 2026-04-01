@@ -1,6 +1,6 @@
 import type { JSDOM } from "jsdom";
 import { act } from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { flush } from "./helpers/async";
 import { inputValue } from "./helpers/forms";
 import {
@@ -17,72 +17,122 @@ import {
   globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;
 
+type SetupOptions = {
+  activeTab?: {
+    id?: number;
+    title?: string;
+    url?: string;
+  } | null;
+  focusPatterns?: string[];
+  focusDiagnosisResult?: {
+    markerPresent: boolean;
+    visibilityState: string;
+    hidden: boolean;
+    hasFocus: boolean;
+  };
+  focusDiagnosisError?: string;
+};
+
+async function setupTablePane(
+  options: SetupOptions = {}
+): Promise<{ dom: JSDOM; chromeStub: PopupChromeStub }> {
+  vi.resetModules();
+
+  const dom = createPopupDom("chrome-extension://test/popup.html#pane-table");
+  const chromeStub = createPopupChromeStub();
+  const activeTab = options.activeTab ?? {
+    id: 10,
+    title: "Pocket",
+    url: "https://pocket.shonenmagazine.com/title/123",
+  };
+  const focusPatterns = options.focusPatterns ?? [
+    "pocket.shonenmagazine.com/title/*",
+  ];
+
+  chromeStub.storage.sync.get.mockImplementation(
+    (keys: string[], callback: (items: unknown) => void) => {
+      chromeStub.runtime.lastError = null;
+      const keyList = Array.isArray(keys) ? keys : [String(keys)];
+      const items: Record<string, unknown> = {};
+      if (keyList.includes("domainPatternConfigs")) {
+        items.domainPatternConfigs = [
+          { pattern: "example.com/foo*", enableRowFilter: false },
+        ];
+      }
+      if (keyList.includes("focusOverridePatterns")) {
+        items.focusOverridePatterns = focusPatterns;
+      }
+      callback(items);
+    }
+  );
+
+  chromeStub.tabs.query.mockImplementation(
+    (_queryInfo: unknown, callback: (tabs: unknown[]) => void) => {
+      chromeStub.runtime.lastError = null;
+      callback(activeTab ? [activeTab] : []);
+    }
+  );
+
+  chromeStub.tabs.sendMessage.mockImplementation(
+    (_tabId: number, _message: unknown, callback: (resp: unknown) => void) => {
+      chromeStub.runtime.lastError = null;
+      callback({ success: true });
+    }
+  );
+
+  chromeStub.scripting.executeScript.mockImplementation(() => {
+    if (options.focusDiagnosisError) {
+      return Promise.reject(new Error(options.focusDiagnosisError));
+    }
+
+    return Promise.resolve([
+      {
+        result: options.focusDiagnosisResult ?? {
+          markerPresent: false,
+          visibilityState: "visible",
+          hidden: false,
+          hasFocus: true,
+        },
+      },
+    ]);
+  });
+
+  vi.stubGlobal("window", dom.window);
+  vi.stubGlobal("document", dom.window.document);
+  vi.stubGlobal("navigator", dom.window.navigator);
+  vi.stubGlobal("chrome", chromeStub);
+  registerPopupTestHooks();
+
+  await act(async () => {
+    await import("@/popup.ts");
+    dom.window.document.dispatchEvent(
+      new dom.window.Event("DOMContentLoaded", { bubbles: true })
+    );
+    await flush(dom.window, 8);
+  });
+
+  return { dom, chromeStub };
+}
+
+afterEach(async () => {
+  const currentWindow =
+    globalThis.window && "setTimeout" in globalThis.window
+      ? globalThis.window
+      : null;
+
+  await act(async () => {
+    cleanupPopupTestHooks();
+    if (currentWindow) {
+      await flush(currentWindow, 4);
+    }
+  });
+  vi.unstubAllGlobals();
+});
+
 describe("popup Table Sort pane", () => {
-  let dom: JSDOM;
-  let chromeStub: PopupChromeStub;
-
-  beforeEach(async () => {
-    vi.resetModules();
-
-    dom = createPopupDom("chrome-extension://test/popup.html#pane-table");
-    chromeStub = createPopupChromeStub();
-
-    chromeStub.storage.sync.get.mockImplementation(
-      (keys: string[], callback: (items: unknown) => void) => {
-        chromeStub.runtime.lastError = null;
-        const keyList = Array.isArray(keys) ? keys : [String(keys)];
-        const items: Record<string, unknown> = {};
-        if (keyList.includes("domainPatternConfigs")) {
-          items.domainPatternConfigs = [
-            { pattern: "example.com/foo*", enableRowFilter: false },
-          ];
-        }
-        if (keyList.includes("focusOverridePatterns")) {
-          items.focusOverridePatterns = ["pocket.shonenmagazine.com/title/*"];
-        }
-        callback(items);
-      }
-    );
-
-    chromeStub.tabs.query.mockImplementation(
-      (_queryInfo: unknown, callback: (tabs: unknown[]) => void) => {
-        chromeStub.runtime.lastError = null;
-        callback([{ id: 10 }]);
-      }
-    );
-
-    chromeStub.tabs.sendMessage.mockImplementation(
-      (
-        _tabId: number,
-        _message: unknown,
-        callback: (resp: unknown) => void
-      ) => {
-        chromeStub.runtime.lastError = null;
-        callback({ success: true });
-      }
-    );
-
-    vi.stubGlobal("window", dom.window);
-    vi.stubGlobal("document", dom.window.document);
-    vi.stubGlobal("navigator", dom.window.navigator);
-    vi.stubGlobal("chrome", chromeStub);
-    registerPopupTestHooks();
-
-    await act(async () => {
-      await import("@/popup.ts");
-      await flush(dom.window);
-    });
-  });
-
-  afterEach(async () => {
-    await act(async () => {
-      cleanupPopupTestHooks();
-      await flush(dom.window);
-    });
-    vi.unstubAllGlobals();
-  });
-
   it("sends enableTableSort to the active tab and shows feedback", async () => {
+    const { dom, chromeStub } = await setupTablePane();
+
     const enable = dom.window.document.querySelector<HTMLButtonElement>(
       '[data-testid="enable-table-sort"]'
     );
@@ -104,6 +154,8 @@ describe("popup Table Sort pane", () => {
   });
 
   it("adds and removes URL patterns in sync storage", async () => {
+    const { dom, chromeStub } = await setupTablePane();
+
     const pane = dom.window.document.querySelector('[data-pane="pane-table"]');
     expect(pane).not.toBeNull();
     expect(pane?.textContent ?? "").toContain("example.com/foo*");
@@ -157,9 +209,7 @@ describe("popup Table Sort pane", () => {
   });
 
   it("toggles row filter per pattern", async () => {
-    const pane = dom.window.document.querySelector('[data-pane="pane-table"]');
-    expect(pane).not.toBeNull();
-    expect(pane?.textContent ?? "").toContain("example.com/foo*");
+    const { dom, chromeStub } = await setupTablePane();
 
     const filterToggle = dom.window.document.querySelector<HTMLButtonElement>(
       '[data-testid="row-filter-example.com/foo*"]'
@@ -181,7 +231,106 @@ describe("popup Table Sort pane", () => {
     );
   });
 
+  it("shows not-configured when the current tab is not matched", async () => {
+    const { dom, chromeStub } = await setupTablePane({
+      activeTab: {
+        id: 10,
+        title: "Other page",
+        url: "https://example.com/other",
+      },
+    });
+
+    const status = dom.window.document.querySelector<HTMLElement>(
+      '[data-testid="focus-diagnostic-status"]'
+    );
+    const summary = dom.window.document.querySelector<HTMLElement>(
+      '[data-testid="focus-diagnostic-summary"]'
+    );
+
+    expect(status?.textContent).toBe("未設定");
+    expect(summary?.textContent).toContain("example.com/other");
+    expect(chromeStub.scripting.executeScript).not.toHaveBeenCalled();
+    expect(
+      dom.window.document.querySelector(
+        '[data-testid="focus-diagnostic-reload"]'
+      )
+    ).toBeNull();
+  });
+
+  it("shows reload-required when the URL matches but override is not applied", async () => {
+    const { dom } = await setupTablePane({
+      focusDiagnosisResult: {
+        markerPresent: false,
+        visibilityState: "visible",
+        hidden: false,
+        hasFocus: true,
+      },
+    });
+
+    const status = dom.window.document.querySelector<HTMLElement>(
+      '[data-testid="focus-diagnostic-status"]'
+    );
+
+    expect(status?.textContent).toBe("要リロード");
+    expect(dom.window.document.body.textContent).toContain(
+      "再読み込みで確実に反映されます"
+    );
+    expect(
+      dom.window.document.querySelector(
+        '[data-testid="focus-diagnostic-reload"]'
+      )
+    ).not.toBeNull();
+  });
+
+  it("shows active when the override marker and values are present", async () => {
+    const { dom } = await setupTablePane({
+      focusDiagnosisResult: {
+        markerPresent: true,
+        visibilityState: "visible",
+        hidden: false,
+        hasFocus: true,
+      },
+    });
+
+    const status = dom.window.document.querySelector<HTMLElement>(
+      '[data-testid="focus-diagnostic-status"]'
+    );
+
+    expect(status?.textContent).toBe("有効");
+    expect(dom.window.document.body.textContent).toContain(
+      "フォーカス維持が反映済み"
+    );
+    expect(
+      dom.window.document.querySelector(
+        '[data-testid="focus-diagnostic-reload"]'
+      )
+    ).toBeNull();
+  });
+
+  it("shows unavailable when main-world diagnosis cannot run", async () => {
+    const { dom } = await setupTablePane({
+      focusDiagnosisError: "Cannot access this page",
+    });
+
+    const status = dom.window.document.querySelector<HTMLElement>(
+      '[data-testid="focus-diagnostic-status"]'
+    );
+
+    expect(status?.textContent).toBe("判定不可");
+    expect(dom.window.document.body.textContent).toContain(
+      "Cannot access this page"
+    );
+  });
+
   it("adds and removes focus override patterns in sync storage", async () => {
+    const { dom, chromeStub } = await setupTablePane({
+      activeTab: {
+        id: 10,
+        title: "Reader",
+        url: "https://example.com/reader/42",
+      },
+    });
+
     const pane = dom.window.document.querySelector('[data-pane="pane-table"]');
     expect(pane).not.toBeNull();
     expect(pane?.textContent ?? "").toContain("フォーカス維持");
@@ -201,7 +350,7 @@ describe("popup Table Sort pane", () => {
     await act(async () => {
       inputValue(dom.window, input as HTMLInputElement, "example.com/reader/*");
       add?.click();
-      await flush(dom.window);
+      await flush(dom.window, 8);
     });
 
     expect(chromeStub.storage.sync.set).toHaveBeenCalledWith(
@@ -213,6 +362,9 @@ describe("popup Table Sort pane", () => {
       }),
       expect.any(Function)
     );
+    expect(dom.window.document.body.textContent).toContain(
+      "このタブでは再読み込みで反映されます"
+    );
 
     const remove = dom.window.document.querySelector<HTMLButtonElement>(
       'button[data-focus-pattern-remove="pocket.shonenmagazine.com/title/*"]'
@@ -221,7 +373,7 @@ describe("popup Table Sort pane", () => {
 
     await act(async () => {
       remove?.click();
-      await flush(dom.window);
+      await flush(dom.window, 8);
     });
 
     const lastCall = chromeStub.storage.sync.set.mock.calls.at(-1)?.[0] as
@@ -230,5 +382,35 @@ describe("popup Table Sort pane", () => {
         }
       | undefined;
     expect(lastCall?.focusOverridePatterns).toEqual(["example.com/reader/*"]);
+  });
+
+  it("reloads the current tab from the diagnostic card", async () => {
+    const { dom, chromeStub } = await setupTablePane({
+      focusDiagnosisResult: {
+        markerPresent: false,
+        visibilityState: "visible",
+        hidden: false,
+        hasFocus: true,
+      },
+    });
+
+    const reload = dom.window.document.querySelector<HTMLButtonElement>(
+      '[data-testid="focus-diagnostic-reload"]'
+    );
+    expect(reload).not.toBeNull();
+
+    await act(async () => {
+      reload?.click();
+      await flush(dom.window);
+    });
+
+    expect(chromeStub.tabs.reload).toHaveBeenCalledWith(
+      10,
+      undefined,
+      expect.any(Function)
+    );
+    expect(dom.window.document.body.textContent).toContain(
+      "このタブを再読み込みしました"
+    );
   });
 });

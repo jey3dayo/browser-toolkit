@@ -28,9 +28,28 @@ describe("focus override runtime", () => {
     expect(document.visibilityState).toBe("visible");
     expect(document.hidden).toBe(false);
     expect(document.hasFocus()).toBe(true);
+    expect(
+      document.documentElement?.getAttribute("data-mbu-focus-override-applied")
+    ).toBe("true");
     expect(existingVisibilityListener).not.toHaveBeenCalled();
     expect(newVisibilityListener).not.toHaveBeenCalled();
     expect(existingBlurListener).not.toHaveBeenCalled();
     expect(newBlurListener).not.toHaveBeenCalled();
+  });
+
+  it("is idempotent when applied multiple times", async () => {
+    const { applyAlwaysFocusedOverrides } = await import(
+      "@/focus-override/runtime"
+    );
+
+    applyAlwaysFocusedOverrides(window, document);
+    applyAlwaysFocusedOverrides(window, document);
+
+    expect(document.visibilityState).toBe("visible");
+    expect(document.hidden).toBe(false);
+    expect(document.hasFocus()).toBe(true);
+    expect(
+      document.documentElement?.getAttribute("data-mbu-focus-override-applied")
+    ).toBe("true");
   });
 });

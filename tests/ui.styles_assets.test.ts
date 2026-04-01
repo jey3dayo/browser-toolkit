@@ -10,7 +10,10 @@ const dirname =
 const projectRoot = path.join(dirname, "..");
 
 type WebAccessibleEntry = { resources?: string[] };
-type Manifest = { web_accessible_resources?: WebAccessibleEntry[] };
+type Manifest = {
+  host_permissions?: string[];
+  web_accessible_resources?: WebAccessibleEntry[];
+};
 
 const SHADOW_UI_STYLESHEETS = [
   "dist/styles/tokens/primitives.css",
@@ -69,5 +72,14 @@ describe("UI styles wiring", () => {
     for (const cssPath of [...SHADOW_UI_STYLESHEETS, ...POPUP_UI_STYLESHEETS]) {
       expect(fs.existsSync(path.join(projectRoot, cssPath))).toBe(true);
     }
+  });
+
+  it("includes host permissions required for focus override injection", () => {
+    const manifestPath = path.join(projectRoot, "manifest.json");
+    const manifest = JSON.parse(
+      fs.readFileSync(manifestPath, "utf8")
+    ) as Manifest;
+
+    expect(manifest.host_permissions ?? []).toContain("<all_urls>");
   });
 });

@@ -13,6 +13,7 @@
     "downloads"
   ],
   "host_permissions": [
+    "<all_urls>",
     "https://api.openai.com/*",
     "https://api.anthropic.com/*",
     "https://api.z.ai/*"

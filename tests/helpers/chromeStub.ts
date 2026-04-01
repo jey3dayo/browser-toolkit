@@ -27,11 +27,13 @@ export type ChromeStub = {
   };
   tabs: {
     sendMessage: ReturnType<typeof vi.fn>;
+    reload: ReturnType<typeof vi.fn>;
   };
   scripting: {
     getRegisteredContentScripts: ReturnType<typeof vi.fn>;
     registerContentScripts: ReturnType<typeof vi.fn>;
     unregisterContentScripts: ReturnType<typeof vi.fn>;
+    executeScript: ReturnType<typeof vi.fn>;
   };
 };
 
@@ -122,11 +124,18 @@ export function createChromeStub(options: Options = {}): ChromeStub {
           (last as (resp: unknown) => void)(tabsSendMessageResponse);
         }
       }),
+      reload: vi.fn(
+        (_tabId: number, _reloadProperties: unknown, callback?: () => void) => {
+          clearError();
+          callback?.();
+        }
+      ),
     },
     scripting: {
       getRegisteredContentScripts: vi.fn(async () => []),
       registerContentScripts: vi.fn(() => Promise.resolve()),
       unregisterContentScripts: vi.fn(() => Promise.resolve()),
+      executeScript: vi.fn(async () => []),
     },
   };
 }

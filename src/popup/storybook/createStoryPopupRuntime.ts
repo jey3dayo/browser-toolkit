@@ -1,6 +1,8 @@
 import { Result } from "@praha/byethrow";
+import { matchesAnyPattern } from "@/content/url-pattern";
 import type {
   ActiveTabInfo,
+  FocusOverrideDiagnosticSnapshot,
   PopupRuntime,
   RunContextActionRequest,
   SummarizeEventRequest,
@@ -27,6 +29,7 @@ type Options = {
     ) => unknown | Promise<unknown>;
   };
   summaryTarget?: SummaryTarget;
+  focusOverrideDiagnostic?: FocusOverrideDiagnosticSnapshot;
 };
 
 type InMemoryStorageArea<T extends Record<string, unknown>> = {
@@ -85,7 +88,11 @@ export function createStoryPopupRuntime(options: Options = {}): PopupRuntime {
   } else if (options.activeTabId === null) {
     activeTab = null;
   } else {
-    activeTab = { id: options.activeTabId ?? 123 };
+    activeTab = {
+      id: options.activeTabId ?? 123,
+      title: "storybook tab",
+      url: "https://example.com",
+    };
   }
   const sync = createInMemoryStorageArea<SyncStorageData>(options.sync);
   const local = createInMemoryStorageArea<LocalStorageData>(options.local);
@@ -108,6 +115,18 @@ export function createStoryPopupRuntime(options: Options = {}): PopupRuntime {
     },
     getActiveTab: async () => Result.succeed(activeTab),
     getActiveTabId: async () => Result.succeed(activeTab?.id ?? null),
+    matchesFocusOverridePatterns: (patterns, url) =>
+      matchesAnyPattern(patterns, url),
+    diagnoseFocusOverride: async () =>
+      Result.succeed(
+        options.focusOverrideDiagnostic ?? {
+          markerPresent: false,
+          visibilityState: "visible",
+          hidden: false,
+          hasFocus: true,
+        }
+      ),
+    reloadTab: async () => Result.succeed(),
     sendMessageToBackground: async (message) => {
       const action = getMessageAction(message);
 

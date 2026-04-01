@@ -20,6 +20,10 @@ export type PopupChromeStub = {
     query: ReturnType<typeof vi.fn>;
     sendMessage: ReturnType<typeof vi.fn>;
     create: ReturnType<typeof vi.fn>;
+    reload: ReturnType<typeof vi.fn>;
+  };
+  scripting: {
+    executeScript: ReturnType<typeof vi.fn>;
   };
 };
 
@@ -97,6 +101,24 @@ export function createPopupChromeStub(): PopupChromeStub {
         clearError();
         callback?.();
       }),
+      reload: vi.fn(
+        (_tabId: number, _reloadProperties: unknown, callback?: () => void) => {
+          clearError();
+          callback?.();
+        }
+      ),
+    },
+    scripting: {
+      executeScript: vi.fn(async () => [
+        {
+          result: {
+            markerPresent: false,
+            visibilityState: "visible",
+            hidden: false,
+            hasFocus: true,
+          },
+        },
+      ]),
     },
   };
 }
