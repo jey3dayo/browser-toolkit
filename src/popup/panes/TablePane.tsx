@@ -585,30 +585,93 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
     focusDiagnosticToneClass = "focus-diagnostic-status--warning";
   }
 
+  const summaryFocusStatusLabel = focusDiagnostic?.label ?? "診断待ち";
+  const summaryFocusDescription = focusDiagnostic
+    ? focusDiagnostic.description
+    : "現在のタブを確認するとフォーカス維持の一致状況を表示します";
+  const urlPatternSummaryLabel =
+    patterns.length === 0
+      ? "まだ登録されていません"
+      : `${patterns.length}件を登録済み`;
+  const focusPatternSummaryLabel =
+    focusPatterns.length === 0
+      ? "まだ登録されていません"
+      : `${focusPatterns.length}件を登録済み`;
+
   return (
-    <div className="card card-stack">
-      <div className="row-between">
-        <h2 className="pane-title">サイト別機能</h2>
-        <Button
-          className="btn btn-primary"
-          data-testid="enable-table-sort"
-          onClick={() => {
-            enableNow().catch(() => {
-              // no-op
-            });
-          }}
-          type="button"
+    <div className="card card-stack table-pane">
+      <div className="table-pane-header stack">
+        <div className="table-pane-heading row-between">
+          <h2 className="pane-title">サイト別機能</h2>
+          <Button
+            className="btn btn-primary"
+            data-testid="enable-table-sort"
+            onClick={() => {
+              enableNow().catch(() => {
+                // no-op
+              });
+            }}
+            type="button"
+          >
+            このタブで有効化
+          </Button>
+        </div>
+
+        <section
+          className="table-pane-summary"
+          data-testid="table-pane-summary"
         >
-          このタブで有効化
-        </Button>
+          <div className="table-pane-summary-heading">
+            <div className="stack-sm">
+              <p className="table-pane-summary-title">
+                このタブに必要な設定をまとめて確認できます
+              </p>
+              <p className="table-pane-summary-copy">
+                自動ソート対象サイトごとの行フィルタと、フォーカス維持の一致状況をこの画面で管理します。
+              </p>
+            </div>
+            <span
+              className={`focus-diagnostic-status table-pane-summary-status ${focusDiagnosticToneClass}`}
+            >
+              {summaryFocusStatusLabel}
+            </span>
+          </div>
+
+          <div className="table-pane-summary-grid">
+            <div className="table-pane-summary-item">
+              <p className="table-pane-summary-label">自動ソート対象サイト</p>
+              <p className="table-pane-summary-value">
+                {urlPatternSummaryLabel}
+              </p>
+              <p className="table-pane-summary-meta">
+                <code>*</code> ワイルドカード対応 / protocolは無視
+              </p>
+            </div>
+
+            <div className="table-pane-summary-item">
+              <p className="table-pane-summary-label">フォーカス維持</p>
+              <p className="table-pane-summary-value">
+                {focusPatternSummaryLabel}
+              </p>
+              <p className="table-pane-summary-meta">
+                {summaryFocusDescription}
+              </p>
+            </div>
+          </div>
+        </section>
       </div>
 
-      <div className="stack">
-        <div className="hint">
-          URLパターン（<code>*</code>ワイルドカード対応 / protocolは無視）
-        </div>
-        <div className="hint">
-          各パターンごとに行フィルタリング（0円、ハイフン、空白、N/Aを非表示）を有効化できます
+      <section
+        className="table-pane-section stack"
+        data-section="url-patterns"
+        data-testid="table-pane-section"
+      >
+        <div className="table-pane-section-heading stack-sm">
+          <h3 className="pane-subtitle">自動ソート対象サイト</h3>
+          <div className="hint">
+            テーブルの自動ソートを有効にしたいサイトを URL
+            パターンで登録できます。行フィルタはサイトごとに有効化できます。
+          </div>
         </div>
         <Form
           className="pattern-input-group"
@@ -649,7 +712,10 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
                   className="pattern-list-inner"
                 >
                   {patterns.map((config) => (
-                    <li className="pattern-item" key={config.pattern}>
+                    <li
+                      className="pattern-item pattern-item--with-toggle"
+                      key={config.pattern}
+                    >
                       <code className="pattern-text">{config.pattern}</code>
                       <TooltipSwitch tooltip={rowFilterTooltip}>
                         <Switch.Root
@@ -693,14 +759,18 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
         ) : (
           <p className="empty-message">まだパターンが登録されていません</p>
         )}
-      </div>
+      </section>
 
-      <div className="stack">
-        <div className="row-between">
+      <section
+        className="table-pane-section stack"
+        data-section="focus-override"
+        data-testid="table-pane-section"
+      >
+        <div className="table-pane-section-heading stack-sm">
           <h3 className="pane-subtitle">フォーカス維持</h3>
-        </div>
-        <div className="hint">
-          タブが非アクティブでも常に表示中として扱わせたいサイト向けです
+          <div className="hint">
+            タブが非アクティブでも常に表示中として扱わせたいサイト向けです
+          </div>
         </div>
 
         <section
@@ -726,7 +796,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
                 </code>
               </div>
             </div>
-            <div className="button-row">
+            <div className="button-row focus-diagnostic-actions">
               <Button
                 className="btn btn-ghost btn-small"
                 data-testid="focus-diagnostic-refresh"
@@ -813,7 +883,10 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
                   className="pattern-list-inner"
                 >
                   {focusPatterns.map((pattern) => (
-                    <li className="pattern-item" key={pattern}>
+                    <li
+                      className="pattern-item pattern-item--simple"
+                      key={pattern}
+                    >
                       <code className="pattern-text">{pattern}</code>
                       <Button
                         className="btn-delete"
@@ -839,7 +912,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
         ) : (
           <p className="empty-message">まだパターンが登録されていません</p>
         )}
-      </div>
+      </section>
     </div>
   );
 }

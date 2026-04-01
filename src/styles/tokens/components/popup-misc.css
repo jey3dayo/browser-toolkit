@@ -1,11 +1,150 @@
+.table-pane {
+  gap: 18px;
+}
+
+.table-pane-header {
+  gap: 14px;
+}
+
+.table-pane-heading {
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.table-pane-heading .pane-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.table-pane-summary {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--color-primary) 18%, transparent),
+    color-mix(in oklab, var(--color-primary-2) 14%, transparent)
+  );
+  border: 1px solid color-mix(in oklab, var(--color-primary-2) 18%, var(--line));
+  border-radius: 16px;
+}
+
+.table-pane-summary-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.table-pane-summary-heading > .stack-sm {
+  flex: 1;
+  min-width: 0;
+}
+
+.table-pane-summary-title,
+.table-pane-summary-copy,
+.table-pane-summary-label,
+.table-pane-summary-value,
+.table-pane-summary-meta {
+  margin: 0;
+}
+
+.table-pane-summary-title {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.table-pane-summary-copy {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text-sub);
+}
+
+.table-pane-summary-status {
+  align-self: start;
+}
+
+.table-pane-summary-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.table-pane-summary-item {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+}
+
+.table-pane-summary-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-sub);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+}
+
+.table-pane-summary-value {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.table-pane-summary-meta {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text-sub);
+}
+
+.table-pane-summary-meta code {
+  padding: 1px 6px;
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+.table-pane-section {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  background: color-mix(in oklab, var(--panel-soft) 92%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.table-pane-section-heading {
+  gap: 6px;
+}
+
+.table-pane-section .pane-subtitle {
+  margin: 0;
+}
+
+.table-pane .pattern-input-group {
+  flex-wrap: wrap;
+}
+
+.table-pane .pattern-input-group > .pattern-input {
+  min-width: min(100%, 220px);
+}
+
 .pattern-list {
   position: relative;
-  max-height: 400px;
-  padding: 10px;
+  max-height: 320px;
+  padding: 8px;
   margin: 0;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.03);
   border: 1px dashed var(--line);
-  border-radius: 12px;
+  border-radius: 14px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .pattern-scrollarea {
@@ -52,14 +191,22 @@
 
 .pattern-item {
   display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
-  min-height: 44px;
-  padding: 8px 10px;
-  margin-bottom: 6px;
-  background: var(--panel-soft);
-  border-radius: 10px;
+  min-height: 48px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  background: color-mix(in oklab, var(--panel) 92%, transparent);
+  border: 1px solid color-mix(in oklab, var(--line) 92%, transparent);
+  border-radius: 12px;
+}
+
+.pattern-item--with-toggle {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.pattern-item--simple {
+  grid-template-columns: minmax(0, 1fr) auto;
 }
 
 .pattern-item:last-child {
@@ -69,7 +216,8 @@
 .pattern-text {
   flex: 1;
   min-width: 0;
-  padding-right: 8px;
+  padding-right: 0;
+  font-size: 12px;
   line-height: 1.4;
   word-break: break-all;
   overflow-wrap: anywhere;
@@ -193,19 +341,32 @@ input[type="checkbox"] {
 }
 
 .empty-message {
+  padding: 14px;
   margin: 0;
   font-size: 12px;
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--text-sub);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed var(--line);
+  border-radius: 14px;
 }
 
 .focus-diagnostic-panel {
   display: grid;
-  gap: 10px;
-  padding: 12px;
-  background: color-mix(in oklab, var(--panel-soft) 90%, transparent);
-  border: 1px solid var(--line);
-  border-radius: 12px;
+  gap: 12px;
+  padding: 14px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--panel) 96%, transparent),
+    color-mix(in oklab, var(--panel-soft) 92%, transparent)
+  );
+  border: 1px solid color-mix(in oklab, var(--line) 96%, transparent);
+  border-radius: 16px;
+}
+
+.focus-diagnostic-panel > .row-between {
+  flex-wrap: wrap;
+  align-items: flex-start;
 }
 
 .focus-diagnostic-eyebrow {
@@ -218,7 +379,7 @@ input[type="checkbox"] {
 
 .focus-diagnostic-summary {
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 
 .focus-diagnostic-status {
@@ -260,13 +421,17 @@ input[type="checkbox"] {
 
 .focus-diagnostic-url {
   display: block;
-  padding: 8px 10px;
-  line-height: 1.45;
+  padding: 10px 12px;
+  line-height: 1.5;
   word-break: break-all;
   overflow-wrap: anywhere;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.04);
   border: 1px dashed color-mix(in oklab, var(--line) 90%, transparent);
-  border-radius: 10px;
+  border-radius: 12px;
+}
+
+.focus-diagnostic-actions {
+  justify-content: flex-end;
 }
 
 .focus-diagnostic-description,
@@ -274,7 +439,7 @@ input[type="checkbox"] {
 .focus-diagnostic-loading {
   margin: 0;
   font-size: 12px;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .focus-diagnostic-description,
@@ -284,6 +449,12 @@ input[type="checkbox"] {
 
 .focus-diagnostic-loading {
   color: var(--text);
+}
+
+@media (min-width: 720px) {
+  .table-pane-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .mbu-build-error {
