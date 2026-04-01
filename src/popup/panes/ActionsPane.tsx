@@ -1,11 +1,6 @@
-import { Result } from "@praha/byethrow";
-import { useEffect, useMemo, useState } from "react";
+import { useRef } from "react";
 import { SortableList } from "@/components/SortableList";
-import {
-  type ContextAction,
-  DEFAULT_CONTEXT_ACTIONS,
-  normalizeContextActions,
-} from "@/context_actions";
+import type { ContextAction } from "@/context_actions";
 import type { PaneId } from "@/popup/panes";
 import { ActionButtons } from "@/popup/panes/actions/ActionButtons";
 import { ActionEditorPanel } from "@/popup/panes/actions/ActionEditorPanel";
@@ -13,8 +8,8 @@ import { ActionOutputPanel } from "@/popup/panes/actions/ActionOutputPanel";
 import { ActionTargetAccordion } from "@/popup/panes/actions/ActionTargetAccordion";
 import { useActionEditor } from "@/popup/panes/actions/useActionEditor";
 import { useActionRunner } from "@/popup/panes/actions/useActionRunner";
+import { useActions } from "@/popup/panes/actions/useActions";
 import type { PopupRuntime } from "@/popup/runtime";
-import { persistWithRollback } from "@/popup/utils/persist";
 import type { Notifier } from "@/ui/toast";
 
 export type ActionsPaneProps = {
@@ -25,12 +20,23 @@ export type ActionsPaneProps = {
 };
 
 export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
-  const [actions, setActions] = useState<ContextAction[]>([]);
+  const resetEditorStateRef = useRef<() => void>(() => {
+    // no-op
+  });
 
-  const actionsById = useMemo(
-    () => new Map(actions.map((action) => [action.id, action])),
-    [actions]
-  );
+  const {
+    actions,
+    actionsById,
+    setActions,
+    persistActionsUpdate,
+    resetActions,
+  } = useActions({
+    runtime: props.runtime,
+    notify: props.notify,
+    onEditorReset: () => {
+      resetEditorStateRef.current();
+    },
+  });
 
   const {
     output,
@@ -48,33 +54,6 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
     navigateToPane: props.navigateToPane,
     focusTokenInput: props.focusTokenInput,
   });
-
-  const persistActionsUpdate = async (
-    nextActions: ContextAction[],
-    successMessage: string,
-    failureMessage: string
-  ): Promise<void> => {
-    const previous = actions;
-    await persistWithRollback({
-      applyNext: () => {
-        setActions(nextActions);
-        resetEditorState();
-      },
-      rollback: () => {
-        setActions(previous);
-      },
-      persist: () =>
-        props.runtime.storageSyncSet({
-          contextActions: nextActions,
-        }),
-      onSuccess: () => {
-        props.notify.success(successMessage);
-      },
-      onFailure: () => {
-        props.notify.error(failureMessage);
-      },
-    });
-  };
 
   const {
     editorId,
@@ -96,48 +75,7 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
     runtime: props.runtime,
     notify: props.notify,
   });
-
-  useEffect(() => {
-    let cancelled = false;
-    const setActionsSafe = (next: ContextAction[]): void => {
-      if (!cancelled) {
-        setActions(next);
-      }
-    };
-
-    (async () => {
-      const data = await props.runtime.storageSyncGet(["contextActions"]);
-      if (Result.isSuccess(data)) {
-        const normalized = normalizeContextActions(data.value.contextActions);
-        if (normalized.length > 0) {
-          setActionsSafe(normalized);
-          return;
-        }
-      }
-
-      setActionsSafe(DEFAULT_CONTEXT_ACTIONS);
-      await props.runtime
-        .storageSyncSet({
-          contextActions: DEFAULT_CONTEXT_ACTIONS,
-        })
-        .catch(() => {
-          // no-op
-        });
-    })().catch(() => {
-      // no-op
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [props.runtime]);
-
-  const resetActions = async (): Promise<void> => {
-    await persistActionsUpdate(
-      DEFAULT_CONTEXT_ACTIONS,
-      "リセットしました",
-      "リセットに失敗しました"
-    );
-  };
+  resetEditorStateRef.current = resetEditorState;
 
   const handleReorder = async (
     reorderedActions: ContextAction[]
