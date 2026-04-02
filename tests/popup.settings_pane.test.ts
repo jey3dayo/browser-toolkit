@@ -92,7 +92,9 @@ describe("popup Settings pane", () => {
       )
     );
     expect(cards).toHaveLength(5);
-    expect(cards.every((card) => card.classList.contains("settings-pane-card"))).toBe(true);
+    expect(
+      cards.every((card) => card.classList.contains("settings-pane-card"))
+    ).toBe(true);
     expect(cards.map((card) => card.dataset.section)).toEqual([
       "provider",
       "token",

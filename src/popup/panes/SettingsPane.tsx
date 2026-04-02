@@ -251,7 +251,8 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
                   }
                   setProvider(newProvider);
                   // プロバイダー変更時にモデルをデフォルトにリセット
-                  const defaultModel = PROVIDER_CONFIGS[newProvider].defaultModel;
+                  const defaultModel =
+                    PROVIDER_CONFIGS[newProvider].defaultModel;
                   setModel(defaultModel);
 
                   // プロバイダー別トークンをロード（完了を待つ）
@@ -263,7 +264,9 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
                     if (Result.isSuccess(result)) {
                       const raw = result.value as Partial<LocalStorageData>;
                       const tokenValue = raw[tokenKey];
-                      setToken(typeof tokenValue === "string" ? tokenValue : "");
+                      setToken(
+                        typeof tokenValue === "string" ? tokenValue : ""
+                      );
                     }
                   } catch {
                     // no-op
@@ -344,7 +347,9 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
                 />
                 <Toggle
                   aria-controls={tokenInputId}
-                  aria-label={showToken ? "トークンを隠す" : "トークンを表示する"}
+                  aria-label={
+                    showToken ? "トークンを隠す" : "トークンを表示する"
+                  }
                   className="input-icon-toggle"
                   data-testid="token-visible"
                   onPressedChange={setShowToken}

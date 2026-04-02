@@ -525,8 +525,7 @@ input[type="checkbox"] {
   gap: 8px;
 }
 
-.settings-pane-card[data-section="token"]
-  [data-testid="token-danger-actions"] {
+.settings-pane-card[data-section="token"] [data-testid="token-danger-actions"] {
   display: flex;
   justify-content: flex-end;
 }
