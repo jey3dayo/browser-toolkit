@@ -4,7 +4,7 @@ import { isRecord } from "@/utils/guards";
 
 type ErrorHandler = (message: string) => void;
 
-export function isSummaryTarget(value: unknown): value is SummaryTarget {
+function isSummaryTarget(value: unknown): value is SummaryTarget {
   if (!isRecord(value)) {
     return false;
   }

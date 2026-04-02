@@ -23,10 +23,7 @@ function isTokenRelatedError(message: string): boolean {
 /**
  * エラーメッセージを表示し、トークン関連エラーの場合は設定画面への誘導を追加
  */
-export function reportError(
-  message: string,
-  options: ErrorReporterOptions
-): void {
+function reportError(message: string, options: ErrorReporterOptions): void {
   const { notify, navigateToPane, focusTokenInput } = options;
 
   if (isTokenRelatedError(message) && navigateToPane && focusTokenInput) {

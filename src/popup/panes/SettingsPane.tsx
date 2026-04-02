@@ -13,11 +13,7 @@ import { useEffect, useId, useState } from "react";
 import { Icon } from "@/components/icon";
 import { DEFAULT_OPENAI_MODEL } from "@/openai/settings";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
-import type {
-  TestAiTokenRequest,
-  TestAiTokenResponse,
-  TestOpenAiTokenResponse,
-} from "@/popup/runtime";
+import type { TestAiTokenRequest, TestAiTokenResponse } from "@/popup/runtime";
 import {
   type AiProvider,
   normalizeAiModel,
@@ -33,14 +29,6 @@ import { isRecord } from "@/utils/guards";
 export type SettingsPaneProps = PopupPaneBaseProps & {
   tokenInputRef: React.RefObject<HTMLInputElement | null>;
 };
-
-function _isTestOpenAiTokenResponse(
-  value: unknown
-): value is TestOpenAiTokenResponse {
-  // Result type is opaque, so we can't check its structure directly
-  // We assume the value is a TestOpenAiTokenResponse if it's an object
-  return isRecord(value);
-}
 
 function isTestAiTokenResponse(value: unknown): value is TestAiTokenResponse {
   // Result type is opaque, so we can't check its structure directly

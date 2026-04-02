@@ -1,7 +1,7 @@
 import type { IconName } from "@/components/icon";
 import type { PaneId } from "@/popup/panes";
 
-export type NavigationItem = {
+type NavigationItem = {
   id: PaneId;
   label: string;
   icon: IconName;
