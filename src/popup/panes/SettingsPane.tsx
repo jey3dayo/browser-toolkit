@@ -225,12 +225,19 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
 
   return (
     <div className="card card-stack settings-pane">
-      <section className="stack-sm" data-testid="settings-overview">
+      <section
+        className="stack-sm settings-pane-overview"
+        data-testid="settings-overview"
+      >
         <h2 className="pane-title">設定</h2>
         <p className="hint">AI設定はこの端末のみ（同期されません）</p>
       </section>
 
-      <section className="card settings-card" data-section="provider" data-testid="settings-card">
+      <section
+        className="card settings-card settings-pane-card"
+        data-section="provider"
+        data-testid="settings-card"
+      >
         <Field.Root name="aiProvider">
           <Fieldset.Root
             className="mbu-fieldset"
@@ -305,7 +312,11 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
         </Field.Root>
       </section>
 
-      <section className="card settings-card" data-section="token" data-testid="settings-card">
+      <section
+        className="card settings-card settings-pane-card"
+        data-section="token"
+        data-testid="settings-card"
+      >
         <Form
           className="stack"
           onFormSubmit={() => {
@@ -392,7 +403,11 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
         </Form>
       </section>
 
-      <section className="card settings-card" data-section="model" data-testid="settings-card">
+      <section
+        className="card settings-card settings-pane-card"
+        data-section="model"
+        data-testid="settings-card"
+      >
         <Fieldset.Root className="mbu-fieldset stack">
           <Fieldset.Legend className="mbu-fieldset-legend">
             モデル
@@ -451,7 +466,11 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
 
       <Separator className="mbu-separator" />
 
-      <section className="card settings-card" data-section="prompt" data-testid="settings-card">
+      <section
+        className="card settings-card settings-pane-card"
+        data-section="prompt"
+        data-testid="settings-card"
+      >
         <Form
           className="stack"
           onFormSubmit={() => {
@@ -508,7 +527,11 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
 
       <Separator className="mbu-separator" />
 
-      <section className="card settings-card" data-section="theme" data-testid="settings-card">
+      <section
+        className="card settings-card settings-pane-card"
+        data-section="theme"
+        data-testid="settings-card"
+      >
         <Field.Root name="theme">
           <Fieldset.Root
             className="mbu-fieldset"

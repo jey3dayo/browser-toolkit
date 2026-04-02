@@ -83,6 +83,7 @@ describe("popup Settings pane", () => {
       '[data-testid="settings-overview"]'
     );
     expect(overview).not.toBeNull();
+    expect(overview?.classList.contains("settings-pane-overview")).toBe(true);
     expect(overview?.textContent).toContain("この端末のみ");
 
     const cards = Array.from(
@@ -91,6 +92,7 @@ describe("popup Settings pane", () => {
       )
     );
     expect(cards).toHaveLength(5);
+    expect(cards.every((card) => card.classList.contains("settings-pane-card"))).toBe(true);
     expect(cards.map((card) => card.dataset.section)).toEqual([
       "provider",
       "token",
