@@ -518,21 +518,18 @@ input[type="checkbox"] {
   gap: 14px;
 }
 
-.settings-pane-card[data-section="token"]
-  [data-testid="token-primary-actions"] {
+.settings-pane-card .settings-token-primary-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
-.settings-pane-card[data-section="token"] [data-testid="token-danger-actions"] {
+.settings-pane-card .settings-token-danger-actions {
   display: flex;
   justify-content: flex-end;
 }
 
-.settings-pane-card[data-section="token"]
-  [data-testid="token-danger-actions"]
-  .btn-delete {
+.settings-pane-card .settings-token-danger-actions .btn-delete {
   min-width: 96px;
 }
 
@@ -550,14 +547,13 @@ input[type="checkbox"] {
   gap: 10px;
 }
 
-.settings-pane-card[data-section="theme"]
-  [data-testid="theme-primary-options"] {
+.settings-pane-card .settings-theme-primary-options {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
-.settings-pane-card[data-section="theme"] [data-testid="theme-auto-option"] {
+.settings-pane-card .settings-theme-auto-option {
   display: grid;
   gap: 8px;
   padding-top: 2px;

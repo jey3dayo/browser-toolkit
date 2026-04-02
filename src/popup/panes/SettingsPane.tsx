@@ -368,7 +368,10 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
           </Fieldset.Root>
 
           <div className="stack-sm">
-            <div className="button-row" data-testid="token-primary-actions">
+            <div
+              className="button-row settings-token-primary-actions"
+              data-testid="token-primary-actions"
+            >
               <Button
                 className="btn btn-primary btn-small"
                 data-testid="token-save"
@@ -394,7 +397,10 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
                 トークン確認
               </Button>
             </div>
-            <div className="button-row" data-testid="token-danger-actions">
+            <div
+              className="button-row settings-token-danger-actions"
+              data-testid="token-danger-actions"
+            >
               <Button
                 className="btn-delete"
                 data-testid="token-clear"
@@ -564,7 +570,10 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
             <Fieldset.Legend className="mbu-fieldset-legend">
               テーマ
             </Fieldset.Legend>
-            <div className="stack-sm" data-testid="theme-primary-options">
+            <div
+              className="stack-sm settings-theme-primary-options"
+              data-testid="theme-primary-options"
+            >
               <Field.Item>
                 <Field.Label className="mbu-radio-label">
                   <Radio.Root className="mbu-radio-root" value="dark">
@@ -582,7 +591,10 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
                 </Field.Label>
               </Field.Item>
             </div>
-            <div className="stack-sm" data-testid="theme-auto-option">
+            <div
+              className="stack-sm settings-theme-auto-option"
+              data-testid="theme-auto-option"
+            >
               <Field.Item>
                 <Field.Label className="mbu-radio-label">
                   <Radio.Root className="mbu-radio-root" value="auto">
