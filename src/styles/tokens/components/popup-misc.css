@@ -451,6 +451,123 @@ input[type="checkbox"] {
   color: var(--text);
 }
 
+.settings-pane {
+  gap: 16px;
+}
+
+.settings-pane-overview {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--color-primary) 12%, transparent),
+    color-mix(in oklab, var(--color-primary-2) 10%, transparent)
+  );
+  border: 1px solid color-mix(in oklab, var(--color-primary) 18%, var(--line));
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+.settings-pane-overview .pane-title {
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.settings-pane-overview .hint {
+  max-width: 38ch;
+  color: color-mix(in oklab, var(--text-sub) 92%, var(--text));
+}
+
+.settings-pane-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  background: color-mix(in oklab, var(--panel) 96%, transparent);
+  border: 1px solid color-mix(in oklab, var(--line) 92%, transparent);
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+.settings-pane-card .mbu-fieldset-legend {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  opacity: 1;
+}
+
+.settings-pane-card .field-name {
+  color: color-mix(in oklab, var(--text-sub) 92%, var(--text));
+}
+
+.settings-pane-card .hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.settings-pane-card .button-row {
+  gap: 8px;
+}
+
+.settings-pane-card[data-section="provider"] .mbu-radio-group--horizontal {
+  gap: 8px;
+}
+
+.settings-pane-card[data-section="token"] {
+  gap: 14px;
+}
+
+.settings-pane-card[data-section="token"]
+  [data-testid="token-primary-actions"] {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.settings-pane-card[data-section="token"]
+  [data-testid="token-danger-actions"] {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.settings-pane-card[data-section="token"]
+  [data-testid="token-danger-actions"]
+  .btn-delete {
+  min-width: 96px;
+}
+
+.settings-pane-card[data-section="prompt"] {
+  gap: 14px;
+}
+
+.settings-pane-card[data-section="theme"] {
+  gap: 14px;
+}
+
+.settings-pane-card[data-section="theme"] .mbu-radio-group--horizontal {
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-flow: row;
+  gap: 10px;
+}
+
+.settings-pane-card[data-section="theme"]
+  [data-testid="theme-primary-options"] {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.settings-pane-card[data-section="theme"] [data-testid="theme-auto-option"] {
+  display: grid;
+  gap: 8px;
+  padding-top: 2px;
+}
+
+.settings-pane-card[data-section="theme"] .mbu-radio-label {
+  align-items: flex-start;
+}
+
 @media (min-width: 720px) {
   .table-pane-summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
