@@ -1,6 +1,6 @@
 const FALLBACK_APP_NAME = "Browser Toolkit";
 
-export function resolveAppName(): string {
+function resolveAppName(): string {
   try {
     if (typeof chrome !== "undefined") {
       const name = chrome.runtime?.getManifest?.().name;

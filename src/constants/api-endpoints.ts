@@ -17,7 +17,7 @@ export const ALLOWED_API_ORIGINS = [
 /**
  * 許可されたAPIエンドポイント型
  */
-export type AllowedApiOrigin = (typeof ALLOWED_API_ORIGINS)[number];
+type AllowedApiOrigin = (typeof ALLOWED_API_ORIGINS)[number];
 
 /**
  * URLがホワイトリストに含まれているかチェック
@@ -33,25 +33,4 @@ export function isAllowedApiOrigin(url: string): boolean {
     // 無効なURL
     return false;
   }
-}
-
-/**
- * ホワイトリストチェック付きfetch
- *
- * @param url - APIエンドポイントURL
- * @param options - fetchオプション
- * @throws Error ホワイトリストに含まれていない場合
- */
-export function fetchWithOriginCheck(
-  url: string,
-  options?: RequestInit
-): Promise<Response> {
-  if (!isAllowedApiOrigin(url)) {
-    const origin = new URL(url).origin;
-    throw new Error(
-      `Disallowed API origin: ${origin}. Allowed origins: ${ALLOWED_API_ORIGINS.join(", ")}`
-    );
-  }
-
-  return fetch(url, options);
 }

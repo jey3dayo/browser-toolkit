@@ -32,18 +32,9 @@ export type RuntimeRequest =
   | { action: "getDebugLogs" }
   | ChatFollowUpRequest;
 
-export type TestOpenAiTokenResponse = Result.Result<
-  Record<string, never>,
-  string
->;
-export type DownloadDebugLogsResponse = Result.Result<
-  Record<string, never>,
-  string
->;
-export type ClearDebugLogsResponse = Result.Result<
-  Record<string, never>,
-  string
->;
+type TestOpenAiTokenResponse = Result.Result<Record<string, never>, string>;
+type DownloadDebugLogsResponse = Result.Result<Record<string, never>, string>;
+type ClearDebugLogsResponse = Result.Result<Record<string, never>, string>;
 
 type RuntimeResponse =
   | BackgroundResponse

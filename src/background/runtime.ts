@@ -4,12 +4,6 @@ import type {
   RuntimeSendResponse,
 } from "@/background/runtime_types";
 
-export type {
-  ClearDebugLogsResponse,
-  DownloadDebugLogsResponse,
-  TestOpenAiTokenResponse,
-} from "@/background/runtime_types";
-
 export function registerRuntimeMessageHandlers(): void {
   chrome.runtime.onMessage.addListener(
     (

@@ -7,7 +7,7 @@ export const DEFAULT_CALENDAR_TARGETS: CalendarRegistrationTarget[] = [
 
 const VALID_TARGETS = new Set<CalendarRegistrationTarget>(["google", "ics"]);
 
-export function normalizeCalendarTargets(
+function normalizeCalendarTargets(
   value: unknown
 ): CalendarRegistrationTarget[] {
   if (!Array.isArray(value)) {

@@ -72,7 +72,7 @@ function validateLegacyDomainPatterns(
  * @param data - ストレージデータ
  * @returns 成功時はDomainPatternConfig配列、失敗時はエラーメッセージ
  */
-export function normalizeDomainPatternConfigs(
+function normalizeDomainPatternConfigs(
   data: StorageData
 ): Result.Result<DomainPatternConfig[], string> {
   // 1. 新形式(domainPatternConfigs)のバリデーション

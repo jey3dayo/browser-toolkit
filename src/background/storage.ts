@@ -119,19 +119,6 @@ export function isReservedStorageKey(key: string): key is ReservedKey {
   );
 }
 
-/**
- * Filter out reserved keys from user data
- */
-export function filterReservedKeys(keys: string[]): string[] {
-  return keys.filter((key) => !isReservedStorageKey(key));
-}
-
-/**
- * Fallback marker key to track which keys are stored in local storage
- * @deprecated Use STORAGE_RESERVED_KEYS.FALLBACK_KEYS_MARKER instead
- */
-export const FALLBACK_KEYS_MARKER = STORAGE_RESERVED_KEYS.FALLBACK_KEYS_MARKER;
-
 function clearFallbackStateForKeys(
   keys: string[],
   resolve: () => void,
