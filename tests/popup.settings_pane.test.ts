@@ -78,6 +78,28 @@ describe("popup Settings pane", () => {
     vi.unstubAllGlobals();
   });
 
+  it("renders the overview and five settings cards", () => {
+    const overview = dom.window.document.querySelector<HTMLElement>(
+      '[data-testid="settings-overview"]'
+    );
+    expect(overview).not.toBeNull();
+    expect(overview?.textContent).toContain("この端末のみ");
+
+    const cards = Array.from(
+      dom.window.document.querySelectorAll<HTMLElement>(
+        '[data-testid="settings-card"]'
+      )
+    );
+    expect(cards).toHaveLength(5);
+    expect(cards.map((card) => card.dataset.section)).toEqual([
+      "provider",
+      "token",
+      "model",
+      "prompt",
+      "theme",
+    ]);
+  });
+
   it("toggles token visibility without changing the token value", async () => {
     const token = dom.window.document.querySelector<HTMLInputElement>(
       '[data-testid="ai-token"]'
