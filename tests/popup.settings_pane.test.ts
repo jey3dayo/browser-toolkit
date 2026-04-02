@@ -157,6 +157,28 @@ describe("popup Settings pane", () => {
     );
   });
 
+  it("groups token actions into primary and danger containers", () => {
+    const primaryActions = dom.window.document.querySelector<HTMLElement>(
+      '[data-testid="token-primary-actions"]'
+    );
+    const dangerActions = dom.window.document.querySelector<HTMLElement>(
+      '[data-testid="token-danger-actions"]'
+    );
+
+    expect(primaryActions).not.toBeNull();
+    expect(
+      Array.from(
+        primaryActions?.querySelectorAll<HTMLButtonElement>("button") ?? []
+      ).map((button) => button.dataset.testid)
+    ).toEqual(["token-save", "token-test"]);
+    expect(dangerActions).not.toBeNull();
+    expect(
+      Array.from(
+        dangerActions?.querySelectorAll<HTMLButtonElement>("button") ?? []
+      ).map((button) => button.dataset.testid)
+    ).toEqual(["token-clear"]);
+  });
+
   it("tests the token via background messaging and shows feedback", async () => {
     const testButton = dom.window.document.querySelector<HTMLButtonElement>(
       '[data-testid="token-test"]'
@@ -230,5 +252,20 @@ describe("popup Settings pane", () => {
       expect.any(Function)
     );
     expect(modelSelect?.textContent).toContain(OPENAI_MODELS.GPT_4O_MINI);
+  });
+
+  it("orders theme options into primary and auto groups", () => {
+    const primaryOptions = dom.window.document.querySelector<HTMLElement>(
+      '[data-testid="theme-primary-options"]'
+    );
+    const autoOption = dom.window.document.querySelector<HTMLElement>(
+      '[data-testid="theme-auto-option"]'
+    );
+
+    expect(primaryOptions).not.toBeNull();
+    expect(primaryOptions?.textContent).toContain("ダーク");
+    expect(primaryOptions?.textContent).toContain("ライト");
+    expect(autoOption).not.toBeNull();
+    expect(autoOption?.textContent).toContain("自動");
   });
 });

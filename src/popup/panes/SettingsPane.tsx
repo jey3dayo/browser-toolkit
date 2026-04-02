@@ -362,43 +362,47 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
             </label>
           </Fieldset.Root>
 
-          <div className="button-row">
-            <Button
-              className="btn btn-primary btn-small"
-              data-testid="token-save"
-              onClick={() => {
-                saveToken().catch(() => {
-                  // no-op
-                });
-              }}
-              type="button"
-            >
-              保存
-            </Button>
-            <Button
-              className="btn-delete"
-              data-testid="token-clear"
-              onClick={() => {
-                clearToken().catch(() => {
-                  // no-op
-                });
-              }}
-              type="button"
-            >
-              削除
-            </Button>
-            <Button
-              className="btn btn-ghost btn-small"
-              data-testid="token-test"
-              onClick={() => {
-                testToken().catch(() => {
-                  // no-op
-                });
-              }}
-              type="button"
-            >
-              トークン確認
-            </Button>
+          <div className="stack-sm">
+            <div className="button-row" data-testid="token-primary-actions">
+              <Button
+                className="btn btn-primary btn-small"
+                data-testid="token-save"
+                onClick={() => {
+                  saveToken().catch(() => {
+                    // no-op
+                  });
+                }}
+                type="button"
+              >
+                保存
+              </Button>
+              <Button
+                className="btn btn-ghost btn-small"
+                data-testid="token-test"
+                onClick={() => {
+                  testToken().catch(() => {
+                    // no-op
+                  });
+                }}
+                type="button"
+              >
+                トークン確認
+              </Button>
+            </div>
+            <div className="button-row" data-testid="token-danger-actions">
+              <Button
+                className="btn-delete"
+                data-testid="token-clear"
+                onClick={() => {
+                  clearToken().catch(() => {
+                    // no-op
+                  });
+                }}
+                type="button"
+              >
+                削除
+              </Button>
+            </div>
           </div>
         </Form>
       </section>
@@ -555,30 +559,34 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
             <Fieldset.Legend className="mbu-fieldset-legend">
               テーマ
             </Fieldset.Legend>
-            <Field.Item>
-              <Field.Label className="mbu-radio-label">
-                <Radio.Root className="mbu-radio-root" value="auto">
-                  <Radio.Indicator className="mbu-radio-indicator" />
-                </Radio.Root>
-                自動
-              </Field.Label>
-            </Field.Item>
-            <Field.Item>
-              <Field.Label className="mbu-radio-label">
-                <Radio.Root className="mbu-radio-root" value="light">
-                  <Radio.Indicator className="mbu-radio-indicator" />
-                </Radio.Root>
-                ライト
-              </Field.Label>
-            </Field.Item>
-            <Field.Item>
-              <Field.Label className="mbu-radio-label">
-                <Radio.Root className="mbu-radio-root" value="dark">
-                  <Radio.Indicator className="mbu-radio-indicator" />
-                </Radio.Root>
-                ダーク
-              </Field.Label>
-            </Field.Item>
+            <div className="stack-sm" data-testid="theme-primary-options">
+              <Field.Item>
+                <Field.Label className="mbu-radio-label">
+                  <Radio.Root className="mbu-radio-root" value="dark">
+                    <Radio.Indicator className="mbu-radio-indicator" />
+                  </Radio.Root>
+                  ダーク
+                </Field.Label>
+              </Field.Item>
+              <Field.Item>
+                <Field.Label className="mbu-radio-label">
+                  <Radio.Root className="mbu-radio-root" value="light">
+                    <Radio.Indicator className="mbu-radio-indicator" />
+                  </Radio.Root>
+                  ライト
+                </Field.Label>
+              </Field.Item>
+            </div>
+            <div className="stack-sm" data-testid="theme-auto-option">
+              <Field.Item>
+                <Field.Label className="mbu-radio-label">
+                  <Radio.Root className="mbu-radio-root" value="auto">
+                    <Radio.Indicator className="mbu-radio-indicator" />
+                  </Radio.Root>
+                  自動
+                </Field.Label>
+              </Field.Item>
+            </div>
           </Fieldset.Root>
         </Field.Root>
       </section>
