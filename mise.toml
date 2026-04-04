@@ -35,7 +35,7 @@ run = "pnpm run lint"
 
 [tasks.test]
 description = "VitestでユニットテストをRTK経由で実行"
-run = "rtk vitest run --project=unit"
+run = "rtk vitest run --project=unit --maxWorkers=1"
 
 [tasks."test:storybook"]
 description = "Storybook(Vitest addon)をRTK経由で実行"
