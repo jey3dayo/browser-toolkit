@@ -6,16 +6,16 @@ import {
   type MessageHandlerDeps,
 } from "@/content/message-handlers";
 import type { ToastMount } from "@/content/notification";
-import type {
-  ActionOverlayRequest,
-  OverlayMount,
-  SummaryOverlayRequest,
-} from "@/content/overlay-helpers";
+import type { OverlayMount } from "@/content/overlay-helpers";
 import { setupTableAutoExec } from "@/content/table-auto-exec";
 import { stopTableObserver } from "@/content/table-observer";
 import { createThemeManager } from "@/content/theme-manager";
 import type { GlobalContentState } from "@/content/types";
 import { matchesAnyPattern, patternToRegex } from "@/content/url-pattern";
+import type {
+  ActionOverlayRequest,
+  SummaryOverlayRequest,
+} from "@/content-script-messages";
 import { storageLocalSet } from "@/storage/helpers";
 import { parseNumericValue } from "@/utils/number_parser";
 

@@ -7,47 +7,18 @@ import {
   getClipboardErrorMessage,
 } from "@/content/clipboard";
 import type { ToastMount } from "@/content/notification";
-import type {
-  ActionOverlayRequest,
-  SummaryOverlayRequest,
-} from "@/content/overlay-helpers";
-import {
-  getSummaryTargetText,
-  type SummaryTarget,
-} from "@/content/summary-target";
+import { getSummaryTargetText } from "@/content/summary-target";
 import {
   copyToClipboardFallback,
   pasteToContentEditable,
   pasteToInputElement,
 } from "@/content/template-paste";
-import type { ExtractedEvent, SummarySource } from "@/shared_types";
-
-export type ContentRequest =
-  | { action: "enableTableSort" }
-  | { action: "showNotification"; message: string }
-  | { action: "copyToClipboard"; text: string; successMessage?: string }
-  | { action: "pasteTemplate"; content: string }
-  | { action: "getSummaryTargetText"; ignoreSelection?: boolean }
-  | {
-      action: "showSummaryOverlay";
-      status: "loading" | "ready" | "error";
-      source: SummarySource;
-      summary?: string;
-      error?: string;
-    }
-  | {
-      action: "showActionOverlay";
-      status: "loading" | "ready" | "error";
-      mode: "text" | "event";
-      source: SummarySource;
-      title: string;
-      primary?: string;
-      secondary?: string;
-      calendarUrl?: string;
-      ics?: string;
-      event?: ExtractedEvent;
-    }
-  | { action: "showQrCodeOverlay"; url: string };
+import type {
+  ActionOverlayRequest,
+  ContentRequest,
+  SummaryOverlayRequest,
+  SummaryTarget,
+} from "@/content-script-messages";
 
 export type MessageHandlerDeps = {
   enableTableSortWithNotification: () => void;

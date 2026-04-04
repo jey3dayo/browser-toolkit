@@ -7,6 +7,10 @@ import {
   type OverlayViewModel,
 } from "@/content/overlay/OverlayApp";
 import { ensureShadowMount } from "@/content/shadow_mount";
+import type {
+  ActionOverlayRequest,
+  SummaryOverlayRequest,
+} from "@/content-script-messages";
 import type { ExtractedEvent, SummarySource } from "@/shared_types";
 import { storageSyncGet } from "@/storage/helpers";
 import type { Theme } from "@/ui/theme";
@@ -21,27 +25,6 @@ export type OverlayMount = {
   host: HTMLDivElement;
   shadow: ShadowRoot;
   root: Root;
-};
-
-export type ActionOverlayRequest = {
-  action: "showActionOverlay";
-  status: "loading" | "ready" | "error";
-  mode: "text" | "event";
-  source: SummarySource;
-  title: string;
-  primary?: string;
-  secondary?: string;
-  calendarUrl?: string;
-  ics?: string;
-  event?: ExtractedEvent;
-};
-
-export type SummaryOverlayRequest = {
-  action: "showSummaryOverlay";
-  status: "loading" | "ready" | "error";
-  source: SummarySource;
-  summary?: string;
-  error?: string;
 };
 
 /**

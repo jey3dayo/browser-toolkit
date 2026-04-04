@@ -1,15 +1,8 @@
 // 要約対象テキスト取得
 import { Result } from "@praha/byethrow";
 import { SELECTED_TEXT_CACHE_TIMEOUT_MS } from "@/constants/timeouts";
-import type { SummarySource } from "@/shared_types";
+import type { SummaryTarget } from "@/content-script-messages";
 import { storageLocalGet } from "@/storage/helpers";
-
-export type SummaryTarget = {
-  text: string;
-  source: SummarySource;
-  title: string;
-  url: string;
-};
 
 /**
  * テキストを正規化（改行・空白の整理）

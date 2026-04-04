@@ -1,4 +1,5 @@
 import type { Result } from "@praha/byethrow";
+import type { SummaryTarget as SharedSummaryTarget } from "@/content-script-messages";
 import type { ContextAction } from "@/context_actions";
 import type { SearchEngineGroup } from "@/search_engine_groups";
 import type { SearchEngine } from "@/search_engine_types";
@@ -10,38 +11,10 @@ import type {
 import type { TextTemplate } from "@/text_templates";
 import type { LinkFormat } from "@/utils/link_format";
 
-export type SummaryTarget = {
-  text: string;
-  source: SummarySource;
-  title?: string;
-  url?: string;
-};
-
-export type ContentScriptMessage =
-  | { action: "showNotification"; message: string }
-  | { action: "getSummaryTargetText"; ignoreSelection?: boolean }
-  | { action: "copyToClipboard"; text: string; successMessage?: string }
-  | { action: "pasteTemplate"; content: string }
-  | {
-      action: "showSummaryOverlay";
-      status: "loading" | "ready" | "error";
-      source: SummarySource;
-      summary?: string;
-      error?: string;
-    }
-  | {
-      action: "showActionOverlay";
-      status: "loading" | "ready" | "error";
-      mode: "text" | "event";
-      source: SummarySource;
-      title: string;
-      primary?: string;
-      secondary?: string;
-      calendarUrl?: string;
-      ics?: string;
-      event?: ExtractedEvent;
-    }
-  | { action: "showQrCodeOverlay"; url: string };
+export type {
+  ContentScriptMessage,
+  SummaryTarget,
+} from "@/content-script-messages";
 
 export type BackgroundRequest =
   | { action: "summarizeTab"; tabId: number }
@@ -49,7 +22,7 @@ export type BackgroundRequest =
       action: "runContextAction";
       tabId: number;
       actionId: string;
-      target?: SummaryTarget;
+      target?: SharedSummaryTarget;
       source?: "popup" | "contextMenu";
     };
 
