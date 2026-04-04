@@ -1,5 +1,7 @@
 import { Result } from "@praha/byethrow";
 import type { ChatCompletionAdapter, ChatRequestBody } from "@/ai/adapter";
+import { extractApiErrorMessage } from "@/ai/adapter-helpers";
+import { extractOpenAiCompatibleChoiceText } from "@/ai/openai-compatible-adapter";
 import { isAllowedApiOrigin } from "@/constants/api-endpoints";
 import { API_FETCH_TIMEOUT_MS } from "@/constants/timeouts";
 import { FetchTimeoutError } from "@/utils/custom-errors";
@@ -18,36 +20,14 @@ function handleFetchError(error: unknown, defaultMessage: string): string {
 }
 
 export function extractChatCompletionText(json: unknown): string | null {
-  if (typeof json !== "object" || json === null) {
-    return null;
-  }
-  const choices = (json as { choices?: unknown }).choices;
-  if (!Array.isArray(choices) || choices.length === 0) {
-    return null;
-  }
-  const first = choices[0] as { message?: { content?: unknown } };
-  const content = first?.message?.content;
-  if (typeof content !== "string") {
-    return null;
-  }
-  return content.trim();
+  return extractOpenAiCompatibleChoiceText(json);
 }
 
 export function extractOpenAiApiErrorMessage(
   json: unknown,
   status: number
 ): string {
-  if (
-    typeof json === "object" &&
-    json !== null &&
-    "error" in json &&
-    typeof (json as { error?: unknown }).error === "object" &&
-    (json as { error: { message?: unknown } }).error !== null &&
-    typeof (json as { error: { message?: unknown } }).error.message === "string"
-  ) {
-    return (json as { error: { message: string } }).error.message;
-  }
-  return `OpenAI APIエラー: ${status}`;
+  return extractApiErrorMessage(json) ?? `OpenAI APIエラー: ${status}`;
 }
 
 /**
@@ -141,32 +121,9 @@ export function fetchChatCompletionText(
   body: ChatRequestBody,
   emptyContentMessage: string
 ): Result.ResultAsync<string, string> {
-  const { url, init } = adapter.buildRequest(token, body);
-
-  // SECURITY: ホワイトリストチェック
-  if (!isAllowedApiOrigin(url)) {
-    return Promise.resolve(
-      Result.fail(
-        `セキュリティエラー: 許可されていないAPIエンドポイント (${new URL(url).origin})`
-      )
-    );
-  }
-
   return Result.pipe(
-    Result.try({
-      try: () => fetchWithTimeout(fetchFn, url, init, API_FETCH_TIMEOUT_MS),
-      catch: (error) =>
-        handleFetchError(error, "APIへのリクエストに失敗しました"),
-    }),
-    Result.andThen(async (response) => {
-      const json = await Result.unwrap(
-        Result.try({
-          try: () => response.json(),
-          catch: () => null,
-        }),
-        null
-      );
-
+    fetchChatCompletionJson(fetchFn, adapter, token, body),
+    Result.andThen(({ response, json }) => {
       if (!response.ok) {
         return Result.fail(adapter.extractError(json, response.status));
       }
@@ -180,15 +137,12 @@ export function fetchChatCompletionText(
   );
 }
 
-/**
- * アダプター経由でチャット補完の成否を確認（新版）
- */
-export function fetchChatCompletionOk(
+function fetchChatCompletionJson(
   fetchFn: typeof fetch,
   adapter: ChatCompletionAdapter,
   token: string,
   body: ChatRequestBody
-): Result.ResultAsync<void, string> {
+): Result.ResultAsync<{ response: Response; json: unknown }, string> {
   const { url, init } = adapter.buildRequest(token, body);
 
   // SECURITY: ホワイトリストチェック
@@ -215,11 +169,30 @@ export function fetchChatCompletionOk(
         null
       );
 
-      if (response.ok) {
+      return Result.succeed({ response, json });
+    })
+  );
+}
+
+/**
+ * アダプター経由でチャット補完の成否を確認（新版）
+ */
+export function fetchChatCompletionOk(
+  fetchFn: typeof fetch,
+  adapter: ChatCompletionAdapter,
+  token: string,
+  body: ChatRequestBody
+): Result.ResultAsync<void, string> {
+  return Result.pipe(
+    fetchChatCompletionJson(fetchFn, adapter, token, body),
+    Result.andThen((response) => {
+      if (response.response.ok) {
         return Result.succeed();
       }
 
-      return Result.fail(adapter.extractError(json, response.status));
+      return Result.fail(
+        adapter.extractError(response.json, response.response.status)
+      );
     })
   );
 }

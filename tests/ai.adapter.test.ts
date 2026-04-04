@@ -159,6 +159,16 @@ describe("ai/adapter", () => {
       expect(zaiAdapter.extractText(response)).toBe("Hello");
     });
 
+    it("extracts error message from error response", () => {
+      const errorResponse = {
+        error: { message: "z.ai error occurred" },
+      };
+
+      expect(zaiAdapter.extractError(errorResponse, 400)).toBe(
+        "z.ai error occurred"
+      );
+    });
+
     it("returns default error message for invalid error response", () => {
       expect(zaiAdapter.extractError({}, 500)).toBe("z.ai APIエラー: 500");
     });
