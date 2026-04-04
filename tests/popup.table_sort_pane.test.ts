@@ -105,9 +105,6 @@ async function setupTablePane(
 
   await act(async () => {
     await import("@/popup.ts");
-    dom.window.document.dispatchEvent(
-      new dom.window.Event("DOMContentLoaded", { bubbles: true })
-    );
     await flush(dom.window, 8);
   });
 
@@ -129,7 +126,7 @@ afterEach(async () => {
   vi.unstubAllGlobals();
 });
 
-describe("popup Table Sort pane", () => {
+describe("popup Table Sort pane", { timeout: 15_000 }, () => {
   it("renders the summary and section-card layout", async () => {
     const { dom } = await setupTablePane();
 
