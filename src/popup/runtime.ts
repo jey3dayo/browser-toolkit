@@ -123,9 +123,10 @@ export type PopupRuntime = {
 };
 
 const FALLBACK_STORAGE_PREFIX = "mbu:popup:";
+type StorageAreaName = "sync" | "local";
 
 function fallbackStorageGet(
-  scope: "sync" | "local",
+  scope: StorageAreaName,
   keys: string[]
 ): Record<string, unknown> {
   const data: Record<string, unknown> = {};
@@ -151,7 +152,7 @@ function fallbackStorageGet(
 }
 
 function fallbackStorageSet(
-  scope: "sync" | "local",
+  scope: StorageAreaName,
   items: Record<string, unknown>
 ): void {
   for (const [key, value] of Object.entries(items)) {
@@ -167,7 +168,7 @@ function fallbackStorageSet(
 }
 
 function fallbackStorageRemove(
-  scope: "sync" | "local",
+  scope: StorageAreaName,
   keys: string[] | string
 ): void {
   const list = Array.isArray(keys) ? keys : [keys];
@@ -213,100 +214,119 @@ async function wrapChromeApi<T>(
   });
 }
 
+function getStorageArea(area: StorageAreaName): chrome.storage.StorageArea {
+  return chrome.storage[area];
+}
+
+function createStorageGetter<TData>(params: {
+  area: StorageAreaName;
+  isExtensionPage: boolean;
+  errorMessage: string;
+}): (keys: string[]) => Promise<Result.Result<Partial<TData>, string>> {
+  return async (keys) => {
+    if (!hasChromeApi(params.isExtensionPage, "storage")) {
+      return Result.succeed(
+        fallbackStorageGet(params.area, keys.map(String)) as Partial<TData>
+      ) as Result.Result<Partial<TData>, string>;
+    }
+
+    return await wrapChromeApi<Partial<TData>>((resolve, reject) => {
+      getStorageArea(params.area).get(keys, (items) => {
+        const err = chrome.runtime.lastError;
+        if (err) {
+          reject(new Error(err.message));
+          return;
+        }
+        resolve(items as Partial<TData>);
+      });
+    }, params.errorMessage);
+  };
+}
+
+function createStorageSetter<TData>(params: {
+  area: StorageAreaName;
+  isExtensionPage: boolean;
+  errorMessage: string;
+}): (items: Partial<TData>) => Promise<Result.Result<void, string>> {
+  return async (items) => {
+    if (!hasChromeApi(params.isExtensionPage, "storage")) {
+      fallbackStorageSet(params.area, items as Record<string, unknown>);
+      return Result.succeed();
+    }
+
+    return await wrapChromeApi<void>((resolve, reject) => {
+      getStorageArea(params.area).set(items as Record<string, unknown>, () => {
+        const err = chrome.runtime.lastError;
+        if (err) {
+          reject(new Error(err.message));
+          return;
+        }
+        resolve();
+      });
+    }, params.errorMessage);
+  };
+}
+
+function createStorageRemover(params: {
+  area: StorageAreaName;
+  isExtensionPage: boolean;
+  errorMessage: string;
+}): (keys: string[] | string) => Promise<Result.Result<void, string>> {
+  return async (keys) => {
+    if (!hasChromeApi(params.isExtensionPage, "storage")) {
+      fallbackStorageRemove(params.area, keys);
+      return Result.succeed();
+    }
+
+    return await wrapChromeApi<void>((resolve, reject) => {
+      getStorageArea(params.area).remove(keys, () => {
+        const err = chrome.runtime.lastError;
+        if (err) {
+          reject(new Error(err.message));
+          return;
+        }
+        resolve();
+      });
+    }, params.errorMessage);
+  };
+}
+
 export function createPopupRuntime(): PopupRuntime {
   const isExtensionPage = window.location.protocol === "chrome-extension:";
+  const storageSyncGet: PopupRuntime["storageSyncGet"] =
+    createStorageGetter<SyncStorageData>({
+      area: "sync",
+      isExtensionPage,
+      errorMessage: "同期ストレージの読み込みに失敗しました",
+    });
 
-  const storageSyncGet: PopupRuntime["storageSyncGet"] = async (keys) => {
-    if (!hasChromeApi(isExtensionPage, "storage")) {
-      return Result.succeed(
-        fallbackStorageGet("sync", keys.map(String)) as Partial<SyncStorageData>
-      );
-    }
-    return await wrapChromeApi<Partial<SyncStorageData>>((resolve, reject) => {
-      chrome.storage.sync.get(keys as string[], (items) => {
-        const err = chrome.runtime.lastError;
-        if (err) {
-          reject(new Error(err.message));
-          return;
-        }
-        resolve(items as Partial<SyncStorageData>);
-      });
-    }, "同期ストレージの読み込みに失敗しました");
-  };
+  const storageSyncSet: PopupRuntime["storageSyncSet"] =
+    createStorageSetter<SyncStorageData>({
+      area: "sync",
+      isExtensionPage,
+      errorMessage: "同期ストレージの保存に失敗しました",
+    });
 
-  const storageSyncSet: PopupRuntime["storageSyncSet"] = async (items) => {
-    if (!hasChromeApi(isExtensionPage, "storage")) {
-      fallbackStorageSet("sync", items as Record<string, unknown>);
-      return Result.succeed();
-    }
-    return await wrapChromeApi<void>((resolve, reject) => {
-      chrome.storage.sync.set(items as Record<string, unknown>, () => {
-        const err = chrome.runtime.lastError;
-        if (err) {
-          reject(new Error(err.message));
-          return;
-        }
-        resolve();
-      });
-    }, "同期ストレージの保存に失敗しました");
-  };
+  const storageLocalGet: PopupRuntime["storageLocalGet"] =
+    createStorageGetter<LocalStorageData>({
+      area: "local",
+      isExtensionPage,
+      errorMessage: "ローカルストレージの読み込みに失敗しました",
+    });
 
-  const storageLocalGet: PopupRuntime["storageLocalGet"] = async (keys) => {
-    if (!hasChromeApi(isExtensionPage, "storage")) {
-      return Result.succeed(
-        fallbackStorageGet(
-          "local",
-          keys.map(String)
-        ) as Partial<LocalStorageData>
-      );
-    }
-    return await wrapChromeApi<Partial<LocalStorageData>>((resolve, reject) => {
-      chrome.storage.local.get(keys as string[], (items) => {
-        const err = chrome.runtime.lastError;
-        if (err) {
-          reject(new Error(err.message));
-          return;
-        }
-        resolve(items as Partial<LocalStorageData>);
-      });
-    }, "ローカルストレージの読み込みに失敗しました");
-  };
+  const storageLocalSet: PopupRuntime["storageLocalSet"] =
+    createStorageSetter<LocalStorageData>({
+      area: "local",
+      isExtensionPage,
+      errorMessage: "ローカルストレージの保存に失敗しました",
+    });
 
-  const storageLocalSet: PopupRuntime["storageLocalSet"] = async (items) => {
-    if (!hasChromeApi(isExtensionPage, "storage")) {
-      fallbackStorageSet("local", items as Record<string, unknown>);
-      return Result.succeed();
-    }
-    return await wrapChromeApi<void>((resolve, reject) => {
-      chrome.storage.local.set(items as Record<string, unknown>, () => {
-        const err = chrome.runtime.lastError;
-        if (err) {
-          reject(new Error(err.message));
-          return;
-        }
-        resolve();
-      });
-    }, "ローカルストレージの保存に失敗しました");
-  };
-
-  const storageLocalRemove: PopupRuntime["storageLocalRemove"] = async (
-    keys
-  ) => {
-    if (!hasChromeApi(isExtensionPage, "storage")) {
-      fallbackStorageRemove("local", keys as string[] | string);
-      return Result.succeed();
-    }
-    return await wrapChromeApi<void>((resolve, reject) => {
-      chrome.storage.local.remove(keys as string[] | string, () => {
-        const err = chrome.runtime.lastError;
-        if (err) {
-          reject(new Error(err.message));
-          return;
-        }
-        resolve();
-      });
-    }, "ローカルストレージの削除に失敗しました");
-  };
+  const storageLocalRemove: PopupRuntime["storageLocalRemove"] =
+    createStorageRemover({
+      area: "local",
+      isExtensionPage,
+      errorMessage: "ローカルストレージの削除に失敗しました",
+    });
 
   const getActiveTab: PopupRuntime["getActiveTab"] = async () => {
     if (!hasChromeApi(isExtensionPage, "tabs")) {
