@@ -30,6 +30,13 @@ export function extractOpenAiApiErrorMessage(
   return extractApiErrorMessage(json) ?? `OpenAI APIエラー: ${status}`;
 }
 
+type ChatCompletionResponsePayload = {
+  response: Response;
+  json: unknown;
+};
+
+type ChatCompletionErrorExtractor = (json: unknown, status: number) => string;
+
 /**
  * Internal helper to fetch OpenAI Chat Completion API and return raw response + parsed JSON.
  * This function handles the common logic of making the API request and parsing the response.
@@ -38,7 +45,7 @@ function fetchOpenAiChatCompletionRaw(
   fetchFn: typeof fetch,
   token: string,
   body: unknown
-): Result.ResultAsync<{ response: Response; json: unknown }, string> {
+): Result.ResultAsync<ChatCompletionResponsePayload, string> {
   return Result.pipe(
     Result.try({
       try: () =>
@@ -72,6 +79,37 @@ function fetchOpenAiChatCompletionRaw(
   );
 }
 
+function buildChatCompletionTextResult(params: {
+  payload: ChatCompletionResponsePayload;
+  emptyContentMessage: string;
+  extractError: ChatCompletionErrorExtractor;
+  extractText: (json: unknown) => string | null;
+}): Result.Result<string, string> {
+  const { response, json } = params.payload;
+  if (!response.ok) {
+    return Result.fail(params.extractError(json, response.status));
+  }
+
+  const text = params.extractText(json);
+  if (!text) {
+    return Result.fail(params.emptyContentMessage);
+  }
+
+  return Result.succeed(text);
+}
+
+function buildChatCompletionOkResult(
+  payload: ChatCompletionResponsePayload,
+  extractError: ChatCompletionErrorExtractor
+): Result.Result<void, string> {
+  const { response, json } = payload;
+  if (response.ok) {
+    return Result.succeed();
+  }
+
+  return Result.fail(extractError(json, response.status));
+}
+
 export function fetchOpenAiChatCompletionText(
   fetchFn: typeof fetch,
   token: string,
@@ -80,17 +118,14 @@ export function fetchOpenAiChatCompletionText(
 ): Result.ResultAsync<string, string> {
   return Result.pipe(
     fetchOpenAiChatCompletionRaw(fetchFn, token, body),
-    Result.andThen(({ response, json }) => {
-      if (!response.ok) {
-        return Result.fail(extractOpenAiApiErrorMessage(json, response.status));
-      }
-
-      const text = extractChatCompletionText(json);
-      if (!text) {
-        return Result.fail(emptyContentMessage);
-      }
-      return Result.succeed(text);
-    })
+    Result.andThen((payload) =>
+      buildChatCompletionTextResult({
+        payload,
+        emptyContentMessage,
+        extractError: extractOpenAiApiErrorMessage,
+        extractText: extractChatCompletionText,
+      })
+    )
   );
 }
 
@@ -101,13 +136,9 @@ export function fetchOpenAiChatCompletionOk(
 ): Result.ResultAsync<void, string> {
   return Result.pipe(
     fetchOpenAiChatCompletionRaw(fetchFn, token, body),
-    Result.andThen(({ response, json }) => {
-      if (response.ok) {
-        return Result.succeed();
-      }
-
-      return Result.fail(extractOpenAiApiErrorMessage(json, response.status));
-    })
+    Result.andThen((payload) =>
+      buildChatCompletionOkResult(payload, extractOpenAiApiErrorMessage)
+    )
   );
 }
 
@@ -123,17 +154,14 @@ export function fetchChatCompletionText(
 ): Result.ResultAsync<string, string> {
   return Result.pipe(
     fetchChatCompletionJson(fetchFn, adapter, token, body),
-    Result.andThen(({ response, json }) => {
-      if (!response.ok) {
-        return Result.fail(adapter.extractError(json, response.status));
-      }
-
-      const text = adapter.extractText(json);
-      if (!text) {
-        return Result.fail(emptyContentMessage);
-      }
-      return Result.succeed(text);
-    })
+    Result.andThen((payload) =>
+      buildChatCompletionTextResult({
+        payload,
+        emptyContentMessage,
+        extractError: adapter.extractError,
+        extractText: adapter.extractText,
+      })
+    )
   );
 }
 
@@ -142,7 +170,7 @@ function fetchChatCompletionJson(
   adapter: ChatCompletionAdapter,
   token: string,
   body: ChatRequestBody
-): Result.ResultAsync<{ response: Response; json: unknown }, string> {
+): Result.ResultAsync<ChatCompletionResponsePayload, string> {
   const { url, init } = adapter.buildRequest(token, body);
 
   // SECURITY: ホワイトリストチェック
@@ -185,14 +213,8 @@ export function fetchChatCompletionOk(
 ): Result.ResultAsync<void, string> {
   return Result.pipe(
     fetchChatCompletionJson(fetchFn, adapter, token, body),
-    Result.andThen((response) => {
-      if (response.response.ok) {
-        return Result.succeed();
-      }
-
-      return Result.fail(
-        adapter.extractError(response.json, response.response.status)
-      );
-    })
+    Result.andThen((payload) =>
+      buildChatCompletionOkResult(payload, adapter.extractError)
+    )
   );
 }

@@ -1,11 +1,38 @@
 import { Result } from "@praha/byethrow";
 import { describe, expect, it, vi } from "vitest";
+import type { ChatCompletionAdapter } from "@/ai/adapter";
 import {
   extractChatCompletionText,
   extractOpenAiApiErrorMessage,
+  fetchChatCompletionOk,
+  fetchChatCompletionText,
   fetchOpenAiChatCompletionOk,
   fetchOpenAiChatCompletionText,
 } from "@/utils/openai";
+
+function createAdapter(
+  overrides: Partial<ChatCompletionAdapter> = {}
+): ChatCompletionAdapter {
+  return {
+    buildRequest: (_token, body) => ({
+      url: "https://api.openai.com/v1/chat/completions",
+      init: {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer token",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      },
+    }),
+    extractText: (json) => {
+      const data = json as { value?: string };
+      return data.value?.trim() ?? null;
+    },
+    extractError: (_json, status) => `adapter error: ${status}`,
+    ...overrides,
+  };
+}
 
 describe("extractChatCompletionText", () => {
   it("returns trimmed content", () => {
@@ -178,6 +205,99 @@ describe("fetchOpenAiChatCompletionOk", () => {
     expect(Result.isFailure(result)).toBe(true);
     if (Result.isFailure(result)) {
       expect(result.error).toBe("bad request");
+    }
+  });
+});
+
+describe("fetchChatCompletionText", () => {
+  it("returns Success when adapter extracts content", async () => {
+    const fetchFn = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ value: " adapter ok " }),
+      } as unknown as Response)
+    );
+
+    const result = await fetchChatCompletionText(
+      fetchFn as unknown as typeof fetch,
+      createAdapter(),
+      "token",
+      { model: "x", messages: [] },
+      "empty"
+    );
+
+    expect(Result.isSuccess(result)).toBe(true);
+    if (Result.isSuccess(result)) {
+      expect(result.value).toBe("adapter ok");
+    }
+  });
+
+  it("returns adapter failure when response is not ok", async () => {
+    const fetchFn = vi.fn(() =>
+      Promise.resolve({
+        ok: false,
+        status: 429,
+        json: () => Promise.resolve({ error: "slow down" }),
+      } as unknown as Response)
+    );
+
+    const result = await fetchChatCompletionText(
+      fetchFn as unknown as typeof fetch,
+      createAdapter({
+        extractError: (_json, status) => `failed: ${status}`,
+      }),
+      "token",
+      { model: "x", messages: [] },
+      "empty"
+    );
+
+    expect(Result.isFailure(result)).toBe(true);
+    if (Result.isFailure(result)) {
+      expect(result.error).toBe("failed: 429");
+    }
+  });
+});
+
+describe("fetchChatCompletionOk", () => {
+  it("returns Success on ok response", async () => {
+    const fetchFn = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({}),
+      } as unknown as Response)
+    );
+
+    const result = await fetchChatCompletionOk(
+      fetchFn as unknown as typeof fetch,
+      createAdapter(),
+      "token",
+      { model: "x", messages: [] }
+    );
+
+    expect(Result.isSuccess(result)).toBe(true);
+  });
+
+  it("returns adapter failure on non-ok response", async () => {
+    const fetchFn = vi.fn(() =>
+      Promise.resolve({
+        ok: false,
+        status: 503,
+        json: () => Promise.resolve({}),
+      } as unknown as Response)
+    );
+
+    const result = await fetchChatCompletionOk(
+      fetchFn as unknown as typeof fetch,
+      createAdapter(),
+      "token",
+      { model: "x", messages: [] }
+    );
+
+    expect(Result.isFailure(result)).toBe(true);
+    if (Result.isFailure(result)) {
+      expect(result.error).toBe("adapter error: 503");
     }
   });
 });
