@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { ContextAction, ContextActionKind } from "@/context_actions";
 import type { PopupRuntime } from "@/popup/runtime";
 import { persistWithRollback } from "@/popup/utils/persist";
+import { requireTrimmedString } from "@/popup/utils/required-input";
 import type { Notifier } from "@/ui/toast";
 
 export function useActionEditor(params: {
@@ -76,16 +77,25 @@ export function useActionEditor(params: {
   };
 
   const saveEditor = async (): Promise<void> => {
-    const title = editorTitle.trim();
+    const title = requireTrimmedString({
+      value: editorTitle,
+      emptyMessage: "タイトルを入力してください",
+      notify: params.notify,
+    });
     if (!title) {
-      params.notify.error("タイトルを入力してください");
       return;
     }
 
     const prompt = editorPrompt;
-    if (editorKind === "text" && !prompt.trim()) {
-      params.notify.error("プロンプトを入力してください");
-      return;
+    if (editorKind === "text") {
+      const hasPrompt = requireTrimmedString({
+        value: prompt,
+        emptyMessage: "プロンプトを入力してください",
+        notify: params.notify,
+      });
+      if (!hasPrompt) {
+        return;
+      }
     }
 
     const nextId = editorId || createActionId();

@@ -18,6 +18,7 @@ import type {
   SyncStorageData,
 } from "@/popup/runtime";
 import { persistWithRollback } from "@/popup/utils/persist";
+import { requireTrimmedString } from "@/popup/utils/required-input";
 
 export type TablePaneProps = PopupPaneBaseProps;
 
@@ -39,6 +40,13 @@ type FocusDiagnosticView = {
   matchedPattern: string | null;
   label: string;
   description: string;
+};
+
+type FocusDiagnosticViewParams = Omit<
+  FocusDiagnosticView,
+  "label" | "matchedPattern"
+> & {
+  matchedPattern?: string | null;
 };
 
 const FOCUS_DIAGNOSTIC_SLOW_MS = 300;
@@ -118,13 +126,9 @@ function isFocusOverrideApplied(
   );
 }
 
-function buildFocusDiagnosticView(params: {
-  kind: FocusDiagnosticKind;
-  tabId: number | null;
-  currentUrl: string | null;
-  matchedPattern?: string | null;
-  description: string;
-}): FocusDiagnosticView {
+function buildFocusDiagnosticView(
+  params: FocusDiagnosticViewParams
+): FocusDiagnosticView {
   const labelMap: Record<FocusDiagnosticKind, string> = {
     "not-configured": "未設定",
     active: "有効",
@@ -481,9 +485,12 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
   };
 
   const parseFocusPatternInput = (): string | null => {
-    const raw = focusPatternInput.trim();
+    const raw = requireTrimmedString({
+      value: focusPatternInput,
+      emptyMessage: "パターンを入力してください",
+      notify: props.notify,
+    });
     if (!raw) {
-      props.notify.error("パターンを入力してください");
       return null;
     }
     const matchPatternResult = toFocusOverrideMatchPattern(raw);

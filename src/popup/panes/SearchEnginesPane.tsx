@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { SortableList } from "@/components/SortableList";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { persistWithRollback } from "@/popup/utils/persist";
+import { requireTrimmedString } from "@/popup/utils/required-input";
 import { isSearchEngineEncoding } from "@/schemas/search_engine_encoding";
 import {
   ENCODING_LABELS,
@@ -99,16 +100,21 @@ export function SearchEnginesPane(
   };
 
   const addEngine = async (): Promise<void> => {
-    const name = nameInput.trim();
-    const urlTemplate = urlInput.trim();
-
+    const name = requireTrimmedString({
+      value: nameInput,
+      emptyMessage: "検索エンジン名を入力してください",
+      notify: props.notify,
+    });
     if (!name) {
-      props.notify.error("検索エンジン名を入力してください");
       return;
     }
 
+    const urlTemplate = requireTrimmedString({
+      value: urlInput,
+      emptyMessage: "URLテンプレートを入力してください",
+      notify: props.notify,
+    });
     if (!urlTemplate) {
-      props.notify.error("URLテンプレートを入力してください");
       return;
     }
 

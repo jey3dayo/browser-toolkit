@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { SortableList } from "@/components/SortableList";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { persistWithRollback } from "@/popup/utils/persist";
+import { requireTrimmedString } from "@/popup/utils/required-input";
 import {
   DEFAULT_TEXT_TEMPLATES,
   generateTemplateId,
@@ -103,14 +104,20 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
   };
 
   const parseTemplateInput = (): { title: string; content: string } | null => {
-    const title = titleInput.trim();
+    const title = requireTrimmedString({
+      value: titleInput,
+      emptyMessage: "タイトルを入力してください",
+      notify: props.notify,
+    });
     if (!title) {
-      props.notify.error("タイトルを入力してください");
       return null;
     }
-    const content = contentInput.trim();
+    const content = requireTrimmedString({
+      value: contentInput,
+      emptyMessage: "内容を入力してください",
+      notify: props.notify,
+    });
     if (!content) {
-      props.notify.error("内容を入力してください");
       return null;
     }
     return { title, content };

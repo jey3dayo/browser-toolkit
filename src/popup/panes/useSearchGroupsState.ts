@@ -2,6 +2,7 @@ import { Result } from "@praha/byethrow";
 import { useEffect, useMemo, useState } from "react";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { persistWithRollback } from "@/popup/utils/persist";
+import { requireTrimmedString } from "@/popup/utils/required-input";
 import {
   DEFAULT_SEARCH_ENGINE_GROUPS,
   generateGroupId,
@@ -150,10 +151,12 @@ export function useSearchGroupsState(
   };
 
   const saveGroupName = async (groupId: string): Promise<void> => {
-    const name = editingNameValue.trim();
-
+    const name = requireTrimmedString({
+      value: editingNameValue,
+      emptyMessage: "グループ名を入力してください",
+      notify: props.notify,
+    });
     if (!name) {
-      props.notify.error("グループ名を入力してください");
       return;
     }
 
@@ -221,10 +224,12 @@ export function useSearchGroupsState(
   };
 
   const addNewGroup = async (): Promise<void> => {
-    const name = newGroupNameInput.trim();
-
+    const name = requireTrimmedString({
+      value: newGroupNameInput,
+      emptyMessage: "グループ名を入力してください",
+      notify: props.notify,
+    });
     if (!name) {
-      props.notify.error("グループ名を入力してください");
       return;
     }
 
