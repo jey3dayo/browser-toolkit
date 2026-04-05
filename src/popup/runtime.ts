@@ -124,6 +124,11 @@ export type PopupRuntime = {
 
 const FALLBACK_STORAGE_PREFIX = "mbu:popup:";
 type StorageAreaName = "sync" | "local";
+type StorageHandlerParams = {
+  area: StorageAreaName;
+  isExtensionPage: boolean;
+  errorMessage: string;
+};
 
 function fallbackStorageGet(
   scope: StorageAreaName,
@@ -218,11 +223,9 @@ function getStorageArea(area: StorageAreaName): chrome.storage.StorageArea {
   return chrome.storage[area];
 }
 
-function createStorageGetter<TData>(params: {
-  area: StorageAreaName;
-  isExtensionPage: boolean;
-  errorMessage: string;
-}): (keys: string[]) => Promise<Result.Result<Partial<TData>, string>> {
+function createStorageGetter<TData>(
+  params: StorageHandlerParams
+): (keys: string[]) => Promise<Result.Result<Partial<TData>, string>> {
   return async (keys) => {
     if (!hasChromeApi(params.isExtensionPage, "storage")) {
       return Result.succeed(
@@ -243,11 +246,9 @@ function createStorageGetter<TData>(params: {
   };
 }
 
-function createStorageSetter<TData>(params: {
-  area: StorageAreaName;
-  isExtensionPage: boolean;
-  errorMessage: string;
-}): (items: Partial<TData>) => Promise<Result.Result<void, string>> {
+function createStorageSetter<TData>(
+  params: StorageHandlerParams
+): (items: Partial<TData>) => Promise<Result.Result<void, string>> {
   return async (items) => {
     if (!hasChromeApi(params.isExtensionPage, "storage")) {
       fallbackStorageSet(params.area, items as Record<string, unknown>);
@@ -267,11 +268,9 @@ function createStorageSetter<TData>(params: {
   };
 }
 
-function createStorageRemover(params: {
-  area: StorageAreaName;
-  isExtensionPage: boolean;
-  errorMessage: string;
-}): (keys: string[] | string) => Promise<Result.Result<void, string>> {
+function createStorageRemover(
+  params: StorageHandlerParams
+): (keys: string[] | string) => Promise<Result.Result<void, string>> {
   return async (keys) => {
     if (!hasChromeApi(params.isExtensionPage, "storage")) {
       fallbackStorageRemove(params.area, keys);
