@@ -11,7 +11,7 @@ import type { LocalStorageData } from "@/storage/types";
 /**
  * Migration function interface
  */
-export interface Migration {
+interface Migration {
   description: string;
   migrate: () => Promise<void>;
   version: number;
@@ -20,7 +20,7 @@ export interface Migration {
 /**
  * All migrations in order
  */
-export const migrations: Migration[] = [
+const migrations: Migration[] = [
   {
     version: 1,
     description: "Migrate legacy OpenAI settings to unified AI settings",
@@ -63,7 +63,7 @@ export const migrations: Migration[] = [
 /**
  * Migration log entry
  */
-export interface MigrationLogEntry {
+interface MigrationLogEntry {
   description: string;
   error?: string;
   success: boolean;
@@ -106,7 +106,7 @@ export async function setSchemaVersion(version: number): Promise<void> {
 /**
  * Log migration execution
  */
-export async function logMigration(entry: MigrationLogEntry): Promise<void> {
+async function logMigration(entry: MigrationLogEntry): Promise<void> {
   const data = (await storageLocalGet([MIGRATION_LOG_KEY])) as Record<
     string,
     unknown
