@@ -5,9 +5,9 @@ import type { StorybookConfig } from "@storybook/react-vite";
 import type { Plugin } from "vite";
 
 const dirname =
-  typeof import.meta.dirname !== "undefined"
-    ? import.meta.dirname
-    : path.dirname(fileURLToPath(import.meta.url));
+  typeof import.meta.dirname === "undefined"
+    ? path.dirname(fileURLToPath(import.meta.url))
+    : import.meta.dirname;
 const srcDir = path.resolve(dirname, "../src");
 const iconsDir = path.resolve(dirname, "../icons");
 const staticDirs = [{ from: "../images", to: "/images" }];

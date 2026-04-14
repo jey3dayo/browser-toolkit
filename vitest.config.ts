@@ -7,9 +7,9 @@ import type { Plugin } from "vite";
 import { defineConfig } from "vitest/config";
 
 const dirname =
-  typeof import.meta.dirname !== "undefined"
-    ? import.meta.dirname
-    : path.dirname(fileURLToPath(import.meta.url));
+  typeof import.meta.dirname === "undefined"
+    ? path.dirname(fileURLToPath(import.meta.url))
+    : import.meta.dirname;
 const alias = { "@": path.join(dirname, "src") };
 
 const tomlAsText = (): Plugin => ({

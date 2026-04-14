@@ -4,9 +4,9 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 const dirname =
-  typeof import.meta.dirname !== "undefined"
-    ? import.meta.dirname
-    : path.dirname(fileURLToPath(import.meta.url));
+  typeof import.meta.dirname === "undefined"
+    ? path.dirname(fileURLToPath(import.meta.url))
+    : import.meta.dirname;
 const projectRoot = path.join(dirname, "..");
 
 type WebAccessibleEntry = { resources?: string[] };

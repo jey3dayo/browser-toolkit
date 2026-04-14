@@ -14,7 +14,6 @@ const config: TestRunnerConfig = {
     await page.waitForTimeout(300); // Wait for theme to apply
 
     const lightImage = await page.screenshot({ fullPage: true });
-    // biome-ignore lint/suspicious/noMisplacedAssertion: Storybook test-runner context
     expect(lightImage).toMatchImageSnapshot({
       customSnapshotsDir: "__snapshots__",
       customSnapshotIdentifier: `${context.id}-light`,
@@ -27,7 +26,6 @@ const config: TestRunnerConfig = {
     await page.waitForTimeout(300); // Wait for theme to apply
 
     const darkImage = await page.screenshot({ fullPage: true });
-    // biome-ignore lint/suspicious/noMisplacedAssertion: Storybook test-runner context
     expect(darkImage).toMatchImageSnapshot({
       customSnapshotsDir: "__snapshots__",
       customSnapshotIdentifier: `${context.id}-dark`,

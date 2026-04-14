@@ -38,7 +38,7 @@ export function generateId(name: string, prefix: string): string {
     .replace(/^-|-$/g, "");
 
   // 名前のハッシュを短縮（最初の8文字）
-  const hash = simpleHash(name).substring(0, 8);
+  const hash = simpleHash(name).slice(0, 8);
 
   // slugが空の場合（非ASCII文字のみ）、ハッシュのみを使用
   if (slug.length === 0) {

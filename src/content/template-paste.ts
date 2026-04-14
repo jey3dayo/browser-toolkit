@@ -18,7 +18,7 @@ export function pasteToInputElement(
   const end = element.selectionEnd ?? 0;
   const currentValue = element.value;
   const newValue =
-    currentValue.substring(0, start) + content + currentValue.substring(end);
+    currentValue.slice(0, start) + content + currentValue.slice(end);
   element.value = newValue;
 
   // カーソル位置を挿入後に移動
