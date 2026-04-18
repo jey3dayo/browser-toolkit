@@ -1,0 +1,93 @@
+# Browser Toolkit
+
+> 個人用のツールキット Chrome 拡張（Manifest V3）。テーブルソート、AI 連携（OpenAI / Anthropic / z.ai）によるコンテキストアクション、カレンダー登録、検索エンジン、テキストテンプレート、QR コード生成などをまとめた生産性向上ユーティリティ集。
+
+## Overview
+
+- Platform: Chrome Extension (Manifest V3)
+- Language: TypeScript (strict mode)
+- UI: React 19 + Base UI (`@base-ui/react`) + Shadow DOM (content overlay)
+- Bundler: esbuild
+- Tests: Vitest (unit + Storybook) / Playwright (E2E)
+- Lint/Format: Ultracite (Biome)
+- Package manager: pnpm 10.x / Node 24+
+- Error handling: `@praha/byethrow` Result 型
+- Schema validation: Valibot
+- AI providers: OpenAI, Anthropic (Claude), z.ai (GLM)
+
+## Runtime boundaries
+
+- `src/background.ts` — Service Worker。contextMenus、AI API 呼び出し、storage、runtime メッセージ。
+- `src/content.ts` — Content Script。テーブルソート、オーバーレイ、選択キャッシュ、QR コード表示、テンプレート貼り付け。
+- `src/popup.ts` — Popup UI (React root)。pane ベースで設定/履歴/アクション等を提供。
+
+## Docs
+
+- [README](README.md): 機能概要・インストール・開発コマンド・プライバシー方針
+- [CLAUDE.md](CLAUDE.md): Claude / AI エージェント向け開発ガイド
+- [docs/architecture.md](docs/architecture.md): アーキテクチャ設計（ランタイム境界、AI 統一 I/F、Result 型）
+- [docs/context-actions.md](docs/context-actions.md): Context Actions の詳細
+- [docs/style-management.md](docs/style-management.md): Design Tokens / テーマ管理
+- [docs/icon-setup.md](docs/icon-setup.md): アイコン作成手順
+- [docs/e2e-test-checklist.md](docs/e2e-test-checklist.md): E2E テスト項目
+- [.kiro/steering/tech.md](.kiro/steering/tech.md): 技術スタックの正本
+- [.kiro/steering/product.md](.kiro/steering/product.md): プロダクト仕様の正本
+- [.kiro/steering/structure.md](.kiro/steering/structure.md): コードベース構造の正本
+- [.claude/rules/development.md](.claude/rules/development.md): コーディング規約
+- [.claude/rules/security.md](.claude/rules/security.md): セキュリティガイドライン（XSS 対策、APIトークン、CSP）
+
+## Key source paths
+
+- `src/ai/` — AI アダプター（OpenAI / Anthropic / z.ai）と設定ローダー
+  - `src/ai/adapter.ts`, `src/ai/get-adapter.ts`, `src/ai/{openai,anthropic,zai}-adapter.ts`
+  - `src/ai/settings.ts` — `loadAiSettings` / `AiSettings` 型
+- `src/background/` — Service Worker モジュール
+  - `openai.ts`, `openai_common.ts` — AI リクエスト共通処理（`prepareAiInput` / `requestAiText`）
+  - `context_menu_registry.ts`, `context_menu_actions.ts`, `context_menu_qrcode.ts`, `context_menu_copy.ts`
+  - `runtime_handlers.ts`, `runtime_types.ts` — 型安全なメッセージハンドラ
+  - `calendar.ts` — イベント抽出と ICS 生成
+  - `storage.ts` — chrome.storage 抽象化
+- `src/content/` — Content Script モジュール
+  - `content/overlay/` — React + Shadow DOM のオーバーレイ UI
+  - `content/table-sort.ts` — テーブルソート
+  - `content/template-paste.ts` — `execCommand('insertText')` による安全な貼り付け
+- `src/popup/` — Popup UI
+  - `App.tsx`, `navigation-items.ts`, `panes/` — pane ベースのナビゲーション
+  - `runtime.ts` — popup 側の chrome.runtime 呼び出し
+- `src/schemas/provider.ts` — `AiProvider` / `PROVIDER_CONFIGS` / `normalizeAiModel`
+- `src/constants/models.ts` — 対応モデルの一覧と既定値
+- `src/storage/` — 永続化スキーマとマイグレーション
+- `src/prompts/` — 組み込みアクションプロンプト（TOML）
+- `manifest.json` — permissions: `activeTab`, `contextMenus`, `scripting`, `storage`, `notifications`, `downloads`, `alarms`
+  - host_permissions: `<all_urls>`, `api.openai.com`, `api.anthropic.com`, `api.z.ai`
+  - CSP: `script-src 'self'; object-src 'self'; connect-src 'self' https://api.openai.com https://api.anthropic.com https://api.z.ai`
+
+## Development commands
+
+- `pnpm install` — 依存関係のインストール
+- `pnpm run build` — 本番ビルド（`dist/` 生成）
+- `pnpm run watch` — バンドルの watch
+- `pnpm run dev` — 開発サーバー（自動ビルド + 拡張機能の自動リロード、WebSocket `ws://localhost:8090`）
+- `pnpm run storybook` — Storybook（`http://localhost:6006`）
+- `pnpm run test` — Vitest ユニットテスト
+- `pnpm run test:storybook` — Storybook/Vitest テスト
+- `pnpm run test:e2e` — Playwright E2E テスト
+- `pnpm run test:visual` — Visual Regression Testing
+- `mise run ci` — format + lint + test + storybook test + build
+
+## Conventions
+
+- TypeScript strict mode、`any` 型禁止、型アサーション回避
+- エラーハンドリングは `Result` / `ResultAsync`（`@praha/byethrow`）
+- DOM 操作は `textContent` / `createElement` を優先、`innerHTML` は禁止
+- Markdown 表示は `react-markdown`（XSS 対策済み）
+- APIトークンは `chrome.storage.local` に保存（`chrome.storage.sync` は禁止）
+- UI テキストは日本語
+- フォーマッタ: Ultracite (Biome)、シングルクォート、広めの行幅
+
+## Optional
+
+- [.github/](./.github) — GitHub Actions ワークフロー
+- [.storybook/](./.storybook) — Storybook 設定
+- [tests/](./tests) — Vitest / Playwright テスト
+- [scripts/](./scripts) — bundle / dev-server / clean スクリプト
