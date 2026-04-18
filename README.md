@@ -5,10 +5,13 @@
 主な機能:
 
 - テーブルをクリックでソート（動的に追加されるテーブルも対応）
-- OpenAI を使った「Context Actions」（要約/翻訳/カレンダー抽出）をポップアップと右クリックから実行
+- AI（OpenAI / Anthropic / z.ai）を使った「Context Actions」（要約/翻訳/コードレビューなど）をポップアップと右クリックから実行
+- カレンダー登録（ページ内容からイベントを抽出して Google カレンダー / iCal に登録）
 - リンク作成（タイトル+URLを複数形式でコピー）
-- 検索エンジン（選択テキストをカスタム検索エンジンで検索）
+- 検索エンジン（選択テキストをカスタム検索エンジンで検索）/ まとめて検索（グループ一括検索）
 - テキストテンプレート（定型文を右クリックから貼り付け）
+- QR コード生成（現在のページURLをオーバーレイで表示）
+- アクション履歴（直近の AI 実行結果を参照）
 
 ## スクリーンショット
 
@@ -48,11 +51,15 @@
 - `MutationObserver` で新しく挿入されたテーブルも自動検出
 - 行フィルタリング: 0円/ハイフン/空白/N/A の行を非表示（パターンごとにON/OFF）
 
-### Context Actions（OpenAI 連携）
+### Context Actions（AI 連携）
 
+- 対応プロバイダー:
+  - **OpenAI**（GPT-5 系列ほか）
+  - **Anthropic**（Claude Sonnet 4.5 ほか）
+  - **z.ai**（GLM-4.7 ほか）
 - 実行方法:
   - ポップアップ → **アクション** タブ、または
-  - 右クリック → **browser-utils** → アクション
+  - 右クリック → **Browser Toolkit** → アクション
 - 組み込みアクション:
   - **要約**（日本語）
   - **日本語に翻訳**
@@ -66,6 +73,17 @@
   - 右クリック実行時はページ上にオーバーレイ表示（コピー / 固定 / ドラッグ）
 
 詳細は `docs/context-actions.md` を参照してください。
+
+### カレンダー登録
+
+- ページの本文や選択テキストからイベントのタイトル・日時・場所・概要を AI が抽出
+- 抽出結果を Google カレンダーの登録URLまたは `.ics`（iCal）ファイルとして出力
+- ポップアップ → **カレンダー登録** タブ、または右クリックメニューから実行
+
+### QR コード生成
+
+- 右クリック → **Browser Toolkit** → **QR コードを表示** で現在のページ URL を QR コード化
+- ページ上にオーバーレイで表示
 
 ### リンク作成
 
@@ -126,10 +144,27 @@
 
 ポップアップ → **設定** タブ:
 
-- OpenAI API Token（`chrome.storage.local` に保存。同期されません）
-- モデルID（デフォルト `gpt-5.2`。プリセット選択 + 任意のモデルIDを入力可）
-- 追加指示（任意。出力の口調やフォーマットの好みに）
-- テーマ（ダーク/ライト。ポップアップと注入 UI に反映）
+- **AI プロバイダー**: OpenAI / Anthropic / z.ai を切り替え
+- **API Token**: 選択中のプロバイダーのトークンを保存（`chrome.storage.local` に保存。同期されません）
+- **モデルID**: プロバイダーごとのプリセットから選択 + 任意のモデルIDを入力可
+  - OpenAI デフォルト: `gpt-5.4`
+  - Anthropic デフォルト: `claude-sonnet-4-5`
+  - z.ai デフォルト: `glm-4.7`
+- **追加指示**（任意。出力の口調やフォーマットの好みに）
+- **テーマ**（ダーク/ライト。ポップアップと注入 UI に反映）
+
+### ポップアップのタブ
+
+- **アクション**: AI コンテキストアクションの実行と結果表示
+- **カレンダー登録**: ページからイベント抽出 → Google カレンダー / iCal 出力
+- **サイト別機能**: テーブルソートの URL パターン管理
+- **リンク作成**: タイトル + URL コピー
+- **検索エンジン**: 検索エンジン一覧の編集
+- **まとめて検索**: 検索エンジングループの編集
+- **テンプレート**: テキストテンプレートの編集
+- **履歴**: 直近のアクション実行結果
+- **デバッグ**: ストレージ/ランタイムの診断
+- **設定**: AI プロバイダー・テーマ等
 
 ## 開発
 
@@ -270,28 +305,42 @@ pnpm run test:visual:update
 browser-toolkit/
 ├── dist/                      # bundle 出力（生成物）
 ├── docs/                      # ドキュメント
+│   ├── architecture.md        # アーキテクチャ設計
 │   ├── context-actions.md     # Context Actions ガイド
 │   ├── icon-setup.md          # アイコン作成手順
-│   └── style-management.md    # Design Tokens / テーマ
+│   ├── style-management.md    # Design Tokens / テーマ
+│   └── e2e-test-checklist.md  # E2E テストチェックリスト
 ├── manifest.json              # 拡張機能マニフェスト（MV3）
 ├── popup.html                 # ポップアップのエントリ（popup_bootstrap.js 経由で dist/popup.js を読む）
 ├── src/
-│   ├── background.ts          # service worker（コンテキストメニュー + OpenAI 呼び出し）
-│   ├── content.ts             # content script（テーブルソート + オーバーレイ + 選択キャッシュ）
+│   ├── background.ts          # service worker エントリ
+│   ├── content.ts             # content script エントリ
 │   ├── popup.ts               # ポップアップ（React root）
-│   ├── popup/                 # ポップアップ UI（React + Base UI）
-│   ├── content/overlay/       # オーバーレイ UI（React + Base UI / Shadow DOM）
-│   ├── openai/                # OpenAI 設定
-│   └── ui/                    # 共通 UI（theme/styles/toast）
-└── tests/                     # Vitest（jsdom + chrome stubs）
+│   ├── ai/                    # AI アダプター（OpenAI / Anthropic / z.ai）と共通設定
+│   ├── background/            # service worker モジュール（contextMenus / runtime / storage）
+│   ├── content/               # content script モジュール（overlay / table-sort / template-paste）
+│   ├── popup/                 # ポップアップ UI（pane-based, React + Base UI）
+│   ├── components/            # 共有 React コンポーネント
+│   ├── constants/             # モデル一覧などの定数
+│   ├── focus-override/        # フォーカス制御
+│   ├── openai/                # OpenAI 固有設定
+│   ├── prompts/               # 組み込みアクションプロンプト（TOML）
+│   ├── schemas/               # valibot スキーマ（プロバイダー等）
+│   ├── storage/               # ストレージ型定義とマイグレーション
+│   ├── styles/                # Design Tokens
+│   ├── ui/                    # 共通 UI（theme/styles/toast）
+│   └── utils/                 # ユーティリティ
+└── tests/                     # Vitest（jsdom + chrome stubs）+ Playwright E2E
 ```
+
+詳細なアーキテクチャは `docs/architecture.md` を参照してください。
 
 ## プライバシー/セキュリティ
 
-- OpenAI API Token は `chrome.storage.local` に保存（同期なし）
+- AI プロバイダーごとの API Token は `chrome.storage.local` に保存（同期なし）
 - URL パターン/アクション定義などの非機密設定は `chrome.storage.sync` に保存
 - 選択テキストは安定動作のためローカルに短時間キャッシュされることがあります（fresh 判定は約30秒）
-- OpenAI への送信は **Context Action を明示的に実行した場合のみ** 発生します
+- AI API（OpenAI / Anthropic / z.ai）への送信は **Context Action やカレンダー登録を明示的に実行した場合のみ** 発生します
 
 ### エラー監視（Google Analytics 4）
 
