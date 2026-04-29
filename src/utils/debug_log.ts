@@ -16,6 +16,22 @@ export type DebugLogEntry = {
   data?: unknown;
 };
 
+function safeStringify(value: unknown): string {
+  try {
+    return JSON.stringify(value) ?? String(value);
+  } catch {
+    return "[unserializable data]";
+  }
+}
+
+function formatConsoleMessage(entry: DebugLogEntry): string {
+  const baseMessage = `[${entry.level.toUpperCase()}] [${entry.context}] ${entry.message}`;
+  if (entry.data === undefined) {
+    return baseMessage;
+  }
+  return `${baseMessage} ${safeStringify(entry.data)}`;
+}
+
 /**
  * デバッグログを出力（コンソール + ストレージ）
  */
@@ -44,35 +60,19 @@ export async function debugLog(
   };
 
   // コンソール出力（常に実行）
-  const consoleMessage = `[${level.toUpperCase()}] [${context}] ${message}`;
+  const consoleMessage = formatConsoleMessage(logEntry);
 
   switch (level) {
     case "error":
-      if (data !== undefined) {
-        console.error(consoleMessage, data);
-        break;
-      }
       console.error(consoleMessage);
       break;
     case "warn":
-      if (data !== undefined) {
-        console.warn(consoleMessage, data);
-        break;
-      }
       console.warn(consoleMessage);
       break;
     case "info":
-      if (data !== undefined) {
-        console.info(consoleMessage, data);
-        break;
-      }
       console.info(consoleMessage);
       break;
     default:
-      if (data !== undefined) {
-        console.log(consoleMessage, data);
-        break;
-      }
       console.log(consoleMessage);
   }
 

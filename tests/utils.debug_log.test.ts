@@ -19,7 +19,7 @@ describe("utils/debug_log", () => {
     vi.restoreAllMocks();
   });
 
-  it("errorレベルで構造化データを出すときも console.error は1回だけ呼ぶ", async () => {
+  it("errorレベルで構造化データを出すときも console.error には文字列だけ渡す", async () => {
     const consoleErrorSpy = vi
       .spyOn(console, "error")
       .mockImplementation(() => {
@@ -31,8 +31,24 @@ describe("utils/debug_log", () => {
 
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      "[ERROR] [context] action failed",
-      data
+      '[ERROR] [context] action failed {"reason":"copy failed","tabId":123}'
+    );
+  });
+
+  it("循環参照を含む構造化データでも console.error の追加引数にしない", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {
+        // no-op
+      });
+    const data: { self?: unknown } = {};
+    data.self = data;
+
+    await debugLog("context", "action failed", data, "error");
+
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      "[ERROR] [context] action failed [unserializable data]"
     );
   });
 });
