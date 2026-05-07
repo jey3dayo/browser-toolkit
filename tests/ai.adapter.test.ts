@@ -3,6 +3,8 @@ import { anthropicAdapter } from "@/ai/anthropic-adapter";
 import { getAdapter } from "@/ai/get-adapter";
 import { openaiAdapter } from "@/ai/openai-adapter";
 import { zaiAdapter } from "@/ai/zai-adapter";
+import { OPENAI_MODELS } from "@/constants/models";
+import { DEFAULT_OPENAI_REQUEST_MODEL } from "@/openai/settings";
 
 describe("ai/adapter", () => {
   describe("getAdapter", () => {
@@ -32,6 +34,32 @@ describe("ai/adapter", () => {
         Authorization: "Bearer test-token",
         "Content-Type": "application/json",
       });
+    });
+
+    it("resolves default model before sending to OpenAI API", () => {
+      const { init } = openaiAdapter.buildRequest("test-token", {
+        model: OPENAI_MODELS.DEFAULT,
+        temperature: 0.2,
+        messages: [{ role: "user", content: "test" }],
+      });
+
+      const body = JSON.parse(String(init.body)) as {
+        model?: string;
+        temperature?: number;
+      };
+      expect(body.model).toBe(DEFAULT_OPENAI_REQUEST_MODEL);
+      expect(body.temperature).toBeUndefined();
+    });
+
+    it("keeps temperature for non GPT-5 OpenAI models", () => {
+      const { init } = openaiAdapter.buildRequest("test-token", {
+        model: OPENAI_MODELS.GPT_4O_MINI,
+        temperature: 0.2,
+        messages: [{ role: "user", content: "test" }],
+      });
+
+      const body = JSON.parse(String(init.body)) as { temperature?: number };
+      expect(body.temperature).toBe(0.2);
     });
 
     it("extracts text from valid response", () => {

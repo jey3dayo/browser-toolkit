@@ -1,9 +1,20 @@
+import { resolveOpenAiRequestModel } from "@/openai/settings";
 import type { AiProvider } from "@/schemas/provider";
 import { PROVIDER_CONFIGS } from "@/schemas/provider";
 import type { ChatCompletionAdapter, ChatRequestBody } from "./adapter";
 import { extractApiErrorMessage } from "./adapter-helpers";
 
 type OpenAiCompatibleProvider = Extract<AiProvider, "openai" | "zai">;
+
+function buildOpenAiRequestBody(body: ChatRequestBody): ChatRequestBody {
+  const resolvedModel = resolveOpenAiRequestModel(body.model);
+  if (!resolvedModel.startsWith("gpt-5")) {
+    return { ...body, model: resolvedModel };
+  }
+
+  const { temperature: _temperature, ...rest } = body;
+  return { ...rest, model: resolvedModel };
+}
 
 export function extractOpenAiCompatibleChoiceText(
   json: unknown
@@ -32,13 +43,15 @@ export function createOpenAiCompatibleAdapter(
   return {
     buildRequest(token: string, body: ChatRequestBody) {
       const url = `${PROVIDER_CONFIGS[provider].baseUrl}/chat/completions`;
+      const requestBody =
+        provider === "openai" ? buildOpenAiRequestBody(body) : body;
       const init: RequestInit = {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify(requestBody),
       };
 
       return { url, init };

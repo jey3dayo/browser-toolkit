@@ -8,15 +8,11 @@
  * OpenAI モデル定数
  */
 export const OPENAI_MODELS = {
-  GPT_5_4: "gpt-5.4",
-  GPT_5_4_DATED: "gpt-5.4-2026-03-05",
-  GPT_5_2: "gpt-5.2",
+  DEFAULT: "default",
+  GPT_5_5: "gpt-5.5",
   GPT_5_MINI: "gpt-5-mini",
   GPT_5_NANO: "gpt-5-nano",
   GPT_5_PRO: "gpt-5-pro",
-  GPT_5_2_CHAT: "gpt-5.2-chat-latest",
-  // 後方互換性のため残す
-  GPT_4O: "gpt-4o",
   GPT_4O_MINI: "gpt-4o-mini",
 } as const;
 
@@ -41,11 +37,8 @@ export const ZAI_MODELS = {
 
 /**
  * OpenAIモデル一覧（配列）
- * 非推奨モデル（gpt-4o）は除外
  */
-export const OPENAI_MODEL_LIST = Object.values(OPENAI_MODELS).filter(
-  (model) => model !== "gpt-4o" && model !== "gpt-5.2"
-);
+export const OPENAI_MODEL_LIST = Object.values(OPENAI_MODELS);
 
 /**
  * Anthropicモデル一覧（配列）

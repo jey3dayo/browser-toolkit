@@ -25,7 +25,7 @@ export const PROVIDER_CONFIGS: Record<
 > = {
   openai: {
     label: "OpenAI",
-    defaultModel: OPENAI_MODELS.GPT_5_4,
+    defaultModel: OPENAI_MODELS.DEFAULT,
     models: OPENAI_MODEL_LIST,
     baseUrl: "https://api.openai.com/v1",
   },
@@ -62,9 +62,12 @@ export function safeParseAiProvider(value: unknown): AiProvider | null {
 }
 
 const LEGACY_OPENAI_MODEL_MAP: Record<string, string> = {
-  [OPENAI_MODELS.GPT_4O]: OPENAI_MODELS.GPT_4O_MINI,
-  "gpt-5.1": OPENAI_MODELS.GPT_5_4,
-  [OPENAI_MODELS.GPT_5_2]: OPENAI_MODELS.GPT_5_4,
+  "gpt-4o": OPENAI_MODELS.GPT_4O_MINI,
+  "gpt-5.4-2026-03-05": OPENAI_MODELS.DEFAULT,
+  "gpt-5.4": OPENAI_MODELS.DEFAULT,
+  "gpt-5.1": OPENAI_MODELS.DEFAULT,
+  "gpt-5.2": OPENAI_MODELS.DEFAULT,
+  "gpt-5.2-chat-latest": OPENAI_MODELS.DEFAULT,
 };
 
 /**
