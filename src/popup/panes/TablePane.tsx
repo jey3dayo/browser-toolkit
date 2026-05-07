@@ -198,14 +198,15 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
     };
   }, [props.runtime]);
 
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       focusDiagnosticRequestIdRef.current += 1;
       if (focusDiagnosticTimerRef.current !== null) {
         window.clearTimeout(focusDiagnosticTimerRef.current);
       }
-    };
-  }, []);
+    },
+    []
+  );
 
   async function resolveFocusDiagnostic(): Promise<FocusDiagnosticView> {
     const activeTab = await props.runtime.getActiveTab();

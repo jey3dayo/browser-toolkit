@@ -102,9 +102,10 @@ export function useSearchGroupsState(
     };
   }, [props.runtime]);
 
-  const enginesById = useMemo(() => {
-    return new Map(engines.map((engine) => [engine.id, engine]));
-  }, [engines]);
+  const enginesById = useMemo(
+    () => new Map(engines.map((engine) => [engine.id, engine])),
+    [engines]
+  );
 
   const saveGroups = async (
     nextGroups: SearchEngineGroup[]

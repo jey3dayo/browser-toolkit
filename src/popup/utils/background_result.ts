@@ -23,11 +23,9 @@ export async function sendBackgroundResult<TRequest, TResponse>(params: {
     timeout === null
       ? await params.runtime
           .sendMessageToBackground<TRequest, unknown>(params.message)
-          .catch((error: unknown) => {
-            return Result.fail(
-              error instanceof Error ? error.message : "不明なエラー"
-            );
-          })
+          .catch((error: unknown) =>
+            Result.fail(error instanceof Error ? error.message : "不明なエラー")
+          )
       : await Promise.race([
           params.runtime.sendMessageToBackground<TRequest, unknown>(
             params.message

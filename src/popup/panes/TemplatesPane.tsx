@@ -58,11 +58,10 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
 
   const saveTemplates = async (
     nextTemplates: TextTemplate[]
-  ): Promise<Result.Result<void, string>> => {
-    return await props.runtime.storageSyncSet({
+  ): Promise<Result.Result<void, string>> =>
+    await props.runtime.storageSyncSet({
       textTemplates: nextTemplates,
     });
-  };
 
   const toggleTemplateHidden = async (
     templateId: string,

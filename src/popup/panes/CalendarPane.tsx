@@ -220,13 +220,12 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
 
   const requestEventSummary = async (
     target: SummaryTarget
-  ): Promise<SummarizeEventSuccessPayload | null> => {
-    return await sendBackgroundResult({
+  ): Promise<SummarizeEventSuccessPayload | null> =>
+    await sendBackgroundResult({
       runtime: props.runtime,
       message: { action: "summarizeEvent", target },
       onError: reportError,
     });
-  };
 
   const runCalendar = async (): Promise<void> => {
     if (!ensureTargetsSelected()) {

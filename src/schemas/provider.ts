@@ -48,9 +48,10 @@ export const PROVIDER_CONFIGS: Record<
  */
 export const aiProviderSchema = pipe(
   string(),
-  check((value): value is AiProvider => {
-    return AI_PROVIDERS.includes(value as AiProvider);
-  }, "Invalid AI provider")
+  check(
+    (value): value is AiProvider => AI_PROVIDERS.includes(value as AiProvider),
+    "Invalid AI provider"
+  )
 );
 
 /**
