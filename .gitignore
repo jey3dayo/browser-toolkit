@@ -2,7 +2,7 @@ node_modules/
 dist/
 npm-debug.log*
 .DS_Store
-.tmp/
+tmp/
 .env
 
 *storybook.log
