@@ -20,14 +20,16 @@ export function normalizeFocusOverridePatterns(
   }
 
   const patterns: string[] = [];
+  const seen = new Set<string>();
   for (const item of value) {
     if (typeof item !== "string") {
       return Result.fail("Invalid focusOverridePatterns item format");
     }
     const pattern = item.trim();
-    if (!pattern || patterns.includes(pattern)) {
+    if (!pattern || seen.has(pattern)) {
       continue;
     }
+    seen.add(pattern);
     patterns.push(pattern);
   }
 

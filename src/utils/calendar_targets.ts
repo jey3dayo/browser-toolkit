@@ -14,12 +14,15 @@ function normalizeCalendarTargets(
     return [];
   }
   const targets: CalendarRegistrationTarget[] = [];
+  const seen = new Set<CalendarRegistrationTarget>();
   for (const item of value) {
-    if (!VALID_TARGETS.has(item as CalendarRegistrationTarget)) {
+    const target = item as CalendarRegistrationTarget;
+    if (!VALID_TARGETS.has(target)) {
       continue;
     }
-    if (!targets.includes(item as CalendarRegistrationTarget)) {
-      targets.push(item as CalendarRegistrationTarget);
+    if (!seen.has(target)) {
+      seen.add(target);
+      targets.push(target);
     }
   }
   return targets;
