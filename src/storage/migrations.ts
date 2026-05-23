@@ -181,10 +181,15 @@ export async function cleanOldBackups(): Promise<void> {
  */
 export async function listBackups(): Promise<BackupData[]> {
   const allData = await storageLocalGet([]);
-  const backupEntries = Object.entries(allData as Record<string, unknown>)
-    .filter(([key]) => key.startsWith(BACKUP_KEY_PREFIX))
-    .map(([, value]) => value as BackupData)
-    .sort((a, b) => b.timestamp - a.timestamp);
+  const backupEntries: BackupData[] = [];
+  for (const [key, value] of Object.entries(
+    allData as Record<string, unknown>
+  )) {
+    if (key.startsWith(BACKUP_KEY_PREFIX)) {
+      backupEntries.push(value as BackupData);
+    }
+  }
+  backupEntries.sort((a, b) => b.timestamp - a.timestamp);
 
   return backupEntries;
 }

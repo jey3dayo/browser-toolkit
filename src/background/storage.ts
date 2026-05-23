@@ -12,14 +12,14 @@ export const QUOTA_ERROR_THRESHOLD = 0.9; // 90%
 /**
  * ストレージクォータチェック結果
  */
-export type QuotaCheckResult =
+type QuotaCheckResult =
   | { ok: true }
   | { ok: false; sizeBytes: number; key: string };
 
 /**
  * ストレージ使用量の情報
  */
-export type StorageUsageInfo = {
+type StorageUsageInfo = {
   bytesInUse: number;
   quotaBytes: number;
   usagePercent: number;

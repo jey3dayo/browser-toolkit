@@ -22,7 +22,7 @@ export function clipInputText(rawText: string): string {
 /**
  * タイトルとURLのメタ情報を構築
  */
-export function buildTitleUrlMeta(
+function buildTitleUrlMeta(
   target: SummaryTarget,
   options?: { includeMissing?: boolean }
 ): string {

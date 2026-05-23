@@ -55,6 +55,9 @@ import {
 } from "@/utils/link_format";
 
 let contextMenuRefreshQueue: Promise<void> = Promise.resolve();
+const LINK_FORMAT_LABELS = new Map(
+  LINK_FORMAT_OPTIONS.map((option) => [option.value, option.label])
+);
 
 /**
  * Exact-match menu items ハンドラー。処理した場合 true を返す。
@@ -292,8 +295,7 @@ export async function refreshContextMenus(): Promise<void> {
     });
 
     for (const format of CONTEXT_MENU_LINK_FORMATS) {
-      const option = LINK_FORMAT_OPTIONS.find((o) => o.value === format);
-      const label = option?.label ?? format;
+      const label = LINK_FORMAT_LABELS.get(format) ?? format;
       await createMenuItem({
         id: `${CONTEXT_MENU_COPY_LINK_PREFIX}${format}`,
         parentId: CONTEXT_MENU_COPY_TITLE_LINK_ID,
