@@ -35,27 +35,29 @@ Browser Toolkitは、個人用のChrome拡張機能（Manifest V3）です。Web
 
 ## Source Of Truth
 
-耐久的な知識を読む・更新するときは、まずこの表で正本を決めてください。`CLAUDE.md` は短い入口とルーティングを担い、詳細な仕様や運用ルールは対象ごとの正本に寄せます。
+耐久的な知識を読む・更新するときは、まずこの表で正本を決めてください。`AGENTS.md` は agent runtime の薄い入口です。実体となる workflow、source routing、SSoT 表は `CLAUDE.md` に集約し、詳細な仕様や運用ルールは対象ごとの正本に寄せます。
 
 | 対象 | 正本 | 用途 |
 | --- | --- | --- |
+| Agent runtime entrypoint | `AGENTS.md` -> `CLAUDE.md` | agent runtime が最初に読む入口。実体は `CLAUDE.md` に集約 |
+| Agent workflow / source routing / SSoT table | `CLAUDE.md` | 開発時の高レベルルール、正本表、entrypoint docs のルーティング |
 | Product scope / UX principles | `.kiro/steering/product.md` | 機能範囲、価値、UX原則、データ・プライバシー方針 |
 | Technical architecture / runtime policy | `.kiro/steering/tech.md` | Chrome Extension MV3、runtime境界、storage、timeout、AI provider、品質ゲート |
 | Code organization / placement | `.kiro/steering/structure.md` | ディレクトリ構成、entrypoint責務、feature placement、命名規則 |
-| Agent entrypoint | `AGENTS.md` -> `CLAUDE.md` | agent runtime が最初に読む入口。実体は `CLAUDE.md` に集約 |
-| Agent workflow / source routing | `CLAUDE.md` | 正本表、開発時の高レベルルール、entrypoint docs のルーティング |
 | Runtime coding rules / security | `.claude/rules/development.md`, `.claude/rules/security.md` | TypeScript、Result、XSS、secret handling などの実装ルール |
 | UI display messages | `src/i18n/resources.ts` | i18next で読む表示文言と translation key |
 | Popup / overlay shared UI | `src/components/`, `src/ui/`, `src/styles/` | 共有React部品、theme、toast、Shadow DOM styles |
-| Style tokens / theme details | `docs/style-management.md`, `src/styles/`, `src/ui/theme.ts` | design token layers、theme switching、ShadowRoot stylesheet integration |
-| Context Actions behavior | `docs/context-actions.md`, `src/context_actions.ts`, `src/prompts/` | context action の仕様、組み込みaction、prompt template |
+| Style tokens / theme details | `docs/style-management.md` | design token layers、theme switching、ShadowRoot stylesheet integration の説明 |
+| Style token implementation | `src/styles/`, `src/ui/theme.ts` | token CSS、theme適用、ShadowRoot stylesheet integration の実装 |
+| Context Actions behavior | `docs/context-actions.md` | context action の実行経路、対象解決、組み込みaction、calendar handoff の仕様 |
+| Context Actions implementation / prompts | `src/context_actions.ts`, `src/prompts/` | action defaults と AI prompt template。表示文言とは分けて扱う |
 | Storage schema / migrations | `src/storage/`, `src/storage/migrations.ts`, `src/schemas/` | storage shape、migration、runtime validation |
 | User-facing setup / usage | `README.md` | インストール、使い方、開発セットアップ、利用者向け機能説明 |
 | Long-form architecture reference | `docs/architecture.md` | 詳細な設計解説。方針判断では `.kiro/steering/*` を優先し、内容を整合させる |
 | Build / verification commands | `package.json`, `mise.toml` | scripts、CI相当の検証、tool versions |
 | Generated extension output | `dist/` | build artifact。source of truth ではない |
 
-新しいルールや仕様を追加するときは、表の正本に入れてください。表示文言は `src/i18n/resources.ts` に置き、UI層で `t()` に解決します。AI prompt、storage key、protocol marker、既存データ互換の正規表現は表示文言と分けて扱います。
+新しいルールや仕様を追加するときは、表の正本に入れてください。表示文言は `src/i18n/resources.ts` に置き、UI層で `t()` に解決します。AI prompt は `src/prompts/`、storage key と migration は `src/storage/`、runtime validation は `src/schemas/`、protocol marker や既存データ互換の正規表現はそれを所有する実装モジュールに置き、表示文言と混同しないでください。
 
 ## 🛠️ 技術スタック（概要）
 
