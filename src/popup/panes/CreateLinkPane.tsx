@@ -39,6 +39,7 @@ export type CreateLinkPaneProps = PopupPaneBaseProps & {
 };
 
 export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
+  const { initialFormat, initialLink, notify, runtime } = props;
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
   const [format, setFormat] = useState<LinkFormat>("markdown");
@@ -58,7 +59,7 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
 
   const loadFromActiveTab = useCallback(async (): Promise<void> => {
     try {
-      const activeTab = await props.runtime.getActiveTab();
+      const activeTab = await runtime.getActiveTab();
       if (Result.isFailure(activeTab)) {
         await debugLog(
           "CreateLinkPane.loadFromActiveTab",
@@ -82,33 +83,33 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
         "error"
       );
     }
-  }, [props.runtime]);
+  }, [runtime]);
 
   useEffect(() => {
-    if (props.initialLink) {
-      setTitle(props.initialLink.title);
-      setUrl(props.initialLink.url);
+    if (initialLink) {
+      setTitle(initialLink.title);
+      setUrl(initialLink.url);
     } else {
       loadFromActiveTab().catch(() => {
         // no-op
       });
     }
-  }, [loadFromActiveTab, props.initialLink]);
+  }, [initialLink, loadFromActiveTab]);
 
   useEffect(() => {
-    if (!props.initialFormat) {
+    if (!initialFormat) {
       return;
     }
-    setFormat(props.initialFormat);
-  }, [props.initialFormat]);
+    setFormat(initialFormat);
+  }, [initialFormat]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      if (props.initialFormat) {
+      if (initialFormat) {
         return;
       }
-      const stored = await props.runtime.storageSyncGet(["linkFormat"]);
+      const stored = await runtime.storageSyncGet(["linkFormat"]);
       if (Result.isFailure(stored)) {
         return;
       }
@@ -122,7 +123,7 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
       setFormat(next);
     })().catch((error) => {
       debugLog(
-        "CreateLinkPane.useEffect[props.initialFormat, props.runtime]",
+        "CreateLinkPane.useEffect[initialFormat, runtime]",
         "failed",
         { error: formatErrorLog("", {}, error) },
         "error"
@@ -133,7 +134,7 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
     return () => {
       cancelled = true;
     };
-  }, [props.initialFormat, props.runtime]);
+  }, [initialFormat, runtime]);
 
   useEffect(() => {
     const canvas = qrCanvasRef.current;
@@ -146,9 +147,9 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
       return;
     }
     QRCode.toCanvas(canvas, url.trim(), { width: 200, margin: 2 }).catch(() => {
-      props.notify.error("QRコードの生成に失敗しました");
+      notify.error("QRコードの生成に失敗しました");
     });
-  }, [showQr, url, props.notify]);
+  }, [notify, showQr, url]);
 
   const handleFormatChange = useCallback(
     async (value: string): Promise<void> => {
@@ -164,33 +165,31 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
         rollback: () => {
           setFormat(prev);
         },
-        persist: () => props.runtime.storageSyncSet({ linkFormat: next }),
+        persist: () => runtime.storageSyncSet({ linkFormat: next }),
         onFailure: () => {
-          props.notify.error("形式の保存に失敗しました");
+          notify.error("形式の保存に失敗しました");
         },
       });
     },
-    [format, props.notify, props.runtime]
+    [format, notify, runtime]
   );
 
   const copyOutput = async (): Promise<void> => {
     const text = output.trim();
     if (!text) {
-      props.notify.error(
-        url.trim() ? "コピーする内容がありません" : "URLが空です"
-      );
+      notify.error(url.trim() ? "コピーする内容がありません" : "URLが空です");
       return;
     }
 
     try {
       if (!navigator.clipboard?.writeText) {
-        props.notify.error("この環境ではクリップボードにコピーできません");
+        notify.error("この環境ではクリップボードにコピーできません");
         return;
       }
       await navigator.clipboard.writeText(text);
-      props.notify.success("コピーしました");
+      notify.success("コピーしました");
     } catch {
-      props.notify.error("コピーに失敗しました");
+      notify.error("コピーに失敗しました");
     }
   };
 

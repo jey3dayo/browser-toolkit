@@ -29,30 +29,6 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
   const [showLogs, setShowLogs] = useState(false);
   const [logContent, setLogContent] = useState("");
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const loaded = await props.runtime.storageLocalGet(["debugMode"]);
-      if (Result.isFailure(loaded) || cancelled) {
-        return;
-      }
-      const raw: Partial<LocalStorageData> = loaded.value;
-      setDebugMode(raw.debugMode ?? false);
-    })().catch((error) => {
-      debugLog(
-        "DebugPane.useEffect[props.runtime]",
-        "failed",
-        { error: formatErrorLog("", {}, error) },
-        "error"
-      ).catch(() => {
-        // no-op
-      });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [props.runtime]);
-
   const loadLogStats = useCallback(async (): Promise<void> => {
     const result = await props.runtime.sendMessageToBackground<
       { action: "getDebugLogStats" },
@@ -72,6 +48,34 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
       }
     }
   }, [props.runtime]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const loaded = await props.runtime.storageLocalGet(["debugMode"]);
+      if (Result.isFailure(loaded) || cancelled) {
+        return;
+      }
+      const raw: Partial<LocalStorageData> = loaded.value;
+      const nextDebugMode = raw.debugMode ?? false;
+      setDebugMode(nextDebugMode);
+      if (nextDebugMode) {
+        await loadLogStats();
+      }
+    })().catch((error) => {
+      debugLog(
+        "DebugPane.useEffect[props.runtime]",
+        "failed",
+        { error: formatErrorLog("", {}, error) },
+        "error"
+      ).catch(() => {
+        // no-op
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [loadLogStats, props.runtime]);
 
   const loadAndShowLogs = async (): Promise<void> => {
     const result = await props.runtime.sendMessageToBackground<
@@ -106,21 +110,6 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
       }
     }
   };
-
-  useEffect(() => {
-    if (debugMode) {
-      loadLogStats().catch((error) => {
-        debugLog(
-          "DebugPane.loadLogStats",
-          "failed",
-          { error: formatErrorLog("", {}, error) },
-          "error"
-        ).catch(() => {
-          // no-op
-        });
-      });
-    }
-  }, [debugMode, loadLogStats]);
 
   const toggleDebugMode = async (checked: boolean): Promise<void> => {
     const saved = await props.runtime.storageLocalSet({ debugMode: checked });

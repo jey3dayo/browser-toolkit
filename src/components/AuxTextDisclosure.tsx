@@ -8,6 +8,31 @@ type Props = {
   storageKey?: string;
 };
 
+function loadStoredOpen(
+  storageKey: string | undefined,
+  fallbackOpen: boolean
+): Promise<boolean> {
+  if (!storageKey || typeof chrome === "undefined") {
+    return Promise.resolve(fallbackOpen);
+  }
+  const storage = chrome.storage?.local;
+  if (!storage) {
+    return Promise.resolve(fallbackOpen);
+  }
+
+  return new Promise((resolve) => {
+    storage.get([storageKey], (items) => {
+      const err = chrome.runtime?.lastError;
+      if (err) {
+        resolve(fallbackOpen);
+        return;
+      }
+      const value = (items as Record<string, unknown>)[storageKey];
+      resolve(typeof value === "boolean" ? value : fallbackOpen);
+    });
+  });
+}
+
 export function AuxTextDisclosure(props: Props): React.JSX.Element | null {
   const trimmed = props.text.trim();
   const fallbackOpen = props.defaultOpen ?? false;
@@ -15,39 +40,19 @@ export function AuxTextDisclosure(props: Props): React.JSX.Element | null {
 
   useEffect(() => {
     let disposed = false;
-    const storageKey = props.storageKey;
-    if (!storageKey) {
-      setOpen(fallbackOpen);
-      return () => {
-        disposed = true;
-      };
-    }
-    if (typeof chrome === "undefined") {
-      setOpen(fallbackOpen);
-      return () => {
-        disposed = true;
-      };
-    }
-    const storage = chrome.storage?.local;
-    if (!storage) {
-      setOpen(fallbackOpen);
-      return () => {
-        disposed = true;
-      };
-    }
-
-    storage.get([storageKey], (items) => {
-      if (disposed) {
-        return;
-      }
-      const err = chrome.runtime?.lastError;
-      if (err) {
+    loadStoredOpen(props.storageKey, fallbackOpen)
+      .then((nextOpen) => {
+        if (disposed) {
+          return;
+        }
+        setOpen(nextOpen);
+      })
+      .catch(() => {
+        if (disposed) {
+          return;
+        }
         setOpen(fallbackOpen);
-        return;
-      }
-      const value = (items as Record<string, unknown>)[storageKey];
-      setOpen(typeof value === "boolean" ? value : fallbackOpen);
-    });
+      });
 
     return () => {
       disposed = true;
