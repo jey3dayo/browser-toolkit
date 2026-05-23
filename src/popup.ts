@@ -1,6 +1,7 @@
 import { Result } from "@praha/byethrow";
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
+import "@/i18n";
 import { PopupApp } from "@/popup/App";
 import { createPopupRuntime } from "@/popup/runtime";
 import { ensurePopupUiBaseStyles } from "@/ui/styles";

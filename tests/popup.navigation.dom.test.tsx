@@ -2,7 +2,9 @@ import type { JSDOM } from "jsdom";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { i18n } from "@/i18n";
 import { PopupApp } from "@/popup/App";
+import { navigationItems } from "@/popup/navigation-items";
 import { flush } from "./helpers/async";
 import {
   createPopupChromeStub,
@@ -56,6 +58,20 @@ describe("popup navigation (React + Base UI Tabs)", () => {
     act(() => {
       root.unmount();
     });
+  });
+
+  it("keeps navigation metadata as translation keys for render-time resolution", () => {
+    expect(navigationItems[0]).toMatchObject({
+      labelKey: "navigation.actions",
+      ariaLabelKey: "navigation.actions",
+    });
+    expect(navigationItems[0]).not.toHaveProperty("label");
+    expect(navigationItems[0]).not.toHaveProperty("ariaLabel");
+  });
+
+  it("defines sidebar chrome labels in i18n resources", () => {
+    expect(i18n.t("sidebar.menu")).toBe("メニュー");
+    expect(i18n.t("common.close")).toBe("閉じる");
   });
 
   it("switches tabs and synchronizes hash", async () => {

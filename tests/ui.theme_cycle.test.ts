@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { resources } from "@/i18n/resources";
 import { nextTheme, themeButtonLabel, themeLabel } from "@/ui/themeCycle";
 
 describe("themeCycle", () => {
@@ -19,5 +20,14 @@ describe("themeCycle", () => {
     expect(themeButtonLabel("auto")).toContain("ライト");
     expect(themeButtonLabel("light")).toContain("ダーク");
     expect(themeButtonLabel("dark")).toContain("自動");
+  });
+
+  it("defines theme translation resources", () => {
+    expect(resources.ja.translation.theme).toEqual({
+      auto: "自動",
+      light: "ライト",
+      dark: "ダーク",
+      buttonLabel: "テーマ: {{current}}（クリックで{{next}}へ）",
+    });
   });
 });

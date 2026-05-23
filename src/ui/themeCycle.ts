@@ -1,14 +1,15 @@
+import { type TranslationKey, t } from "@/i18n";
 import type { Theme } from "@/ui/theme";
 
 const THEME_SEQUENCE: Theme[] = ["auto", "light", "dark"];
-const THEME_LABELS: Record<Theme, string> = {
-  auto: "自動",
-  light: "ライト",
-  dark: "ダーク",
+const THEME_LABEL_KEYS: Record<Theme, TranslationKey> = {
+  auto: "theme.auto",
+  light: "theme.light",
+  dark: "theme.dark",
 };
 
 export function themeLabel(theme: Theme): string {
-  return THEME_LABELS[theme];
+  return t(THEME_LABEL_KEYS[theme]);
 }
 
 export function nextTheme(theme: Theme): Theme {
@@ -19,5 +20,8 @@ export function nextTheme(theme: Theme): Theme {
 
 export function themeButtonLabel(theme: Theme): string {
   const next = nextTheme(theme);
-  return `テーマ: ${themeLabel(theme)}（クリックで${themeLabel(next)}へ）`;
+  return t("theme.buttonLabel", {
+    current: themeLabel(theme),
+    next: themeLabel(next),
+  });
 }

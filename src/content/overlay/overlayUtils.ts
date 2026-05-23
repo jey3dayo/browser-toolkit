@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import type { ExtractedEvent, SummarySource } from "@/shared_types";
 import type { OverlayViewModel } from "./OverlayApp";
 
@@ -31,10 +32,10 @@ export function statusLabelFromStatus(
   status: OverlayViewModel["status"]
 ): string {
   if (status === "loading") {
-    return "処理中...";
+    return t("overlay.status.loading");
   }
   if (status === "error") {
-    return "エラー";
+    return t("overlay.status.error");
   }
   return "";
 }
@@ -43,7 +44,9 @@ export function statusLabelFromStatus(
  * Convert source to Japanese label
  */
 export function sourceLabelFromSource(source: SummarySource): string {
-  return source === "selection" ? "選択範囲" : "ページ本文";
+  return source === "selection"
+    ? t("overlay.source.selection")
+    : t("overlay.source.page");
 }
 
 /**

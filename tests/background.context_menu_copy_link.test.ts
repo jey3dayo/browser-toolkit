@@ -65,4 +65,35 @@ describe("background: context menu", () => {
     expect(subItemIds).toContain("mbu-copy-link:markdown");
     expect(subItemIds).toContain("mbu-copy-link:html");
   });
+
+  it("adds built-in QR code and calendar root items with localized labels", async () => {
+    const registry = await import("@/background/context_menu_registry");
+    const scheduleSpy = vi.spyOn(registry, "scheduleRefreshContextMenus");
+    await import("@/background.ts");
+    const scheduled = scheduleSpy.mock.results[0]?.value as
+      | Promise<void>
+      | undefined;
+    if (scheduled) {
+      await scheduled;
+    }
+
+    const created = chromeStub.contextMenus.create.mock.calls.map(
+      (call) => call[0] as Record<string, unknown>
+    );
+
+    expect(created).toContainEqual(
+      expect.objectContaining({
+        id: "mbu-qr-code",
+        parentId: "mbu-root",
+        title: "QRコードを表示",
+      })
+    );
+    expect(created).toContainEqual(
+      expect.objectContaining({
+        id: "mbu-calendar-register",
+        parentId: "mbu-root",
+        title: "カレンダー登録",
+      })
+    );
+  });
 });

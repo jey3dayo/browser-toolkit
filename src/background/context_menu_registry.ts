@@ -46,6 +46,7 @@ import {
   ensureSearchEnginesInitialized,
   ensureTextTemplatesInitialized,
 } from "@/background/context_menu_storage";
+import { t } from "@/i18n";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
 import {
@@ -58,6 +59,36 @@ let contextMenuRefreshQueue: Promise<void> = Promise.resolve();
 const LINK_FORMAT_LABELS = new Map(
   LINK_FORMAT_OPTIONS.map((option) => [option.value, option.label])
 );
+type ContextMenuContexts = chrome.contextMenus.CreateProperties["contexts"];
+
+const ROOT_MENU_CONTEXTS: ContextMenuContexts = [
+  "page",
+  "selection",
+  "editable",
+];
+
+function createBuiltinRootMenuItems(): chrome.contextMenus.CreateProperties[] {
+  return [
+    {
+      id: CONTEXT_MENU_QR_CODE_ID,
+      parentId: CONTEXT_MENU_ROOT_ID,
+      title: t("contextMenu.qrCode"),
+      contexts: ROOT_MENU_CONTEXTS,
+    },
+    {
+      id: CONTEXT_MENU_CALENDAR_ID,
+      parentId: CONTEXT_MENU_ROOT_ID,
+      title: t("contextMenu.calendar"),
+      contexts: ROOT_MENU_CONTEXTS,
+    },
+    {
+      id: CONTEXT_MENU_BUILTIN_SEPARATOR_ID,
+      parentId: CONTEXT_MENU_ROOT_ID,
+      type: "separator",
+      contexts: ROOT_MENU_CONTEXTS,
+    },
+  ];
+}
 
 function runSequentially<T>(
   items: readonly T[],
@@ -199,11 +230,10 @@ export async function refreshContextMenus(): Promise<void> {
   try {
     await removeAllMenus();
 
-    // Root menu
     await createMenuItem({
       id: CONTEXT_MENU_ROOT_ID,
       title: APP_NAME,
-      contexts: ["page", "selection", "editable"],
+      contexts: ROOT_MENU_CONTEXTS,
     });
 
     const [searchEngines, templates, actions] = await Promise.all([
@@ -227,7 +257,7 @@ export async function refreshContextMenus(): Promise<void> {
       await createMenuItem({
         id: CONTEXT_MENU_SEARCH_PARENT_ID,
         parentId: CONTEXT_MENU_ROOT_ID,
-        title: "検索",
+        title: t("contextMenu.search"),
         contexts: ["selection"],
       });
 
@@ -256,7 +286,7 @@ export async function refreshContextMenus(): Promise<void> {
         await createMenuItem({
           id: CONTEXT_MENU_BATCH_SEARCH_PARENT_ID,
           parentId: CONTEXT_MENU_ROOT_ID,
-          title: "まとめて検索",
+          title: t("contextMenu.batchSearch"),
           contexts: ["selection"],
         });
 
@@ -288,8 +318,8 @@ export async function refreshContextMenus(): Promise<void> {
       await createMenuItem({
         id: CONTEXT_MENU_TEMPLATE_ROOT_ID,
         parentId: CONTEXT_MENU_ROOT_ID,
-        title: "テンプレートを貼り付け",
-        contexts: ["page", "selection", "editable"],
+        title: t("contextMenu.templates"),
+        contexts: ROOT_MENU_CONTEXTS,
       });
 
       await runSequentially(visibleTemplates, (template) =>
@@ -297,7 +327,7 @@ export async function refreshContextMenus(): Promise<void> {
           id: `${CONTEXT_MENU_TEMPLATE_PREFIX}${template.id}`,
           parentId: CONTEXT_MENU_TEMPLATE_ROOT_ID,
           title: template.title,
-          contexts: ["page", "selection", "editable"],
+          contexts: ROOT_MENU_CONTEXTS,
         })
       );
     }
@@ -306,8 +336,8 @@ export async function refreshContextMenus(): Promise<void> {
     await createMenuItem({
       id: CONTEXT_MENU_COPY_TITLE_LINK_ID,
       parentId: CONTEXT_MENU_ROOT_ID,
-      title: "タイトルとリンクをコピー",
-      contexts: ["page", "selection", "editable"],
+      title: t("contextMenu.copyTitleLink"),
+      contexts: ROOT_MENU_CONTEXTS,
     });
 
     await runSequentially(CONTEXT_MENU_LINK_FORMATS, (format) => {
@@ -316,29 +346,11 @@ export async function refreshContextMenus(): Promise<void> {
         id: `${CONTEXT_MENU_COPY_LINK_PREFIX}${format}`,
         parentId: CONTEXT_MENU_COPY_TITLE_LINK_ID,
         title: label,
-        contexts: ["page", "selection", "editable"],
+        contexts: ROOT_MENU_CONTEXTS,
       });
     });
 
-    await createMenuItem({
-      id: CONTEXT_MENU_QR_CODE_ID,
-      parentId: CONTEXT_MENU_ROOT_ID,
-      title: "QRコードを表示",
-      contexts: ["page", "selection", "editable"],
-    });
-
-    await createMenuItem({
-      id: CONTEXT_MENU_CALENDAR_ID,
-      parentId: CONTEXT_MENU_ROOT_ID,
-      title: "カレンダー登録",
-      contexts: ["page", "selection", "editable"],
-    });
-
-    await createSeparator(
-      CONTEXT_MENU_BUILTIN_SEPARATOR_ID,
-      CONTEXT_MENU_ROOT_ID,
-      ["page", "selection", "editable"]
-    );
+    await runSequentially(createBuiltinRootMenuItems(), createMenuItem);
 
     // Custom context actions
     await runSequentially(actions, (action) =>
@@ -346,22 +358,22 @@ export async function refreshContextMenus(): Promise<void> {
         id: `${CONTEXT_MENU_ACTION_PREFIX}${action.id}`,
         parentId: CONTEXT_MENU_ROOT_ID,
         title: action.title,
-        contexts: ["page", "selection", "editable"],
+        contexts: ROOT_MENU_CONTEXTS,
       })
     );
 
     await createSeparator(
       CONTEXT_MENU_CUSTOM_SEPARATOR_ID,
       CONTEXT_MENU_ROOT_ID,
-      ["page", "selection", "editable"]
+      ROOT_MENU_CONTEXTS
     );
 
     // Settings menu
     await createMenuItem({
       id: CONTEXT_MENU_SETTINGS_ID,
       parentId: CONTEXT_MENU_ROOT_ID,
-      title: "設定",
-      contexts: ["page", "selection", "editable"],
+      title: t("contextMenu.settings"),
+      contexts: ROOT_MENU_CONTEXTS,
     });
   } catch (error) {
     await debugLog(

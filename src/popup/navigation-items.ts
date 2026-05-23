@@ -1,72 +1,73 @@
 import type { IconName } from "@/components/icon";
+import type { TranslationKey } from "@/i18n";
 import type { PaneId } from "@/popup/panes";
 
 type NavigationItem = {
   id: PaneId;
-  label: string;
+  labelKey: TranslationKey;
   icon: IconName;
-  ariaLabel: string;
+  ariaLabelKey: TranslationKey;
 };
 
 export const navigationItems: NavigationItem[] = [
   {
     id: "pane-actions",
-    label: "アクション",
+    labelKey: "navigation.actions",
     icon: "zap",
-    ariaLabel: "アクション",
+    ariaLabelKey: "navigation.actions",
   },
   {
     id: "pane-calendar",
-    label: "カレンダー登録",
+    labelKey: "navigation.calendar",
     icon: "calendar",
-    ariaLabel: "カレンダー登録",
+    ariaLabelKey: "navigation.calendar",
   },
   {
     id: "pane-table",
-    label: "サイト別機能",
+    labelKey: "navigation.table",
     icon: "table",
-    ariaLabel: "サイト別機能",
+    ariaLabelKey: "navigation.table",
   },
   {
     id: "pane-create-link",
-    label: "リンク作成",
+    labelKey: "navigation.createLink",
     icon: "link",
-    ariaLabel: "リンク作成",
+    ariaLabelKey: "navigation.createLink",
   },
   {
     id: "pane-search-engines",
-    label: "検索エンジン",
+    labelKey: "navigation.searchEngines",
     icon: "search",
-    ariaLabel: "検索エンジン",
+    ariaLabelKey: "navigation.searchEngines",
   },
   {
     id: "pane-search-groups",
-    label: "まとめて検索",
+    labelKey: "navigation.searchGroups",
     icon: "layers",
-    ariaLabel: "まとめて検索",
+    ariaLabelKey: "navigation.searchGroups",
   },
   {
     id: "pane-templates",
-    label: "テンプレート",
+    labelKey: "navigation.templates",
     icon: "file-text",
-    ariaLabel: "テンプレート",
+    ariaLabelKey: "navigation.templates",
   },
   {
     id: "pane-history",
-    label: "履歴",
+    labelKey: "navigation.history",
     icon: "clock",
-    ariaLabel: "アクション履歴",
+    ariaLabelKey: "navigation.historyAria",
   },
   {
     id: "pane-debug",
-    label: "デバッグ",
+    labelKey: "navigation.debug",
     icon: "bug",
-    ariaLabel: "デバッグ",
+    ariaLabelKey: "navigation.debug",
   },
   {
     id: "pane-settings",
-    label: "設定",
+    labelKey: "navigation.settings",
     icon: "settings",
-    ariaLabel: "設定",
+    ariaLabelKey: "navigation.settings",
   },
 ];
