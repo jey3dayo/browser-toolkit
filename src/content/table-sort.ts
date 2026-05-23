@@ -6,6 +6,20 @@ import { shouldHideRow } from "@/utils/row_filter";
 
 const ROW_HIDDEN_BY_EXTENSION_DATASET_KEY = "mbuHiddenByExtension";
 
+function updateHeaderSortState(
+  headers: NodeListOf<HTMLTableCellElement>,
+  activeHeader: HTMLTableCellElement,
+  isAscending: boolean
+): void {
+  const activeSortDirection = isAscending ? "ascending" : "descending";
+  for (const header of headers) {
+    header.setAttribute(
+      "aria-sort",
+      header === activeHeader ? activeSortDirection : "none"
+    );
+  }
+}
+
 /**
  * 単一テーブルにソート機能を有効化
  * @param table - 対象テーブル
@@ -29,10 +43,22 @@ export function enableSingleTable(
       cursor: "pointer",
       userSelect: "none",
     });
+    header.tabIndex = 0;
+    header.setAttribute("aria-sort", "none");
     header.title = t("tableSort.headerTitle");
 
-    header.addEventListener("click", () => {
-      sortTable(table, columnIndex, getRowFilterSetting);
+    const sortByHeader = (): void => {
+      const isAscending = sortTable(table, columnIndex, getRowFilterSetting);
+      updateHeaderSortState(headers, header, isAscending);
+    };
+
+    header.addEventListener("click", sortByHeader);
+    header.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
+      event.preventDefault();
+      sortByHeader();
     });
     headerIndex += 1;
   }
@@ -122,7 +148,7 @@ function sortTable(
   table: HTMLTableElement,
   columnIndex: number,
   getRowFilterSetting?: () => Result.Result<boolean, string>
-): void {
+): boolean {
   const tbody = table.querySelector("tbody") as HTMLTableSectionElement | null;
   const targetBody = tbody ?? table;
   const rows = Array.from(
@@ -144,6 +170,8 @@ function sortTable(
 
   // Step 3: 現在のURLのパターンの行フィルタリング設定を取得
   applyRowFilterIfEnabled({ rows, columnIndex, getRowFilterSetting });
+
+  return isAscending;
 }
 
 /**

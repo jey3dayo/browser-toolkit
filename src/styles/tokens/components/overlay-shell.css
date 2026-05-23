@@ -306,7 +306,6 @@
   font-size: 12px;
   color: var(--mbu-text);
   resize: none;
-  outline: none;
   background: var(--mbu-surface);
   border: 1px solid var(--mbu-border);
   border-radius: 8px;
@@ -314,6 +313,11 @@
 
 .mbu-overlay-chat-input:focus {
   border-color: color-mix(in oklab, var(--mbu-accent) 60%, var(--mbu-border));
+}
+
+.mbu-overlay-chat-input:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .mbu-overlay-chat-input:disabled {

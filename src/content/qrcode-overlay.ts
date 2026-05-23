@@ -9,6 +9,7 @@ const QR_ROOT_ID = "mtk-qrcode-root";
 
 let currentQrHost: HTMLDivElement | null = null;
 let currentHandleKeyDown: ((e: KeyboardEvent) => void) | null = null;
+let previousActiveElement: HTMLElement | null = null;
 
 function removeCurrentOverlay(): void {
   if (currentHandleKeyDown) {
@@ -23,6 +24,8 @@ function removeCurrentOverlay(): void {
   if (existing) {
     existing.remove();
   }
+  previousActiveElement?.focus();
+  previousActiveElement = null;
 }
 
 function createCloseButton(onClose: () => void): HTMLButtonElement {
@@ -43,6 +46,7 @@ function createCloseButton(onClose: () => void): HTMLButtonElement {
 }
 
 function createDialog(url: string, onClose: () => void): HTMLDivElement {
+  const titleId = "mtk-qrcode-title";
   const backdrop = document.createElement("div");
   backdrop.style.cssText = [
     "position: fixed",
@@ -60,6 +64,9 @@ function createDialog(url: string, onClose: () => void): HTMLDivElement {
   });
 
   const card = document.createElement("div");
+  card.setAttribute("aria-labelledby", titleId);
+  card.setAttribute("aria-modal", "true");
+  card.setAttribute("role", "dialog");
   card.style.cssText = [
     "background: var(--color-bg-base, #fff)",
     "color: var(--color-text-primary, #333)",
@@ -75,6 +82,7 @@ function createDialog(url: string, onClose: () => void): HTMLDivElement {
   ].join(";");
 
   const title = document.createElement("p");
+  title.id = titleId;
   title.textContent = t("qrCodeOverlay.title");
   title.style.cssText = "margin: 0; font-size: 16px; font-weight: bold;";
 
@@ -111,6 +119,10 @@ function createDialog(url: string, onClose: () => void): HTMLDivElement {
 
 export function showQrCodeOverlay(url: string, theme: Theme): void {
   removeCurrentOverlay();
+  previousActiveElement =
+    document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
 
   const onClose = (): void => {
     removeCurrentOverlay();
@@ -125,6 +137,7 @@ export function showQrCodeOverlay(url: string, theme: Theme): void {
 
   const dialog = createDialog(url, onClose);
   mount.shadow.appendChild(dialog);
+  dialog.querySelector("button")?.focus();
 
   const handleKeyDown = (e: KeyboardEvent): void => {
     if (e.key === "Escape") {

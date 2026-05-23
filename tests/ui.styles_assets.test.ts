@@ -82,4 +82,14 @@ describe("UI styles wiring", () => {
 
     expect(manifest.host_permissions ?? []).toContain("<all_urls>");
   });
+
+  it("keeps overlay chat input keyboard focus visible", () => {
+    const overlayShellCss = fs.readFileSync(
+      path.join(projectRoot, "src/styles/tokens/components/overlay-shell.css"),
+      "utf8"
+    );
+
+    expect(overlayShellCss).toContain(".mbu-overlay-chat-input:focus-visible");
+    expect(overlayShellCss).not.toContain("outline: none");
+  });
 });
