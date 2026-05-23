@@ -1,3 +1,5 @@
+import { t } from "@/i18n";
+
 export function sendMessageToTab<TRequest, TResponse>(
   tabId: number,
   message: TRequest
@@ -6,7 +8,13 @@ export function sendMessageToTab<TRequest, TResponse>(
     chrome.tabs.sendMessage(tabId, message, (response: TResponse) => {
       const err = chrome.runtime.lastError;
       if (err) {
-        reject(new Error(`このページでは実行できません（${err.message}）`));
+        reject(
+          new Error(
+            t("background.messaging.pageUnavailable", {
+              message: err.message ?? "",
+            })
+          )
+        );
         return;
       }
       resolve(response);

@@ -1,5 +1,6 @@
 import { Result } from "@praha/byethrow";
 import { getAiProviderToken } from "@/ai/provider-token";
+import { t } from "@/i18n";
 import { safeParseAiProvider } from "@/schemas/provider";
 import type { LocalStorageData } from "@/storage/types";
 
@@ -39,13 +40,13 @@ export async function ensureOpenAiTokenConfigured(
       "zaiApiToken",
     ]);
   } catch {
-    deps.showNotification("AI設定の読み込みに失敗しました。", "error");
+    deps.showNotification(t("popup.tokenGuard.loadFailed"), "error");
     deps.navigateToPane("pane-settings");
     deps.focusTokenInput();
     return Result.fail("storage-error");
   }
   if (Result.isFailure(loaded)) {
-    deps.showNotification("AI設定の読み込みに失敗しました。", "error");
+    deps.showNotification(t("popup.tokenGuard.loadFailed"), "error");
     deps.navigateToPane("pane-settings");
     deps.focusTokenInput();
     return Result.fail("storage-error");
@@ -61,9 +62,9 @@ export async function ensureOpenAiTokenConfigured(
   if (Result.isFailure(tokenConfigured)) {
     deps.showNotification(
       {
-        message: "API Tokenが未設定です",
+        message: t("popup.tokenGuard.missingToken"),
         action: {
-          label: "→ 設定を開く",
+          label: t("popup.tokenGuard.openSettings"),
           onClick: () => {
             deps.navigateToPane("pane-settings");
             deps.focusTokenInput();

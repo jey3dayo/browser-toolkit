@@ -3,6 +3,7 @@ import type {
   DebugLogRequest,
   RuntimeSendResponse,
 } from "@/background/runtime_types";
+import { t } from "@/i18n";
 import {
   clearDebugLogs,
   downloadDebugLogs,
@@ -23,7 +24,7 @@ function handleDownloadDebugLogsRequest(
         Result.fail(
           error instanceof Error
             ? error.message
-            : "デバッグログのダウンロードに失敗しました"
+            : t("background.debug.downloadFailed")
         )
       );
     });
@@ -43,7 +44,7 @@ function handleClearDebugLogsRequest(
         Result.fail(
           error instanceof Error
             ? error.message
-            : "デバッグログのクリアに失敗しました"
+            : t("background.debug.clearFailed")
         )
       );
     });
@@ -64,7 +65,7 @@ function handleGetDebugLogStatsRequest(
         error:
           error instanceof Error
             ? error.message
-            : "デバッグログ統計の取得に失敗しました",
+            : t("background.debug.statsFailed"),
       });
     });
   return true;
@@ -84,7 +85,7 @@ function handleGetDebugLogsRequest(
         error:
           error instanceof Error
             ? error.message
-            : "デバッグログの取得に失敗しました",
+            : t("background.debug.getLogsFailed"),
       });
     });
   return true;

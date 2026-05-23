@@ -2,6 +2,7 @@
 import { Result } from "@praha/byethrow";
 import { SELECTED_TEXT_CACHE_TIMEOUT_MS } from "@/constants/timeouts";
 import type { SummaryTarget } from "@/content-script-messages";
+import { t } from "@/i18n";
 import { storageLocalGet } from "@/storage/helpers";
 
 /**
@@ -96,7 +97,9 @@ export async function getSummaryTargetText(options?: {
   const normalized = normalizeText(bodyText);
   const clipped =
     normalized.length > MAX_RETURN_CHARS
-      ? `${normalized.slice(0, MAX_RETURN_CHARS)}\n\n(以下略)`
+      ? `${normalized.slice(0, MAX_RETURN_CHARS)}\n\n${t(
+          "content.summaryTarget.omitted"
+        )}`
       : normalized;
   return buildPageTarget(clipped);
 }

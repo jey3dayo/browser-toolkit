@@ -11,6 +11,7 @@ import type {
   ContextMenuTabParams,
   SyncStorageData,
 } from "@/background/types";
+import { t } from "@/i18n";
 import type { CopyTitleLinkFailure } from "@/storage/types";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog, toErrorMessage } from "@/utils/errors";
@@ -24,12 +25,12 @@ import { showErrorNotification } from "@/utils/notifications";
 const DEFAULT_LINK_FORMAT: LinkFormat = "text";
 
 function buildCopyTitleLinkOverlayTitle(): string {
-  return "タイトルとリンクをコピー";
+  return t("background.copyTitleLink.title");
 }
 
 function buildCopyTitleLinkFallbackSecondary(errorMessage: string): string {
   return [
-    "自動コピーに失敗しました。上のボタンでコピーしてください。",
+    t("background.copyTitleLink.fallbackSecondary"),
     "",
     errorMessage,
   ].join("\n");
@@ -80,7 +81,7 @@ export async function handleCopyTitleLinkContextMenuClick(
   if (!text.trim()) {
     await sendMessageToTab(params.tabId, {
       action: "showNotification",
-      message: "コピーする内容がありません",
+      message: t("background.copyTitleLink.emptyContent"),
     } satisfies ContentScriptMessage).catch(() => {
       // no-op
     });
@@ -94,7 +95,7 @@ export async function handleCopyTitleLinkContextMenuClick(
       await sendMessageToTab(params.tabId, {
         action: "copyToClipboard",
         text,
-        successMessage: "コピーしました",
+        successMessage: t("background.copyTitleLink.copied"),
       } satisfies ContentScriptMessage);
 
     if (result.ok) {
@@ -107,7 +108,10 @@ export async function handleCopyTitleLinkContextMenuClick(
       secondary: buildCopyTitleLinkFallbackSecondary(result.error),
     });
   } catch (error) {
-    const errorMessage = toErrorMessage(error, "コピーに失敗しました");
+    const errorMessage = toErrorMessage(
+      error,
+      t("background.copyTitleLink.copyFailed")
+    );
     await debugLog(
       "handleCopyTitleLinkContextMenuClick",
       "failed",
@@ -131,9 +135,9 @@ export async function handleCopyTitleLinkContextMenuClick(
 
     // Chrome通知の文字数制限を考慮してシンプルなメッセージにする
     await showErrorNotification({
-      title: "コピーに失敗しました",
+      title: t("background.copyTitleLink.copyFailed"),
       errorMessage,
-      hint: "ポップアップの「リンク作成」タブからコピーできます。",
+      hint: t("background.copyTitleLink.fallbackHint"),
     });
 
     const overlayShown = await showCopyTitleLinkOverlay({
@@ -175,12 +179,18 @@ async function showCopyTitleLinkFailureIndicator(
     }
   );
 
-  const pageLabel = failure.pageUrl || failure.pageTitle || "このページ";
+  const pageLabel =
+    failure.pageUrl ||
+    failure.pageTitle ||
+    t("background.copyTitleLink.fallbackPage");
   try {
     chrome.action.setBadgeText({ text: "!", tabId });
     chrome.action.setBadgeBackgroundColor({ color: "#e5484d", tabId });
     chrome.action.setTitle({
-      title: `${APP_NAME}: このページではコピーできません\n${pageLabel}\n（ポップアップ「リンク作成」からコピーできます）`,
+      title: t("background.copyTitleLink.badgeTitle", {
+        appName: APP_NAME,
+        pageLabel,
+      }),
       tabId,
     });
   } catch (error) {

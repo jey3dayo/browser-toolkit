@@ -1,9 +1,11 @@
+import { t } from "@/i18n";
+
 export function coerceSummarySourceLabel(source: unknown): string {
   if (source === "selection") {
-    return "選択範囲";
+    return t("overlay.source.selection");
   }
   if (source === "page") {
-    return "ページ本文";
+    return t("overlay.source.page");
   }
   return "-";
 }

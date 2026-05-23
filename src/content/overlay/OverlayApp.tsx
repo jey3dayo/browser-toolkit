@@ -11,6 +11,7 @@ import type {
   ChatFollowUpResponse,
   ChatMessage,
 } from "@/background/runtime_types";
+import { t } from "@/i18n";
 import type { ExtractedEvent, SummarySource } from "@/shared_types";
 import { applyTheme, type Theme } from "@/ui/theme";
 import { nextTheme } from "@/ui/themeCycle";
@@ -344,10 +345,13 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
           const errorMsg =
             res && Result.isFailure(res)
               ? res.error
-              : "応答の取得に失敗しました";
+              : t("content.overlay.chatResponseFailed");
           setChatMessages((prev) => [
             ...prev,
-            { role: "assistant", content: `エラー: ${errorMsg}` },
+            {
+              role: "assistant",
+              content: t("content.overlay.errorPrefix", { message: errorMsg }),
+            },
           ]);
         }
       })
@@ -357,7 +361,12 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
         }
         setChatMessages((prev) => [
           ...prev,
-          { role: "assistant", content: "エラー: チャット応答に失敗しました" },
+          {
+            role: "assistant",
+            content: t("content.overlay.errorPrefix", {
+              message: t("content.overlay.chatFailed"),
+            }),
+          },
         ]);
       })
       .finally(() => {

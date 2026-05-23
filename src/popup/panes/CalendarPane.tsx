@@ -15,6 +15,7 @@ import {
 } from "@/components/shared/Layout";
 import { Textarea } from "@/components/shared/Textarea";
 import { Hint, MetaTitle, PaneTitle } from "@/components/shared/Typography";
+import { t } from "@/i18n";
 import type { PaneId } from "@/popup/panes";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import type { SummaryTarget } from "@/popup/runtime";
@@ -70,8 +71,8 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
 
   const outputTitle =
     output.status === "ready" || output.status === "running"
-      ? "イベント内容"
-      : "出力";
+      ? t("calendarPane.eventOutputTitle")
+      : t("calendarPane.outputTitle");
   const outputText = output.status === "ready" ? output.text : "";
   const canCopyOutput = Boolean(outputText.trim());
   const canOpenCalendar =
@@ -85,7 +86,7 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
       case "ready":
         return output.text;
       case "running":
-        return "抽出中...";
+        return t("calendarPane.running");
       case "error":
         return output.message;
       default:
@@ -134,10 +135,10 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
             calendarTargets: next,
           }),
         onSuccess: () => {
-          notify.success("保存しました");
+          notify.success(t("calendarPane.success.saved"));
         },
         onFailure: () => {
-          notify.error("保存に失敗しました");
+          notify.error(t("calendarPane.errors.saveFailed"));
         },
       });
     },
@@ -214,7 +215,7 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
             type="button"
             variant="toastActionLink"
           >
-            → 設定を開く
+            {t("calendarPane.openSettings")}
           </Button>
         ),
       });
@@ -226,7 +227,7 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
 
   const ensureTargetsSelected = (): boolean => {
     if (targets.length === 0) {
-      notify.error("登録先を1つ以上選択してください");
+      notify.error(t("calendarPane.errors.targetRequired"));
       return false;
     }
     return true;
@@ -272,7 +273,8 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
       : undefined;
     if (hasGoogle && !calendarUrl) {
       notify.error(
-        payload.calendarError ?? "Googleカレンダーリンクを生成できません"
+        payload.calendarError ??
+          t("calendarPane.errors.googleCalendarUrlFailed")
       );
     }
 
@@ -283,7 +285,7 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
       calendarUrl,
       event: payload.event,
     });
-    notify.success("完了しました");
+    notify.success(t("calendarPane.success.completed"));
   };
 
   const copyOutput = async (): Promise<void> => {
@@ -297,13 +299,13 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
 
     try {
       if (!navigator.clipboard?.writeText) {
-        notify.error("この環境ではクリップボードにコピーできません");
+        notify.error(t("calendarPane.errors.clipboardUnavailable"));
         return;
       }
       await navigator.clipboard.writeText(text);
-      notify.success("コピーしました");
+      notify.success(t("calendarPane.success.copied"));
     } catch {
-      notify.error("コピーに失敗しました");
+      notify.error(t("calendarPane.errors.copyFailed"));
     }
   };
 
@@ -313,7 +315,7 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
     }
     const calendarUrl = output.calendarUrl?.trim() ?? "";
     if (!calendarUrl) {
-      notify.error("カレンダーリンクが見つかりません");
+      notify.error(t("calendarPane.errors.calendarUrlMissing"));
       return;
     }
     runtime.openUrl(calendarUrl);
@@ -326,7 +328,7 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
     const event = output.event;
     const ics = buildIcs(event);
     if (!ics) {
-      notify.error(".ics の生成に失敗しました");
+      notify.error(t("calendarPane.errors.icsGenerationFailed"));
       return;
     }
 
@@ -340,27 +342,25 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
       link.click();
       link.remove();
       URL.revokeObjectURL(url);
-      notify.success("ダウンロードしました");
+      notify.success(t("calendarPane.success.downloaded"));
     } catch {
-      notify.error(".ics のダウンロードに失敗しました");
+      notify.error(t("calendarPane.errors.icsDownloadFailed"));
     }
   };
 
   return (
     <PaneCard>
       <RowBetween>
-        <PaneTitle>カレンダー登録</PaneTitle>
+        <PaneTitle>{t("calendarPane.title")}</PaneTitle>
         <Badge data-testid="calendar-source" variant="chipSoft">
           {output.status === "ready" ? output.sourceLabel : "-"}
         </Badge>
       </RowBetween>
 
-      <Hint>
-        選択範囲があれば優先し、なければページ本文からイベントを抽出します。
-      </Hint>
+      <Hint>{t("calendarPane.description")}</Hint>
 
       <Stack>
-        <Field label="登録先">
+        <Field label={t("calendarPane.target")}>
           <ActionRow>
             <CheckboxInline
               checked={hasGoogle}
@@ -369,7 +369,7 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
                 toggleTarget("google");
               }}
             >
-              Googleカレンダー
+              {t("calendarPane.googleCalendar")}
             </CheckboxInline>
             <CheckboxInline
               checked={hasIcs}
@@ -395,7 +395,7 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
             type="button"
             variant="primary"
           >
-            抽出する
+            {t("calendarPane.run")}
           </Button>
           <Button
             data-testid="calendar-copy"
@@ -409,7 +409,7 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
             type="button"
             variant="ghost"
           >
-            コピー
+            {t("common.copy")}
           </Button>
           {hasGoogle ? (
             <Button
@@ -422,7 +422,7 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
               type="button"
               variant="ghost"
             >
-              Googleカレンダー
+              {t("calendarPane.googleCalendar")}
             </Button>
           ) : null}
           {hasIcs ? (

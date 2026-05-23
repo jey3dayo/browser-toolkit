@@ -15,6 +15,7 @@ import { ListItemRow } from "@/components/shared/ListItemRow";
 import { Select } from "@/components/shared/Select";
 import { Switch } from "@/components/shared/Switch";
 import { EmptyMessage, Hint, PaneTitle } from "@/components/shared/Typography";
+import { t } from "@/i18n";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { persistWithRollback } from "@/popup/utils/persist";
 import { requireTrimmedString } from "@/popup/utils/required-input";
@@ -103,7 +104,7 @@ export function SearchEnginesPane(
       },
       persist: () => saveEngines(next),
       onFailure: () => {
-        props.notify.error("保存に失敗しました");
+        props.notify.error(t("searchEngines.errors.saveFailed"));
       },
     });
   };
@@ -111,7 +112,7 @@ export function SearchEnginesPane(
   const addEngine = async (): Promise<void> => {
     const name = requireTrimmedString({
       value: nameInput,
-      emptyMessage: "検索エンジン名を入力してください",
+      emptyMessage: t("searchEngines.errors.nameRequired"),
       notify: props.notify,
     });
     if (!name) {
@@ -120,7 +121,7 @@ export function SearchEnginesPane(
 
     const urlTemplate = requireTrimmedString({
       value: urlInput,
-      emptyMessage: "URLテンプレートを入力してください",
+      emptyMessage: t("searchEngines.errors.urlTemplateRequired"),
       notify: props.notify,
     });
     if (!urlTemplate) {
@@ -128,17 +129,19 @@ export function SearchEnginesPane(
     }
 
     if (!isValidUrlTemplate(urlTemplate)) {
-      props.notify.error("URLテンプレートに {query} を含めてください");
+      props.notify.error(t("searchEngines.errors.queryRequired"));
       return;
     }
 
     if (engines.some((engine) => engine.name === name)) {
-      props.notify.info("既に同じ名前の検索エンジンが存在します");
+      props.notify.info(t("searchEngines.info.duplicate"));
       return;
     }
 
     if (engines.length >= MAX_SEARCH_ENGINES) {
-      props.notify.error(`検索エンジンは最大${MAX_SEARCH_ENGINES}個までです`);
+      props.notify.error(
+        t("searchEngines.errors.max", { count: MAX_SEARCH_ENGINES })
+      );
       return;
     }
 
@@ -165,10 +168,10 @@ export function SearchEnginesPane(
       },
       persist: () => saveEngines(next),
       onSuccess: () => {
-        props.notify.success("追加しました");
+        props.notify.success(t("searchEngines.success.added"));
       },
       onFailure: () => {
-        props.notify.error("追加に失敗しました");
+        props.notify.error(t("searchEngines.errors.addFailed"));
       },
     });
   };
@@ -184,10 +187,10 @@ export function SearchEnginesPane(
       },
       persist: () => saveEngines(next),
       onSuccess: () => {
-        props.notify.success("削除しました");
+        props.notify.success(t("searchEngines.success.deleted"));
       },
       onFailure: () => {
-        props.notify.error("削除に失敗しました");
+        props.notify.error(t("searchEngines.errors.deleteFailed"));
       },
     });
   };
@@ -202,10 +205,10 @@ export function SearchEnginesPane(
       },
       persist: () => saveEngines(DEFAULT_SEARCH_ENGINES),
       onSuccess: () => {
-        props.notify.success("デフォルトに戻しました");
+        props.notify.success(t("searchEngines.success.reset"));
       },
       onFailure: () => {
-        props.notify.error("リセットに失敗しました");
+        props.notify.error(t("searchEngines.errors.resetFailed"));
       },
     });
   };
@@ -222,10 +225,10 @@ export function SearchEnginesPane(
       },
       persist: () => saveEngines(reorderedEngines),
       onSuccess: () => {
-        props.notify.success("並び替えを保存しました");
+        props.notify.success(t("searchEngines.success.reordered"));
       },
       onFailure: () => {
-        props.notify.error("並び替えの保存に失敗しました");
+        props.notify.error(t("searchEngines.errors.reorderFailed"));
       },
     });
   };
@@ -233,7 +236,7 @@ export function SearchEnginesPane(
   return (
     <PaneCard>
       <RowBetween>
-        <PaneTitle>検索エンジン</PaneTitle>
+        <PaneTitle>{t("searchEngines.title")}</PaneTitle>
         <Button
           data-testid="reset-search-engines"
           onClick={() => {
@@ -245,15 +248,14 @@ export function SearchEnginesPane(
           type="button"
           variant="ghost"
         >
-          デフォルトに戻す
+          {t("common.resetToDefaults")}
         </Button>
       </RowBetween>
 
       <Stack>
-        <Hint as="div">選択したテキストを検索エンジンで検索できます。</Hint>
+        <Hint as="div">{t("searchEngines.description")}</Hint>
         <Hint as="div">
-          URLテンプレートには <code>{"{query}"}</code>{" "}
-          を含めてください（選択テキストに置き換わります）
+          {t("searchEngines.urlTemplateHint", { query: "{query}" })}
         </Hint>
 
         <Form
@@ -268,13 +270,13 @@ export function SearchEnginesPane(
             <Input
               data-testid="search-engine-name"
               onValueChange={setNameInput}
-              placeholder="検索エンジン名（例: Google）"
+              placeholder={t("searchEngines.namePlaceholder")}
               type="text"
               value={nameInput}
               variant="pattern"
             />
             <Select
-              ariaLabel="エンコーディング"
+              ariaLabel={t("searchEngines.encoding")}
               onValueChange={(value) => {
                 if (isSearchEngineEncoding(value)) {
                   setEncodingInput(value);
@@ -309,7 +311,7 @@ export function SearchEnginesPane(
               type="button"
               variant="ghost"
             >
-              追加
+              {t("common.add")}
             </Button>
           </PatternInputRow>
         </Form>
@@ -328,7 +330,9 @@ export function SearchEnginesPane(
                 actions={
                   <>
                     <Switch
-                      aria-label={`${engine.name}を有効化`}
+                      aria-label={t("searchEngines.enableAria", {
+                        name: engine.name,
+                      })}
                       checked={engine.enabled}
                       data-testid={`engine-enabled-${engine.id}`}
                       onCheckedChange={(checked) => {
@@ -348,7 +352,7 @@ export function SearchEnginesPane(
                         type="button"
                         variant="danger"
                       >
-                        削除
+                        {t("common.delete")}
                       </Button>
                     )}
                   </>
@@ -368,7 +372,7 @@ export function SearchEnginesPane(
             )}
           </SortableList>
         ) : (
-          <EmptyMessage>検索エンジンが登録されていません</EmptyMessage>
+          <EmptyMessage>{t("searchEngines.empty")}</EmptyMessage>
         )}
       </Stack>
     </PaneCard>

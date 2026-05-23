@@ -20,6 +20,7 @@ import { Separator } from "@/components/shared/Separator";
 import { Textarea } from "@/components/shared/Textarea";
 import { Toggle } from "@/components/shared/Toggle";
 import { Hint, PaneTitle } from "@/components/shared/Typography";
+import { t } from "@/i18n";
 import { DEFAULT_OPENAI_MODEL } from "@/openai/settings";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import type { TestAiTokenRequest, TestAiTokenResponse } from "@/popup/runtime";
@@ -139,10 +140,10 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
     payload[key] = value;
     const saved = await props.runtime.storageLocalSet(payload);
     if (Result.isSuccess(saved)) {
-      props.notify.success("保存しました");
+      props.notify.success(t("settings.success.saved"));
       return;
     }
-    props.notify.error("保存に失敗しました");
+    props.notify.error(t("settings.errors.saveFailed"));
   };
 
   const clearLocalString = async (
@@ -152,10 +153,10 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
     const removed = await props.runtime.storageLocalRemove(keys);
     if (Result.isSuccess(removed)) {
       onCleared();
-      props.notify.success("削除しました");
+      props.notify.success(t("settings.success.deleted"));
       return;
     }
-    props.notify.error("削除に失敗しました");
+    props.notify.error(t("settings.errors.deleteFailed"));
   };
 
   useEffect(() => {
@@ -240,7 +241,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
     }
 
     if (!isTestAiTokenResponse(responseUnknown.value)) {
-      props.notify.error("バックグラウンドの応答が不正です");
+      props.notify.error(t("settings.errors.invalidBackgroundResponse"));
       return;
     }
 
@@ -250,7 +251,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
       return;
     }
 
-    props.notify.success("トークンOK");
+    props.notify.success(t("settings.success.tokenOk"));
   };
 
   const savePrompt = async (): Promise<void> => {
@@ -286,8 +287,8 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
   return (
     <PaneCard className="settings-pane">
       <SettingsPaneOverview>
-        <PaneTitle>設定</PaneTitle>
-        <Hint>AI設定はこの端末のみ（同期されません）</Hint>
+        <PaneTitle>{t("settings.title")}</PaneTitle>
+        <Hint>{t("settings.description")}</Hint>
       </SettingsPaneOverview>
 
       <SettingsPaneCard section="provider">
@@ -301,7 +302,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
               ],
             },
           ]}
-          legend="AIプロバイダー"
+          legend={t("settings.provider")}
           name="aiProvider"
           onValueChange={async (value) => {
             const newProvider = safeParseAiProvider(value);
@@ -348,10 +349,12 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
           variant="stack"
         >
           <Fieldset
-            legend={`${PROVIDER_CONFIGS[provider].label} API トークン`}
+            legend={t("settings.apiToken", {
+              provider: PROVIDER_CONFIGS[provider].label,
+            })}
             spacing="stack"
           >
-            <Field htmlFor={tokenInputId} label="トークン">
+            <Field htmlFor={tokenInputId} label={t("settings.token")}>
               <InputWithIcon>
                 <Input
                   data-testid="ai-token"
@@ -366,12 +369,18 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
                 <Toggle
                   aria-controls={tokenInputId}
                   aria-label={
-                    showToken ? "トークンを隠す" : "トークンを表示する"
+                    showToken
+                      ? t("settings.hideToken")
+                      : t("settings.showToken")
                   }
                   data-testid="token-visible"
                   onPressedChange={setShowToken}
                   pressed={showToken}
-                  title={showToken ? "トークンを隠す" : "トークンを表示する"}
+                  title={
+                    showToken
+                      ? t("settings.hideToken")
+                      : t("settings.showToken")
+                  }
                   type="button"
                   variant="icon"
                 >
@@ -401,7 +410,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
                 type="button"
                 variant="primary"
               >
-                保存
+                {t("common.save")}
               </Button>
               <Button
                 data-testid="token-test"
@@ -414,7 +423,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
                 type="button"
                 variant="ghost"
               >
-                トークン確認
+                {t("settings.testToken")}
               </Button>
             </SettingsTokenActionRow>
             <SettingsTokenActionRow
@@ -431,7 +440,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
                 type="button"
                 variant="danger"
               >
-                削除
+                {t("common.delete")}
               </Button>
             </SettingsTokenActionRow>
           </Stack>
@@ -439,10 +448,10 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
       </SettingsPaneCard>
 
       <SettingsPaneCard section="model">
-        <Fieldset legend="モデル" spacing="stack">
-          <Field label="モデル">
+        <Fieldset legend={t("settings.model")} spacing="stack">
+          <Field label={t("settings.model")}>
             <Select
-              ariaLabel="モデル"
+              ariaLabel={t("settings.model")}
               name="aiModel"
               onValueChange={(value) => {
                 if (value === null) {
@@ -477,8 +486,8 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
           }}
           variant="stack"
         >
-          <Fieldset legend="追加指示（オプション）" spacing="stack">
-            <Field htmlFor={promptInputId} label="追加指示">
+          <Fieldset legend={t("settings.customPromptLegend")} spacing="stack">
+            <Field htmlFor={promptInputId} label={t("settings.customPrompt")}>
               <Textarea
                 data-testid="custom-prompt"
                 id={promptInputId}
@@ -503,7 +512,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
               type="button"
               variant="primary"
             >
-              保存
+              {t("common.save")}
             </Button>
             <Button
               data-testid="prompt-clear"
@@ -515,7 +524,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
               type="button"
               variant="danger"
             >
-              削除
+              {t("common.delete")}
             </Button>
           </ButtonRow>
         </Form>
@@ -531,8 +540,8 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
                 variant: "primary",
               }),
               options: [
-                { label: "ダーク", value: "dark" },
-                { label: "ライト", value: "light" },
+                { label: t("theme.dark"), value: "dark" },
+                { label: t("theme.light"), value: "light" },
               ],
               testId: "theme-primary-options",
             },
@@ -540,11 +549,11 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
               className: settingsThemeOptionGroupVariants({
                 variant: "auto",
               }),
-              options: [{ label: "自動", value: "auto" }],
+              options: [{ label: t("theme.auto"), value: "auto" }],
               testId: "theme-auto-option",
             },
           ]}
-          legend="テーマ"
+          legend={t("settings.theme")}
           name="theme"
           onValueChange={(value) => {
             if (!isTheme(value)) {

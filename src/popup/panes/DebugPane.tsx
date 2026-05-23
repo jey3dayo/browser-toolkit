@@ -12,6 +12,7 @@ import { Separator } from "@/components/shared/Separator";
 import { SwitchField } from "@/components/shared/SwitchField";
 import { TextOutput } from "@/components/shared/TextOutput";
 import { Hint, PaneTitle } from "@/components/shared/Typography";
+import { t } from "@/i18n";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { sendBackgroundResult } from "@/popup/utils/background_result";
 import type { LocalStorageData } from "@/storage/types";
@@ -115,7 +116,7 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
     const saved = await props.runtime.storageLocalSet({ debugMode: checked });
     if (Result.isSuccess(saved)) {
       setDebugMode(checked);
-      props.notify.success("保存しました");
+      props.notify.success(t("debug.success.saved"));
 
       // ログ統計を更新
       if (checked) {
@@ -126,7 +127,7 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
       }
       return;
     }
-    props.notify.error("保存に失敗しました");
+    props.notify.error(t("debug.errors.saveFailed"));
   };
 
   const runDebugAction = async (
@@ -146,7 +147,7 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
   const downloadLogs = async (): Promise<void> => {
     const ok = await runDebugAction("downloadDebugLogs");
     if (ok) {
-      props.notify.success("ダウンロードしました");
+      props.notify.success(t("debug.success.downloaded"));
     }
   };
 
@@ -158,24 +159,24 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
     setLogStats(null);
     setShowLogs(false);
     setLogContent("");
-    props.notify.success("クリアしました");
+    props.notify.success(t("debug.success.cleared"));
   };
 
   return (
     <PaneCard>
       <Stack spacing="small">
-        <PaneTitle>デバッグ</PaneTitle>
-        <Hint>開発者向けのデバッグ機能です</Hint>
+        <PaneTitle>{t("debug.title")}</PaneTitle>
+        <Hint>{t("debug.description")}</Hint>
       </Stack>
 
       {/* デバッグモード設定 */}
       <Stack>
-        <Fieldset legend="デバッグモード" spacing="stack">
+        <Fieldset legend={t("debug.mode")} spacing="stack">
           <SwitchField
             checked={debugMode}
             data-testid="debug-mode-switch"
             id="debug-mode-switch"
-            label="デバッグモードを有効にする"
+            label={t("debug.modeToggle")}
             onCheckedChange={(checked) => {
               toggleDebugMode(checked).catch(() => {
                 // no-op
@@ -183,15 +184,16 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
             }}
           />
           <Hint>
-            ONにすると、デバッグログをストレージに保存しファイルとしてダウンロードできます。
-            OFFの場合は、通常のconsole.logのように動作します。
+            {t("debug.enabledDescription")} {t("debug.disabledDescription")}
           </Hint>
         </Fieldset>
 
         {debugMode && logStats && (
           <Hint as="div">
-            現在のログエントリ数: {logStats.entryCount} / 1000 (サイズ:{" "}
-            {logStats.sizeKB} KB)
+            {t("debug.stats", {
+              entryCount: logStats.entryCount,
+              sizeKB: logStats.sizeKB,
+            })}
           </Hint>
         )}
       </Stack>
@@ -202,7 +204,7 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
 
           {/* ログ操作 */}
           <Stack>
-            <Fieldset legend="ログ操作" spacing="stack">
+            <Fieldset legend={t("debug.logActions")} spacing="stack">
               <ButtonRow>
                 <Button
                   data-testid="show-debug-logs"
@@ -216,14 +218,14 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
                       ).catch(() => {
                         // no-op
                       });
-                      props.notify.error("ログの読み込みに失敗しました");
+                      props.notify.error(t("debug.errors.loadFailed"));
                     });
                   }}
                   size="small"
                   type="button"
                   variant="ghost"
                 >
-                  ログを表示
+                  {t("debug.showLogs")}
                 </Button>
                 <Button
                   data-testid="download-debug-logs"
@@ -236,7 +238,7 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
                   type="button"
                   variant="ghost"
                 >
-                  ダウンロード
+                  {t("debug.download")}
                 </Button>
                 <Button
                   data-testid="clear-debug-logs"
@@ -248,7 +250,7 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
                   type="button"
                   variant="danger"
                 >
-                  クリア
+                  {t("debug.clear")}
                 </Button>
               </ButtonRow>
             </Fieldset>
@@ -256,7 +258,7 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
             {showLogs && (
               <Stack>
                 <RowBetween>
-                  <strong>ログ内容</strong>
+                  <strong>{t("debug.logContent")}</strong>
                   <Button
                     data-testid="hide-debug-logs"
                     onClick={() => {
@@ -265,11 +267,11 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
                     type="button"
                     variant="danger"
                   >
-                    閉じる
+                    {t("common.close")}
                   </Button>
                 </RowBetween>
                 <TextOutput variant="debugLog">
-                  {logContent || "(ログが空です)"}
+                  {logContent || t("debug.emptyLogs")}
                 </TextOutput>
               </Stack>
             )}

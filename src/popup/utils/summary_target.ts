@@ -1,4 +1,5 @@
 import { Result } from "@praha/byethrow";
+import { t } from "@/i18n";
 import type { PopupRuntime, SummaryTarget } from "@/popup/runtime";
 import { isRecord } from "@/utils/guards";
 
@@ -32,7 +33,7 @@ export async function fetchSummaryTargetForTab(params: {
     return null;
   }
   if (!isSummaryTarget(targetResult.value)) {
-    params.onError("対象テキストの取得に失敗しました");
+    params.onError(t("popup.summaryTarget.fetchFailed"));
     return null;
   }
   return targetResult.value;
@@ -49,7 +50,7 @@ export async function resolveActiveTabId(params: {
   params.onError(
     Result.isFailure(tabIdResult)
       ? tabIdResult.error
-      : "有効なタブが見つかりません"
+      : t("popup.summaryTarget.activeTabMissing")
   );
   return null;
 }

@@ -32,6 +32,7 @@ import type {
   SummaryTarget,
 } from "@/background/types";
 import type { ContextAction } from "@/context_actions";
+import { t } from "@/i18n";
 import { debugLog } from "@/utils/debug_log";
 import { showErrorNotification } from "@/utils/notifications";
 
@@ -75,13 +76,14 @@ async function handleEventActionInMessage(
       // コンテキストメニューからの実行の場合はOS通知を表示
       if (source === "contextMenu") {
         await showErrorNotification({
-          title: `${action.title}に失敗しました`,
+          title: t("background.runtime.actionFailedTitle", {
+            title: action.title,
+          }),
           errorMessage: error,
-          hint: "OpenAI API Tokenが未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。",
+          hint: t("background.runtime.tokenHint"),
         });
 
-        const tokenHintBase =
-          "OpenAI API Token未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。";
+        const tokenHintBase = t("background.runtime.tokenHint");
         await sendMessageToTab(tabId, {
           action: "showActionOverlay",
           status: "error",
@@ -167,7 +169,10 @@ function handleSummarizeTabRequest(
       );
       sendResponse({
         ok: false,
-        error: error instanceof Error ? error.message : "要約に失敗しました",
+        error:
+          error instanceof Error
+            ? error.message
+            : t("background.runtime.summarizeFailed"),
       });
     }
   })();
@@ -191,7 +196,10 @@ function handleSummarizeTextRequest(
       );
       sendResponse({
         ok: false,
-        error: error instanceof Error ? error.message : "要約に失敗しました",
+        error:
+          error instanceof Error
+            ? error.message
+            : t("background.runtime.summarizeFailed"),
       });
     }
   })();
@@ -214,11 +222,7 @@ function handleRunContextActionRequest(
       const actions = await loadContextActions();
       const action = actions.find((item) => item.id === request.actionId);
       if (!action) {
-        sendResponse(
-          Result.fail(
-            "アクションが見つかりません（ポップアップで再保存してください）"
-          )
-        );
+        sendResponse(Result.fail(t("background.runtime.actionMissing")));
         return;
       }
 
@@ -249,7 +253,7 @@ function handleRunContextActionRequest(
         Result.fail(
           error instanceof Error
             ? error.message
-            : "アクションの実行に失敗しました"
+            : t("background.runtime.actionFailed")
         )
       );
     }
@@ -278,7 +282,9 @@ function handleTestAiTokenRequest(
       );
       sendResponse(
         Result.fail(
-          error instanceof Error ? error.message : "トークン確認に失敗しました"
+          error instanceof Error
+            ? error.message
+            : t("background.runtime.tokenTestFailed")
         )
       );
     }
@@ -301,7 +307,9 @@ function handleSummarizeEventRequest(
       sendResponse({
         ok: false,
         error:
-          error instanceof Error ? error.message : "イベント要約に失敗しました",
+          error instanceof Error
+            ? error.message
+            : t("background.runtime.eventSummaryFailed"),
       });
     }
   );
@@ -320,7 +328,10 @@ function handleOpenPopupSettingsRequest(
       sendResponse({ ok: true });
     })
     .catch(() => {
-      sendResponse({ ok: false, error: "設定画面を開けませんでした" });
+      sendResponse({
+        ok: false,
+        error: t("background.runtime.openSettingsFailed"),
+      });
     });
   return true;
 }
@@ -349,7 +360,9 @@ function handleChatFollowUpRequest(
       );
       sendResponse(
         Result.fail(
-          error instanceof Error ? error.message : "チャット応答に失敗しました"
+          error instanceof Error
+            ? error.message
+            : t("background.runtime.chatFailed")
         )
       );
     }

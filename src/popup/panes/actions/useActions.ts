@@ -5,6 +5,7 @@ import {
   DEFAULT_CONTEXT_ACTIONS,
   normalizeContextActions,
 } from "@/context_actions";
+import { t } from "@/i18n";
 import type { PopupRuntime } from "@/popup/runtime";
 import { persistWithRollback } from "@/popup/utils/persist";
 import type { Notifier } from "@/ui/toast";
@@ -95,8 +96,8 @@ export function useActions(params: {
   const resetActions = async (): Promise<void> => {
     await persistActionsUpdate(
       DEFAULT_CONTEXT_ACTIONS,
-      "リセットしました",
-      "リセットに失敗しました"
+      t("actions.success.reset"),
+      t("actions.errors.resetFailed")
     );
   };
 

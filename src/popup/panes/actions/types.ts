@@ -1,4 +1,5 @@
 import { Result } from "@praha/byethrow";
+import { t } from "@/i18n";
 import type { RunContextActionResponse } from "@/popup/runtime";
 import { coerceSummarySourceLabel } from "@/popup/utils/summary_source_label";
 import { isRecord } from "@/utils/guards";
@@ -29,7 +30,7 @@ export function parseRunContextActionResponseToOutput(params: {
   responseUnknown: unknown;
 }): Result.Result<OutputState, ParseRunContextActionResponseError> {
   if (!isRunContextActionResponse(params.responseUnknown)) {
-    return Result.fail("バックグラウンドの応答が不正です");
+    return Result.fail(t("popup.actions.invalidBackgroundResponse"));
   }
 
   const response = params.responseUnknown;
@@ -58,5 +59,5 @@ export function parseRunContextActionResponseToOutput(params: {
     });
   }
 
-  return Result.fail("結果の形式が不正です");
+  return Result.fail(t("popup.actions.invalidResultFormat"));
 }

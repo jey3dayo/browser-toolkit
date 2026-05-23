@@ -53,4 +53,26 @@ describe("i18n", () => {
       "処理に数秒かかることがあります。"
     );
   });
+
+  it("resolves remaining popup and background labels from ja resources", () => {
+    expect(i18n.t("searchEngines.title")).toBe("検索エンジン");
+    expect(i18n.t("searchGroups.title")).toBe("まとめて検索");
+    expect(i18n.t("settings.testToken")).toBe("トークン確認");
+    expect(i18n.t("templatesPane.new")).toBe("新規追加");
+    expect(i18n.t("calendarPane.run")).toBe("抽出する");
+    expect(i18n.t("debug.logActions")).toBe("ログ操作");
+    expect(i18n.t("tablePane.summary.registeredCount", { count: 2 })).toBe(
+      "2件を登録済み"
+    );
+    expect(
+      i18n.t("background.contextActions.actionFailedTitle", {
+        title: "要約",
+      })
+    ).toBe("要約に失敗しました");
+    expect(
+      i18n.t("content.overlay.errorPrefix", {
+        message: "チャット応答に失敗しました",
+      })
+    ).toBe("エラー: チャット応答に失敗しました");
+  });
 });

@@ -15,6 +15,7 @@ import type {
   SyncStorageData,
 } from "@/background/types";
 import type { ContextAction } from "@/context_actions";
+import { t } from "@/i18n";
 import type {
   CalendarRegistrationTarget,
   ExtractedEvent,
@@ -58,7 +59,7 @@ function buildSelectionSecondary(selection: string): string | undefined {
 
   const clipped =
     trimmed.length > 4000 ? `${trimmed.slice(0, 4000)}…` : trimmed;
-  return `選択範囲:\n${clipped}`;
+  return t("background.contextActions.selectionPrefix", { text: clipped });
 }
 
 export function buildContextMenuSelectionContext(
@@ -71,7 +72,9 @@ export function buildContextMenuSelectionContext(
 }
 
 function titleSuffixBySource(source: SummarySource): string {
-  return source === "selection" ? "選択範囲" : "ページ本文";
+  return source === "selection"
+    ? t("background.contextActions.source.selection")
+    : t("background.contextActions.source.page");
 }
 
 async function showContextActionNotFoundOverlay(
@@ -84,7 +87,7 @@ async function showContextActionNotFoundOverlay(
     mode: "text",
     source,
     title: APP_NAME,
-    primary: "アクションが見つかりません（ポップアップで再保存してください）",
+    primary: t("background.contextActions.actionMissing"),
   });
 }
 
@@ -165,7 +168,9 @@ async function reportPromptActionFailure(params: {
   selectionSecondary: string | undefined;
 }): Promise<void> {
   await showErrorNotification({
-    title: `${params.actionTitle}に失敗しました`,
+    title: t("background.contextActions.actionFailedTitle", {
+      title: params.actionTitle,
+    }),
     errorMessage: params.errorMessage,
   });
 
@@ -187,7 +192,10 @@ export async function showContextMenuUnexpectedErrorOverlay(
   source: SummarySource,
   error: unknown
 ): Promise<void> {
-  const message = error instanceof Error ? error.message : "要約に失敗しました";
+  const message =
+    error instanceof Error
+      ? error.message
+      : t("background.contextActions.summarizeFailed");
   await sendMessageToTab(tabId, {
     action: "showActionOverlay",
     status: "error",
@@ -205,7 +213,9 @@ export async function handleCalendarContextMenuClick(
 ): Promise<void> {
   const context = buildContextMenuSelectionContext(params.info);
   const initialSuffix = titleSuffixBySource(context.initialSource);
-  const initialTitle = `カレンダー登録（${initialSuffix}）`;
+  const initialTitle = t("background.contextActions.calendarInitialTitle", {
+    source: initialSuffix,
+  });
 
   await sendMessageToTab(params.tabId, {
     action: "showActionOverlay",
@@ -221,14 +231,14 @@ export async function handleCalendarContextMenuClick(
     selection: context.selection,
     tab: params.tab,
   });
-  const resolvedTitle = `カレンダー登録（${titleSuffixBySource(
-    target.source
-  )}）`;
+  const resolvedTitle = t("background.contextActions.calendarInitialTitle", {
+    source: titleSuffixBySource(target.source),
+  });
 
   const result = await extractEventWithOpenAI(target);
   if (Result.isFailure(result)) {
     await showErrorNotification({
-      title: "カレンダー登録に失敗しました",
+      title: t("background.contextActions.calendarFailedTitle"),
       errorMessage: result.error,
     });
 
@@ -250,8 +260,7 @@ export async function handleCalendarContextMenuClick(
   if (calendarTargets.length === 0) {
     await sendMessageToTab(params.tabId, {
       action: "showNotification",
-      message:
-        "カレンダー登録先が未選択です（ポップアップの「カレンダー」タブで設定してください）",
+      message: t("background.contextActions.calendarTargetMissing"),
     } satisfies ContentScriptMessage).catch(() => {
       // no-op
     });
@@ -323,7 +332,9 @@ async function handleEventAction(context: OverlayContext): Promise<void> {
 
   if (Result.isFailure(result)) {
     await showErrorNotification({
-      title: `${action.title}に失敗しました`,
+      title: t("background.contextActions.actionFailedTitle", {
+        title: action.title,
+      }),
       errorMessage: result.error,
     });
 

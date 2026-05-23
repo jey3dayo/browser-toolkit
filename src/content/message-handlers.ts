@@ -19,6 +19,7 @@ import type {
   SummaryOverlayRequest,
   SummaryTarget,
 } from "@/content-script-messages";
+import { t } from "@/i18n";
 
 export type MessageHandlerDeps = {
   enableTableSortWithNotification: () => void;
@@ -92,7 +93,7 @@ function handleCopyToClipboard(
       error: getClipboardErrorMessage(result.error),
     });
   })().catch(() => {
-    sendResponse({ ok: false, error: "コピーに失敗しました" });
+    sendResponse({ ok: false, error: t("content.messageHandlers.copyFailed") });
   });
   return true;
 }
@@ -159,7 +160,7 @@ function handlePasteTemplate(
   })().catch(() => {
     sendResponse({
       ok: false,
-      error: "テンプレートの貼り付けに失敗しました",
+      error: t("content.messageHandlers.pasteTemplateFailed"),
     });
   });
   return true;

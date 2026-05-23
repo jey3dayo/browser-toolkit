@@ -4,6 +4,7 @@ import { Button } from "@/components/shared/Button";
 import { Input } from "@/components/shared/Input";
 import { ListItemRow, ListItemRowText } from "@/components/shared/ListItemRow";
 import { Switch } from "@/components/shared/Switch";
+import { t } from "@/i18n";
 import type { SearchEngineGroup } from "@/search_engine_groups";
 import type { SearchEngine } from "@/search_engine_types";
 
@@ -76,10 +77,10 @@ function InlineEditRow({
         type="button"
         variant="ghost"
       >
-        保存
+        {t("searchGroups.saveName")}
       </Button>
       <Button onClick={onCancel} size="small" type="button" variant="ghost">
-        取消
+        {t("searchGroups.cancelName")}
       </Button>
     </div>
   );
@@ -106,7 +107,10 @@ function GroupEngineMembershipRow({
     <div className="group-engine-item">
       <span className="group-engine-name">{engine.name}</span>
       <Switch
-        aria-label={`${group.name}に${engine.name}を含める`}
+        aria-label={t("searchGroups.includeEngineAria", {
+          group: group.name,
+          engine: engine.name,
+        })}
         checked={checked}
         data-testid={`group-engine-${group.id}-${engine.id}`}
         onCheckedChange={(nextChecked) => {
@@ -176,7 +180,7 @@ export function SearchGroupItem(
     () => (
       <>
         <Switch
-          aria-label={`${group.name}を有効化`}
+          aria-label={t("searchGroups.enableAria", { name: group.name })}
           checked={group.enabled}
           data-testid={`group-enabled-${group.id}`}
           onCheckedChange={(checked) => {
@@ -206,7 +210,7 @@ export function SearchGroupItem(
           type="button"
           variant="danger"
         >
-          削除
+          {t("common.delete")}
         </Button>
       </>
     ),

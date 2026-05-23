@@ -9,6 +9,7 @@ import { ListItemRow } from "@/components/shared/ListItemRow";
 import { Switch } from "@/components/shared/Switch";
 import { Textarea } from "@/components/shared/Textarea";
 import { EmptyMessage, Hint, PaneTitle } from "@/components/shared/Typography";
+import { t } from "@/i18n";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { persistWithRollback } from "@/popup/utils/persist";
 import { requireTrimmedString } from "@/popup/utils/required-input";
@@ -83,7 +84,7 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
       },
       persist: () => saveTemplates(next),
       onFailure: () => {
-        props.notify.error("保存に失敗しました");
+        props.notify.error(t("templatesPane.errors.saveFailed"));
       },
     });
   };
@@ -109,7 +110,7 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
   const parseTemplateInput = (): { title: string; content: string } | null => {
     const title = requireTrimmedString({
       value: titleInput,
-      emptyMessage: "タイトルを入力してください",
+      emptyMessage: t("templatesPane.errors.titleRequired"),
       notify: props.notify,
     });
     if (!title) {
@@ -117,7 +118,7 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
     }
     const content = requireTrimmedString({
       value: contentInput,
-      emptyMessage: "内容を入力してください",
+      emptyMessage: t("templatesPane.errors.contentRequired"),
       notify: props.notify,
     });
     if (!content) {
@@ -134,13 +135,13 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
     string
   > => {
     if (!editingId) {
-      return Result.fail("編集対象が見つかりません");
+      return Result.fail(t("templatesPane.errors.targetNotFound"));
     }
 
     if (editingId === "new") {
       const id = generateTemplateId(params.title);
       if (templates.some((t) => t.id === id)) {
-        return Result.fail("既に同じタイトルのテンプレートが存在します");
+        return Result.fail(t("templatesPane.errors.duplicateTitle"));
       }
       const newTemplate: TextTemplate = {
         id,
@@ -150,7 +151,7 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
       };
       return Result.succeed({
         next: [...templates, newTemplate],
-        successMessage: "追加しました",
+        successMessage: t("templatesPane.success.added"),
       });
     }
 
@@ -160,7 +161,7 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
           ? { ...template, title: params.title, content: params.content }
           : template
       ),
-      successMessage: "更新しました",
+      successMessage: t("templatesPane.success.updated"),
     });
   };
 
@@ -181,7 +182,7 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
         props.notify.success(successMessage);
       },
       onFailure: () => {
-        props.notify.error("保存に失敗しました");
+        props.notify.error(t("templatesPane.errors.saveFailed"));
       },
     });
   };
@@ -218,10 +219,10 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
       },
       persist: () => saveTemplates(next),
       onSuccess: () => {
-        props.notify.success("削除しました");
+        props.notify.success(t("templatesPane.success.deleted"));
       },
       onFailure: () => {
-        props.notify.error("削除に失敗しました");
+        props.notify.error(t("templatesPane.errors.deleteFailed"));
       },
     });
   };
@@ -237,10 +238,10 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
       },
       persist: () => saveTemplates(DEFAULT_TEXT_TEMPLATES),
       onSuccess: () => {
-        props.notify.success("デフォルトに戻しました");
+        props.notify.success(t("templatesPane.success.reset"));
       },
       onFailure: () => {
-        props.notify.error("リセットに失敗しました");
+        props.notify.error(t("templatesPane.errors.resetFailed"));
       },
     });
   };
@@ -257,10 +258,10 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
       },
       persist: () => saveTemplates(reorderedTemplates),
       onSuccess: () => {
-        props.notify.success("並び替えを保存しました");
+        props.notify.success(t("templatesPane.success.reordered"));
       },
       onFailure: () => {
-        props.notify.error("並び替えの保存に失敗しました");
+        props.notify.error(t("templatesPane.errors.reorderFailed"));
       },
     });
   };
@@ -268,7 +269,7 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
   return (
     <PaneCard>
       <RowBetween>
-        <PaneTitle>テキストテンプレート</PaneTitle>
+        <PaneTitle>{t("templatesPane.title")}</PaneTitle>
         <Button
           data-testid="reset-templates"
           onClick={() => {
@@ -280,15 +281,13 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
           type="button"
           variant="ghost"
         >
-          デフォルトに戻す
+          {t("common.resetToDefaults")}
         </Button>
       </RowBetween>
 
       <Stack>
-        <Hint as="div">右クリックメニューから定型文を貼り付けられます。</Hint>
-        <Hint as="div">
-          非表示にしたテンプレートはメニューに表示されません。
-        </Hint>
+        <Hint as="div">{t("templatesPane.description")}</Hint>
+        <Hint as="div">{t("templatesPane.hiddenDescription")}</Hint>
 
         {editingId ? (
           <Form
@@ -302,7 +301,7 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
             <Input
               data-testid="template-title-input"
               onValueChange={setTitleInput}
-              placeholder="タイトル（例: LGTM）"
+              placeholder={t("templatesPane.titlePlaceholder")}
               type="text"
               value={titleInput}
               variant="pattern"
@@ -310,7 +309,7 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
             <Textarea
               data-testid="template-content-input"
               onChange={(e) => setContentInput(e.target.value)}
-              placeholder="内容（例: LGTM :+1:）"
+              placeholder={t("templatesPane.contentPlaceholder")}
               rows={4}
               value={contentInput}
               variant="pattern"
@@ -327,7 +326,7 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
                 type="button"
                 variant="ghost"
               >
-                保存
+                {t("common.save")}
               </Button>
               <Button
                 data-testid="cancel-edit"
@@ -336,7 +335,7 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
                 type="button"
                 variant="ghost"
               >
-                キャンセル
+                {t("common.cancel")}
               </Button>
             </RowBetween>
           </Form>
@@ -348,7 +347,7 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
             type="button"
             variant="ghost"
           >
-            新規追加
+            {t("templatesPane.new")}
           </Button>
         )}
 
@@ -366,7 +365,9 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
                 actions={
                   <>
                     <Switch
-                      aria-label={`${template.title}を表示`}
+                      aria-label={t("templatesPane.visibleAria", {
+                        title: template.title,
+                      })}
                       checked={!template.hidden}
                       data-testid={`template-visible-${template.id}`}
                       onCheckedChange={(checked) => {
@@ -385,7 +386,7 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
                       type="button"
                       variant="edit"
                     >
-                      編集
+                      {t("common.edit")}
                     </Button>
                     <Button
                       data-testid={`remove-template-${template.id}`}
@@ -397,7 +398,7 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
                       type="button"
                       variant="danger"
                     >
-                      削除
+                      {t("common.delete")}
                     </Button>
                   </>
                 }
@@ -407,7 +408,7 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
             )}
           </SortableList>
         ) : (
-          <EmptyMessage>テンプレートが登録されていません</EmptyMessage>
+          <EmptyMessage>{t("templatesPane.empty")}</EmptyMessage>
         )}
       </Stack>
     </PaneCard>

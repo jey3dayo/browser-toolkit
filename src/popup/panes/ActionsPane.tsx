@@ -15,6 +15,7 @@ import {
   PaneTitle,
 } from "@/components/shared/Typography";
 import type { ContextAction } from "@/context_actions";
+import { t } from "@/i18n";
 import type { PaneId } from "@/popup/panes";
 import { ActionButtons } from "@/popup/panes/actions/ActionButtons";
 import { ActionEditorPanel } from "@/popup/panes/actions/ActionEditorPanel";
@@ -96,23 +97,24 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
   ): Promise<void> => {
     await persistActionsUpdate(
       reorderedActions,
-      "並び替えを保存しました",
-      "並び替えの保存に失敗しました"
+      t("actions.reorder.saved"),
+      t("actions.reorder.saveFailed")
     );
   };
 
   return (
     <PaneCard>
       <RowBetween>
-        <PaneTitle>Context Actions</PaneTitle>
+        <PaneTitle>{t("actions.title")}</PaneTitle>
         <Badge data-testid="action-source" variant="chipSoft">
           {output.status === "ready" ? output.sourceLabel : "-"}
         </Badge>
       </RowBetween>
 
       <Hint data-testid="template-vars">
-        テンプレ変数: <code>{"{{text}}"}</code> <code>{"{{title}}"}</code>{" "}
-        <code>{"{{url}}"}</code> <code>{"{{source}}"}</code>
+        {t("actions.templateVars")} <code>{"{{text}}"}</code>{" "}
+        <code>{"{{title}}"}</code> <code>{"{{url}}"}</code>{" "}
+        <code>{"{{source}}"}</code>
       </Hint>
 
       <ActionButtons
@@ -181,10 +183,8 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
       />
 
       <EditorPanel>
-        <EditorTitle>並び順編集</EditorTitle>
-        <Hint as="div">
-          ドラッグ&ドロップで並び替えできます。右クリックメニューの順序に反映されます。
-        </Hint>
+        <EditorTitle>{t("actions.reorder.title")}</EditorTitle>
+        <Hint as="div">{t("actions.reorder.description")}</Hint>
         {actions.length > 0 ? (
           <SortableList
             items={actions}
@@ -198,14 +198,14 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
               <ActionListItem>
                 <ActionTitle>{action.title}</ActionTitle>
                 <Badge variant="actionKind">
-                  {action.kind === "text" && "テキスト"}
-                  {action.kind === "event" && "イベント"}
+                  {action.kind === "text" && t("actions.kind.text")}
+                  {action.kind === "event" && t("actions.kind.event")}
                 </Badge>
               </ActionListItem>
             )}
           </SortableList>
         ) : (
-          <EmptyMessage>アクションがありません</EmptyMessage>
+          <EmptyMessage>{t("actions.reorder.empty")}</EmptyMessage>
         )}
       </EditorPanel>
     </PaneCard>

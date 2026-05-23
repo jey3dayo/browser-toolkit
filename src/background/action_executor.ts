@@ -7,6 +7,7 @@ import {
 } from "@/background/openai";
 import type { SummaryTarget } from "@/background/types";
 import type { ContextAction } from "@/context_actions";
+import { t } from "@/i18n";
 import type { ExtractedEvent } from "@/shared_types";
 
 /**
@@ -90,7 +91,7 @@ export async function executePromptAction(
 
   const prompt = action.prompt.trim();
   if (!prompt) {
-    return Result.fail("プロンプトが空です");
+    return Result.fail(t("background.actionExecutor.emptyPrompt"));
   }
 
   const result = await runPromptActionWithOpenAI(target, prompt);

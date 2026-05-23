@@ -38,6 +38,7 @@ import {
   normalizeFocusOverridePatterns,
   toFocusOverrideMatchPattern,
 } from "@/focus-override/patterns";
+import { t } from "@/i18n";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import type {
   EnableTableSortMessage,
@@ -325,10 +326,10 @@ function TablePaneSummaryCard({
       <TablePaneSummaryHeading>
         <Stack spacing="small">
           <TablePaneSummaryTitle>
-            このタブに必要な設定をまとめて確認できます
+            {t("tablePane.summary.title")}
           </TablePaneSummaryTitle>
           <TablePaneSummaryCopy>
-            自動ソート対象サイトごとの行フィルタと、フォーカス維持の一致状況をこの画面で管理します。
+            {t("tablePane.summary.description")}
           </TablePaneSummaryCopy>
         </Stack>
         <TablePaneSummaryStatus variant={focusDiagnosticBadgeVariant}>
@@ -338,17 +339,21 @@ function TablePaneSummaryCard({
 
       <TablePaneSummaryGrid>
         <TablePaneSummaryItem>
-          <TablePaneSummaryLabel>自動ソート対象サイト</TablePaneSummaryLabel>
+          <TablePaneSummaryLabel>
+            {t("tablePane.summary.urlPatterns")}
+          </TablePaneSummaryLabel>
           <TablePaneSummaryValue>
             {urlPatternSummaryLabel}
           </TablePaneSummaryValue>
           <TablePaneSummaryMeta>
-            <code>*</code> ワイルドカード対応 / protocolは無視
+            {t("tablePane.summary.urlPatternsMeta")}
           </TablePaneSummaryMeta>
         </TablePaneSummaryItem>
 
         <TablePaneSummaryItem>
-          <TablePaneSummaryLabel>フォーカス維持</TablePaneSummaryLabel>
+          <TablePaneSummaryLabel>
+            {t("tablePane.summary.focus")}
+          </TablePaneSummaryLabel>
           <TablePaneSummaryValue>
             {focusPatternSummaryLabel}
           </TablePaneSummaryValue>
@@ -380,16 +385,19 @@ function FocusDiagnosticPanel({
     <FocusDiagnosticPanelRoot>
       <RowBetween>
         <Stack spacing="small">
-          <FocusDiagnosticEyebrow>現在のタブ診断</FocusDiagnosticEyebrow>
+          <FocusDiagnosticEyebrow>
+            {t("tablePane.diagnostic.eyebrow")}
+          </FocusDiagnosticEyebrow>
           <FocusDiagnosticSummary>
             <Badge
               data-testid="focus-diagnostic-status"
               variant={focusDiagnosticBadgeVariant}
             >
-              {focusDiagnostic?.label ?? "診断待ち"}
+              {focusDiagnostic?.label ?? t("tablePane.summary.pending")}
             </Badge>
             <FocusDiagnosticUrl data-testid="focus-diagnostic-summary">
-              {focusDiagnostic?.currentUrl ?? "現在のURLを確認しています"}
+              {focusDiagnostic?.currentUrl ??
+                t("tablePane.diagnostic.pendingUrl")}
             </FocusDiagnosticUrl>
           </FocusDiagnosticSummary>
         </Stack>
@@ -402,7 +410,7 @@ function FocusDiagnosticPanel({
             type="button"
             variant="ghost"
           >
-            再診断
+            {t("tablePane.diagnostic.refresh")}
           </Button>
           {focusDiagnostic?.kind === "reload-required" ? (
             <Button
@@ -412,7 +420,7 @@ function FocusDiagnosticPanel({
               type="button"
               variant="primary"
             >
-              このタブを再読み込み
+              {t("tablePane.diagnostic.reload")}
             </Button>
           ) : null}
         </FocusDiagnosticActions>
@@ -420,15 +428,19 @@ function FocusDiagnosticPanel({
 
       <FocusDiagnosticDescription>
         {focusDiagnostic?.description ??
-          "現在のタブにフォーカス維持が必要かどうかを確認できます"}
+          t("tablePane.diagnostic.defaultDescription")}
       </FocusDiagnosticDescription>
       {focusDiagnostic?.matchedPattern ? (
         <FocusDiagnosticMeta>
-          一致パターン: <code>{focusDiagnostic.matchedPattern}</code>
+          {t("tablePane.diagnostic.matchedPattern", {
+            pattern: focusDiagnostic.matchedPattern,
+          })}
         </FocusDiagnosticMeta>
       ) : null}
       {focusDiagnosticSlow ? (
-        <FocusDiagnosticLoading>現在のタブを診断中です…</FocusDiagnosticLoading>
+        <FocusDiagnosticLoading>
+          {t("tablePane.diagnostic.loading")}
+        </FocusDiagnosticLoading>
       ) : null}
     </FocusDiagnosticPanelRoot>
   );
@@ -462,10 +474,10 @@ function buildFocusDiagnosticView(
   params: FocusDiagnosticViewParams
 ): FocusDiagnosticView {
   const labelMap: Record<FocusDiagnosticKind, string> = {
-    "not-configured": "未設定",
-    active: "有効",
-    "reload-required": "要リロード",
-    unavailable: "判定不可",
+    "not-configured": t("tablePane.diagnostic.labels.notConfigured"),
+    active: t("tablePane.diagnostic.labels.active"),
+    "reload-required": t("tablePane.diagnostic.labels.reloadRequired"),
+    unavailable: t("tablePane.diagnostic.labels.unavailable"),
   };
 
   return {
@@ -503,7 +515,7 @@ function PatternConfigListItem({
         type="button"
         variant="danger"
       >
-        削除
+        {t("common.delete")}
       </Button>
     ),
     [config.pattern, onRemove]
@@ -512,7 +524,9 @@ function PatternConfigListItem({
     () => (
       <Tooltip content={rowFilterTooltip}>
         <Switch
-          aria-label={`${config.pattern}の行フィルタリング`}
+          aria-label={t("tablePane.rowFilter.aria", {
+            pattern: config.pattern,
+          })}
           checked={config.enableRowFilter}
           data-testid={`row-filter-${config.pattern}`}
           onCheckedChange={(checked) => {
@@ -550,7 +564,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
     useState<FocusDiagnosticView | null>(null);
   const [focusDiagnosticRunning, setFocusDiagnosticRunning] = useState(false);
   const [focusDiagnosticSlow, setFocusDiagnosticSlow] = useState(false);
-  const rowFilterTooltip = "0円・ハイフン・空白・N/A の行を非表示にします";
+  const rowFilterTooltip = t("tablePane.rowFilter.tooltip");
   const focusPatternsRef = useRef<string[]>([]);
   const focusDiagnosticRequestIdRef = useRef(0);
   const focusDiagnosticTimerRef = useRef<number | null>(null);
@@ -584,7 +598,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
         kind: "unavailable",
         tabId: tab?.id ?? null,
         currentUrl: summarizeUrl(tab?.url),
-        description: "現在のタブのURLを確認できませんでした",
+        description: t("tablePane.diagnostic.descriptions.urlUnavailable"),
       });
     }
 
@@ -601,8 +615,8 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
         currentUrl,
         description:
           focusPatternsRef.current.length === 0
-            ? "まだフォーカス維持パターンが登録されていません"
-            : "現在のタブのURLは登録済みパターンに一致しません",
+            ? t("tablePane.diagnostic.descriptions.noPatterns")
+            : t("tablePane.diagnostic.descriptions.noMatch"),
       });
     }
 
@@ -623,7 +637,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
         tabId: tab.id,
         currentUrl,
         matchedPattern,
-        description: "このタブではフォーカス維持が反映済みです",
+        description: t("tablePane.diagnostic.descriptions.active"),
       });
     }
 
@@ -632,23 +646,26 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
       tabId: tab.id,
       currentUrl,
       matchedPattern,
-      description:
-        "登録は一致していますが、まだ反映前です。再読み込みで確実に反映されます",
+      description: t("tablePane.diagnostic.descriptions.reloadRequired"),
     });
   }
 
   function notifyFocusDiagnostic(view: FocusDiagnosticView): void {
     switch (view.kind) {
       case "active": {
-        props.notify.success("フォーカス維持は有効です");
+        props.notify.success(t("tablePane.diagnostic.notifications.active"));
         return;
       }
       case "reload-required": {
-        props.notify.info("現在のタブでは再読み込みで反映されます");
+        props.notify.info(
+          t("tablePane.diagnostic.notifications.reloadRequired")
+        );
         return;
       }
       case "not-configured": {
-        props.notify.info("現在のタブはフォーカス維持の対象外です");
+        props.notify.info(
+          t("tablePane.diagnostic.notifications.notConfigured")
+        );
         return;
       }
       case "unavailable": {
@@ -684,7 +701,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
         kind: "unavailable",
         tabId: null,
         currentUrl: null,
-        description: "フォーカス維持の診断に失敗しました",
+        description: t("tablePane.diagnostic.descriptions.failed"),
       });
     }
 
@@ -775,7 +792,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
     }
     const tabId = tabIdResult.value;
     if (tabId === null) {
-      props.notify.error("有効なタブが見つかりません");
+      props.notify.error(t("tablePane.errors.activeTabMissing"));
       return;
     }
 
@@ -788,7 +805,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
       return;
     }
 
-    props.notify.success("テーブルソートを有効化しました");
+    props.notify.success(t("tablePane.success.enabled"));
   };
 
   const togglePatternRowFilter = async (
@@ -810,7 +827,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
       persist: () =>
         props.runtime.storageSyncSet({ domainPatternConfigs: next }),
       onFailure: () => {
-        props.notify.error("保存に失敗しました");
+        props.notify.error(t("tablePane.errors.saveFailed"));
       },
     });
   };
@@ -818,7 +835,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
   const parsePatternInput = (): string | null => {
     const raw = patternInput.trim();
     if (!raw) {
-      props.notify.error("パターンを入力してください");
+      props.notify.error(t("tablePane.errors.patternRequired"));
       return null;
     }
     return raw;
@@ -826,7 +843,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
 
   const buildNextPatterns = (pattern: string): DomainPatternConfig[] | null => {
     if (patterns.some((config) => config.pattern === pattern)) {
-      props.notify.info("既に追加されています");
+      props.notify.info(t("tablePane.info.duplicate"));
       setPatternInput("");
       return null;
     }
@@ -853,10 +870,10 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
       persist: () =>
         props.runtime.storageSyncSet({ domainPatternConfigs: next }),
       onSuccess: () => {
-        props.notify.success("追加しました");
+        props.notify.success(t("tablePane.success.added"));
       },
       onFailure: () => {
-        props.notify.error("追加に失敗しました");
+        props.notify.error(t("tablePane.errors.addFailed"));
       },
     });
   };
@@ -873,10 +890,10 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
       persist: () =>
         props.runtime.storageSyncSet({ domainPatternConfigs: next }),
       onSuccess: () => {
-        props.notify.success("削除しました");
+        props.notify.success(t("tablePane.success.deleted"));
       },
       onFailure: () => {
-        props.notify.error("削除に失敗しました");
+        props.notify.error(t("tablePane.errors.deleteFailed"));
       },
     });
   };
@@ -884,7 +901,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
   const parseFocusPatternInput = (): string | null => {
     const raw = requireTrimmedString({
       value: focusPatternInput,
-      emptyMessage: "パターンを入力してください",
+      emptyMessage: t("tablePane.errors.patternRequired"),
       notify: props.notify,
     });
     if (!raw) {
@@ -904,19 +921,19 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
       return;
     }
     if (focusPatterns.includes(raw)) {
-      props.notify.info("既に追加されています");
+      props.notify.info(t("tablePane.info.duplicate"));
       setFocusPatternInput("");
       return;
     }
 
-    let addSuccessMessage = "追加しました";
+    let addSuccessMessage = t("tablePane.success.added");
     const activeTab = await props.runtime.getActiveTab();
     if (
       Result.isSuccess(activeTab) &&
       activeTab.value?.url &&
       props.runtime.matchesFocusOverridePatterns([raw], activeTab.value.url)
     ) {
-      addSuccessMessage = "追加しました。このタブでは再読み込みで反映されます";
+      addSuccessMessage = t("tablePane.success.addedReload");
     }
 
     const next = [...focusPatterns, raw];
@@ -934,7 +951,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
         props.notify.success(addSuccessMessage);
       },
       onFailure: () => {
-        props.notify.error("追加に失敗しました");
+        props.notify.error(t("tablePane.errors.addFailed"));
       },
     });
 
@@ -955,10 +972,10 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
       persist: () =>
         props.runtime.storageSyncSet({ focusOverridePatterns: next }),
       onSuccess: () => {
-        props.notify.success("削除しました");
+        props.notify.success(t("tablePane.success.deleted"));
       },
       onFailure: () => {
-        props.notify.error("削除に失敗しました");
+        props.notify.error(t("tablePane.errors.deleteFailed"));
       },
     });
 
@@ -969,7 +986,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
 
   const reloadCurrentTab = async (): Promise<void> => {
     if (!focusDiagnostic?.tabId) {
-      props.notify.error("再読み込みできるタブが見つかりません");
+      props.notify.error(t("tablePane.errors.reloadTabMissing"));
       return;
     }
 
@@ -979,7 +996,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
       return;
     }
 
-    props.notify.success("このタブを再読み込みしました");
+    props.notify.success(t("tablePane.success.reloaded"));
   };
 
   let focusDiagnosticBadgeVariant: BadgeProps["variant"] =
@@ -990,24 +1007,27 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
     focusDiagnosticBadgeVariant = "focusDiagnosticWarning";
   }
 
-  const summaryFocusStatusLabel = focusDiagnostic?.label ?? "診断待ち";
+  const summaryFocusStatusLabel =
+    focusDiagnostic?.label ?? t("tablePane.summary.pending");
   const summaryFocusDescription = focusDiagnostic
     ? focusDiagnostic.description
-    : "現在のタブを確認するとフォーカス維持の一致状況を表示します";
+    : t("tablePane.summary.focusDescription");
   const urlPatternSummaryLabel =
     patterns.length === 0
-      ? "まだ登録されていません"
-      : `${patterns.length}件を登録済み`;
+      ? t("tablePane.summary.notRegistered")
+      : t("tablePane.summary.registeredCount", { count: patterns.length });
   const focusPatternSummaryLabel =
     focusPatterns.length === 0
-      ? "まだ登録されていません"
-      : `${focusPatterns.length}件を登録済み`;
+      ? t("tablePane.summary.notRegistered")
+      : t("tablePane.summary.registeredCount", {
+          count: focusPatterns.length,
+        });
 
   return (
     <PaneCard className="table-pane">
       <TablePaneHeader>
         <TablePaneHeading>
-          <PaneTitle>サイト別機能</PaneTitle>
+          <PaneTitle>{t("tablePane.title")}</PaneTitle>
           <Button
             data-testid="enable-table-sort"
             onClick={() => {
@@ -1018,7 +1038,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
             type="button"
             variant="primary"
           >
-            このタブで有効化
+            {t("tablePane.enableCurrentTab")}
           </Button>
         </TablePaneHeading>
 
@@ -1033,11 +1053,8 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
 
       <TablePaneSection data-section="url-patterns">
         <TablePaneSectionHeading>
-          <PaneSubtitle>自動ソート対象サイト</PaneSubtitle>
-          <Hint as="div">
-            テーブルの自動ソートを有効にしたいサイトを URL
-            パターンで登録できます。行フィルタはサイトごとに有効化できます。
-          </Hint>
+          <PaneSubtitle>{t("tablePane.urlPatterns.title")}</PaneSubtitle>
+          <Hint as="div">{t("tablePane.urlPatterns.description")}</Hint>
         </TablePaneSectionHeading>
         <PatternAddForm
           buttonTestId="pattern-add"
@@ -1050,7 +1067,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
 
         {patterns.length > 0 ? (
           <ScrollArea>
-            <PatternList aria-label="登録済みパターン">
+            <PatternList aria-label={t("tablePane.urlPatterns.listAria")}>
               {patterns.map((config) => (
                 <PatternConfigListItem
                   config={config}
@@ -1063,16 +1080,14 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
             </PatternList>
           </ScrollArea>
         ) : (
-          <EmptyMessage>まだパターンが登録されていません</EmptyMessage>
+          <EmptyMessage>{t("tablePane.empty.patterns")}</EmptyMessage>
         )}
       </TablePaneSection>
 
       <TablePaneSection data-section="focus-override">
         <TablePaneSectionHeading>
-          <PaneSubtitle>フォーカス維持</PaneSubtitle>
-          <Hint as="div">
-            タブが非アクティブでも常に表示中として扱わせたいサイト向けです
-          </Hint>
+          <PaneSubtitle>{t("tablePane.focus.title")}</PaneSubtitle>
+          <Hint as="div">{t("tablePane.focus.description")}</Hint>
         </TablePaneSectionHeading>
 
         <FocusDiagnosticPanel
@@ -1092,9 +1107,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
           }}
         />
 
-        <Hint as="div">
-          パターン追加後、現在のタブが対象なら再読み込みで確実に反映されます
-        </Hint>
+        <Hint as="div">{t("tablePane.focus.reloadHint")}</Hint>
         <PatternAddForm
           buttonTestId="focus-pattern-add"
           inputTestId="focus-pattern-input"
@@ -1106,7 +1119,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
 
         {focusPatterns.length > 0 ? (
           <ScrollArea>
-            <PatternList aria-label="フォーカス維持の登録済みパターン">
+            <PatternList aria-label={t("tablePane.focus.listAria")}>
               {focusPatterns.map((pattern) => (
                 <PatternListItem
                   action={
@@ -1120,7 +1133,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
                       type="button"
                       variant="danger"
                     >
-                      削除
+                      {t("common.delete")}
                     </Button>
                   }
                   key={pattern}
@@ -1130,7 +1143,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
             </PatternList>
           </ScrollArea>
         ) : (
-          <EmptyMessage>まだパターンが登録されていません</EmptyMessage>
+          <EmptyMessage>{t("tablePane.empty.patterns")}</EmptyMessage>
         )}
       </TablePaneSection>
     </PaneCard>

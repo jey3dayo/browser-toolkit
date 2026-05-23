@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import type { LocalStorageData } from "@/storage/types";
 
 /**
@@ -282,8 +283,11 @@ export const storageSyncSet = createStorageWrapper<
       .create({
         type: "basic",
         iconUrl: chrome.runtime.getURL("images/icon48.png"),
-        title: "ストレージ制限",
-        message: `設定データが大きすぎます (${quotaCheck.key}: ${Math.round(quotaCheck.sizeBytes / 1024)}KB)。同期されないローカルストレージに保存されました。`,
+        title: t("background.storage.quotaTitle"),
+        message: t("background.storage.quotaMessage", {
+          key: quotaCheck.key,
+          sizeKB: Math.round(quotaCheck.sizeBytes / 1024),
+        }),
         priority: 2,
       })
       .catch((err) => {
@@ -308,9 +312,8 @@ export const storageSyncSet = createStorageWrapper<
           .create({
             type: "basic",
             iconUrl: chrome.runtime.getURL("images/icon48.png"),
-            title: "ストレージ制限",
-            message:
-              "設定データが多すぎます。同期されないローカルストレージに保存されました。",
+            title: t("background.storage.quotaTitle"),
+            message: t("background.storage.quotaFallbackMessage"),
             priority: 2,
           })
           .catch((notifErr) => {

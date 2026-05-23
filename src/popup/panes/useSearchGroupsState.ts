@@ -1,5 +1,6 @@
 import { Result } from "@praha/byethrow";
 import { useEffect, useMemo, useState } from "react";
+import { t } from "@/i18n";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { persistWithRollback } from "@/popup/utils/persist";
 import { requireTrimmedString } from "@/popup/utils/required-input";
@@ -132,7 +133,7 @@ export function useSearchGroupsState(
       },
       persist: () => saveGroups(next),
       onFailure: () => {
-        props.notify.error("保存に失敗しました");
+        props.notify.error(t("searchGroups.errors.saveFailed"));
       },
     });
   };
@@ -154,7 +155,7 @@ export function useSearchGroupsState(
   const saveGroupName = async (groupId: string): Promise<void> => {
     const name = requireTrimmedString({
       value: editingNameValue,
-      emptyMessage: "グループ名を入力してください",
+      emptyMessage: t("searchGroups.errors.nameRequired"),
       notify: props.notify,
     });
     if (!name) {
@@ -162,7 +163,7 @@ export function useSearchGroupsState(
     }
 
     if (groups.some((g) => g.name === name && g.id !== groupId)) {
-      props.notify.info("既に同じ名前のグループが存在します");
+      props.notify.info(t("searchGroups.info.duplicate"));
       return;
     }
 
@@ -177,7 +178,7 @@ export function useSearchGroupsState(
       },
       persist: () => saveGroups(next),
       onFailure: () => {
-        props.notify.error("更新に失敗しました");
+        props.notify.error(t("searchGroups.errors.updateFailed"));
       },
     });
   };
@@ -194,7 +195,7 @@ export function useSearchGroupsState(
 
     // OFFにしようとした時、最後の1つなら防ぐ
     if (!isIncluded && group.engineIds.length <= 1) {
-      props.notify.error("少なくとも1つの検索エンジンが必要です");
+      props.notify.error(t("searchGroups.errors.minEngine"));
       return;
     }
 
@@ -219,7 +220,7 @@ export function useSearchGroupsState(
       },
       persist: () => saveGroups(next),
       onFailure: () => {
-        props.notify.error("保存に失敗しました");
+        props.notify.error(t("searchGroups.errors.saveFailed"));
       },
     });
   };
@@ -227,7 +228,7 @@ export function useSearchGroupsState(
   const addNewGroup = async (): Promise<void> => {
     const name = requireTrimmedString({
       value: newGroupNameInput,
-      emptyMessage: "グループ名を入力してください",
+      emptyMessage: t("searchGroups.errors.nameRequired"),
       notify: props.notify,
     });
     if (!name) {
@@ -235,17 +236,19 @@ export function useSearchGroupsState(
     }
 
     if (engines.length === 0) {
-      props.notify.error("検索エンジンが読み込まれていません");
+      props.notify.error(t("searchGroups.errors.enginesNotLoaded"));
       return;
     }
 
     if (groups.some((g) => g.name === name)) {
-      props.notify.info("既に同じ名前のグループが存在します");
+      props.notify.info(t("searchGroups.info.duplicate"));
       return;
     }
 
     if (groups.length >= MAX_SEARCH_ENGINE_GROUPS) {
-      props.notify.error(`グループは最大${MAX_SEARCH_ENGINE_GROUPS}個までです`);
+      props.notify.error(
+        t("searchGroups.errors.max", { count: MAX_SEARCH_ENGINE_GROUPS })
+      );
       return;
     }
 
@@ -269,10 +272,10 @@ export function useSearchGroupsState(
       },
       persist: () => saveGroups(next),
       onSuccess: () => {
-        props.notify.success("追加しました");
+        props.notify.success(t("searchGroups.success.added"));
       },
       onFailure: () => {
-        props.notify.error("追加に失敗しました");
+        props.notify.error(t("searchGroups.errors.addFailed"));
       },
     });
   };
@@ -291,10 +294,10 @@ export function useSearchGroupsState(
       },
       persist: () => saveGroups(next),
       onSuccess: () => {
-        props.notify.success("削除しました");
+        props.notify.success(t("searchGroups.success.deleted"));
       },
       onFailure: () => {
-        props.notify.error("削除に失敗しました");
+        props.notify.error(t("searchGroups.errors.deleteFailed"));
       },
     });
   };
@@ -311,10 +314,10 @@ export function useSearchGroupsState(
       },
       persist: () => saveGroups(DEFAULT_SEARCH_ENGINE_GROUPS),
       onSuccess: () => {
-        props.notify.success("デフォルトに戻しました");
+        props.notify.success(t("searchGroups.success.reset"));
       },
       onFailure: () => {
-        props.notify.error("リセットに失敗しました");
+        props.notify.error(t("searchGroups.errors.resetFailed"));
       },
     });
   };
@@ -331,10 +334,10 @@ export function useSearchGroupsState(
       },
       persist: () => saveGroups(reorderedGroups),
       onSuccess: () => {
-        props.notify.success("並び替えを保存しました");
+        props.notify.success(t("searchGroups.success.reordered"));
       },
       onFailure: () => {
-        props.notify.error("並び替えの保存に失敗しました");
+        props.notify.error(t("searchGroups.errors.reorderFailed"));
       },
     });
   };

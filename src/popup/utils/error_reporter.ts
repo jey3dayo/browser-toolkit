@@ -1,5 +1,6 @@
 import React from "react";
 import { Button } from "@/components/shared/Button";
+import { t } from "@/i18n";
 import type { PaneId } from "@/popup/panes";
 import type { Notifier } from "@/ui/toast";
 
@@ -40,7 +41,7 @@ function reportError(message: string, options: ErrorReporterOptions): void {
           type: "button",
           variant: "toastActionLink",
         },
-        "→ 設定を開く"
+        t("popup.tokenGuard.openSettings")
       ),
     });
   } else {

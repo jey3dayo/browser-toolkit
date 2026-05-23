@@ -1,5 +1,6 @@
 import { Result } from "@praha/byethrow";
 import { CLIENT_MESSAGE_TIMEOUT_MS } from "@/constants/timeouts";
+import { t } from "@/i18n";
 import type { PopupRuntime } from "@/popup/runtime";
 import { ClientTimeoutError } from "@/utils/custom-errors";
 
@@ -24,7 +25,9 @@ export async function sendBackgroundResult<TRequest, TResponse>(params: {
       ? await params.runtime
           .sendMessageToBackground<TRequest, unknown>(params.message)
           .catch((error: unknown) =>
-            Result.fail(error instanceof Error ? error.message : "不明なエラー")
+            Result.fail(
+              error instanceof Error ? error.message : t("common.unknownError")
+            )
           )
       : await Promise.race([
           params.runtime.sendMessageToBackground<TRequest, unknown>(
@@ -38,7 +41,7 @@ export async function sendBackgroundResult<TRequest, TResponse>(params: {
             return Result.fail(error.message);
           }
           return Result.fail(
-            error instanceof Error ? error.message : "不明なエラー"
+            error instanceof Error ? error.message : t("common.unknownError")
           );
         });
 

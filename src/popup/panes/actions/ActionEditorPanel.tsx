@@ -10,6 +10,7 @@ import { Select } from "@/components/shared/Select";
 import { Textarea } from "@/components/shared/Textarea";
 import { Toggle, ToggleGroup } from "@/components/shared/Toggle";
 import type { ContextAction, ContextActionKind } from "@/context_actions";
+import { t } from "@/i18n";
 
 type Props = {
   actions: ContextAction[];
@@ -28,17 +29,14 @@ type Props = {
 };
 
 const ACTION_KIND_HELP_DESCRIPTION = (
-  <>
-    event は日時・場所・概要などを抽出してイベント形式で返すモードです。 text
-    はプロンプトに従って要約/翻訳などを行います。
-  </>
+  <>{t("actions.editor.eventHelpDescription")}</>
 );
 
 const ACTION_KIND_LABEL_ACCESSORY = (
   <HelpPopover
-    ariaLabel="eventとは"
+    ariaLabel={t("actions.editor.eventHelpAria")}
     description={ACTION_KIND_HELP_DESCRIPTION}
-    title="event とは"
+    title={t("actions.editor.eventHelpTitle")}
   />
 );
 
@@ -48,7 +46,7 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
   const promptInputId = useId();
 
   const actions = [
-    { label: "新規作成", value: null as string | null },
+    { label: t("actions.editor.newAction"), value: null as string | null },
     ...props.actions.map((action) => ({
       label: action.title,
       value: action.id,
@@ -63,11 +61,11 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
         }}
       >
         <Fieldset
-          legend="アクション編集"
+          legend={t("actions.editor.title")}
           legendVariant="editor"
           variant="editor"
         >
-          <Field label="対象" labelId={actionLabelId}>
+          <Field label={t("actions.editor.target")} labelId={actionLabelId}>
             <Select
               ariaLabelledBy={actionLabelId}
               onValueChange={(value) => {
@@ -80,7 +78,7 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
             />
           </Field>
 
-          <Field htmlFor={titleInputId} label="タイトル">
+          <Field htmlFor={titleInputId} label={t("actions.editor.titleField")}>
             <Input
               data-testid="action-editor-title"
               id={titleInputId}
@@ -91,7 +89,10 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
             />
           </Field>
 
-          <Field label="種類" labelAccessory={ACTION_KIND_LABEL_ACCESSORY}>
+          <Field
+            label={t("actions.editor.kind")}
+            labelAccessory={ACTION_KIND_LABEL_ACCESSORY}
+          >
             <ToggleGroup
               data-testid="action-editor-kind"
               onValueChange={(groupValue) => {
@@ -109,7 +110,7 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
             </ToggleGroup>
           </Field>
 
-          <Field htmlFor={promptInputId} label="プロンプト">
+          <Field htmlFor={promptInputId} label={t("actions.editor.prompt")}>
             <Textarea
               data-testid="action-editor-prompt"
               id={promptInputId}
@@ -132,7 +133,7 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
               type="button"
               variant="primary"
             >
-              保存
+              {t("common.save")}
             </Button>
             <Button
               data-testid="action-editor-delete"
@@ -143,7 +144,7 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
               type="button"
               variant="danger"
             >
-              削除
+              {t("common.delete")}
             </Button>
             <Button
               data-testid="action-editor-clear"
@@ -154,7 +155,7 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
               type="button"
               variant="ghost"
             >
-              クリア
+              {t("actions.editor.clear")}
             </Button>
             <Button
               data-testid="action-editor-reset"
@@ -165,7 +166,7 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
               type="button"
               variant="ghost"
             >
-              デフォルトに戻す
+              {t("common.resetToDefaults")}
             </Button>
           </ButtonRow>
         </Fieldset>

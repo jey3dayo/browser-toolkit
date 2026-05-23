@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import type { ContextAction, ContextActionKind } from "@/context_actions";
+import { t } from "@/i18n";
 import type { PopupRuntime } from "@/popup/runtime";
 import { persistWithRollback } from "@/popup/utils/persist";
 import { requireTrimmedString } from "@/popup/utils/required-input";
@@ -77,7 +78,7 @@ export function useActionEditor(params: {
   const saveEditor = async (): Promise<void> => {
     const title = requireTrimmedString({
       value: editor.title,
-      emptyMessage: "タイトルを入力してください",
+      emptyMessage: t("actions.errors.titleRequired"),
       notify: params.notify,
     });
     if (!title) {
@@ -88,7 +89,7 @@ export function useActionEditor(params: {
     if (editor.kind === "text") {
       const hasPrompt = requireTrimmedString({
         value: prompt,
-        emptyMessage: "プロンプトを入力してください",
+        emptyMessage: t("actions.errors.promptRequired"),
         notify: params.notify,
       });
       if (!hasPrompt) {
@@ -124,10 +125,10 @@ export function useActionEditor(params: {
           contextActions: nextActions,
         }),
       onSuccess: () => {
-        params.notify.success("保存しました");
+        params.notify.success(t("actions.success.saved"));
       },
       onFailure: () => {
-        params.notify.error("保存に失敗しました");
+        params.notify.error(t("actions.errors.saveFailed"));
       },
     });
   };
@@ -142,8 +143,8 @@ export function useActionEditor(params: {
     );
     await params.persistActionsUpdate(
       nextActions,
-      "削除しました",
-      "削除に失敗しました"
+      t("actions.success.deleted"),
+      t("actions.errors.deleteFailed")
     );
   };
 

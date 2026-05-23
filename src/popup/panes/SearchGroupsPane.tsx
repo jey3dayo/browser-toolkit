@@ -2,6 +2,7 @@ import { Button } from "@/components/shared/Button";
 import { PaneCard, RowBetween, Stack } from "@/components/shared/Layout";
 import { PatternAddForm } from "@/components/shared/PatternAddForm";
 import { Hint, PaneTitle } from "@/components/shared/Typography";
+import { t } from "@/i18n";
 import { SearchGroupsList } from "@/popup/panes/SearchGroupsList";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { useSearchGroupsState } from "@/popup/panes/useSearchGroupsState";
@@ -36,7 +37,7 @@ export function SearchGroupsPane(
   return (
     <PaneCard>
       <RowBetween>
-        <PaneTitle>まとめて検索</PaneTitle>
+        <PaneTitle>{t("searchGroups.title")}</PaneTitle>
         <Button
           data-testid="reset-search-groups"
           onClick={() => {
@@ -48,16 +49,13 @@ export function SearchGroupsPane(
           type="button"
           variant="ghost"
         >
-          デフォルトに戻す
+          {t("common.resetToDefaults")}
         </Button>
       </RowBetween>
 
       <Stack>
-        <Hint as="div">複数の検索エンジンをまとめて実行できます。</Hint>
-        <Hint as="div">
-          例:
-          「お買い物」グループでAmazon、楽天、ビックカメラ、ヨドバシを一括検索
-        </Hint>
+        <Hint as="div">{t("searchGroups.description")}</Hint>
+        <Hint as="div">{t("searchGroups.example")}</Hint>
 
         <PatternAddForm
           buttonTestId="add-search-group"
@@ -65,7 +63,7 @@ export function SearchGroupsPane(
           inputTestId="new-group-name"
           onSubmit={addNewGroup}
           onValueChange={setNewGroupNameInput}
-          placeholder="グループ名（例: お買い物）"
+          placeholder={t("searchGroups.namePlaceholder")}
           value={newGroupNameInput}
         />
 
