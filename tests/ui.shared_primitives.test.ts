@@ -59,6 +59,10 @@ const directSortableListClassPattern =
   /className=["'][^"']*(?:sortable-list|sortable-item|sortable-item-content)(?:\s|["'])/;
 const directSearchGroupMembershipClassPattern =
   /className=["'][^"']*(?:group-engines-list|group-engine-item|group-engine-name)(?:\s|["'])/;
+const directSearchGroupInlineEditClassPattern =
+  /className=["'][^"']*(?:inline-edit-row|inline-edit-input)(?:\s|["'])/;
+const directOverlayPrimaryClassPattern =
+  /className=["'][^"']*mbu-overlay-primary-(?:block|block--copy|markdown)(?:\s|["'])/;
 const directListItemRowTextClassPattern =
   /className=["'][^"']*(?:search-engine-name|search-engine-url)(?:\s|["'])/;
 const directAccordionPreviewClassPattern =
@@ -276,6 +280,20 @@ describe("shared UI primitive boundaries", () => {
     const offenders = findFilesMatching(
       directSearchGroupMembershipClassPattern
     ).filter((filePath) => filePath !== "src/popup/panes/SearchGroupItem.tsx");
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("keeps search group inline edit classes inside SearchGroupItem", () => {
+    const offenders = findFilesMatching(
+      directSearchGroupInlineEditClassPattern
+    ).filter((filePath) => filePath !== "src/popup/panes/SearchGroupItem.tsx");
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("keeps overlay primary classes behind overlayClassNames", () => {
+    const offenders = findFilesMatching(directOverlayPrimaryClassPattern);
 
     expect(offenders).toEqual([]);
   });
