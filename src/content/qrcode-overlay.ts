@@ -1,6 +1,7 @@
 // QRコードオーバーレイ（Shadow DOM + DOM API、Reactなし）
 import QRCode from "qrcode";
 import { ensureShadowMount } from "@/content/shadow_mount";
+import { t } from "@/i18n";
 import type { Theme } from "@/ui/theme";
 
 const QR_HOST_ID = "browser-toolkit-qrcode";
@@ -26,7 +27,7 @@ function removeCurrentOverlay(): void {
 
 function createCloseButton(onClose: () => void): HTMLButtonElement {
   const btn = document.createElement("button");
-  btn.textContent = "閉じる";
+  btn.textContent = t("qrCodeOverlay.close");
   btn.style.cssText = [
     "margin-top: 12px",
     "padding: 6px 20px",
@@ -74,7 +75,7 @@ function createDialog(url: string, onClose: () => void): HTMLDivElement {
   ].join(";");
 
   const title = document.createElement("p");
-  title.textContent = "QRコード";
+  title.textContent = t("qrCodeOverlay.title");
   title.style.cssText = "margin: 0; font-size: 16px; font-weight: bold;";
 
   const canvas = document.createElement("canvas");
@@ -100,7 +101,7 @@ function createDialog(url: string, onClose: () => void): HTMLDivElement {
 
   QRCode.toCanvas(canvas, url, { width: 200, margin: 2 }).catch(() => {
     const errorMsg = document.createElement("p");
-    errorMsg.textContent = "QRコードの生成に失敗しました";
+    errorMsg.textContent = t("qrCodeOverlay.errors.generation");
     errorMsg.style.cssText = "margin: 0; color: var(--color-error, #e53935);";
     canvas.replaceWith(errorMsg);
   });

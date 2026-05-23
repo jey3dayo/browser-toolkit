@@ -1,5 +1,6 @@
 // クリップボード操作
 import { Result } from "@praha/byethrow";
+import { t } from "@/i18n";
 import type { Notifier } from "@/ui/toast";
 
 export type ClipboardError =
@@ -59,13 +60,13 @@ export async function copyToClipboardWithNotification(
 export function getClipboardErrorMessage(error: ClipboardError): string {
   switch (error.type) {
     case "empty-text":
-      return "コピーする内容がありません";
+      return t("clipboard.errors.emptyContent");
     case "unavailable":
-      return "この環境ではクリップボードにコピーできません";
+      return t("clipboard.errors.unavailable");
     case "copy-failed":
-      return "コピーに失敗しました";
+      return t("clipboard.errors.copyFailed");
     default:
       // すべてのケースを網羅しているため、ここには到達しない
-      return "不明なエラーが発生しました";
+      return t("clipboard.errors.unknown");
   }
 }

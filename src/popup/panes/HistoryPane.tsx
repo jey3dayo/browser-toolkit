@@ -1,5 +1,6 @@
 import { Result } from "@praha/byethrow";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/shared/Badge";
 import { Button } from "@/components/shared/Button";
 import {
@@ -15,10 +16,12 @@ import {
   HintText,
   PaneTitle,
 } from "@/components/shared/Typography";
+import { i18n } from "@/i18n";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import type { ActionHistoryEntry } from "@/storage/types";
 
 export function HistoryPane(props: PopupPaneBaseProps): React.JSX.Element {
+  const { t } = useTranslation(undefined, { i18n });
   const [history, setHistory] = useState<ActionHistoryEntry[]>([]);
 
   useEffect(() => {
@@ -43,18 +46,18 @@ export function HistoryPane(props: PopupPaneBaseProps): React.JSX.Element {
     try {
       await props.runtime.storageLocalSet({ actionHistory: [] });
       setHistory([]);
-      props.notify.success("履歴を削除しました");
+      props.notify.success(t("history.success.cleared"));
     } catch {
-      props.notify.error("履歴の削除に失敗しました");
+      props.notify.error(t("history.errors.clearFailed"));
     }
   };
 
   const copyEntry = async (text: string): Promise<void> => {
     try {
       await navigator.clipboard.writeText(text);
-      props.notify.success("コピーしました");
+      props.notify.success(t("history.success.copied"));
     } catch {
-      props.notify.error("コピーに失敗しました");
+      props.notify.error(t("history.errors.copyFailed"));
     }
   };
 
@@ -71,7 +74,7 @@ export function HistoryPane(props: PopupPaneBaseProps): React.JSX.Element {
   return (
     <PaneCard>
       <RowBetween>
-        <PaneTitle>アクション履歴</PaneTitle>
+        <PaneTitle>{t("history.title")}</PaneTitle>
         {history.length > 0 ? (
           <Button
             onClick={() => {
@@ -83,14 +86,14 @@ export function HistoryPane(props: PopupPaneBaseProps): React.JSX.Element {
             type="button"
             variant="ghost"
           >
-            全削除
+            {t("history.clearAll")}
           </Button>
         ) : null}
       </RowBetween>
-      <Hint>直近20件のアクション実行結果を保存します。</Hint>
+      <Hint>{t("history.description")}</Hint>
 
       {history.length === 0 ? (
-        <EmptyMessage>履歴がありません</EmptyMessage>
+        <EmptyMessage>{t("history.empty")}</EmptyMessage>
       ) : (
         <Stack>
           {history.map((entry) => (
@@ -112,7 +115,7 @@ export function HistoryPane(props: PopupPaneBaseProps): React.JSX.Element {
                   type="button"
                   variant="ghost"
                 >
-                  コピー
+                  {t("common.copy")}
                 </Button>
               </RowBetween>
               <TextOutput

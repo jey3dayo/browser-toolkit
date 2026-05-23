@@ -51,6 +51,23 @@ describe("background: QR code context menu", () => {
     );
   });
 
+  it("notifies with localized labels when no URL is available", async () => {
+    const { handleQrCodeContextMenuClick } = await import(
+      "@/background/context_menu_qrcode"
+    );
+
+    await handleQrCodeContextMenuClick({
+      tabId: 56,
+      tab: {},
+    });
+
+    expect(showErrorNotificationMock).toHaveBeenCalledWith({
+      title: "QRコードを表示できません",
+      errorMessage: "このページのURLを取得できませんでした",
+      hint: "ページを再読み込みしてから、もう一度お試しください。",
+    });
+  });
+
   it("re-injects the content script and retries when the receiver is missing", async () => {
     let firstAttempt = true;
     chromeStub.tabs.sendMessage.mockImplementation(

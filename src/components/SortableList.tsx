@@ -17,6 +17,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import type React from "react";
 import { Button } from "@/components/shared/Button";
+import { t } from "@/i18n";
 
 const SORTABLE_LIST_CLASS_NAMES = {
   item: "sortable-item",
@@ -128,7 +129,7 @@ function SortableItem({ id, children }: SortableItemProps) {
           type="button"
           variant="dragHandle"
           {...listeners}
-          aria-label="ドラッグして並び替え"
+          aria-label={t("common.dragToReorder")}
         >
           ⋮⋮
         </Button>

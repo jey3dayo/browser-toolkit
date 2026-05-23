@@ -1,5 +1,6 @@
 // テーブルソート機能
 import { Result } from "@praha/byethrow";
+import { t } from "@/i18n";
 import { parseNumericValue } from "@/utils/number_parser";
 import { shouldHideRow } from "@/utils/row_filter";
 
@@ -28,7 +29,7 @@ export function enableSingleTable(
       cursor: "pointer",
       userSelect: "none",
     });
-    header.title = "クリックでソート";
+    header.title = t("tableSort.headerTitle");
 
     header.addEventListener("click", () => {
       sortTable(table, columnIndex, getRowFilterSetting);
@@ -54,7 +55,7 @@ export function enableTableSort(
   }
 
   if (tables.length > 0) {
-    onNotify(`${tables.length}個のテーブルでソートを有効化しました`);
+    onNotify(t("tableSort.enabledCount", { count: tables.length }));
   }
 
   return tables.length;

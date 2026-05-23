@@ -19,4 +19,38 @@ describe("i18n", () => {
     expect(i18n.t("createLink.fields.format")).toBe("形式");
     expect(i18n.t("linkFormat.text")).toBe("テキスト（タイトル + URL）");
   });
+
+  it("resolves history and content utility labels from ja resources", () => {
+    expect(i18n.t("common.add")).toBe("追加");
+    expect(i18n.t("common.dragToReorder")).toBe("ドラッグして並び替え");
+    expect(i18n.t("history.title")).toBe("アクション履歴");
+    expect(i18n.t("qrCodeOverlay.close")).toBe("閉じる");
+    expect(i18n.t("clipboard.errors.unavailable")).toBe(
+      "この環境ではクリップボードにコピーできません"
+    );
+    expect(i18n.t("notifications.downloadSuccess")).toBe(
+      "ダウンロードしました"
+    );
+    expect(i18n.t("overlay.actions.openSettings")).toBe("設定を開く");
+    expect(i18n.t("overlay.markdown.toMarkdown")).toBe(
+      "Markdown表示に切り替え"
+    );
+    expect(i18n.t("background.qrCode.unavailableTitle")).toBe(
+      "QRコードを表示できません"
+    );
+    expect(i18n.t("actions.target.source", { source: "選択範囲" })).toBe(
+      "使用元: 選択範囲"
+    );
+    expect(i18n.t("actions.output.running")).toBe("実行中...");
+    expect(i18n.t("tableSort.enabledCount", { count: 2 })).toBe(
+      "2個のテーブルでソートを有効化しました"
+    );
+    expect(i18n.t("templates.copyFallbackSuccess")).toBe(
+      "テンプレートをコピーしました"
+    );
+    expect(i18n.t("overlay.summary.title")).toBe("要約");
+    expect(i18n.t("overlay.hints.processingMayTakeSeconds")).toBe(
+      "処理に数秒かかることがあります。"
+    );
+  });
 });

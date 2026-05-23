@@ -2,6 +2,7 @@ import { Button } from "@/components/shared/Button";
 import { ButtonRow, OutputPanel, RowBetween } from "@/components/shared/Layout";
 import { Textarea } from "@/components/shared/Textarea";
 import { MetaTitle } from "@/components/shared/Typography";
+import { t } from "@/i18n";
 
 type Props = {
   title: string;
@@ -26,7 +27,7 @@ export function ActionOutputPanel(props: Props): React.JSX.Element {
             type="button"
             variant="ghost"
           >
-            コピー
+            {t("actions.output.copy")}
           </Button>
         </ButtonRow>
       </RowBetween>

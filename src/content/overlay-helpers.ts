@@ -11,6 +11,7 @@ import type {
   ActionOverlayRequest,
   SummaryOverlayRequest,
 } from "@/content-script-messages";
+import { t } from "@/i18n";
 import type { ExtractedEvent, SummarySource } from "@/shared_types";
 import { storageSyncGet } from "@/storage/helpers";
 import type { Theme } from "@/ui/theme";
@@ -164,9 +165,10 @@ export function getSummarizeOverlayTitle(): Promise<string> {
         result.value.contextActions,
         "builtin:summarize"
       );
-      summarizeOverlayTitleCache = stripSourceSuffix(title ?? "") || "要約";
+      summarizeOverlayTitleCache =
+        stripSourceSuffix(title ?? "") || t("overlay.summary.title");
     } else {
-      summarizeOverlayTitleCache = "要約";
+      summarizeOverlayTitleCache = t("overlay.summary.title");
     }
 
     summarizeOverlayTitleInFlight = null;
@@ -204,10 +206,10 @@ function actionOverlayPrimaryText(
   primary: string
 ): string {
   if (status === "ready") {
-    return primary || "結果が空でした";
+    return primary || t("overlay.fallback.emptyResult");
   }
   if (status === "error") {
-    return primary || "処理に失敗しました";
+    return primary || t("overlay.fallback.failed");
   }
   return "";
 }
@@ -217,7 +219,7 @@ function actionOverlaySecondaryText(
   secondary: string
 ): string {
   return status === "loading"
-    ? secondary || "処理に数秒かかることがあります。"
+    ? secondary || t("overlay.hints.processingMayTakeSeconds")
     : secondary;
 }
 
@@ -283,17 +285,16 @@ export function renderSummaryOverlayWithTitle(
 
   let primaryText = "";
   if (request.status === "ready") {
-    primaryText = summary || "要約結果が空でした";
+    primaryText = summary || t("overlay.summary.empty");
   } else if (request.status === "error") {
-    primaryText = error || "要約に失敗しました";
+    primaryText = error || t("overlay.summary.failed");
   }
 
   let secondaryText = "";
   if (request.status === "loading") {
-    secondaryText = "処理に数秒かかることがあります。";
+    secondaryText = t("overlay.hints.processingMayTakeSeconds");
   } else if (request.status === "error") {
-    secondaryText =
-      "OpenAI API Token未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。";
+    secondaryText = t("overlay.hints.openAiTokenMissing");
   }
 
   renderOverlay(
@@ -320,7 +321,8 @@ export function showSummaryOverlay(
   request: SummaryOverlayRequest,
   onDismiss: () => void
 ): void {
-  const fallbackTitle = summarizeOverlayTitleCache ?? "要約";
+  const fallbackTitle =
+    summarizeOverlayTitleCache ?? t("overlay.summary.title");
   renderSummaryOverlayWithTitle(mount, request, fallbackTitle, onDismiss);
 
   (async () => {

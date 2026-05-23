@@ -2,6 +2,7 @@ import type { HTMLInputTypeAttribute, ReactNode } from "react";
 import { Button } from "@/components/shared/Button";
 import { Form } from "@/components/shared/Form";
 import { Input } from "@/components/shared/Input";
+import { t } from "@/i18n";
 
 type PatternAddFormProps = {
   buttonLabel?: ReactNode;
@@ -16,7 +17,7 @@ type PatternAddFormProps = {
 };
 
 export function PatternAddForm({
-  buttonLabel = "追加",
+  buttonLabel,
   buttonTestId,
   disabled = false,
   inputTestId,
@@ -56,7 +57,7 @@ export function PatternAddForm({
         type="submit"
         variant="ghost"
       >
-        {buttonLabel}
+        {buttonLabel ?? t("common.add")}
       </Button>
     </Form>
   );

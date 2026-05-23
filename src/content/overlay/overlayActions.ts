@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import type { createNotifications } from "@/ui/toast";
 
 type OverlayNotify = ReturnType<typeof createNotifications>["notify"];
@@ -14,14 +15,14 @@ export async function copyTextToClipboard(
     return;
   }
   if (!navigator.clipboard?.writeText) {
-    notify.error("コピーに失敗しました");
+    notify.error(t("notifications.copyFailed"));
     return;
   }
   try {
     await navigator.clipboard.writeText(trimmed);
-    notify.success("コピーしました");
+    notify.success(t("notifications.copySuccess"));
   } catch {
-    notify.error("コピーに失敗しました");
+    notify.error(t("notifications.copyFailed"));
   }
 }
 
@@ -54,8 +55,8 @@ export function downloadIcsFile(notify: OverlayNotify, ics: string): void {
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
-    notify.success("ダウンロードしました");
+    notify.success(t("notifications.downloadSuccess"));
   } catch {
-    notify.error("ダウンロードに失敗しました");
+    notify.error(t("notifications.downloadFailed"));
   }
 }

@@ -8,6 +8,7 @@ import {
   AccordionTextWrapper,
 } from "@/components/shared/Accordion";
 import { Button } from "@/components/shared/Button";
+import { t } from "@/i18n";
 import type { SummaryTarget } from "@/popup/runtime";
 
 type Props = {
@@ -30,9 +31,11 @@ function ActionTargetPreview(
 ): React.JSX.Element {
   return (
     <>
-      <AccordionMeta>使用元: {props.sourceLabel}</AccordionMeta>
+      <AccordionMeta>
+        {t("actions.target.source", { source: props.sourceLabel })}
+      </AccordionMeta>
       {props.isTruncated ? (
-        <AccordionNote>長文のため先頭4,000文字のみ表示</AccordionNote>
+        <AccordionNote>{t("actions.target.truncated")}</AccordionNote>
       ) : null}
       <AccordionTextWrapper>
         <AccordionText
@@ -42,7 +45,11 @@ function ActionTargetPreview(
           variant="summary"
         />
         <Button
-          aria-label={props.copied ? "コピーしました" : "テキストをコピー"}
+          aria-label={
+            props.copied
+              ? t("actions.target.copiedAriaLabel")
+              : t("actions.target.copyTextAriaLabel")
+          }
           disabled={!props.previewText.trim()}
           onClick={props.onCopy}
           type="button"
@@ -68,10 +75,12 @@ export function ActionTargetAccordion(props: Props): React.JSX.Element | null {
   }
 
   const label =
-    props.target.source === "selection" ? "選択したテキスト" : "ページ本文";
+    props.target.source === "selection"
+      ? t("actions.target.selectionTitle")
+      : t("actions.target.pageTitle");
   const isTruncated = trimmed.length > MAX_PREVIEW_CHARS;
   const previewText = isTruncated
-    ? `${trimmed.slice(0, MAX_PREVIEW_CHARS)}\n\n(以下省略)`
+    ? `${trimmed.slice(0, MAX_PREVIEW_CHARS)}\n\n${t("actions.target.omitted")}`
     : trimmed;
 
   const handleCopy = async (): Promise<void> => {

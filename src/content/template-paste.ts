@@ -6,6 +6,7 @@ import {
   getClipboardErrorMessage,
 } from "@/content/clipboard";
 import type { ToastMount } from "@/content/notification";
+import { t } from "@/i18n";
 
 /**
  * input/textarea要素にテキストを挿入
@@ -72,7 +73,7 @@ export async function copyToClipboardFallback(
   const result = await copyToClipboardWithNotification(
     content,
     toastMount.notify,
-    "テンプレートをコピーしました"
+    t("templates.copyFallbackSuccess")
   );
   if (Result.isSuccess(result)) {
     sendResponse({ ok: true });

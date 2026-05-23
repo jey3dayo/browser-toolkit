@@ -10,6 +10,7 @@ import { TextBlock } from "@/components/shared/TextBlock";
 import { TextOutput } from "@/components/shared/TextOutput";
 import { ThemeCycleButton } from "@/components/ThemeCycleButton";
 import { CopyIcon, PinIcon } from "@/content/overlay/icons";
+import { t } from "@/i18n";
 import type { ExtractedEvent } from "@/shared_types";
 import type { Theme } from "@/ui/theme";
 import type { OverlayViewModel } from "./OverlayApp";
@@ -26,11 +27,11 @@ type OverlayCopyButtonProps = {
 function OverlayCopyButton(props: OverlayCopyButtonProps): React.JSX.Element {
   return (
     <Button
-      aria-label="コピー"
+      aria-label={t("overlay.actions.copy")}
       data-testid="overlay-copy"
       disabled={props.disabled}
       onClick={props.onCopy}
-      title="コピー"
+      title={t("overlay.actions.copy")}
       type="button"
       variant="overlayCopy"
     >
@@ -89,7 +90,7 @@ function OverlayEventModeActions(
           type="button"
           variant="overlay"
         >
-          Googleカレンダーに登録
+          {t("overlay.actions.openGoogleCalendar")}
         </Button>
       ) : null}
       {props.canDownloadIcs ? (
@@ -128,11 +129,11 @@ function OverlayEventDetails(
       <table className={overlayClassNames.eventTable}>
         <tbody>
           <tr>
-            <th scope="row">タイトル</th>
+            <th scope="row">{t("overlay.event.fields.title")}</th>
             <td>{props.event.title}</td>
           </tr>
           <tr>
-            <th scope="row">日時</th>
+            <th scope="row">{t("overlay.event.fields.datetime")}</th>
             <td>
               {props.event.end
                 ? `${props.event.start} ～ ${props.event.end}`
@@ -141,13 +142,13 @@ function OverlayEventDetails(
           </tr>
           {props.event.location ? (
             <tr>
-              <th scope="row">場所</th>
+              <th scope="row">{t("overlay.event.fields.location")}</th>
               <td>{props.event.location}</td>
             </tr>
           ) : null}
           {props.event.description ? (
             <tr>
-              <th scope="row">概要</th>
+              <th scope="row">{t("overlay.event.fields.description")}</th>
               <td>{props.event.description}</td>
             </tr>
           ) : null}
@@ -155,7 +156,7 @@ function OverlayEventDetails(
       </table>
       <AuxTextDisclosure
         storageKey="overlaySelectionDisclosureOpen"
-        summary="選択したテキスト"
+        summary={t("overlay.selectionText")}
         text={props.selectionText}
       />
     </>
@@ -236,14 +237,14 @@ function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {
       </div>
       {isTokenError ? (
         <Button
-          aria-label="設定を開く"
+          aria-label={t("overlay.actions.openSettings")}
           onClick={openSettings}
-          title="設定を開く"
+          title={t("overlay.actions.openSettings")}
           type="button"
           variant="overlaySettingsLink"
         >
           <Icon name="settings" size={16} />
-          設定を開く
+          {t("overlay.actions.openSettings")}
         </Button>
       ) : null}
       {props.secondaryText ? (
@@ -253,7 +254,7 @@ function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {
       ) : null}
       <AuxTextDisclosure
         storageKey="overlaySelectionDisclosureOpen"
-        summary="選択したテキスト"
+        summary={t("overlay.selectionText")}
         text={props.selectionText}
       />
     </>
@@ -368,19 +369,23 @@ export function OverlayHeaderActions(
     <div className={overlayClassNames.actions}>
       <OverlayHeaderIconAction
         active={props.pinned}
-        ariaLabel={props.pinned ? "右上固定を解除" : "右上に固定"}
-        description="右上に固定します。もう一度クリックで解除。"
+        ariaLabel={
+          props.pinned
+            ? t("overlay.pin.unpinAriaLabel")
+            : t("overlay.pin.pinAriaLabel")
+        }
+        description={t("overlay.pin.description")}
         onClick={props.onTogglePinned}
         popoverId={props.pinPopoverId}
         testId="overlay-pin"
-        title="ピン留め"
+        title={t("overlay.pin.title")}
       >
         <PinIcon />
       </OverlayHeaderIconAction>
       <OverlayPopover
-        description="自動・ライト・ダークを順に切り替えます。"
+        description={t("overlay.theme.description")}
         id={props.themePopoverId}
-        title="テーマ切り替え"
+        title={t("overlay.theme.title")}
       >
         <ThemeCycleButton
           active={false}
@@ -396,14 +401,14 @@ export function OverlayHeaderActions(
           active={props.markdownView}
           ariaLabel={
             props.markdownView
-              ? "シンプル表示に切り替え"
-              : "Markdown表示に切り替え"
+              ? t("overlay.markdown.toSimple")
+              : t("overlay.markdown.toMarkdown")
           }
-          description="Markdown表示とシンプル表示を切り替えます。"
+          description={t("overlay.markdown.description")}
           onClick={props.onToggleMarkdownView}
           popoverId={props.markdownPopoverId}
           testId="overlay-markdown"
-          title="表示切り替え"
+          title={t("overlay.markdown.title")}
         >
           <Icon
             aria-hidden="true"
@@ -412,12 +417,12 @@ export function OverlayHeaderActions(
         </OverlayHeaderIconAction>
       ) : null}
       <OverlayHeaderIconAction
-        ariaLabel="閉じる"
-        description="オーバーレイを閉じます。"
+        ariaLabel={t("common.close")}
+        description={t("overlay.close.description")}
         onClick={props.onDismiss}
         popoverId={props.closePopoverId}
         testId="overlay-close"
-        title="閉じる"
+        title={t("common.close")}
       >
         ×
       </OverlayHeaderIconAction>
@@ -483,7 +488,9 @@ export function OverlayChatInput(
               key={key}
             >
               <span className={overlayClassNames.chatRole}>
-                {message.role === "user" ? "あなた" : "AI"}
+                {message.role === "user"
+                  ? t("overlay.chat.user")
+                  : t("overlay.chat.assistant")}
               </span>
               <TextOutput variant="overlayChatText">
                 {message.content}
@@ -492,8 +499,12 @@ export function OverlayChatInput(
           ))}
           {props.isChatting ? (
             <div className={overlayClassNames.chatMessage("assistant")}>
-              <span className={overlayClassNames.chatRole}>AI</span>
-              <span className={overlayClassNames.status}>考え中...</span>
+              <span className={overlayClassNames.chatRole}>
+                {t("overlay.chat.assistant")}
+              </span>
+              <span className={overlayClassNames.status}>
+                {t("overlay.chat.thinking")}
+              </span>
             </div>
           ) : null}
         </div>
@@ -505,7 +516,7 @@ export function OverlayChatInput(
             setInput(e.target.value);
           }}
           onKeyDown={handleKeyDown}
-          placeholder="フォローアップの質問を入力（Enter で送信）"
+          placeholder={t("overlay.chat.placeholder")}
           rows={2}
           value={input}
           variant="overlayChat"

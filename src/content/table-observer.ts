@@ -1,5 +1,6 @@
 // MutationObserver - 動的テーブル検出
 import type { Result } from "@praha/byethrow";
+import { t } from "@/i18n";
 import { enableSingleTable } from "./table-sort";
 
 let tableObserver: MutationObserver | null = null;
@@ -52,7 +53,7 @@ function checkForNewTables(
       enableSingleTable(table, getRowFilterSetting);
     }
 
-    onNotify(`${tables.length}個の新しいテーブルでソートを有効化しました`);
+    onNotify(t("tableSort.newTablesEnabledCount", { count: tables.length }));
   }
 }
 

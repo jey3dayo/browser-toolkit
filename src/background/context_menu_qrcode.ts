@@ -3,6 +3,7 @@ import type {
   ContentScriptMessage,
   ContextMenuTabParams,
 } from "@/background/types";
+import { t } from "@/i18n";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog, toErrorMessage } from "@/utils/errors";
 import { showErrorNotification } from "@/utils/notifications";
@@ -48,9 +49,9 @@ export async function handleQrCodeContextMenuClick(
       "error"
     );
     await showErrorNotification({
-      title: "QRコードを表示できません",
-      errorMessage: "このページのURLを取得できませんでした",
-      hint: "ページを再読み込みしてから、もう一度お試しください。",
+      title: t("background.qrCode.unavailableTitle"),
+      errorMessage: t("background.qrCode.missingUrl"),
+      hint: t("background.qrCode.reloadAndRetry"),
     });
     return;
   }
@@ -84,12 +85,12 @@ export async function handleQrCodeContextMenuClick(
           "error"
         );
         await showErrorNotification({
-          title: "QRコードを表示できません",
+          title: t("background.qrCode.unavailableTitle"),
           errorMessage: toErrorMessage(
             retryError,
-            "このページではQRコードを表示できませんでした"
+            t("background.qrCode.pageUnavailable")
           ),
-          hint: "ページを再読み込みしてから、もう一度お試しください。",
+          hint: t("background.qrCode.reloadAndRetry"),
         });
         return;
       }
@@ -104,9 +105,9 @@ export async function handleQrCodeContextMenuClick(
       // no-op
     });
     await showErrorNotification({
-      title: "QRコードを表示できません",
-      errorMessage: toErrorMessage(error, "QRコードの表示に失敗しました"),
-      hint: "ページを再読み込みしてから、もう一度お試しください。",
+      title: t("background.qrCode.unavailableTitle"),
+      errorMessage: toErrorMessage(error, t("background.qrCode.displayFailed")),
+      hint: t("background.qrCode.reloadAndRetry"),
     });
   }
 }

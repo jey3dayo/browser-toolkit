@@ -2,6 +2,7 @@ import { Result } from "@praha/byethrow";
 import React, { useState } from "react";
 import { Button } from "@/components/shared/Button";
 import type { ContextAction } from "@/context_actions";
+import { t } from "@/i18n";
 import type { PaneId } from "@/popup/panes";
 import type {
   PopupRuntime,
@@ -45,7 +46,7 @@ export function useActionRunner(params: {
   const outputTitle =
     output.status === "ready" || output.status === "running"
       ? output.title
-      : "出力";
+      : t("actions.output.defaultTitle");
   const outputText = output.status === "ready" ? output.text : "";
   const canCopyOutput = Boolean(outputText.trim());
   const targetSourceLabel = target
@@ -56,7 +57,7 @@ export function useActionRunner(params: {
       case "ready":
         return output.text;
       case "running":
-        return "実行中...";
+        return t("actions.output.running");
       case "error":
         return output.message;
       default:
@@ -121,7 +122,7 @@ export function useActionRunner(params: {
   const runAction = async (actionId: string): Promise<void> => {
     const action = params.actionsById.get(actionId);
     if (!action) {
-      params.notify.error("アクションが見つかりません");
+      params.notify.error(t("actions.errors.notFound"));
       setOutput({ status: "idle" });
       return;
     }
@@ -178,7 +179,7 @@ export function useActionRunner(params: {
     }
 
     setOutput(parsed.value);
-    params.notify.success("完了しました");
+    params.notify.success(t("actions.success.completed"));
 
     if (parsed.value.status === "ready") {
       const newEntry = {
@@ -220,13 +221,13 @@ export function useActionRunner(params: {
 
     try {
       if (!navigator.clipboard?.writeText) {
-        params.notify.error("この環境ではクリップボードにコピーできません");
+        params.notify.error(t("clipboard.errors.unavailable"));
         return;
       }
       await navigator.clipboard.writeText(text);
-      params.notify.success("コピーしました");
+      params.notify.success(t("notifications.copySuccess"));
     } catch {
-      params.notify.error("コピーに失敗しました");
+      params.notify.error(t("notifications.copyFailed"));
     }
   };
 
