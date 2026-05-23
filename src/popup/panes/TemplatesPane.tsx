@@ -360,7 +360,8 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
                 // no-op
               });
             }}
-            renderItem={(template) => (
+          >
+            {(template) => (
               <ListItemRow
                 actions={
                   <>
@@ -404,7 +405,7 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
                 title={template.title}
               />
             )}
-          />
+          </SortableList>
         ) : (
           <EmptyMessage>テンプレートが登録されていません</EmptyMessage>
         )}

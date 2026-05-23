@@ -193,7 +193,8 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
                 // no-op
               });
             }}
-            renderItem={(action) => (
+          >
+            {(action) => (
               <ActionListItem>
                 <ActionTitle>{action.title}</ActionTitle>
                 <Badge variant="actionKind">
@@ -202,7 +203,7 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
                 </Badge>
               </ActionListItem>
             )}
-          />
+          </SortableList>
         ) : (
           <EmptyMessage>アクションがありません</EmptyMessage>
         )}

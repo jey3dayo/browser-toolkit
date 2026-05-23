@@ -322,7 +322,8 @@ export function SearchEnginesPane(
                 // no-op
               });
             }}
-            renderItem={(engine) => (
+          >
+            {(engine) => (
               <ListItemRow
                 actions={
                   <>
@@ -365,7 +366,7 @@ export function SearchEnginesPane(
                 }
               />
             )}
-          />
+          </SortableList>
         ) : (
           <EmptyMessage>検索エンジンが登録されていません</EmptyMessage>
         )}

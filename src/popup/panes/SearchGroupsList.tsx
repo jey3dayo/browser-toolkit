@@ -59,7 +59,8 @@ export function SearchGroupsList(
           // no-op
         });
       }}
-      renderItem={(group) => (
+    >
+      {(group) => (
         <SearchGroupItem
           cancelEditingGroupName={cancelEditingGroupName}
           editingNameValue={editingNameValue}
@@ -77,6 +78,6 @@ export function SearchGroupsList(
           toggleGroupExpand={toggleGroupExpand}
         />
       )}
-    />
+    </SortableList>
   );
 }
