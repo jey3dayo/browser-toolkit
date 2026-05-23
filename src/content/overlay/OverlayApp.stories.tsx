@@ -253,7 +253,9 @@ export const MarkdownToggle: Story = {
     expect(markdownButton.getAttribute("aria-label")).toContain(
       "Markdown表示に切り替え"
     );
-    expect(shadow?.querySelector(".mbu-overlay-primary-markdown")).toBeNull();
+    expect(
+      shadow?.querySelector(`.${overlayClassNames.primaryMarkdown}`)
+    ).toBeNull();
 
     await userEvent.click(markdownButton);
     await waitFor(() => {
@@ -263,7 +265,7 @@ export const MarkdownToggle: Story = {
     });
 
     const markdownRoot = shadow?.querySelector<HTMLElement>(
-      ".mbu-overlay-primary-markdown"
+      `.${overlayClassNames.primaryMarkdown}`
     );
     expect(markdownRoot).not.toBeNull();
     expect(markdownRoot?.querySelector("ul")).not.toBeNull();

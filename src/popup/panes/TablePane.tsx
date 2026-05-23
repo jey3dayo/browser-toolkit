@@ -106,10 +106,11 @@ function TablePaneSection({
 function TablePaneSectionHeading({
   className,
   ...props
-}: ComponentPropsWithoutRef<"div">): React.JSX.Element {
+}: ComponentPropsWithoutRef<typeof Stack>): React.JSX.Element {
   return (
-    <div
-      className={cva("table-pane-section-heading stack-sm")({ className })}
+    <Stack
+      className={cva("table-pane-section-heading")({ className })}
+      spacing="small"
       {...props}
     />
   );

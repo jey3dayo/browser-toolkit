@@ -42,13 +42,17 @@ const directFieldClassPattern =
   /className=["'][^"']*(?:field|field-name|field-row)(?:\s|["'])/;
 const directLayoutWrapperPattern =
   /<div\s+className=["'](?:action-buttons|action-item|button-row|action-row|row-between|stack|stack-sm|pattern-input-row)["']/;
+const directCvaLayoutWrapperPattern =
+  /cva\(\s*["'](?:action-buttons|action-item|button-row|action-row|row-between|pattern-input-row|card card-stack|output-panel|editor-panel)["']/;
 const directPaneCardPattern = /className=["'][^"']*card card-stack/;
 const directTypographyClassPattern =
   /className=["'][^"']*(?:action-title|editor-title|hint|empty-message|pane-title|pane-subtitle|meta-title)(?:\s|["'])/;
 const directPanelSectionClassPattern =
   /<(?:div|section)\s+className=["'](?:output-panel|editor-panel)["']/;
 const directBadgeClassPattern =
-  /className=["'][^"']*(?:badge badge-info|chip chip-soft|action-kind-badge|focus-diagnostic-status)(?:\s|["'])/;
+  /className=["'][^"']*(?:badge badge-info|chip chip-soft|action-kind-badge)(?:\s|["'])/;
+const badgeOwnedFocusDiagnosticStatusClassPattern =
+  /className=["'][^"']*focus-diagnostic-status(?:--(?:active|neutral|warning))?(?:\s|["'])/;
 const directPatternListItemClassPattern =
   /className=["'][^"']*(?:pattern-list-inner|pattern-item|pattern-text)(?:\s|["'])/;
 const directSortableListClassPattern =
@@ -207,6 +211,14 @@ describe("shared UI primitive boundaries", () => {
     expect(offenders).toEqual([]);
   });
 
+  it("keeps cva-composed layout utility classes behind shared layout components", () => {
+    const offenders = findFilesMatching(directCvaLayoutWrapperPattern).filter(
+      (filePath) => filePath !== "src/components/shared/Layout.tsx"
+    );
+
+    expect(offenders).toEqual([]);
+  });
+
   it("keeps pane card layout behind the shared PaneCard component", () => {
     const offenders = findFilesMatching(directPaneCardPattern).filter(
       (filePath) => filePath !== "src/components/shared/Layout.tsx"
@@ -232,9 +244,12 @@ describe("shared UI primitive boundaries", () => {
   });
 
   it("keeps badge classes behind the shared Badge component", () => {
-    const offenders = findFilesMatching(directBadgeClassPattern).filter(
-      (filePath) => filePath !== "src/components/shared/Badge.tsx"
-    );
+    const offenders = [
+      ...findFilesMatching(directBadgeClassPattern),
+      ...findFilesMatching(badgeOwnedFocusDiagnosticStatusClassPattern),
+    ]
+      .filter((filePath) => filePath !== "src/components/shared/Badge.tsx")
+      .sort();
 
     expect(offenders).toEqual([]);
   });

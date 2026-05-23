@@ -199,8 +199,8 @@ export function OverlayTextDetails(
 
   const showCopyButton = props.mode !== "event" && props.canCopyPrimary;
   const primaryBlockClassName = [
-    "mbu-overlay-primary-block",
-    showCopyButton ? "mbu-overlay-primary-block--copy" : "",
+    overlayClassNames.primaryBlock,
+    showCopyButton ? overlayClassNames.primaryBlockCopy : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -212,7 +212,7 @@ export function OverlayTextDetails(
       <div className={primaryBlockClassName}>
         {props.markdownView ? (
           <TextBlock
-            className="mbu-overlay-primary-markdown"
+            className={overlayClassNames.primaryMarkdown}
             variant="overlayPrimaryText"
           >
             <ReactMarkdown

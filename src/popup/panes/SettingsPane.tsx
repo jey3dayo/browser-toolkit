@@ -1,6 +1,11 @@
 import { Result } from "@praha/byethrow";
 import { cva, type VariantProps } from "class-variance-authority";
-import { useEffect, useId, useState } from "react";
+import {
+  type ComponentPropsWithoutRef,
+  useEffect,
+  useId,
+  useState,
+} from "react";
 import { Icon } from "@/components/icon";
 import { Button } from "@/components/shared/Button";
 import { Field } from "@/components/shared/Field";
@@ -46,6 +51,7 @@ type SettingsPaneCardProps = {
 };
 
 const settingsPaneCardClassName = cva("card settings-card settings-pane-card");
+const settingsPaneOverviewClassName = cva("stack-sm settings-pane-overview");
 
 function SettingsPaneCard({
   children,
@@ -59,6 +65,19 @@ function SettingsPaneCard({
     >
       {children}
     </section>
+  );
+}
+
+function SettingsPaneOverview({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"section">): React.JSX.Element {
+  return (
+    <section
+      className={settingsPaneOverviewClassName({ className })}
+      data-testid="settings-overview"
+      {...props}
+    />
   );
 }
 
@@ -279,13 +298,10 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
 
   return (
     <PaneCard className="settings-pane">
-      <section
-        className="stack-sm settings-pane-overview"
-        data-testid="settings-overview"
-      >
+      <SettingsPaneOverview>
         <PaneTitle>設定</PaneTitle>
         <Hint>AI設定はこの端末のみ（同期されません）</Hint>
-      </section>
+      </SettingsPaneOverview>
 
       <SettingsPaneCard section="provider">
         <RadioFieldset
