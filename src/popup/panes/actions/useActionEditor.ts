@@ -5,6 +5,20 @@ import { persistWithRollback } from "@/popup/utils/persist";
 import { requireTrimmedString } from "@/popup/utils/required-input";
 import type { Notifier } from "@/ui/toast";
 
+type EditorState = {
+  id: string;
+  title: string;
+  kind: ContextActionKind;
+  prompt: string;
+};
+
+const EMPTY_EDITOR_STATE: EditorState = {
+  id: "",
+  title: "",
+  kind: "text",
+  prompt: "",
+} satisfies EditorState;
+
 export function useActionEditor(params: {
   actions: ContextAction[];
   actionsById: Map<string, ContextAction>;
@@ -29,43 +43,37 @@ export function useActionEditor(params: {
   deleteEditor: () => Promise<void>;
   resetEditorState: () => void;
 } {
-  const [editorId, setEditorId] = useState<string>("");
-  const [editorTitle, setEditorTitle] = useState("");
-  const [editorKind, setEditorKind] = useState<ContextActionKind>("text");
-  const [editorPrompt, setEditorPrompt] = useState("");
+  const [editor, setEditor] = useState<EditorState>(EMPTY_EDITOR_STATE);
 
   const resetEditorState = useCallback((): void => {
-    setEditorId("");
-    setEditorTitle("");
-    setEditorKind("text");
-    setEditorPrompt("");
+    setEditor(EMPTY_EDITOR_STATE);
   }, []);
 
   useEffect(() => {
-    if (!editorId) {
+    if (!editor.id) {
       return;
     }
-    if (params.actions.some((action) => action.id === editorId)) {
+    if (params.actions.some((action) => action.id === editor.id)) {
       return;
     }
     resetEditorState();
-  }, [params.actions, editorId, resetEditorState]);
+  }, [params.actions, editor.id, resetEditorState]);
 
   const selectActionForEdit = (nextId: string): void => {
-    setEditorId(nextId);
     if (!nextId) {
-      setEditorTitle("");
-      setEditorKind("text");
-      setEditorPrompt("");
+      resetEditorState();
       return;
     }
     const action = params.actionsById.get(nextId);
     if (!action) {
       return;
     }
-    setEditorTitle(action.title);
-    setEditorKind(action.kind);
-    setEditorPrompt(action.prompt);
+    setEditor({
+      id: action.id,
+      title: action.title,
+      kind: action.kind,
+      prompt: action.prompt,
+    });
   };
 
   const createActionId = (): string => {
@@ -78,7 +86,7 @@ export function useActionEditor(params: {
 
   const saveEditor = async (): Promise<void> => {
     const title = requireTrimmedString({
-      value: editorTitle,
+      value: editor.title,
       emptyMessage: "タイトルを入力してください",
       notify: params.notify,
     });
@@ -86,8 +94,8 @@ export function useActionEditor(params: {
       return;
     }
 
-    const prompt = editorPrompt;
-    if (editorKind === "text") {
+    const prompt = editor.prompt;
+    if (editor.kind === "text") {
       const hasPrompt = requireTrimmedString({
         value: prompt,
         emptyMessage: "プロンプトを入力してください",
@@ -98,18 +106,25 @@ export function useActionEditor(params: {
       }
     }
 
-    const nextId = editorId || createActionId();
-    const next: ContextAction = { id: nextId, title, kind: editorKind, prompt };
+    const nextId = editor.id || createActionId();
+    const next: ContextAction = {
+      id: nextId,
+      title,
+      kind: editor.kind,
+      prompt,
+    };
 
     const previous = params.actions;
-    const nextActions = editorId
-      ? params.actions.map((action) => (action.id === editorId ? next : action))
+    const nextActions = editor.id
+      ? params.actions.map((action) =>
+          action.id === editor.id ? next : action
+        )
       : [...params.actions, next];
 
     await persistWithRollback({
       applyNext: () => {
         params.setActions(nextActions);
-        setEditorId(nextId);
+        setEditor((current) => ({ ...current, id: nextId }));
       },
       rollback: () => {
         params.setActions(previous);
@@ -128,12 +143,12 @@ export function useActionEditor(params: {
   };
 
   const deleteEditor = async (): Promise<void> => {
-    if (!editorId) {
+    if (!editor.id) {
       return;
     }
 
     const nextActions = params.actions.filter(
-      (action) => action.id !== editorId
+      (action) => action.id !== editor.id
     );
     await params.persistActionsUpdate(
       nextActions,
@@ -143,13 +158,19 @@ export function useActionEditor(params: {
   };
 
   return {
-    editorId,
-    editorTitle,
-    editorKind,
-    editorPrompt,
-    setEditorTitle,
-    setEditorKind,
-    setEditorPrompt,
+    editorId: editor.id,
+    editorTitle: editor.title,
+    editorKind: editor.kind,
+    editorPrompt: editor.prompt,
+    setEditorTitle: (title) => {
+      setEditor((current) => ({ ...current, title }));
+    },
+    setEditorKind: (kind) => {
+      setEditor((current) => ({ ...current, kind }));
+    },
+    setEditorPrompt: (prompt) => {
+      setEditor((current) => ({ ...current, prompt }));
+    },
     selectActionForEdit,
     saveEditor,
     deleteEditor,

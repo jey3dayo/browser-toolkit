@@ -546,7 +546,6 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
   const [patternInput, setPatternInput] = useState("");
   const [focusPatterns, setFocusPatterns] = useState<string[]>([]);
   const [focusPatternInput, setFocusPatternInput] = useState("");
-  const [focusPatternsHydrated, setFocusPatternsHydrated] = useState(false);
   const [focusDiagnostic, setFocusDiagnostic] =
     useState<FocusDiagnosticView | null>(null);
   const [focusDiagnosticRunning, setFocusDiagnosticRunning] = useState(false);
@@ -557,41 +556,6 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
   const focusDiagnosticTimerRef = useRef<number | null>(null);
 
   focusPatternsRef.current = focusPatterns;
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const data = await props.runtime.storageSyncGet([
-        "domainPatternConfigs",
-        "focusOverridePatterns",
-      ]);
-      if (Result.isFailure(data)) {
-        if (!cancelled) {
-          setFocusPatternsHydrated(true);
-        }
-        return;
-      }
-      if (cancelled) {
-        return;
-      }
-      const configsResult = normalizeDomainPatternConfigs(data.value);
-      if (Result.isSuccess(configsResult)) {
-        setPatterns(configsResult.value.slice(0, 200));
-      }
-      const focusPatternsResult = normalizeFocusOverridePatterns(data.value);
-      if (Result.isSuccess(focusPatternsResult)) {
-        setFocusPatterns(focusPatternsResult.value);
-      }
-      setFocusPatternsHydrated(true);
-    })().catch(() => {
-      if (!cancelled) {
-        setFocusPatternsHydrated(true);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [props.runtime]);
 
   useEffect(
     () => () => {
@@ -748,23 +712,60 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
   });
 
   useEffect(() => {
-    if (!focusPatternsHydrated) {
-      return;
-    }
+    let cancelled = false;
+    let focusPatternsHydrated = false;
 
     const diagnoseIfVisible = (): void => {
+      if (!focusPatternsHydrated) {
+        return;
+      }
       if (window.location.hash !== "#pane-table") {
         return;
       }
       requestFocusDiagnostic(false);
     };
 
-    diagnoseIfVisible();
+    const markFocusPatternsHydrated = (): void => {
+      if (cancelled) {
+        return;
+      }
+      focusPatternsHydrated = true;
+      diagnoseIfVisible();
+    };
+
     window.addEventListener("hashchange", diagnoseIfVisible);
+
+    (async () => {
+      const data = await props.runtime.storageSyncGet([
+        "domainPatternConfigs",
+        "focusOverridePatterns",
+      ]);
+      if (Result.isFailure(data)) {
+        markFocusPatternsHydrated();
+        return;
+      }
+      if (cancelled) {
+        return;
+      }
+      const configsResult = normalizeDomainPatternConfigs(data.value);
+      if (Result.isSuccess(configsResult)) {
+        setPatterns(configsResult.value.slice(0, 200));
+      }
+      const focusPatternsResult = normalizeFocusOverridePatterns(data.value);
+      if (Result.isSuccess(focusPatternsResult)) {
+        focusPatternsRef.current = focusPatternsResult.value;
+        setFocusPatterns(focusPatternsResult.value);
+      }
+      markFocusPatternsHydrated();
+    })().catch(() => {
+      markFocusPatternsHydrated();
+    });
+
     return () => {
+      cancelled = true;
       window.removeEventListener("hashchange", diagnoseIfVisible);
     };
-  }, [focusPatternsHydrated]);
+  }, [props.runtime]);
 
   const enableNow = async (): Promise<void> => {
     const tabIdResult = await props.runtime.getActiveTabId();

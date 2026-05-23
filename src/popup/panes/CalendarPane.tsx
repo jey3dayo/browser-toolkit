@@ -56,6 +56,7 @@ type OutputState =
   | { status: "error"; message: string };
 
 export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
+  const { focusTokenInput, navigateToPane, notify, runtime } = props;
   const [targets, setTargets] = useState<CalendarRegistrationTarget[]>(
     DEFAULT_CALENDAR_TARGETS
   );
@@ -95,7 +96,7 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const data = await props.runtime.storageSyncGet(["calendarTargets"]);
+      const data = await runtime.storageSyncGet(["calendarTargets"]);
       if (Result.isFailure(data)) {
         return;
       }
@@ -106,7 +107,7 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
       setTargets(next);
     })().catch((error) => {
       debugLog(
-        "CalendarPane.useEffect[props.runtime]",
+        "CalendarPane.useEffect[runtime]",
         "failed",
         { error: formatErrorLog("", {}, error) },
         "error"
@@ -117,7 +118,7 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
     return () => {
       cancelled = true;
     };
-  }, [props.runtime]);
+  }, [runtime]);
 
   const saveTargets = useCallback(
     async (next: CalendarRegistrationTarget[]): Promise<void> => {
@@ -129,18 +130,18 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
           setTargets(targets);
         },
         persist: () =>
-          props.runtime.storageSyncSet({
+          runtime.storageSyncSet({
             calendarTargets: next,
           }),
         onSuccess: () => {
-          props.notify.success("保存しました");
+          notify.success("保存しました");
         },
         onFailure: () => {
-          props.notify.error("保存に失敗しました");
+          notify.error("保存に失敗しました");
         },
       });
     },
-    [props.notify, props.runtime, targets]
+    [notify, runtime, targets]
   );
 
   const toggleTarget = (target: CalendarRegistrationTarget): void => {
@@ -154,22 +155,22 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
 
   const ensureTokenReady = async (): Promise<boolean> => {
     const tokenConfigured = await ensureOpenAiTokenConfigured({
-      storageLocalGet: (keys) => props.runtime.storageLocalGet(keys),
+      storageLocalGet: (keys) => runtime.storageLocalGet(keys),
       showNotification: (messageOrOptions, type) => {
         if (typeof messageOrOptions === "string") {
           const message: string = messageOrOptions;
           if (type === "error") {
-            props.notify.error(message);
+            notify.error(message);
             return;
           }
-          props.notify.info(message);
+          notify.info(message);
           return;
         }
 
         // NotificationOptions with action
         const options: NotificationOptions = messageOrOptions;
         if (type === "error") {
-          props.notify.error({
+          notify.error({
             title: options.message,
             description: options.action ? (
               <Button
@@ -183,12 +184,12 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
           });
           return;
         }
-        props.notify.info(options.message);
+        notify.info(options.message);
       },
       navigateToPane: (paneId) => {
-        props.navigateToPane(paneId as PaneId);
+        navigateToPane(paneId as PaneId);
       },
-      focusTokenInput: props.focusTokenInput,
+      focusTokenInput,
     });
 
     return !Result.isFailure(tokenConfigured);
@@ -202,13 +203,13 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
       message.includes("未設定") ||
       message.includes("API Key")
     ) {
-      props.notify.error({
+      notify.error({
         title: message,
         description: (
           <Button
             onClick={() => {
-              props.navigateToPane("pane-settings");
-              props.focusTokenInput();
+              navigateToPane("pane-settings");
+              focusTokenInput();
             }}
             type="button"
             variant="toastActionLink"
@@ -218,14 +219,14 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
         ),
       });
     } else {
-      props.notify.error(message);
+      notify.error(message);
     }
     setOutput({ status: "idle" });
   };
 
   const ensureTargetsSelected = (): boolean => {
     if (targets.length === 0) {
-      props.notify.error("登録先を1つ以上選択してください");
+      notify.error("登録先を1つ以上選択してください");
       return false;
     }
     return true;
@@ -235,7 +236,7 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
     target: SummaryTarget
   ): Promise<SummarizeEventSuccessPayload | null> =>
     await sendBackgroundResult({
-      runtime: props.runtime,
+      runtime,
       message: { action: "summarizeEvent", target },
       onError: reportError,
     });
@@ -254,7 +255,7 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
     setOutput({ status: "running" });
 
     const target = await fetchSummaryTargetForActiveTab({
-      runtime: props.runtime,
+      runtime,
       onError: reportError,
     });
     if (!target) {
@@ -270,7 +271,7 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
       ? payload.calendarUrl?.trim() || undefined
       : undefined;
     if (hasGoogle && !calendarUrl) {
-      props.notify.error(
+      notify.error(
         payload.calendarError ?? "Googleカレンダーリンクを生成できません"
       );
     }
@@ -282,7 +283,7 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
       calendarUrl,
       event: payload.event,
     });
-    props.notify.success("完了しました");
+    notify.success("完了しました");
   };
 
   const copyOutput = async (): Promise<void> => {
@@ -296,13 +297,13 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
 
     try {
       if (!navigator.clipboard?.writeText) {
-        props.notify.error("この環境ではクリップボードにコピーできません");
+        notify.error("この環境ではクリップボードにコピーできません");
         return;
       }
       await navigator.clipboard.writeText(text);
-      props.notify.success("コピーしました");
+      notify.success("コピーしました");
     } catch {
-      props.notify.error("コピーに失敗しました");
+      notify.error("コピーに失敗しました");
     }
   };
 
@@ -312,10 +313,10 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
     }
     const calendarUrl = output.calendarUrl?.trim() ?? "";
     if (!calendarUrl) {
-      props.notify.error("カレンダーリンクが見つかりません");
+      notify.error("カレンダーリンクが見つかりません");
       return;
     }
-    props.runtime.openUrl(calendarUrl);
+    runtime.openUrl(calendarUrl);
   };
 
   const downloadIcs = (): void => {
@@ -325,7 +326,7 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
     const event = output.event;
     const ics = buildIcs(event);
     if (!ics) {
-      props.notify.error(".ics の生成に失敗しました");
+      notify.error(".ics の生成に失敗しました");
       return;
     }
 
@@ -339,9 +340,9 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
       link.click();
       link.remove();
       URL.revokeObjectURL(url);
-      props.notify.success("ダウンロードしました");
+      notify.success("ダウンロードしました");
     } catch {
-      props.notify.error(".ics のダウンロードに失敗しました");
+      notify.error(".ics のダウンロードに失敗しました");
     }
   };
 
