@@ -215,6 +215,7 @@ export function ensureShadowUiBaseStyles(shadowRoot: ShadowRoot): void {
     Array.isArray(shadowRoot.adoptedStyleSheets)
   ) {
     const existing = shadowRoot.adoptedStyleSheets;
+    const existingSheets = new Set(existing);
     const next = [...existing];
     let changed = false;
     for (const sheet of [
@@ -222,7 +223,7 @@ export function ensureShadowUiBaseStyles(shadowRoot: ShadowRoot): void {
       shadowConstructedSheets.semantic,
       shadowConstructedSheets.components,
     ]) {
-      if (!existing.includes(sheet)) {
+      if (!existingSheets.has(sheet)) {
         next.push(sheet);
         changed = true;
       }

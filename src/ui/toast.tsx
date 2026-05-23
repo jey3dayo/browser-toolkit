@@ -136,9 +136,9 @@ function ToastList(): React.JSX.Element {
         if (toast.positionerProps?.anchor) {
           return (
             <Toast.Positioner
+              key={toast.id}
               {...toast.positionerProps}
               className="mbu-toast-positioner"
-              key={toast.id}
               toast={toast}
             >
               {content}
