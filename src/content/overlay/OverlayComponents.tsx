@@ -428,6 +428,23 @@ export function OverlayHeaderActions(
 /**
  * Chat input component for inline follow-up questions
  */
+function createKeyedChatMessages(
+  messages: ChatMessage[]
+): { key: string; message: ChatMessage }[] {
+  const occurrenceCounts = new Map<string, number>();
+
+  return messages.map((message) => {
+    const signature = `${message.role}:${message.content}`;
+    const occurrence = occurrenceCounts.get(signature) ?? 0;
+    occurrenceCounts.set(signature, occurrence + 1);
+
+    return {
+      key: `${signature}:${occurrence}`,
+      message,
+    };
+  });
+}
+
 type OverlayChatInputProps = {
   chatMessages: ChatMessage[];
   isChatting: boolean;
@@ -438,6 +455,7 @@ export function OverlayChatInput(
   props: OverlayChatInputProps
 ): React.JSX.Element {
   const [input, setInput] = useState("");
+  const keyedChatMessages = createKeyedChatMessages(props.chatMessages);
 
   const handleSend = (): void => {
     const text = input.trim();
@@ -459,16 +477,17 @@ export function OverlayChatInput(
     <div className={overlayClassNames.chat}>
       {props.chatMessages.length > 0 ? (
         <div className={overlayClassNames.chatMessages}>
-          {props.chatMessages.map((msg, i) => (
+          {keyedChatMessages.map(({ key, message }) => (
             <div
-              className={overlayClassNames.chatMessage(msg.role)}
-              // biome-ignore lint/suspicious/noArrayIndexKey: chat messages are append-only
-              key={i}
+              className={overlayClassNames.chatMessage(message.role)}
+              key={key}
             >
               <span className={overlayClassNames.chatRole}>
-                {msg.role === "user" ? "あなた" : "AI"}
+                {message.role === "user" ? "あなた" : "AI"}
               </span>
-              <TextOutput variant="overlayChatText">{msg.content}</TextOutput>
+              <TextOutput variant="overlayChatText">
+                {message.content}
+              </TextOutput>
             </div>
           ))}
           {props.isChatting ? (
