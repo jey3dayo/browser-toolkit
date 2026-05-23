@@ -13,4 +13,10 @@ describe("i18n", () => {
       expect(i18n.exists(item.ariaLabelKey)).toBe(true);
     }
   });
+
+  it("resolves create link pane labels from ja resources", () => {
+    expect(i18n.t("createLink.title")).toBe("リンク作成");
+    expect(i18n.t("createLink.fields.format")).toBe("形式");
+    expect(i18n.t("linkFormat.text")).toBe("テキスト（タイトル + URL）");
+  });
 });

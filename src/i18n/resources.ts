@@ -45,6 +45,41 @@ export const resources = {
           page: "ページ本文",
         },
       },
+      createLink: {
+        title: "リンク作成",
+        qrCode: "QRコード",
+        copy: "コピー",
+        description:
+          "現在のタブのURLを各形式でコピーします（タイトル/URLは編集できます）。",
+        fields: {
+          title: "タイトル",
+          url: "URL",
+          format: "形式",
+        },
+        panels: {
+          qrCode: "QRコード",
+          preview: "プレビュー",
+        },
+        errors: {
+          qrGeneration: "QRコードの生成に失敗しました",
+          formatSave: "形式の保存に失敗しました",
+          emptyContent: "コピーする内容がありません",
+          emptyUrl: "URLが空です",
+          clipboardUnavailable: "この環境ではクリップボードにコピーできません",
+          copyFailed: "コピーに失敗しました",
+        },
+        success: {
+          copied: "コピーしました",
+        },
+      },
+      linkFormat: {
+        url: "URL",
+        text: "テキスト（タイトル + URL）",
+        markdown: "Markdown",
+        html: "HTML <a>",
+        org: "Org-mode",
+        bbcode: "BBCode",
+      },
     },
   },
 } as const;

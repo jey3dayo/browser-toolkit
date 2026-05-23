@@ -71,6 +71,12 @@ describe("popup create link pane", () => {
   });
 
   it("loads active tab title/url, formats markdown, and copies to clipboard", async () => {
+    expect(dom.window.document.body.textContent).toContain("リンク作成");
+    expect(dom.window.document.body.textContent).toContain(
+      "現在のタブのURLを各形式でコピーします（タイトル/URLは編集できます）。"
+    );
+    expect(dom.window.document.body.textContent).toContain("プレビュー");
+
     const titleInput = dom.window.document.querySelector<HTMLInputElement>(
       '[data-testid="create-link-title"]'
     );
@@ -85,6 +91,11 @@ describe("popup create link pane", () => {
     expect(output?.value).toBe(
       "[Example Title](<https://example.com/path?q=1>)"
     );
+
+    const formatButton = dom.window.document.querySelector<HTMLButtonElement>(
+      '[data-testid="create-link-format"]'
+    );
+    expect(formatButton?.textContent).toContain("Markdown");
 
     const copyButton = dom.window.document.querySelector<HTMLButtonElement>(
       '[data-testid="create-link-copy"]'

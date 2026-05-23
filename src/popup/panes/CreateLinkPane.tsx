@@ -1,6 +1,7 @@
 import { Result } from "@praha/byethrow";
 import QRCode from "qrcode";
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Icon } from "@/components/icon";
 import { Button } from "@/components/shared/Button";
 import { Field } from "@/components/shared/Field";
@@ -15,6 +16,7 @@ import {
 import { Select } from "@/components/shared/Select";
 import { Textarea } from "@/components/shared/Textarea";
 import { Hint, MetaTitle, PaneTitle } from "@/components/shared/Typography";
+import { i18n, type TranslationKey } from "@/i18n";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import type { PopupRuntime } from "@/popup/runtime";
 import { persistWithRollback } from "@/popup/utils/persist";
@@ -36,6 +38,15 @@ type CreateLinkInitialState = {
   format?: LinkFormat;
   title?: string;
   url?: string;
+};
+
+const LINK_FORMAT_LABEL_KEYS: Record<LinkFormat, TranslationKey> = {
+  bbcode: "linkFormat.bbcode",
+  html: "linkFormat.html",
+  markdown: "linkFormat.markdown",
+  org: "linkFormat.org",
+  text: "linkFormat.text",
+  url: "linkFormat.url",
 };
 
 async function resolveInitialLinkState(
@@ -86,6 +97,7 @@ async function resolveInitialFormatState(
 
 export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
   const { initialFormat, initialLink, notify, runtime } = props;
+  const { t } = useTranslation(undefined, { i18n });
   const [title, setTitle] = useState(initialLink?.title ?? "");
   const [url, setUrl] = useState(initialLink?.url ?? "");
   const [format, setFormat] = useState<LinkFormat>(initialFormat ?? "markdown");
@@ -151,11 +163,11 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
       }
       QRCode.toCanvas(canvas, trimmedUrl, { width: 200, margin: 2 }).catch(
         () => {
-          notify.error("QRコードの生成に失敗しました");
+          notify.error(t("createLink.errors.qrGeneration"));
         }
       );
     },
-    [notify, showQr, url]
+    [notify, showQr, t, url]
   );
 
   const handleFormatChange = useCallback(
@@ -174,36 +186,40 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
         },
         persist: () => runtime.storageSyncSet({ linkFormat: next }),
         onFailure: () => {
-          notify.error("形式の保存に失敗しました");
+          notify.error(t("createLink.errors.formatSave"));
         },
       });
     },
-    [format, notify, runtime]
+    [format, notify, runtime, t]
   );
 
   const copyOutput = async (): Promise<void> => {
     const text = output.trim();
     if (!text) {
-      notify.error(url.trim() ? "コピーする内容がありません" : "URLが空です");
+      notify.error(
+        url.trim()
+          ? t("createLink.errors.emptyContent")
+          : t("createLink.errors.emptyUrl")
+      );
       return;
     }
 
     try {
       if (!navigator.clipboard?.writeText) {
-        notify.error("この環境ではクリップボードにコピーできません");
+        notify.error(t("createLink.errors.clipboardUnavailable"));
         return;
       }
       await navigator.clipboard.writeText(text);
-      notify.success("コピーしました");
+      notify.success(t("createLink.success.copied"));
     } catch {
-      notify.error("コピーに失敗しました");
+      notify.error(t("createLink.errors.copyFailed"));
     }
   };
 
   return (
     <PaneCard>
       <RowBetween>
-        <PaneTitle>リンク作成</PaneTitle>
+        <PaneTitle>{t("createLink.title")}</PaneTitle>
         <ButtonRow>
           <Button
             data-testid="create-link-qr"
@@ -212,7 +228,7 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
               setShowQr((prev) => !prev);
             }}
             size="small"
-            title="QRコード"
+            title={t("createLink.qrCode")}
             type="button"
             variant="ghost"
           >
@@ -230,17 +246,15 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
             type="button"
             variant="primary"
           >
-            コピー
+            {t("createLink.copy")}
           </Button>
         </ButtonRow>
       </RowBetween>
 
-      <Hint>
-        現在のタブのURLを各形式でコピーします（タイトル/URLは編集できます）。
-      </Hint>
+      <Hint>{t("createLink.description")}</Hint>
 
       <Stack>
-        <Field htmlFor={titleInputId} label="タイトル">
+        <Field htmlFor={titleInputId} label={t("createLink.fields.title")}>
           <Input
             data-testid="create-link-title"
             id={titleInputId}
@@ -250,7 +264,7 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
           />
         </Field>
 
-        <Field htmlFor={urlInputId} label="URL">
+        <Field htmlFor={urlInputId} label={t("createLink.fields.url")}>
           <Input
             data-testid="create-link-url"
             id={urlInputId}
@@ -260,7 +274,11 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
           />
         </Field>
 
-        <Field htmlFor={formatTriggerId} label="形式" labelId={formatLabelId}>
+        <Field
+          htmlFor={formatTriggerId}
+          label={t("createLink.fields.format")}
+          labelId={formatLabelId}
+        >
           <Select
             ariaLabelledBy={formatLabelId}
             onValueChange={(value) => {
@@ -272,7 +290,7 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
               });
             }}
             options={LINK_FORMAT_OPTIONS.map((option) => ({
-              label: option.label,
+              label: t(LINK_FORMAT_LABEL_KEYS[option.value]),
               value: option.value,
             }))}
             triggerId={formatTriggerId}
@@ -285,7 +303,7 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
 
       {showQr ? (
         <OutputPanel>
-          <MetaTitle>QRコード</MetaTitle>
+          <MetaTitle>{t("createLink.panels.qrCode")}</MetaTitle>
           <div style={{ display: "flex", justifyContent: "center" }}>
             <canvas ref={drawQrCanvas} />
           </div>
@@ -294,7 +312,7 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
 
       <OutputPanel>
         <RowBetween>
-          <MetaTitle>プレビュー</MetaTitle>
+          <MetaTitle>{t("createLink.panels.preview")}</MetaTitle>
         </RowBetween>
         <Textarea
           data-testid="create-link-output"
