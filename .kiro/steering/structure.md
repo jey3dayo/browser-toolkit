@@ -22,7 +22,7 @@
 - Popup features are pane-based: add a new utility as a pane under `src/popup/panes/` and register it in `src/popup/panes.ts`.
 - `.storybook/` config supports developing/testing UI components outside the extension shell.
 - `dist/` is generated build output (bundled JS); it is treated as an artifact, not a source of truth.
-- `tests/` contains Vitest tests (unit `jsdom`, plus Storybook/browser tests).
+- `tests/` contains Vitest tests (Node unit, DOM/jsdom unit, plus Storybook/browser tests).
 
 ## Entry Points & Responsibilities
 

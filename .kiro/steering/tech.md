@@ -147,7 +147,7 @@ async function processData(): Promise<
 
 ## Quality Gates
 
-- Tests: `vitest` (unit `jsdom`) + Storybook tests (Vitest browser + Playwright) to keep UI behavior/a11y from drifting.
+- Tests: `vitest` (Node unit + DOM/jsdom unit) + Storybook tests (Vitest browser + Playwright) to keep UI behavior/a11y from drifting.
 - Formatting: Ultracite (Biome) with single quotes and wider line width.
 - Linting: Ultracite (Biome) ruleset, with Chrome extension globals configured.
 - Prefer running `mise run ci` locally to mirror GitHub Actions (format + lint + tests + storybook tests + build).

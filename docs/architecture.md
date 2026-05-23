@@ -434,7 +434,7 @@ function handleTestAiTokenRequest(
 
 ### 4. テスト戦略
 
-- **ユニットテスト**: jsdom環境でロジックをテスト
+- **ユニットテスト**: Node 環境で純粋ロジックを、jsdom 環境で DOM/React 依存ロジックをテスト
 - **Storybookテスト**: Playwrightブラウザ環境でUIをテスト
 - **最小限のE2E**: 重要フローのみ手動テスト
 

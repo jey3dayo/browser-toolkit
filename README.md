@@ -195,7 +195,7 @@
 
 - `mise run format`（Ultracite/Biome による自動整形）
 - `mise run lint`（型チェック + Lint）
-- `mise run test`（Vitest ユニットテスト）
+- `mise run test`（Vitest ユニットテスト: Node + DOM）
 - `mise run test:storybook`（Storybook/Vitest addon のテスト）
 - `mise run build`（`dist/` へバンドル）
 - `mise run ci`（format + lint + test + storybook test + build）
@@ -205,6 +205,8 @@
 - `pnpm run dev`（開発サーバー: 自動ビルド + 拡張機能の自動リロード）
 - `pnpm run watch`（bundle の watch）
 - `pnpm run storybook`（`http://localhost:6006`）
+- `pnpm run test:unit:node`（Node 環境のユニットテスト）
+- `pnpm run test:unit:dom`（jsdom 環境のユニットテスト）
 - `pnpm run test:e2e`（E2Eテスト実行）
 - `pnpm run test:e2e:ui`（E2EテストをUIモードで実行）
 - `pnpm run test:e2e:debug`（E2Eテストをデバッグモードで実行）
@@ -330,7 +332,7 @@ browser-toolkit/
 │   ├── styles/                # Design Tokens
 │   ├── ui/                    # 共通 UI（theme/styles/toast）
 │   └── utils/                 # ユーティリティ
-└── tests/                     # Vitest（jsdom + chrome stubs）+ Playwright E2E
+└── tests/                     # Vitest（Node / jsdom + chrome stubs）+ Playwright E2E
 ```
 
 詳細なアーキテクチャは `docs/architecture.md` を参照してください。

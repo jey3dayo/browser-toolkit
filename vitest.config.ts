@@ -40,9 +40,26 @@ export default defineConfig({
         },
         plugins: [tomlAsText()],
         test: {
-          name: "unit",
-          environment: "jsdom",
+          name: "node",
+          environment: "node",
           include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],
+          exclude: [
+            "tests/**/*.dom.test.ts",
+            "tests/**/*.dom.test.tsx",
+            "src/**/*.stories.*",
+          ],
+          clearMocks: true,
+        },
+      },
+      {
+        resolve: {
+          alias,
+        },
+        plugins: [tomlAsText()],
+        test: {
+          name: "dom",
+          environment: "jsdom",
+          include: ["tests/**/*.dom.test.ts", "tests/**/*.dom.test.tsx"],
           setupFiles: ["tests/setup.ts"],
           clearMocks: true,
         },
