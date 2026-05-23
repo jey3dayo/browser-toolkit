@@ -217,8 +217,10 @@ export function OverlayTextDetails(
           >
             <ReactMarkdown
               components={{
-                a: ({ node: _node, ...linkProps }) => (
-                  <a {...linkProps} rel="noreferrer" target="_blank" />
+                a: ({ children, node: _node, ...linkProps }) => (
+                  <a {...linkProps} rel="noreferrer" target="_blank">
+                    {children}
+                  </a>
                 ),
               }}
               remarkPlugins={[remarkGfm]}

@@ -15,24 +15,39 @@ type HintProps =
     });
 
 export function PaneTitle({
+  children,
   className,
   ...props
 }: HeadingProps): React.JSX.Element {
-  return <h2 className={cva("pane-title")({ className })} {...props} />;
+  return (
+    <h2 className={cva("pane-title")({ className })} {...props}>
+      {children}
+    </h2>
+  );
 }
 
 export function PaneSubtitle({
+  children,
   className,
   ...props
 }: SubheadingProps): React.JSX.Element {
-  return <h3 className={cva("pane-subtitle")({ className })} {...props} />;
+  return (
+    <h3 className={cva("pane-subtitle")({ className })} {...props}>
+      {children}
+    </h3>
+  );
 }
 
 export function EditorTitle({
+  children,
   className,
   ...props
 }: SubheadingProps): React.JSX.Element {
-  return <h3 className={cva("editor-title")({ className })} {...props} />;
+  return (
+    <h3 className={cva("editor-title")({ className })} {...props}>
+      {children}
+    </h3>
+  );
 }
 
 export function MetaTitle({
