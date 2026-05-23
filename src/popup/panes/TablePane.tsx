@@ -30,15 +30,17 @@ import {
   PaneTitle,
 } from "@/components/shared/Typography";
 import {
+  type DomainPatternConfig,
+  normalizeDomainPatternConfigs,
+} from "@/domain-pattern-configs";
+import {
   normalizeFocusOverridePatterns,
   toFocusOverrideMatchPattern,
 } from "@/focus-override/patterns";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import type {
-  DomainPatternConfig,
   EnableTableSortMessage,
   FocusOverrideDiagnosticSnapshot,
-  SyncStorageData,
 } from "@/popup/runtime";
 import { persistWithRollback } from "@/popup/utils/persist";
 import { requireTrimmedString } from "@/popup/utils/required-input";
@@ -431,44 +433,6 @@ function FocusDiagnosticPanel({
   );
 }
 
-/**
- * ストレージデータからDomainPatternConfig配列を正規化する
- * @param data - ストレージデータ
- * @returns 成功時はDomainPatternConfig配列、失敗時はエラーメッセージ
- */
-function normalizeDomainPatternConfigsForPopup(
-  data: Partial<SyncStorageData>
-): Result.Result<DomainPatternConfig[], string> {
-  if (data.domainPatternConfigs) {
-    if (!Array.isArray(data.domainPatternConfigs)) {
-      return Result.fail("domainPatternConfigs must be an array");
-    }
-
-    const configs: DomainPatternConfig[] = [];
-    for (const item of data.domainPatternConfigs) {
-      if (
-        typeof item !== "object" ||
-        item === null ||
-        typeof item.pattern !== "string" ||
-        typeof item.enableRowFilter !== "boolean"
-      ) {
-        return Result.fail("Invalid domainPatternConfig item format");
-      }
-      const pattern = item.pattern.trim();
-      if (!pattern) {
-        continue;
-      }
-      configs.push({
-        pattern,
-        enableRowFilter: item.enableRowFilter,
-      });
-    }
-    return Result.succeed(configs.slice(0, 200));
-  }
-
-  return Result.succeed([]);
-}
-
 function summarizeUrl(url: string | undefined): string | null {
   if (!url?.trim()) {
     return null;
@@ -546,9 +510,9 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
       if (cancelled) {
         return;
       }
-      const configsResult = normalizeDomainPatternConfigsForPopup(data.value);
+      const configsResult = normalizeDomainPatternConfigs(data.value);
       if (Result.isSuccess(configsResult)) {
-        setPatterns(configsResult.value);
+        setPatterns(configsResult.value.slice(0, 200));
       }
       const focusPatternsResult = normalizeFocusOverridePatterns(data.value);
       if (Result.isSuccess(focusPatternsResult)) {

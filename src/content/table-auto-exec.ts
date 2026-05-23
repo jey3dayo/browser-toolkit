@@ -1,15 +1,16 @@
 // テーブル自動実行ロジック（SPA URL変化も含む）
-import {
-  getCurrentPatternRowFilterSetting as getCurrentPatternRowFilterSettingFromConfig,
-  refreshTableConfig,
-} from "@/content/config";
+
+import { refreshTableConfig } from "@/content/config";
 import {
   startTableObserver,
   stopTableObserver,
 } from "@/content/table-observer";
 import { enableTableSort } from "@/content/table-sort";
 import { matchesAnyPattern } from "@/content/url-pattern";
-import type { DomainPatternConfig } from "@/popup/runtime";
+import {
+  type DomainPatternConfig,
+  getCurrentPatternRowFilterSetting as getCurrentPatternRowFilterSettingFromConfig,
+} from "@/domain-pattern-configs";
 
 export type TableAutoExecDeps = {
   showNotification: (message: string) => void;

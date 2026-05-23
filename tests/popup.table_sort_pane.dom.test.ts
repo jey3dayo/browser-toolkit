@@ -24,6 +24,10 @@ type SetupOptions = {
     url?: string;
   } | null;
   focusPatterns?: string[];
+  domainPatternConfigs?: Array<{
+    pattern: string;
+    enableRowFilter: boolean;
+  }>;
   focusDiagnosisResult?: {
     markerPresent: boolean;
     visibilityState: string;
@@ -55,7 +59,7 @@ async function setupTablePane(
       const keyList = Array.isArray(keys) ? keys : [String(keys)];
       const items: Record<string, unknown> = {};
       if (keyList.includes("domainPatternConfigs")) {
-        items.domainPatternConfigs = [
+        items.domainPatternConfigs = options.domainPatternConfigs ?? [
           { pattern: "example.com/foo*", enableRowFilter: false },
         ];
       }
@@ -258,6 +262,24 @@ describe("popup Table Sort pane", { timeout: 15_000 }, () => {
         ]),
       }),
       expect.any(Function)
+    );
+  });
+
+  it("limits loaded URL patterns to 200 entries", async () => {
+    const domainPatternConfigs = Array.from({ length: 205 }, (_, index) => ({
+      pattern: `example-${index}.com/*`,
+      enableRowFilter: false,
+    }));
+    const { dom } = await setupTablePane({ domainPatternConfigs });
+
+    const removeButtons = dom.window.document.querySelectorAll(
+      "button[data-pattern-remove]"
+    );
+
+    expect(removeButtons).toHaveLength(200);
+    expect(dom.window.document.body.textContent).toContain("example-199.com/*");
+    expect(dom.window.document.body.textContent).not.toContain(
+      "example-200.com/*"
     );
   });
 

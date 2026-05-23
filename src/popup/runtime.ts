@@ -2,6 +2,7 @@ import { Result } from "@praha/byethrow";
 import type { SummaryTarget } from "@/background/types";
 import { matchesAnyPattern } from "@/content/url-pattern";
 import type { ContextAction } from "@/context_actions";
+import type { DomainPatternConfig } from "@/domain-pattern-configs";
 import type { FocusOverrideStorageData } from "@/focus-override/patterns";
 import type { SearchEngineGroup } from "@/search_engine_groups";
 import type { SearchEngine } from "@/search_engine_types";
@@ -17,14 +18,6 @@ export type {
   SummarizeEventResponse,
   SummaryTarget,
 } from "@/background/types";
-
-/**
- * URLパターンとその設定
- */
-export type DomainPatternConfig = {
-  pattern: string;
-  enableRowFilter: boolean;
-};
 
 export type SyncStorageData = {
   domainPatternConfigs?: DomainPatternConfig[];
