@@ -1,13 +1,6 @@
 import { Result } from "@praha/byethrow";
 import QRCode from "qrcode";
-import {
-  useCallback,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { Icon } from "@/components/icon";
 import { Button } from "@/components/shared/Button";
 import { Field } from "@/components/shared/Field";
@@ -23,6 +16,7 @@ import { Select } from "@/components/shared/Select";
 import { Textarea } from "@/components/shared/Textarea";
 import { Hint, MetaTitle, PaneTitle } from "@/components/shared/Typography";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
+import type { PopupRuntime } from "@/popup/runtime";
 import { persistWithRollback } from "@/popup/utils/persist";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
@@ -38,13 +32,64 @@ export type CreateLinkPaneProps = PopupPaneBaseProps & {
   initialFormat?: LinkFormat;
 };
 
+type CreateLinkInitialState = {
+  format?: LinkFormat;
+  title?: string;
+  url?: string;
+};
+
+async function resolveInitialLinkState(
+  runtime: PopupRuntime,
+  initialLink: CreateLinkPaneProps["initialLink"]
+): Promise<CreateLinkInitialState> {
+  if (initialLink) {
+    return {
+      title: initialLink.title,
+      url: initialLink.url,
+    };
+  }
+
+  const activeTab = await runtime.getActiveTab();
+  if (Result.isFailure(activeTab)) {
+    await debugLog(
+      "CreateLinkPane.resolveInitialLinkState",
+      "getActiveTab failed",
+      { error: activeTab.error },
+      "error"
+    );
+    return {};
+  }
+  if (!activeTab.value) {
+    return {};
+  }
+  return {
+    title: activeTab.value.title ?? "",
+    url: activeTab.value.url ?? "",
+  };
+}
+
+async function resolveInitialFormatState(
+  runtime: PopupRuntime,
+  initialFormat: CreateLinkPaneProps["initialFormat"]
+): Promise<CreateLinkInitialState> {
+  if (initialFormat) {
+    return { format: initialFormat };
+  }
+
+  const stored = await runtime.storageSyncGet(["linkFormat"]);
+  if (Result.isFailure(stored)) {
+    return {};
+  }
+  const storedFormat = coerceLinkFormat(stored.value.linkFormat);
+  return storedFormat ? { format: storedFormat } : {};
+}
+
 export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
   const { initialFormat, initialLink, notify, runtime } = props;
-  const [title, setTitle] = useState("");
-  const [url, setUrl] = useState("");
-  const [format, setFormat] = useState<LinkFormat>("markdown");
+  const [title, setTitle] = useState(initialLink?.title ?? "");
+  const [url, setUrl] = useState(initialLink?.url ?? "");
+  const [format, setFormat] = useState<LinkFormat>(initialFormat ?? "markdown");
   const [showQr, setShowQr] = useState(false);
-  const qrCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const titleInputId = useId();
   const urlInputId = useId();
@@ -57,73 +102,30 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
   );
   const canCopy = Boolean(output.trim());
 
-  const loadFromActiveTab = useCallback(async (): Promise<void> => {
-    try {
-      const activeTab = await runtime.getActiveTab();
-      if (Result.isFailure(activeTab)) {
-        await debugLog(
-          "CreateLinkPane.loadFromActiveTab",
-          "getActiveTab failed",
-          { error: activeTab.error },
-          "error"
-        );
-        return;
-      }
-
-      if (!activeTab.value) {
-        return;
-      }
-      setTitle(activeTab.value.title ?? "");
-      setUrl(activeTab.value.url ?? "");
-    } catch (error) {
-      await debugLog(
-        "CreateLinkPane.loadFromActiveTab",
-        "unexpected error",
-        { error: formatErrorLog("", {}, error) },
-        "error"
-      );
-    }
-  }, [runtime]);
-
-  useEffect(() => {
-    if (initialLink) {
-      setTitle(initialLink.title);
-      setUrl(initialLink.url);
-    } else {
-      loadFromActiveTab().catch(() => {
-        // no-op
-      });
-    }
-  }, [initialLink, loadFromActiveTab]);
-
-  useEffect(() => {
-    if (!initialFormat) {
-      return;
-    }
-    setFormat(initialFormat);
-  }, [initialFormat]);
-
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      if (initialFormat) {
-        return;
-      }
-      const stored = await runtime.storageSyncGet(["linkFormat"]);
-      if (Result.isFailure(stored)) {
-        return;
-      }
+      const [linkState, formatState] = await Promise.all([
+        resolveInitialLinkState(runtime, initialLink),
+        resolveInitialFormatState(runtime, initialFormat),
+      ]);
+
       if (cancelled) {
         return;
       }
-      const next = coerceLinkFormat(stored.value.linkFormat);
-      if (!next) {
-        return;
+      const nextState = { ...linkState, ...formatState };
+      if (nextState.title !== undefined) {
+        setTitle(nextState.title);
       }
-      setFormat(next);
+      if (nextState.url !== undefined) {
+        setUrl(nextState.url);
+      }
+      if (nextState.format !== undefined) {
+        setFormat(nextState.format);
+      }
     })().catch((error) => {
       debugLog(
-        "CreateLinkPane.useEffect[initialFormat, runtime]",
+        "CreateLinkPane.useEffect[initial]",
         "failed",
         { error: formatErrorLog("", {}, error) },
         "error"
@@ -134,22 +136,27 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
     return () => {
       cancelled = true;
     };
-  }, [initialFormat, runtime]);
+  }, [initialFormat, initialLink, runtime]);
 
-  useEffect(() => {
-    const canvas = qrCanvasRef.current;
-    if (!canvas) {
-      return;
-    }
-    if (!(showQr && url.trim())) {
-      const ctx = canvas.getContext("2d");
-      ctx?.clearRect(0, 0, canvas.width, canvas.height);
-      return;
-    }
-    QRCode.toCanvas(canvas, url.trim(), { width: 200, margin: 2 }).catch(() => {
-      notify.error("QRコードの生成に失敗しました");
-    });
-  }, [notify, showQr, url]);
+  const drawQrCanvas = useCallback(
+    (canvas: HTMLCanvasElement | null) => {
+      if (!canvas) {
+        return;
+      }
+      const trimmedUrl = url.trim();
+      if (!(showQr && trimmedUrl)) {
+        const ctx = canvas.getContext("2d");
+        ctx?.clearRect(0, 0, canvas.width, canvas.height);
+        return;
+      }
+      QRCode.toCanvas(canvas, trimmedUrl, { width: 200, margin: 2 }).catch(
+        () => {
+          notify.error("QRコードの生成に失敗しました");
+        }
+      );
+    },
+    [notify, showQr, url]
+  );
 
   const handleFormatChange = useCallback(
     async (value: string): Promise<void> => {
@@ -280,7 +287,7 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
         <OutputPanel>
           <MetaTitle>QRコード</MetaTitle>
           <div style={{ display: "flex", justifyContent: "center" }}>
-            <canvas ref={qrCanvasRef} />
+            <canvas ref={drawQrCanvas} />
           </div>
         </OutputPanel>
       ) : null}

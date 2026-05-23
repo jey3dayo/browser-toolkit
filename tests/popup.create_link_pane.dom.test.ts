@@ -1,6 +1,10 @@
+import { Result } from "@praha/byethrow";
 import type { JSDOM } from "jsdom";
-import { act } from "react";
+import { act, createElement } from "react";
+import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { CreateLinkPane } from "@/popup/panes/CreateLinkPane";
+import type { PopupRuntime } from "@/popup/runtime";
 import { flush } from "./helpers/async";
 import {
   createPopupChromeStub,
@@ -104,5 +108,78 @@ describe("popup create link pane", () => {
       '[data-testid="create-link-refresh"]'
     );
     expect(refreshButton).toBeNull();
+  });
+
+  it("uses initial link and format instead of active tab and stored format", async () => {
+    const container = dom.window.document.createElement("div");
+    dom.window.document.body.append(container);
+    const root = createRoot(container);
+
+    const getActiveTab = vi.fn<PopupRuntime["getActiveTab"]>(async () =>
+      Result.succeed({
+        id: 2,
+        title: "Active Title",
+        url: "https://active.example/",
+      })
+    );
+    const runtime: PopupRuntime = {
+      isExtensionPage: true,
+      storageSyncGet: async () => Result.succeed({ linkFormat: "html" }),
+      storageSyncSet: async () => Result.succeed(),
+      storageLocalGet: async () => Result.succeed({}),
+      storageLocalSet: async () => Result.succeed(),
+      storageLocalRemove: async () => Result.succeed(),
+      getActiveTab,
+      getActiveTabId: async () => Result.succeed(2),
+      matchesFocusOverridePatterns: () => false,
+      diagnoseFocusOverride: async () =>
+        Result.succeed({
+          markerPresent: false,
+          visibilityState: "visible",
+          hidden: false,
+          hasFocus: true,
+        }),
+      reloadTab: async () => Result.succeed(),
+      sendMessageToBackground: async () => Result.succeed({}),
+      sendMessageToTab: async () => Result.succeed({}),
+      openUrl: () => {
+        // no-op
+      },
+    };
+
+    await act(async () => {
+      root.render(
+        createElement(CreateLinkPane, {
+          initialFormat: "url",
+          initialLink: {
+            title: "Initial Title",
+            url: "https://initial.example/",
+          },
+          notify: { error: vi.fn(), info: vi.fn(), success: vi.fn() },
+          runtime,
+        })
+      );
+      await flush(dom.window);
+    });
+
+    const titleInput = container.querySelector<HTMLInputElement>(
+      '[data-testid="create-link-title"]'
+    );
+    const urlInput = container.querySelector<HTMLInputElement>(
+      '[data-testid="create-link-url"]'
+    );
+    const output = container.querySelector<HTMLTextAreaElement>(
+      '[data-testid="create-link-output"]'
+    );
+
+    expect(getActiveTab).not.toHaveBeenCalled();
+    expect(titleInput?.value).toBe("Initial Title");
+    expect(urlInput?.value).toBe("https://initial.example/");
+    expect(output?.value).toBe("https://initial.example/");
+
+    await act(async () => {
+      root.unmount();
+      await flush(dom.window);
+    });
   });
 });
