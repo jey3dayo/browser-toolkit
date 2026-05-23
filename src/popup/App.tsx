@@ -60,20 +60,27 @@ export function PopupApp(): React.JSX.Element {
     setMenuOpen(false);
   }, []);
 
-  const syncFromHash = useCallback(() => {
+  const syncFromHashRef = useRef<() => void>(() => {
+    // no-op until the first render assigns the current handler
+  });
+  syncFromHashRef.current = () => {
     const next = getPaneIdFromHash(window.location.hash);
     if (!next) {
       return;
     }
     setTabValue(next);
-  }, []);
+  };
 
   useEffect(() => {
-    window.addEventListener("hashchange", syncFromHash);
-    return () => {
-      window.removeEventListener("hashchange", syncFromHash);
+    const handleHashChange = () => {
+      syncFromHashRef.current();
     };
-  }, [syncFromHash]);
+
+    window.addEventListener("hashchange", handleHashChange);
+    return () => {
+      window.removeEventListener("hashchange", handleHashChange);
+    };
+  }, []);
 
   useEffect(() => {
     replaceHashSafely(window, `#${tabValue}`);

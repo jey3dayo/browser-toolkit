@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Icon } from "@/components/icon";
 import { Button } from "@/components/shared/Button";
 import { Input } from "@/components/shared/Input";
@@ -171,64 +172,69 @@ export function SearchGroupItem(
   const groupEngines = group.engineIds
     .map((id) => enginesById.get(id))
     .filter((engine): engine is SearchEngine => engine !== undefined);
+  const listItemActions = useMemo(
+    () => (
+      <>
+        <Switch
+          aria-label={`${group.name}を有効化`}
+          checked={group.enabled}
+          data-testid={`group-enabled-${group.id}`}
+          onCheckedChange={(checked) => {
+            toggleGroupEnabled(group.id, checked).catch(() => {
+              // no-op
+            });
+          }}
+        />
+        <Button
+          data-testid={`edit-group-${group.id}`}
+          onClick={(event) => {
+            event.stopPropagation();
+            startEditingGroupName(group);
+          }}
+          type="button"
+          variant="edit"
+        >
+          <Icon aria-hidden="true" name="pencil" size={12} />
+        </Button>
+        <Button
+          data-testid={`remove-group-${group.id}`}
+          onClick={() => {
+            removeGroup(group.id).catch(() => {
+              // no-op
+            });
+          }}
+          type="button"
+          variant="danger"
+        >
+          削除
+        </Button>
+      </>
+    ),
+    [group, removeGroup, startEditingGroupName, toggleGroupEnabled]
+  );
+  const listItemLeading = useMemo(
+    () => (
+      <Button
+        data-testid={`expand-group-${group.id}`}
+        onClick={() => {
+          toggleGroupExpand(group.id);
+        }}
+        type="button"
+        variant="expandIndicator"
+      >
+        <Icon
+          aria-hidden="true"
+          name={isExpanded ? "chevron-down" : "chevron-right"}
+          size={14}
+        />
+      </Button>
+    ),
+    [group.id, isExpanded, toggleGroupExpand]
+  );
 
   return (
     <div>
-      <ListItemRow
-        actions={
-          <>
-            <Switch
-              aria-label={`${group.name}を有効化`}
-              checked={group.enabled}
-              data-testid={`group-enabled-${group.id}`}
-              onCheckedChange={(checked) => {
-                toggleGroupEnabled(group.id, checked).catch(() => {
-                  // no-op
-                });
-              }}
-            />
-            <Button
-              data-testid={`edit-group-${group.id}`}
-              onClick={(event) => {
-                event.stopPropagation();
-                startEditingGroupName(group);
-              }}
-              type="button"
-              variant="edit"
-            >
-              <Icon aria-hidden="true" name="pencil" size={12} />
-            </Button>
-            <Button
-              data-testid={`remove-group-${group.id}`}
-              onClick={() => {
-                removeGroup(group.id).catch(() => {
-                  // no-op
-                });
-              }}
-              type="button"
-              variant="danger"
-            >
-              削除
-            </Button>
-          </>
-        }
-        leading={
-          <Button
-            data-testid={`expand-group-${group.id}`}
-            onClick={() => {
-              toggleGroupExpand(group.id);
-            }}
-            type="button"
-            variant="expandIndicator"
-          >
-            <Icon
-              aria-hidden="true"
-              name={isExpanded ? "chevron-down" : "chevron-right"}
-              size={14}
-            />
-          </Button>
-        }
-      >
+      <ListItemRow actions={listItemActions} leading={listItemLeading}>
         {isEditingName ? (
           <InlineEditRow
             groupId={group.id}

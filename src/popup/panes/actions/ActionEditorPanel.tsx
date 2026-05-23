@@ -27,6 +27,21 @@ type Props = {
   onReset: () => void;
 };
 
+const ACTION_KIND_HELP_DESCRIPTION = (
+  <>
+    event は日時・場所・概要などを抽出してイベント形式で返すモードです。 text
+    はプロンプトに従って要約/翻訳などを行います。
+  </>
+);
+
+const ACTION_KIND_LABEL_ACCESSORY = (
+  <HelpPopover
+    ariaLabel="eventとは"
+    description={ACTION_KIND_HELP_DESCRIPTION}
+    title="event とは"
+  />
+);
+
 export function ActionEditorPanel(props: Props): React.JSX.Element {
   const titleInputId = useId();
   const actionLabelId = useId();
@@ -76,22 +91,7 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
             />
           </Field>
 
-          <Field
-            label="種類"
-            labelAccessory={
-              <HelpPopover
-                ariaLabel="eventとは"
-                description={
-                  <>
-                    event
-                    は日時・場所・概要などを抽出してイベント形式で返すモードです。
-                    text はプロンプトに従って要約/翻訳などを行います。
-                  </>
-                }
-                title="event とは"
-              />
-            }
-          >
+          <Field label="種類" labelAccessory={ACTION_KIND_LABEL_ACCESSORY}>
             <ToggleGroup
               data-testid="action-editor-kind"
               onValueChange={(groupValue) => {

@@ -4,6 +4,7 @@ import {
   type ComponentPropsWithoutRef,
   useEffect,
   useEffectEvent,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -475,6 +476,69 @@ function buildFocusDiagnosticView(
     label: labelMap[params.kind],
     description: params.description,
   };
+}
+
+type PatternConfigListItemProps = {
+  config: DomainPatternConfig;
+  rowFilterTooltip: string;
+  onRemove: (pattern: string) => Promise<void>;
+  onToggleRowFilter: (pattern: string, checked: boolean) => Promise<void>;
+};
+
+function PatternConfigListItem({
+  config,
+  rowFilterTooltip,
+  onRemove,
+  onToggleRowFilter,
+}: PatternConfigListItemProps): React.JSX.Element {
+  const action = useMemo(
+    () => (
+      <Button
+        data-pattern-remove={config.pattern}
+        onClick={() => {
+          onRemove(config.pattern).catch(() => {
+            // no-op
+          });
+        }}
+        type="button"
+        variant="danger"
+      >
+        削除
+      </Button>
+    ),
+    [config.pattern, onRemove]
+  );
+  const toggle = useMemo(
+    () => (
+      <Tooltip content={rowFilterTooltip}>
+        <Switch
+          aria-label={`${config.pattern}の行フィルタリング`}
+          checked={config.enableRowFilter}
+          data-testid={`row-filter-${config.pattern}`}
+          onCheckedChange={(checked) => {
+            onToggleRowFilter(config.pattern, checked).catch(() => {
+              // no-op
+            });
+          }}
+        />
+      </Tooltip>
+    ),
+    [
+      config.enableRowFilter,
+      config.pattern,
+      onToggleRowFilter,
+      rowFilterTooltip,
+    ]
+  );
+
+  return (
+    <PatternListItem
+      action={action}
+      key={config.pattern}
+      pattern={config.pattern}
+      toggle={toggle}
+    />
+  );
 }
 
 export function TablePane(props: TablePaneProps): React.JSX.Element {
@@ -987,39 +1051,12 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
           <ScrollArea>
             <PatternList aria-label="登録済みパターン">
               {patterns.map((config) => (
-                <PatternListItem
-                  action={
-                    <Button
-                      data-pattern-remove={config.pattern}
-                      onClick={() => {
-                        removePattern(config.pattern).catch(() => {
-                          // no-op
-                        });
-                      }}
-                      type="button"
-                      variant="danger"
-                    >
-                      削除
-                    </Button>
-                  }
+                <PatternConfigListItem
+                  config={config}
                   key={config.pattern}
-                  pattern={config.pattern}
-                  toggle={
-                    <Tooltip content={rowFilterTooltip}>
-                      <Switch
-                        aria-label={`${config.pattern}の行フィルタリング`}
-                        checked={config.enableRowFilter}
-                        data-testid={`row-filter-${config.pattern}`}
-                        onCheckedChange={(checked) => {
-                          togglePatternRowFilter(config.pattern, checked).catch(
-                            () => {
-                              // no-op
-                            }
-                          );
-                        }}
-                      />
-                    </Tooltip>
-                  }
+                  onRemove={removePattern}
+                  onToggleRowFilter={togglePatternRowFilter}
+                  rowFilterTooltip={rowFilterTooltip}
                 />
               ))}
             </PatternList>
