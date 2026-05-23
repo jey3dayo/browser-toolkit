@@ -85,6 +85,16 @@ const SCHEMA_VERSION_KEY = STORAGE_RESERVED_KEYS.SCHEMA_VERSION;
 const MIGRATION_LOG_KEY = STORAGE_RESERVED_KEYS.MIGRATION_LOG;
 const BACKUP_KEY_PREFIX = STORAGE_RESERVED_KEYS.BACKUP_PREFIX;
 
+function runSequentially<T>(
+  items: readonly T[],
+  task: (item: T) => Promise<void>
+): Promise<void> {
+  return items.reduce(
+    (previous, item) => previous.then(() => task(item)),
+    Promise.resolve()
+  );
+}
+
 /**
  * Get current schema version
  */
@@ -291,12 +301,7 @@ export async function runMigrations(): Promise<void> {
   // Backup before migration
   await backupBeforeMigration(currentVersion);
 
-  // Run pending migrations
-  for (const migration of migrations) {
-    if (migration.version <= currentVersion) {
-      continue;
-    }
-
+  const runMigration = async (migration: Migration): Promise<void> => {
     console.log(
       `[migrations] Running migration v${migration.version}: ${migration.description}`
     );
@@ -324,7 +329,13 @@ export async function runMigrations(): Promise<void> {
     }
 
     await logMigration(entry);
-  }
+  };
+
+  // Run pending migrations in version order.
+  await runSequentially(
+    migrations.filter((migration) => migration.version > currentVersion),
+    runMigration
+  );
 
   console.log(
     `[migrations] All migrations completed. Current version: ${targetVersion}`

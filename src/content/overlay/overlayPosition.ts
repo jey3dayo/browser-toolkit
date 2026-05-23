@@ -73,7 +73,7 @@ export function updateOverlayToastSurfaceInset(params: {
 /**
  * Update host position with boundary clamping
  */
-export function updateHostPosition(
+function updateHostPosition(
   host: HTMLDivElement,
   size: PanelSize,
   point: Point
@@ -86,7 +86,7 @@ export function updateHostPosition(
 /**
  * Get pinned corner position (top-right)
  */
-export function getPinnedCornerPoint(size: PanelSize): Point {
+function getPinnedCornerPoint(size: PanelSize): Point {
   return {
     left: window.innerWidth - size.width - OVERLAY_PINNED_MARGIN_PX,
     top: OVERLAY_PINNED_MARGIN_PX,

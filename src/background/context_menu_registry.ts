@@ -59,6 +59,16 @@ const LINK_FORMAT_LABELS = new Map(
   LINK_FORMAT_OPTIONS.map((option) => [option.value, option.label])
 );
 
+function runSequentially<T>(
+  items: readonly T[],
+  task: (item: T) => Promise<void>
+): Promise<void> {
+  return items.reduce(
+    (previous, item) => previous.then(() => task(item)),
+    Promise.resolve()
+  );
+}
+
 /**
  * Exact-match menu items ハンドラー。処理した場合 true を返す。
  */
@@ -216,17 +226,18 @@ export async function refreshContextMenus(): Promise<void> {
         contexts: ["selection"],
       });
 
-      for (const engine of enabledEngines) {
-        await debugLog("refreshContextMenus", "creating search engine menu", {
+      await runSequentially(enabledEngines, (engine) =>
+        debugLog("refreshContextMenus", "creating search engine menu", {
           engine,
-        });
-        await createMenuItem({
-          id: `${CONTEXT_MENU_SEARCH_PREFIX}${engine.id}`,
-          parentId: CONTEXT_MENU_SEARCH_PARENT_ID,
-          title: engine.name,
-          contexts: ["selection"],
-        });
-      }
+        }).then(() =>
+          createMenuItem({
+            id: `${CONTEXT_MENU_SEARCH_PREFIX}${engine.id}`,
+            parentId: CONTEXT_MENU_SEARCH_PARENT_ID,
+            title: engine.name,
+            contexts: ["selection"],
+          })
+        )
+      );
 
       // Batch search groups section
       const groups = await ensureSearchEngineGroupsInitialized();
@@ -244,17 +255,18 @@ export async function refreshContextMenus(): Promise<void> {
           contexts: ["selection"],
         });
 
-        for (const group of enabledGroups) {
-          await debugLog("refreshContextMenus", "creating batch search menu", {
+        await runSequentially(enabledGroups, (group) =>
+          debugLog("refreshContextMenus", "creating batch search menu", {
             group,
-          });
-          await createMenuItem({
-            id: `${CONTEXT_MENU_BATCH_SEARCH_PREFIX}${group.id}`,
-            parentId: CONTEXT_MENU_BATCH_SEARCH_PARENT_ID,
-            title: group.name,
-            contexts: ["selection"],
-          });
-        }
+          }).then(() =>
+            createMenuItem({
+              id: `${CONTEXT_MENU_BATCH_SEARCH_PREFIX}${group.id}`,
+              parentId: CONTEXT_MENU_BATCH_SEARCH_PARENT_ID,
+              title: group.name,
+              contexts: ["selection"],
+            })
+          )
+        );
       }
 
       await createSeparator(
@@ -276,14 +288,14 @@ export async function refreshContextMenus(): Promise<void> {
         contexts: ["page", "selection", "editable"],
       });
 
-      for (const template of visibleTemplates) {
-        await createMenuItem({
+      await runSequentially(visibleTemplates, (template) =>
+        createMenuItem({
           id: `${CONTEXT_MENU_TEMPLATE_PREFIX}${template.id}`,
           parentId: CONTEXT_MENU_TEMPLATE_ROOT_ID,
           title: template.title,
           contexts: ["page", "selection", "editable"],
-        });
-      }
+        })
+      );
     }
 
     // Built-in actions
@@ -294,15 +306,15 @@ export async function refreshContextMenus(): Promise<void> {
       contexts: ["page", "selection", "editable"],
     });
 
-    for (const format of CONTEXT_MENU_LINK_FORMATS) {
+    await runSequentially(CONTEXT_MENU_LINK_FORMATS, (format) => {
       const label = LINK_FORMAT_LABELS.get(format) ?? format;
-      await createMenuItem({
+      return createMenuItem({
         id: `${CONTEXT_MENU_COPY_LINK_PREFIX}${format}`,
         parentId: CONTEXT_MENU_COPY_TITLE_LINK_ID,
         title: label,
         contexts: ["page", "selection", "editable"],
       });
-    }
+    });
 
     await createMenuItem({
       id: CONTEXT_MENU_QR_CODE_ID,
@@ -326,14 +338,14 @@ export async function refreshContextMenus(): Promise<void> {
 
     // Custom context actions
     const actions = await ensureContextActionsInitialized();
-    for (const action of actions) {
-      await createMenuItem({
+    await runSequentially(actions, (action) =>
+      createMenuItem({
         id: `${CONTEXT_MENU_ACTION_PREFIX}${action.id}`,
         parentId: CONTEXT_MENU_ROOT_ID,
         title: action.title,
         contexts: ["page", "selection", "editable"],
-      });
-    }
+      })
+    );
 
     await createSeparator(
       CONTEXT_MENU_CUSTOM_SEPARATOR_ID,

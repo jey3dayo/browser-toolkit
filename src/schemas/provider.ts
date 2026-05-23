@@ -46,7 +46,7 @@ export const PROVIDER_CONFIGS: Record<
 /**
  * AIプロバイダースキーマ
  */
-export const aiProviderSchema = pipe(
+const aiProviderSchema = pipe(
   string(),
   check(
     (value): value is AiProvider => AI_PROVIDERS.includes(value as AiProvider),

@@ -8,7 +8,7 @@
  * Service Workerの最大アイドル時間（Chromeの仕様）
  * Manifest V3では30秒でService Workerがスリープする
  */
-export const SERVICE_WORKER_TIMEOUT_MS = 30_000;
+const SERVICE_WORKER_TIMEOUT_MS = 30_000;
 
 /**
  * API呼び出しのデフォルトタイムアウト

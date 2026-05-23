@@ -18,14 +18,12 @@ import { overlayClassNames } from "./overlayClassNames";
 /**
  * Copy button component
  */
-export type OverlayCopyButtonProps = {
+type OverlayCopyButtonProps = {
   disabled: boolean;
   onCopy: () => void;
 };
 
-export function OverlayCopyButton(
-  props: OverlayCopyButtonProps
-): React.JSX.Element {
+function OverlayCopyButton(props: OverlayCopyButtonProps): React.JSX.Element {
   return (
     <Button
       aria-label="コピー"
@@ -44,14 +42,14 @@ export function OverlayCopyButton(
 /**
  * Popover component for tooltips
  */
-export type OverlayPopoverProps = {
+type OverlayPopoverProps = {
   id: string;
   title: string;
   description: string;
   children: React.ReactNode;
 };
 
-export function OverlayPopover(props: OverlayPopoverProps): React.JSX.Element {
+function OverlayPopover(props: OverlayPopoverProps): React.JSX.Element {
   return (
     <div className={overlayClassNames.popover}>
       {props.children}
@@ -70,7 +68,7 @@ export function OverlayPopover(props: OverlayPopoverProps): React.JSX.Element {
 /**
  * Event mode action buttons (Calendar, ICS, Copy)
  */
-export type OverlayEventModeActionsProps = {
+type OverlayEventModeActionsProps = {
   canOpenCalendar: boolean;
   canDownloadIcs: boolean;
   canCopyPrimary: boolean;
@@ -79,7 +77,7 @@ export type OverlayEventModeActionsProps = {
   onCopyPrimary: () => void;
 };
 
-export function OverlayEventModeActions(
+function OverlayEventModeActions(
   props: OverlayEventModeActionsProps
 ): React.JSX.Element {
   return (
@@ -117,12 +115,12 @@ export function OverlayEventModeActions(
 /**
  * Event details table component
  */
-export type OverlayEventDetailsProps = {
+type OverlayEventDetailsProps = {
   event: ExtractedEvent;
   selectionText: string;
 };
 
-export function OverlayEventDetails(
+function OverlayEventDetails(
   props: OverlayEventDetailsProps
 ): React.JSX.Element {
   return (
@@ -167,7 +165,7 @@ export function OverlayEventDetails(
 /**
  * Text mode details component
  */
-export type OverlayTextDetailsProps = {
+type OverlayTextDetailsProps = {
   mode: OverlayViewModel["mode"];
   status: OverlayViewModel["status"];
   statusLabel: string;
@@ -179,9 +177,7 @@ export type OverlayTextDetailsProps = {
   onCopyPrimary: () => void;
 };
 
-export function OverlayTextDetails(
-  props: OverlayTextDetailsProps
-): React.JSX.Element {
+function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {
   const isTokenError =
     props.status === "error" &&
     (props.primary.includes("Token") ||
@@ -267,7 +263,7 @@ export function OverlayTextDetails(
 /**
  * Overlay body component (combines text and event modes)
  */
-export type OverlayBodyProps = OverlayTextDetailsProps & {
+type OverlayBodyProps = OverlayTextDetailsProps & {
   readyEvent: ExtractedEvent | null;
   canOpenCalendar: boolean;
   canDownloadIcs: boolean;
@@ -314,7 +310,7 @@ export function OverlayBody(props: OverlayBodyProps): React.JSX.Element {
 /**
  * Overlay header actions component (pin, theme, markdown, close buttons)
  */
-export type OverlayHeaderActionsProps = {
+type OverlayHeaderActionsProps = {
   pinPopoverId: string;
   themePopoverId: string;
   markdownPopoverId: string;
@@ -432,7 +428,7 @@ export function OverlayHeaderActions(
 /**
  * Chat input component for inline follow-up questions
  */
-export type OverlayChatInputProps = {
+type OverlayChatInputProps = {
   chatMessages: ChatMessage[];
   isChatting: boolean;
   onSend: (text: string) => void;

@@ -1,5 +1,4 @@
 import { Result } from "@praha/byethrow";
-import type { ContextActionKind } from "@/context_actions";
 import type { RunContextActionResponse } from "@/popup/runtime";
 import { coerceSummarySourceLabel } from "@/popup/utils/summary_source_label";
 import { isRecord } from "@/utils/guards";
@@ -15,22 +14,12 @@ export type OutputState =
     }
   | { status: "error"; title: string; message: string };
 
-export function isRunContextActionResponse(
+function isRunContextActionResponse(
   value: unknown
 ): value is RunContextActionResponse {
   // Result type is opaque, so we can't check its structure directly
   // We assume the value is a RunContextActionResponse if it's an object
   return isRecord(value);
-}
-
-export function coerceKind(value: unknown): ContextActionKind | null {
-  if (value === "event") {
-    return "event";
-  }
-  if (value === "text") {
-    return "text";
-  }
-  return null;
 }
 
 type ParseRunContextActionResponseError = string;

@@ -1,4 +1,4 @@
-export const PANE_IDS = [
+const PANE_IDS = [
   "pane-actions",
   "pane-calendar",
   "pane-table",

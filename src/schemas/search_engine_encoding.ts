@@ -24,7 +24,7 @@ const SearchEngineEncodingSchema = pipe(
   picklist(SEARCH_ENGINE_ENCODINGS)
 );
 
-export function safeParseSearchEngineEncoding(value: unknown) {
+function safeParseSearchEngineEncoding(value: unknown) {
   return safeParse(SearchEngineEncodingSchema, value);
 }
 

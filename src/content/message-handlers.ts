@@ -33,7 +33,7 @@ export type MessageHandlerDeps = {
 /**
  * enableTableSortアクションのハンドラー
  */
-export function handleEnableTableSort(
+function handleEnableTableSort(
   deps: MessageHandlerDeps,
   sendResponse: (response: { success: boolean }) => void
 ): void {
@@ -45,7 +45,7 @@ export function handleEnableTableSort(
 /**
  * showNotificationアクションのハンドラー
  */
-export function handleShowNotification(
+function handleShowNotification(
   deps: MessageHandlerDeps,
   message: string,
   sendResponse: (response: { ok: boolean }) => void
@@ -57,7 +57,7 @@ export function handleShowNotification(
 /**
  * copyToClipboardアクションのハンドラー
  */
-export function handleCopyToClipboard(
+function handleCopyToClipboard(
   deps: MessageHandlerDeps,
   text: string,
   successMessage: string | undefined,
@@ -100,7 +100,7 @@ export function handleCopyToClipboard(
 /**
  * pasteTemplateアクションのハンドラー
  */
-export function handlePasteTemplate(
+function handlePasteTemplate(
   deps: MessageHandlerDeps,
   content: string,
   sendResponse: (response: { ok: boolean; error?: string }) => void
@@ -168,7 +168,7 @@ export function handlePasteTemplate(
 /**
  * getSummaryTargetTextアクションのハンドラー
  */
-export function handleGetSummaryTargetText(
+function handleGetSummaryTargetText(
   ignoreSelection: boolean | undefined,
   sendResponse: (response: SummaryTarget) => void
 ): boolean {
@@ -193,7 +193,7 @@ export function handleGetSummaryTargetText(
 /**
  * showSummaryOverlayアクションのハンドラー
  */
-export function handleShowSummaryOverlay(
+function handleShowSummaryOverlay(
   deps: MessageHandlerDeps,
   request: SummaryOverlayRequest,
   sendResponse: (response: { ok: boolean }) => void
@@ -205,7 +205,7 @@ export function handleShowSummaryOverlay(
 /**
  * showActionOverlayアクションのハンドラー
  */
-export function handleShowActionOverlay(
+function handleShowActionOverlay(
   deps: MessageHandlerDeps,
   request: ActionOverlayRequest,
   sendResponse: (response: { ok: boolean }) => void

@@ -6,8 +6,8 @@ import type { LocalStorageData } from "@/storage/types";
  */
 export const QUOTA_BYTES_PER_ITEM = 8192; // 8KB
 export const QUOTA_BYTES = 102_400; // 100KB
-export const QUOTA_WARNING_THRESHOLD = 0.8; // 80%
-export const QUOTA_ERROR_THRESHOLD = 0.9; // 90%
+const QUOTA_WARNING_THRESHOLD = 0.8; // 80%
+const QUOTA_ERROR_THRESHOLD = 0.9; // 90%
 
 /**
  * ストレージクォータチェック結果
