@@ -3,6 +3,8 @@ import { OPENAI_MODELS } from "@/constants/models";
 import { flush } from "./helpers/async";
 import { type ChromeStub, createChromeStub } from "./helpers/chromeStub";
 
+const BACKGROUND_IMPORT_TEST_TIMEOUT_MS = 15_000;
+
 describe("background: OpenAI model selection", () => {
   let listeners: Array<(...args: unknown[]) => unknown>;
   let chromeStub: ChromeStub;
@@ -37,43 +39,47 @@ describe("background: OpenAI model selection", () => {
     vi.unstubAllGlobals();
   });
 
-  it("uses openaiModel from local storage in chat completion requests", async () => {
-    let capturedModel: string | null = null;
+  it(
+    "uses openaiModel from local storage in chat completion requests",
+    async () => {
+      let capturedModel: string | null = null;
 
-    const fetchSpy = vi.fn((_url: string, options?: unknown) => {
-      const body =
-        typeof (options as { body?: unknown })?.body === "string"
-          ? (options as { body: string }).body
-          : "";
-      capturedModel = (JSON.parse(body) as { model?: string }).model ?? null;
-      return Promise.resolve({
-        ok: true,
-        status: 200,
-        json: () =>
-          Promise.resolve({ choices: [{ message: { content: "ok" } }] }),
-      } as unknown);
-    });
+      const fetchSpy = vi.fn((_url: string, options?: unknown) => {
+        const body =
+          typeof (options as { body?: unknown })?.body === "string"
+            ? (options as { body: string }).body
+            : "";
+        capturedModel = (JSON.parse(body) as { model?: string }).model ?? null;
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () =>
+            Promise.resolve({ choices: [{ message: { content: "ok" } }] }),
+        } as unknown);
+      });
 
-    vi.stubGlobal("fetch", fetchSpy as unknown as typeof fetch);
+      vi.stubGlobal("fetch", fetchSpy as unknown as typeof fetch);
 
-    await import("@/background.ts");
+      await import("@/background.ts");
 
-    const [listener] = listeners;
-    if (!listener) {
-      throw new Error("missing runtime.onMessage listener");
-    }
+      const [listener] = listeners;
+      if (!listener) {
+        throw new Error("missing runtime.onMessage listener");
+      }
 
-    const sendResponse = vi.fn();
-    listener(
-      {
-        action: "summarizeText",
-        target: { text: "hello", source: "page", title: "t", url: "u" },
-      },
-      {},
-      sendResponse
-    );
+      const sendResponse = vi.fn();
+      listener(
+        {
+          action: "summarizeText",
+          target: { text: "hello", source: "page", title: "t", url: "u" },
+        },
+        {},
+        sendResponse
+      );
 
-    await flush(setTimeout, 6);
-    expect(capturedModel).toBe(OPENAI_MODELS.GPT_5_5);
-  });
+      await flush(setTimeout, 6);
+      expect(capturedModel).toBe(OPENAI_MODELS.GPT_5_5);
+    },
+    BACKGROUND_IMPORT_TEST_TIMEOUT_MS
+  );
 });

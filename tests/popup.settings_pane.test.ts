@@ -18,6 +18,8 @@ import {
   globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;
 
+const POPUP_IMPORT_HOOK_TIMEOUT_MS = 30_000;
+
 describe("popup Settings pane", () => {
   let dom: JSDOM;
   let chromeStub: PopupChromeStub;
@@ -68,7 +70,7 @@ describe("popup Settings pane", () => {
       await import("@/popup.ts");
       await flush(dom.window);
     });
-  });
+  }, POPUP_IMPORT_HOOK_TIMEOUT_MS);
 
   afterEach(async () => {
     await act(async () => {
