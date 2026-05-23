@@ -80,8 +80,10 @@ export async function loadCopyTitleLinkFailure(runtime: {
 export async function handleCopyTitleLinkFailureOnPopupOpen(params: {
   runtime: ReturnType<typeof createPopupRuntime>;
   notify: ReturnType<typeof createNotifications>["notify"];
-  setCreateLinkInitialLink: (value: { title: string; url: string }) => void;
-  setCreateLinkInitialFormat: (value: LinkFormat) => void;
+  setCreateLinkInitial: (value: {
+    link: { title: string; url: string };
+    format: LinkFormat;
+  }) => void;
   navigateToCreateLink: () => void;
 }): Promise<void> {
   const MAX_AGE_MS = 2 * 60 * 1000;
@@ -119,11 +121,13 @@ export async function handleCopyTitleLinkFailureOnPopupOpen(params: {
     clearActionBadgeForTab(failure.tabId);
   }
 
-  params.setCreateLinkInitialLink({
-    title: failure.pageTitle,
-    url: failure.pageUrl,
+  params.setCreateLinkInitial({
+    link: {
+      title: failure.pageTitle,
+      url: failure.pageUrl,
+    },
+    format: failure.format ?? "text",
   });
-  params.setCreateLinkInitialFormat(failure.format ?? "text");
   params.navigateToCreateLink();
 
   params.notify.error(

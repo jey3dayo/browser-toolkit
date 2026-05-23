@@ -26,6 +26,14 @@ import { createPopupRuntime } from "@/popup/runtime";
 import { createNotifications, ToastHost } from "@/ui/toast";
 import type { LinkFormat } from "@/utils/link_format";
 
+type CreateLinkInitialState = {
+  link: {
+    title: string;
+    url: string;
+  };
+  format: LinkFormat;
+} | null;
+
 export function PopupApp(): React.JSX.Element {
   const initialValue = useMemo<PaneId>(
     () => getPaneIdFromHash(window.location.hash) ?? "pane-actions",
@@ -38,12 +46,8 @@ export function PopupApp(): React.JSX.Element {
   const runtime = useMemo(() => createPopupRuntime(), []);
   const notifications = useMemo(() => createNotifications(), []);
 
-  const [createLinkInitialLink, setCreateLinkInitialLink] = useState<{
-    title: string;
-    url: string;
-  } | null>(null);
-  const [createLinkInitialFormat, setCreateLinkInitialFormat] =
-    useState<LinkFormat | null>(null);
+  const [createLinkInitial, setCreateLinkInitial] =
+    useState<CreateLinkInitialState>(null);
 
   const focusTokenInput = useCallback(() => {
     window.setTimeout(() => {
@@ -101,8 +105,7 @@ export function PopupApp(): React.JSX.Element {
     handleCopyTitleLinkFailureOnPopupOpen({
       runtime,
       notify: notifications.notify,
-      setCreateLinkInitialLink: (value) => setCreateLinkInitialLink(value),
-      setCreateLinkInitialFormat: (value) => setCreateLinkInitialFormat(value),
+      setCreateLinkInitial: (value) => setCreateLinkInitial(value),
       navigateToCreateLink: () => setTabValue("pane-create-link"),
     }).catch(() => {
       // no-op
@@ -165,8 +168,8 @@ export function PopupApp(): React.JSX.Element {
             </TabsPanel>
             <TabsPanel value="pane-create-link">
               <CreateLinkPane
-                initialFormat={createLinkInitialFormat ?? undefined}
-                initialLink={createLinkInitialLink ?? undefined}
+                initialFormat={createLinkInitial?.format}
+                initialLink={createLinkInitial?.link}
                 notify={notifications.notify}
                 runtime={runtime}
               />

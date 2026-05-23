@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import type { ContextAction, ContextActionKind } from "@/context_actions";
 import type { PopupRuntime } from "@/popup/runtime";
 import { persistWithRollback } from "@/popup/utils/persist";
@@ -48,16 +48,6 @@ export function useActionEditor(params: {
   const resetEditorState = useCallback((): void => {
     setEditor(EMPTY_EDITOR_STATE);
   }, []);
-
-  useEffect(() => {
-    if (!editor.id) {
-      return;
-    }
-    if (params.actions.some((action) => action.id === editor.id)) {
-      return;
-    }
-    resetEditorState();
-  }, [params.actions, editor.id, resetEditorState]);
 
   const selectActionForEdit = (nextId: string): void => {
     if (!nextId) {
