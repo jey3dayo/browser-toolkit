@@ -7,7 +7,7 @@ import { storageLocalGet } from "@/storage/helpers";
 /**
  * テキストを正規化（改行・空白の整理）
  */
-export function normalizeText(text: string): string {
+function normalizeText(text: string): string {
   return text
     .replace(/\r\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
@@ -17,7 +17,7 @@ export function normalizeText(text: string): string {
 /**
  * 選択範囲ターゲットを構築
  */
-export function buildSelectionTarget(text: string): SummaryTarget {
+function buildSelectionTarget(text: string): SummaryTarget {
   return {
     text,
     source: "selection",
@@ -29,7 +29,7 @@ export function buildSelectionTarget(text: string): SummaryTarget {
 /**
  * ページターゲットを構築
  */
-export function buildPageTarget(text: string): SummaryTarget {
+function buildPageTarget(text: string): SummaryTarget {
   return {
     text,
     source: "page",
@@ -41,7 +41,7 @@ export function buildPageTarget(text: string): SummaryTarget {
 /**
  * 現在の選択範囲からターゲットを取得
  */
-export function getLiveSelectionTarget(): SummaryTarget | null {
+function getLiveSelectionTarget(): SummaryTarget | null {
   const selection = window.getSelection()?.toString().trim() ?? "";
   if (!selection) {
     return null;
@@ -52,7 +52,7 @@ export function getLiveSelectionTarget(): SummaryTarget | null {
 /**
  * キャッシュされた選択範囲からターゲットを取得
  */
-export async function getCachedSelectionTarget(): Promise<SummaryTarget | null> {
+async function getCachedSelectionTarget(): Promise<SummaryTarget | null> {
   const result = await storageLocalGet<{
     selectedText?: string;
     selectedTextUpdatedAt?: number;

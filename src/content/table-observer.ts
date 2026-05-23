@@ -39,7 +39,7 @@ export function startTableObserver(
  * @param onNotify - 通知コールバック
  * @param getRowFilterSetting - 行フィルタリング設定取得関数
  */
-export function checkForNewTables(
+function checkForNewTables(
   onNotify: (message: string) => void,
   getRowFilterSetting?: () => Result.Result<boolean, string>
 ): void {

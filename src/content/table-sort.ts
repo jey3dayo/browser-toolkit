@@ -24,8 +24,10 @@ export function enableSingleTable(
   let headerIndex = 0;
   for (const header of headers) {
     const columnIndex = headerIndex;
-    header.style.cursor = "pointer";
-    header.style.userSelect = "none";
+    Object.assign(header.style, {
+      cursor: "pointer",
+      userSelect: "none",
+    });
     header.title = "クリックでソート";
 
     header.addEventListener("click", () => {
@@ -115,7 +117,7 @@ function applyRowFilterIfEnabled(params: {
  * @param columnIndex - ソート対象の列インデックス
  * @param getRowFilterSetting - 行フィルタリング設定取得関数
  */
-export function sortTable(
+function sortTable(
   table: HTMLTableElement,
   columnIndex: number,
   getRowFilterSetting?: () => Result.Result<boolean, string>
