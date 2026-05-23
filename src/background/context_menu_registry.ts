@@ -206,8 +206,13 @@ export async function refreshContextMenus(): Promise<void> {
       contexts: ["page", "selection", "editable"],
     });
 
+    const [searchEngines, templates, actions] = await Promise.all([
+      ensureSearchEnginesInitialized(),
+      ensureTextTemplatesInitialized(),
+      ensureContextActionsInitialized(),
+    ]);
+
     // Search engines section
-    const searchEngines = await ensureSearchEnginesInitialized();
     const enabledEngines = searchEngines.filter((engine) => engine.enabled);
 
     await debugLog("refreshContextMenus", "searchEngines loaded", {
@@ -277,7 +282,6 @@ export async function refreshContextMenus(): Promise<void> {
     }
 
     // Text templates section
-    const templates = await ensureTextTemplatesInitialized();
     const visibleTemplates = templates.filter((template) => !template.hidden);
 
     if (visibleTemplates.length > 0) {
@@ -337,7 +341,6 @@ export async function refreshContextMenus(): Promise<void> {
     );
 
     // Custom context actions
-    const actions = await ensureContextActionsInitialized();
     await runSequentially(actions, (action) =>
       createMenuItem({
         id: `${CONTEXT_MENU_ACTION_PREFIX}${action.id}`,
