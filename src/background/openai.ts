@@ -1,6 +1,7 @@
 import { Result } from "@praha/byethrow";
 import type { ChatRequestBody } from "@/ai/adapter";
 import { getAdapter } from "@/ai/get-adapter";
+import { getAiProviderTokenKey } from "@/ai/provider-token";
 import { loadAiSettings } from "@/ai/settings";
 import { normalizeEvent } from "@/background/calendar";
 import {
@@ -16,9 +17,8 @@ import { storageLocalGetTyped } from "@/background/storage";
 import type { BackgroundResponse, SummaryTarget } from "@/background/types";
 import { ExtractedEventSchema } from "@/schemas/extracted_event";
 import { safeParseJsonObject } from "@/schemas/json";
-import { type AiProvider, safeParseAiProvider } from "@/schemas/provider";
+import { safeParseAiProvider } from "@/schemas/provider";
 import type { ExtractedEvent } from "@/shared_types";
-import type { LocalStorageData } from "@/storage/types";
 import { fetchChatCompletionOk, fetchChatCompletionText } from "@/utils/openai";
 
 type AiTextRequest = {
@@ -183,7 +183,7 @@ export async function testAiToken(
   let effectiveStorage = storage;
   if (tokenOverride) {
     const provider = safeParseAiProvider(storage.aiProvider) ?? "openai";
-    const tokenKey = getTokenKeyForProvider(provider);
+    const tokenKey = getAiProviderTokenKey(provider);
     effectiveStorage = {
       ...storage,
       [tokenKey]: tokenOverride,
@@ -218,22 +218,6 @@ export async function testAiToken(
   }
 
   return Result.succeed(undefined);
-}
-
-/**
- * プロバイダーに応じたトークンキー名を取得
- */
-function getTokenKeyForProvider(provider: AiProvider): keyof LocalStorageData {
-  switch (provider) {
-    case "openai":
-      return "openaiApiToken";
-    case "anthropic":
-      return "anthropicApiToken";
-    case "zai":
-      return "zaiApiToken";
-    default:
-      return "openaiApiToken";
-  }
 }
 
 export async function extractEventWithOpenAI(

@@ -2,6 +2,7 @@
  * AI設定読み込みモジュール
  */
 import { Result } from "@praha/byethrow";
+import { getAiProviderToken } from "@/ai/provider-token";
 import {
   type AiProvider,
   normalizeAiModel,
@@ -33,23 +34,7 @@ export function loadAiSettings(
   const providerValue = storage.aiProvider ?? "openai";
   const provider = safeParseAiProvider(providerValue) ?? "openai";
 
-  // プロバイダー別トークン（レガシーフォールバックなし）
-  let token = "";
-  switch (provider) {
-    case "openai":
-      token = storage.openaiApiToken ?? "";
-      break;
-    case "anthropic":
-      token = storage.anthropicApiToken ?? "";
-      break;
-    case "zai":
-      token = storage.zaiApiToken ?? "";
-      break;
-    default:
-      token = "";
-  }
-
-  token = token.trim();
+  const token = getAiProviderToken(storage, provider).trim();
   if (!token) {
     return Result.fail("APIトークンが設定されていません");
   }

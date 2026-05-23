@@ -24,6 +24,31 @@ describe("ensureOpenAiTokenConfigured", () => {
     expect(focusTokenInput).not.toHaveBeenCalled();
   });
 
+  it("returns Success when the selected provider token exists", async () => {
+    const storageLocalGet = vi.fn(async () =>
+      Result.succeed({
+        aiProvider: "anthropic",
+        openaiApiToken: "",
+        anthropicApiToken: "sk-anthropic",
+      })
+    );
+    const showNotification = vi.fn();
+    const navigateToPane = vi.fn();
+    const focusTokenInput = vi.fn();
+
+    const result = await ensureOpenAiTokenConfigured({
+      storageLocalGet,
+      showNotification,
+      navigateToPane,
+      focusTokenInput,
+    });
+    expect(Result.isSuccess(result)).toBe(true);
+
+    expect(showNotification).not.toHaveBeenCalled();
+    expect(navigateToPane).not.toHaveBeenCalled();
+    expect(focusTokenInput).not.toHaveBeenCalled();
+  });
+
   it("navigates to settings and focuses when token missing", async () => {
     const storageLocalGet = vi.fn(async () =>
       Result.succeed({ openaiApiToken: "" })

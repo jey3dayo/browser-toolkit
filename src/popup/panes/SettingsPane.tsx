@@ -6,6 +6,7 @@ import {
   useId,
   useState,
 } from "react";
+import { getAiProviderTokenKey } from "@/ai/provider-token";
 import { Icon } from "@/components/icon";
 import { Button } from "@/components/shared/Button";
 import { Field } from "@/components/shared/Field";
@@ -121,20 +122,6 @@ function isTestAiTokenResponse(value: unknown): value is TestAiTokenResponse {
   return isRecord(value);
 }
 
-// プロバイダーからトークンキーへのマッピング
-function getTokenKey(provider: AiProvider): keyof LocalStorageData {
-  switch (provider) {
-    case "openai":
-      return "openaiApiToken";
-    case "anthropic":
-      return "anthropicApiToken";
-    case "zai":
-      return "zaiApiToken";
-    default:
-      return "openaiApiToken";
-  }
-}
-
 export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
   const [provider, setProvider] = useState<AiProvider>("openai");
   const [token, setToken] = useState("");
@@ -196,7 +183,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
       setProvider(resolvedProvider);
 
       // プロバイダー別トークン
-      const tokenKey = getTokenKey(resolvedProvider);
+      const tokenKey = getAiProviderTokenKey(resolvedProvider);
       const tokenValue = raw[tokenKey];
       setToken(typeof tokenValue === "string" ? tokenValue : "");
 
@@ -228,12 +215,12 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
   }, [props.runtime]);
 
   const saveToken = async (): Promise<void> => {
-    const tokenKey = getTokenKey(provider);
+    const tokenKey = getAiProviderTokenKey(provider);
     await saveLocalString(tokenKey, token);
   };
 
   const clearToken = async (): Promise<void> => {
-    const tokenKey = getTokenKey(provider);
+    const tokenKey = getAiProviderTokenKey(provider);
     await clearLocalString(tokenKey, () => setToken(""));
   };
 
@@ -327,7 +314,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
             setModel(defaultModel);
 
             // プロバイダー別トークンをロード（完了を待つ）
-            const tokenKey = getTokenKey(newProvider);
+            const tokenKey = getAiProviderTokenKey(newProvider);
             try {
               const result = await props.runtime.storageLocalGet([tokenKey]);
               if (Result.isSuccess(result)) {

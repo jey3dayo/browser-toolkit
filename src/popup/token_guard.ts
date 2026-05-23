@@ -1,4 +1,6 @@
 import { Result } from "@praha/byethrow";
+import { getAiProviderToken } from "@/ai/provider-token";
+import { safeParseAiProvider } from "@/schemas/provider";
 import type { LocalStorageData } from "@/storage/types";
 
 export type NotificationOptions = {
@@ -49,23 +51,8 @@ export async function ensureOpenAiTokenConfigured(
     return Result.fail("storage-error");
   }
 
-  // プロバイダー別トークン取得
-  const provider = loaded.value.aiProvider ?? "openai";
-  let token = "";
-  switch (provider) {
-    case "openai":
-      token = loaded.value.openaiApiToken ?? "";
-      break;
-    case "anthropic":
-      token = loaded.value.anthropicApiToken ?? "";
-      break;
-    case "zai":
-      token = loaded.value.zaiApiToken ?? "";
-      break;
-    default:
-      token = loaded.value.openaiApiToken ?? "";
-      break;
-  }
+  const provider = safeParseAiProvider(loaded.value.aiProvider) ?? "openai";
+  const token = getAiProviderToken(loaded.value, provider);
 
   const tokenConfigured = token.trim()
     ? Result.succeed()
