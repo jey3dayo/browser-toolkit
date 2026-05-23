@@ -90,7 +90,7 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
   const themePopoverId = useId();
   const markdownPopoverId = useId();
   const closePopoverId = useId();
-  const [panelSize, setPanelSize] = useState<PanelSize>({
+  const panelSizeRef = useRef<PanelSize>({
     width: 520,
     height: 300,
   });
@@ -98,12 +98,28 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
   const [pinnedPos, setPinnedPos] = useState<Point | null>(null);
   const [dragging, setDragging] = useState(false);
   const dragOffsetRef = useRef<DragOffset | null>(null);
+  const updateOverlayPositionRef = useRef<() => void>(() => undefined);
 
   // Chat state
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isChatting, setIsChatting] = useState(false);
   const chatRequestIdRef = useRef(0);
   const prevPrimaryRef = useRef<string | null>(null);
+
+  updateOverlayPositionRef.current = (): void => {
+    positionOverlayHost({
+      open: viewModel.open,
+      host: props.host,
+      size: panelSizeRef.current,
+      pinned,
+      pinnedPos,
+      anchorRect: viewModel.anchorRect,
+    });
+    updateOverlayToastSurfaceInset({
+      host: props.host,
+      panel: panelRef.current,
+    });
+  };
 
   useEffect(() => {
     let disposed = false;
@@ -182,7 +198,8 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
       }
       lastWidth = width;
       lastHeight = height;
-      setPanelSize({ width, height });
+      panelSizeRef.current = { width, height };
+      updateOverlayPositionRef.current();
     };
 
     const observer = new ResizeObserver((entries) => {
@@ -218,39 +235,23 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
   }, [viewModel.primary]);
 
   useLayoutEffect(() => {
-    const updatePosition = (): void => {
-      positionOverlayHost({
-        open: viewModel.open,
-        host: props.host,
-        size: panelSize,
-        pinned,
-        pinnedPos,
-        anchorRect: viewModel.anchorRect,
-      });
-      updateOverlayToastSurfaceInset({
-        host: props.host,
-        panel: panelRef.current,
-      });
-    };
+    updateOverlayPositionRef.current();
+  });
 
-    updatePosition();
-
+  useLayoutEffect(() => {
     if (!viewModel.open) {
       return;
     }
+
+    const updatePosition = (): void => {
+      updateOverlayPositionRef.current();
+    };
 
     window.addEventListener("resize", updatePosition);
     return () => {
       window.removeEventListener("resize", updatePosition);
     };
-  }, [
-    props.host,
-    viewModel.open,
-    viewModel.anchorRect,
-    pinned,
-    pinnedPos,
-    panelSize,
-  ]);
+  }, [viewModel.open]);
 
   if (!viewModel.open) {
     return null;
