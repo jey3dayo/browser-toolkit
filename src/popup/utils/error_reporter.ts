@@ -1,4 +1,5 @@
 import React from "react";
+import { Button } from "@/components/shared/Button";
 import type { PaneId } from "@/popup/panes";
 import type { Notifier } from "@/ui/toast";
 
@@ -30,14 +31,14 @@ function reportError(message: string, options: ErrorReporterOptions): void {
     notify.error({
       title: message,
       description: React.createElement(
-        "button",
+        Button,
         {
-          className: "mbu-toast-action-link",
           onClick: () => {
             navigateToPane("pane-settings");
             focusTokenInput();
           },
           type: "button",
+          variant: "toastActionLink",
         },
         "→ 設定を開く"
       ),

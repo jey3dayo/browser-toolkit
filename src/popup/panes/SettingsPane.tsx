@@ -1,16 +1,19 @@
-import { Button } from "@base-ui/react/button";
-import { Field } from "@base-ui/react/field";
-import { Fieldset } from "@base-ui/react/fieldset";
-import { Form } from "@base-ui/react/form";
-import { Input } from "@base-ui/react/input";
-import { Radio } from "@base-ui/react/radio";
-import { RadioGroup } from "@base-ui/react/radio-group";
-import { Select } from "@base-ui/react/select";
-import { Separator } from "@base-ui/react/separator";
-import { Toggle } from "@base-ui/react/toggle";
 import { Result } from "@praha/byethrow";
+import { cva, type VariantProps } from "class-variance-authority";
 import { useEffect, useId, useState } from "react";
 import { Icon } from "@/components/icon";
+import { Button } from "@/components/shared/Button";
+import { Field } from "@/components/shared/Field";
+import { Fieldset } from "@/components/shared/Fieldset";
+import { Form } from "@/components/shared/Form";
+import { Input, InputWithIcon } from "@/components/shared/Input";
+import { ButtonRow, PaneCard, Stack } from "@/components/shared/Layout";
+import { RadioFieldset } from "@/components/shared/RadioFieldset";
+import { Select } from "@/components/shared/Select";
+import { Separator } from "@/components/shared/Separator";
+import { Textarea } from "@/components/shared/Textarea";
+import { Toggle } from "@/components/shared/Toggle";
+import { Hint, PaneTitle } from "@/components/shared/Typography";
 import { DEFAULT_OPENAI_MODEL } from "@/openai/settings";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import type { TestAiTokenRequest, TestAiTokenResponse } from "@/popup/runtime";
@@ -29,6 +32,69 @@ import { isRecord } from "@/utils/guards";
 export type SettingsPaneProps = PopupPaneBaseProps & {
   tokenInputRef: React.RefObject<HTMLInputElement | null>;
 };
+
+type SettingsPaneCardSection =
+  | "provider"
+  | "token"
+  | "model"
+  | "prompt"
+  | "theme";
+
+type SettingsPaneCardProps = {
+  children: React.ReactNode;
+  section: SettingsPaneCardSection;
+};
+
+const settingsPaneCardClassName = cva("card settings-card settings-pane-card");
+
+function SettingsPaneCard({
+  children,
+  section,
+}: SettingsPaneCardProps): React.JSX.Element {
+  return (
+    <section
+      className={settingsPaneCardClassName()}
+      data-section={section}
+      data-testid="settings-card"
+    >
+      {children}
+    </section>
+  );
+}
+
+const settingsTokenActionRowVariants = cva("", {
+  variants: {
+    tone: {
+      danger: "settings-token-danger-actions",
+      primary: "settings-token-primary-actions",
+    },
+  },
+});
+
+type SettingsTokenActionRowProps = React.ComponentProps<typeof ButtonRow> &
+  VariantProps<typeof settingsTokenActionRowVariants>;
+
+function SettingsTokenActionRow({
+  className,
+  tone,
+  ...props
+}: SettingsTokenActionRowProps): React.JSX.Element {
+  return (
+    <ButtonRow
+      className={settingsTokenActionRowVariants({ className, tone })}
+      {...props}
+    />
+  );
+}
+
+const settingsThemeOptionGroupVariants = cva("stack-sm", {
+  variants: {
+    variant: {
+      auto: "settings-theme-auto-option",
+      primary: "settings-theme-primary-options",
+    },
+  },
+});
 
 function isTestAiTokenResponse(value: unknown): value is TestAiTokenResponse {
   // Result type is opaque, so we can't check its structure directly
@@ -212,138 +278,99 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
   };
 
   return (
-    <div className="card card-stack settings-pane">
+    <PaneCard className="settings-pane">
       <section
         className="stack-sm settings-pane-overview"
         data-testid="settings-overview"
       >
-        <h2 className="pane-title">設定</h2>
-        <p className="hint">AI設定はこの端末のみ（同期されません）</p>
+        <PaneTitle>設定</PaneTitle>
+        <Hint>AI設定はこの端末のみ（同期されません）</Hint>
       </section>
 
-      <section
-        className="card settings-card settings-pane-card"
-        data-section="provider"
-        data-testid="settings-card"
-      >
-        <Field.Root name="aiProvider">
-          <Fieldset.Root
-            className="mbu-fieldset"
-            render={
-              <RadioGroup
-                className="mbu-radio-group mbu-radio-group--horizontal"
-                onValueChange={async (value) => {
-                  const newProvider = safeParseAiProvider(value);
-                  if (!newProvider) {
-                    return;
-                  }
-                  setProvider(newProvider);
-                  // プロバイダー変更時にモデルをデフォルトにリセット
-                  const defaultModel =
-                    PROVIDER_CONFIGS[newProvider].defaultModel;
-                  setModel(defaultModel);
-
-                  // プロバイダー別トークンをロード（完了を待つ）
-                  const tokenKey = getTokenKey(newProvider);
-                  try {
-                    const result = await props.runtime.storageLocalGet([
-                      tokenKey,
-                    ]);
-                    if (Result.isSuccess(result)) {
-                      const raw = result.value as Partial<LocalStorageData>;
-                      const tokenValue = raw[tokenKey];
-                      setToken(
-                        typeof tokenValue === "string" ? tokenValue : ""
-                      );
-                    }
-                  } catch {
-                    // no-op
-                  }
-
-                  // トークンロード完了後に保存
-                  try {
-                    await saveProvider(newProvider);
-                    await saveModel(defaultModel);
-                  } catch {
-                    // no-op
-                  }
-                }}
-                value={provider}
-              />
+      <SettingsPaneCard section="provider">
+        <RadioFieldset
+          groups={[
+            {
+              options: [
+                { label: "OpenAI", value: "openai" },
+                { label: "Anthropic (Claude)", value: "anthropic" },
+                { label: "z.ai", value: "zai" },
+              ],
+            },
+          ]}
+          legend="AIプロバイダー"
+          name="aiProvider"
+          onValueChange={async (value) => {
+            const newProvider = safeParseAiProvider(value);
+            if (!newProvider) {
+              return;
             }
-          >
-            <Fieldset.Legend className="mbu-fieldset-legend">
-              AIプロバイダー
-            </Fieldset.Legend>
-            <Field.Item>
-              <Field.Label className="mbu-radio-label">
-                <Radio.Root className="mbu-radio-root" value="openai">
-                  <Radio.Indicator className="mbu-radio-indicator" />
-                </Radio.Root>
-                OpenAI
-              </Field.Label>
-            </Field.Item>
-            <Field.Item>
-              <Field.Label className="mbu-radio-label">
-                <Radio.Root className="mbu-radio-root" value="anthropic">
-                  <Radio.Indicator className="mbu-radio-indicator" />
-                </Radio.Root>
-                Anthropic (Claude)
-              </Field.Label>
-            </Field.Item>
-            <Field.Item>
-              <Field.Label className="mbu-radio-label">
-                <Radio.Root className="mbu-radio-root" value="zai">
-                  <Radio.Indicator className="mbu-radio-indicator" />
-                </Radio.Root>
-                z.ai
-              </Field.Label>
-            </Field.Item>
-          </Fieldset.Root>
-        </Field.Root>
-      </section>
+            setProvider(newProvider);
+            // プロバイダー変更時にモデルをデフォルトにリセット
+            const defaultModel = PROVIDER_CONFIGS[newProvider].defaultModel;
+            setModel(defaultModel);
 
-      <section
-        className="card settings-card settings-pane-card"
-        data-section="token"
-        data-testid="settings-card"
-      >
+            // プロバイダー別トークンをロード（完了を待つ）
+            const tokenKey = getTokenKey(newProvider);
+            try {
+              const result = await props.runtime.storageLocalGet([tokenKey]);
+              if (Result.isSuccess(result)) {
+                const raw = result.value as Partial<LocalStorageData>;
+                const tokenValue = raw[tokenKey];
+                setToken(typeof tokenValue === "string" ? tokenValue : "");
+              }
+            } catch {
+              // no-op
+            }
+
+            // トークンロード完了後に保存
+            try {
+              await saveProvider(newProvider);
+              await saveModel(defaultModel);
+            } catch {
+              // no-op
+            }
+          }}
+          value={provider}
+        />
+      </SettingsPaneCard>
+
+      <SettingsPaneCard section="token">
         <Form
-          className="stack"
           onFormSubmit={() => {
             saveToken().catch(() => {
               // no-op
             });
           }}
+          variant="stack"
         >
-          <Fieldset.Root className="mbu-fieldset stack">
-            <Fieldset.Legend className="mbu-fieldset-legend">
-              {PROVIDER_CONFIGS[provider].label} API トークン
-            </Fieldset.Legend>
-
-            <label className="field" htmlFor={tokenInputId}>
-              <span className="field-name">トークン</span>
-              <div className="input-with-icon">
+          <Fieldset
+            legend={`${PROVIDER_CONFIGS[provider].label} API トークン`}
+            spacing="stack"
+          >
+            <Field htmlFor={tokenInputId} label="トークン">
+              <InputWithIcon>
                 <Input
-                  className="token-input token-input--with-icon"
                   data-testid="ai-token"
                   id={tokenInputId}
                   onValueChange={setToken}
                   ref={props.tokenInputRef}
                   type={showToken ? "text" : "password"}
                   value={token}
+                  variant="token"
+                  withIcon
                 />
                 <Toggle
                   aria-controls={tokenInputId}
                   aria-label={
                     showToken ? "トークンを隠す" : "トークンを表示する"
                   }
-                  className="input-icon-toggle"
                   data-testid="token-visible"
                   onPressedChange={setShowToken}
                   pressed={showToken}
                   title={showToken ? "トークンを隠す" : "トークンを表示する"}
                   type="button"
+                  variant="icon"
                 >
                   <Icon
                     aria-hidden="true"
@@ -351,46 +378,47 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
                     size={16}
                   />
                 </Toggle>
-              </div>
-            </label>
-          </Fieldset.Root>
+              </InputWithIcon>
+            </Field>
+          </Fieldset>
 
-          <div className="stack-sm">
-            <div
-              className="button-row settings-token-primary-actions"
+          <Stack spacing="small">
+            <SettingsTokenActionRow
               data-testid="token-primary-actions"
+              tone="primary"
             >
               <Button
-                className="btn btn-primary btn-small"
                 data-testid="token-save"
                 onClick={() => {
                   saveToken().catch(() => {
                     // no-op
                   });
                 }}
+                size="small"
                 type="button"
+                variant="primary"
               >
                 保存
               </Button>
               <Button
-                className="btn btn-ghost btn-small"
                 data-testid="token-test"
                 onClick={() => {
                   testToken().catch(() => {
                     // no-op
                   });
                 }}
+                size="small"
                 type="button"
+                variant="ghost"
               >
                 トークン確認
               </Button>
-            </div>
-            <div
-              className="button-row settings-token-danger-actions"
+            </SettingsTokenActionRow>
+            <SettingsTokenActionRow
               data-testid="token-danger-actions"
+              tone="danger"
             >
               <Button
-                className="btn-delete"
                 data-testid="token-clear"
                 onClick={() => {
                   clearToken().catch(() => {
@@ -398,122 +426,83 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
                   });
                 }}
                 type="button"
+                variant="danger"
               >
                 削除
               </Button>
-            </div>
-          </div>
+            </SettingsTokenActionRow>
+          </Stack>
         </Form>
-      </section>
+      </SettingsPaneCard>
 
-      <section
-        className="card settings-card settings-pane-card"
-        data-section="model"
-        data-testid="settings-card"
-      >
-        <Fieldset.Root className="mbu-fieldset stack">
-          <Fieldset.Legend className="mbu-fieldset-legend">
-            モデル
-          </Fieldset.Legend>
-
-          <div className="field">
-            <Select.Root
+      <SettingsPaneCard section="model">
+        <Fieldset legend="モデル" spacing="stack">
+          <Field label="モデル">
+            <Select
+              ariaLabel="モデル"
               name="aiModel"
               onValueChange={(value) => {
-                if (typeof value === "string") {
-                  const normalized = normalizeAiModel(provider, value);
-                  setModel(normalized);
-                  saveModel(normalized).catch(() => {
-                    // no-op
-                  });
+                if (value === null) {
+                  return;
                 }
+                const normalized = normalizeAiModel(provider, value);
+                setModel(normalized);
+                saveModel(normalized).catch(() => {
+                  // no-op
+                });
               }}
+              options={PROVIDER_CONFIGS[provider].models.map((option) => ({
+                label: option,
+                value: option,
+              }))}
+              triggerTestId="ai-model"
               value={model}
-            >
-              <Select.Trigger
-                aria-label="モデル"
-                className="token-input mbu-select-trigger"
-                data-testid="ai-model"
-                type="button"
-              >
-                <Select.Value className="mbu-select-value" />
-                <Select.Icon className="mbu-select-icon">▾</Select.Icon>
-              </Select.Trigger>
-              <Select.Portal>
-                <Select.Positioner
-                  className="mbu-select-positioner"
-                  sideOffset={6}
-                >
-                  <Select.Popup className="mbu-select-popup">
-                    <Select.List className="mbu-select-list">
-                      {PROVIDER_CONFIGS[provider].models.map((option) => (
-                        <Select.Item
-                          className="mbu-select-item"
-                          key={option}
-                          value={option}
-                        >
-                          <Select.ItemText>{option}</Select.ItemText>
-                          <Select.ItemIndicator className="mbu-select-indicator">
-                            ✓
-                          </Select.ItemIndicator>
-                        </Select.Item>
-                      ))}
-                    </Select.List>
-                  </Select.Popup>
-                </Select.Positioner>
-              </Select.Portal>
-            </Select.Root>
-          </div>
-        </Fieldset.Root>
-      </section>
+              variant="token"
+            />
+          </Field>
+        </Fieldset>
+      </SettingsPaneCard>
 
-      <Separator className="mbu-separator" />
+      <Separator />
 
-      <section
-        className="card settings-card settings-pane-card"
-        data-section="prompt"
-        data-testid="settings-card"
-      >
+      <SettingsPaneCard section="prompt">
         <Form
-          className="stack"
           onFormSubmit={() => {
             savePrompt().catch(() => {
               // no-op
             });
           }}
+          variant="stack"
         >
-          <Fieldset.Root className="mbu-fieldset stack">
-            <Fieldset.Legend className="mbu-fieldset-legend">
-              追加指示（オプション）
-            </Fieldset.Legend>
-            <label className="field" htmlFor={promptInputId}>
-              <textarea
-                className="prompt-input"
+          <Fieldset legend="追加指示（オプション）" spacing="stack">
+            <Field htmlFor={promptInputId} label="追加指示">
+              <Textarea
                 data-testid="custom-prompt"
                 id={promptInputId}
                 name="aiCustomPrompt"
                 onChange={(event) => setCustomPrompt(event.currentTarget.value)}
                 rows={3}
                 value={customPrompt}
+                variant="prompt"
               />
-            </label>
-          </Fieldset.Root>
+            </Field>
+          </Fieldset>
 
-          <div className="button-row">
+          <ButtonRow>
             <Button
-              className="btn btn-primary btn-small"
               data-testid="prompt-save"
               onClick={() => {
                 savePrompt().catch(() => {
                   // no-op
                 });
               }}
+              size="small"
               type="button"
+              variant="primary"
             >
               保存
             </Button>
             <Button
-              className="btn-delete"
               data-testid="prompt-clear"
               onClick={() => {
                 clearPrompt().catch(() => {
@@ -521,80 +510,52 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
                 });
               }}
               type="button"
+              variant="danger"
             >
               削除
             </Button>
-          </div>
+          </ButtonRow>
         </Form>
-      </section>
+      </SettingsPaneCard>
 
-      <Separator className="mbu-separator" />
+      <Separator />
 
-      <section
-        className="card settings-card settings-pane-card"
-        data-section="theme"
-        data-testid="settings-card"
-      >
-        <Field.Root name="theme">
-          <Fieldset.Root
-            className="mbu-fieldset"
-            render={
-              <RadioGroup
-                className="mbu-radio-group mbu-radio-group--horizontal"
-                onValueChange={(value) => {
-                  if (!isTheme(value)) {
-                    return;
-                  }
-                  setTheme(value);
-                  applyTheme(value, document);
-                  saveTheme(value).catch(() => {
-                    // no-op
-                  });
-                }}
-                value={theme}
-              />
+      <SettingsPaneCard section="theme">
+        <RadioFieldset
+          groups={[
+            {
+              className: settingsThemeOptionGroupVariants({
+                variant: "primary",
+              }),
+              options: [
+                { label: "ダーク", value: "dark" },
+                { label: "ライト", value: "light" },
+              ],
+              testId: "theme-primary-options",
+            },
+            {
+              className: settingsThemeOptionGroupVariants({
+                variant: "auto",
+              }),
+              options: [{ label: "自動", value: "auto" }],
+              testId: "theme-auto-option",
+            },
+          ]}
+          legend="テーマ"
+          name="theme"
+          onValueChange={(value) => {
+            if (!isTheme(value)) {
+              return;
             }
-          >
-            <Fieldset.Legend className="mbu-fieldset-legend">
-              テーマ
-            </Fieldset.Legend>
-            <div
-              className="stack-sm settings-theme-primary-options"
-              data-testid="theme-primary-options"
-            >
-              <Field.Item>
-                <Field.Label className="mbu-radio-label">
-                  <Radio.Root className="mbu-radio-root" value="dark">
-                    <Radio.Indicator className="mbu-radio-indicator" />
-                  </Radio.Root>
-                  ダーク
-                </Field.Label>
-              </Field.Item>
-              <Field.Item>
-                <Field.Label className="mbu-radio-label">
-                  <Radio.Root className="mbu-radio-root" value="light">
-                    <Radio.Indicator className="mbu-radio-indicator" />
-                  </Radio.Root>
-                  ライト
-                </Field.Label>
-              </Field.Item>
-            </div>
-            <div
-              className="stack-sm settings-theme-auto-option"
-              data-testid="theme-auto-option"
-            >
-              <Field.Item>
-                <Field.Label className="mbu-radio-label">
-                  <Radio.Root className="mbu-radio-root" value="auto">
-                    <Radio.Indicator className="mbu-radio-indicator" />
-                  </Radio.Root>
-                  自動
-                </Field.Label>
-              </Field.Item>
-            </div>
-          </Fieldset.Root>
-        </Field.Root>
-      </section>
-    </div>
+            setTheme(value);
+            applyTheme(value, document);
+            saveTheme(value).catch(() => {
+              // no-op
+            });
+          }}
+          value={theme}
+        />
+      </SettingsPaneCard>
+    </PaneCard>
   );
 }

@@ -1,6 +1,3 @@
-import { Button } from "@base-ui/react/button";
-import { Input } from "@base-ui/react/input";
-import { Select } from "@base-ui/react/select";
 import { Result } from "@praha/byethrow";
 import QRCode from "qrcode";
 import {
@@ -12,6 +9,19 @@ import {
   useState,
 } from "react";
 import { Icon } from "@/components/icon";
+import { Button } from "@/components/shared/Button";
+import { Field } from "@/components/shared/Field";
+import { Input } from "@/components/shared/Input";
+import {
+  ButtonRow,
+  OutputPanel,
+  PaneCard,
+  RowBetween,
+  Stack,
+} from "@/components/shared/Layout";
+import { Select } from "@/components/shared/Select";
+import { Textarea } from "@/components/shared/Textarea";
+import { Hint, MetaTitle, PaneTitle } from "@/components/shared/Typography";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { persistWithRollback } from "@/popup/utils/persist";
 import { debugLog } from "@/utils/debug_log";
@@ -185,24 +195,24 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
   };
 
   return (
-    <div className="card card-stack">
-      <div className="row-between">
-        <h2 className="pane-title">リンク作成</h2>
-        <div className="button-row">
+    <PaneCard>
+      <RowBetween>
+        <PaneTitle>リンク作成</PaneTitle>
+        <ButtonRow>
           <Button
-            className="btn btn-ghost btn-small"
             data-testid="create-link-qr"
             disabled={!url.trim()}
             onClick={() => {
               setShowQr((prev) => !prev);
             }}
+            size="small"
             title="QRコード"
             type="button"
+            variant="ghost"
           >
             <Icon aria-hidden="true" name="qr-code" size={16} />
           </Button>
           <Button
-            className="btn btn-primary btn-small"
             data-testid="create-link-copy"
             disabled={!canCopy}
             onClick={() => {
@@ -210,116 +220,84 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
                 // no-op
               });
             }}
+            size="small"
             type="button"
+            variant="primary"
           >
             コピー
           </Button>
-        </div>
-      </div>
+        </ButtonRow>
+      </RowBetween>
 
-      <p className="hint">
+      <Hint>
         現在のタブのURLを各形式でコピーします（タイトル/URLは編集できます）。
-      </p>
+      </Hint>
 
-      <div className="stack">
-        <label className="field" htmlFor={titleInputId}>
-          <span className="field-name">タイトル</span>
+      <Stack>
+        <Field htmlFor={titleInputId} label="タイトル">
           <Input
-            className="token-input"
             data-testid="create-link-title"
             id={titleInputId}
             onValueChange={setTitle}
             value={title}
+            variant="token"
           />
-        </label>
+        </Field>
 
-        <label className="field" htmlFor={urlInputId}>
-          <span className="field-name">URL</span>
+        <Field htmlFor={urlInputId} label="URL">
           <Input
-            className="token-input"
             data-testid="create-link-url"
             id={urlInputId}
             onValueChange={setUrl}
             value={url}
+            variant="token"
           />
-        </label>
+        </Field>
 
-        <div className="field">
-          <label
-            className="field-name"
-            htmlFor={formatTriggerId}
-            id={formatLabelId}
-          >
-            形式
-          </label>
-          <Select.Root
+        <Field htmlFor={formatTriggerId} label="形式" labelId={formatLabelId}>
+          <Select
+            ariaLabelledBy={formatLabelId}
             onValueChange={(value) => {
-              if (typeof value !== "string") {
+              if (value === null) {
                 return;
               }
               handleFormatChange(value).catch(() => {
                 // no-op
               });
             }}
+            options={LINK_FORMAT_OPTIONS.map((option) => ({
+              label: option.label,
+              value: option.value,
+            }))}
+            triggerId={formatTriggerId}
+            triggerTestId="create-link-format"
             value={format}
-          >
-            <Select.Trigger
-              aria-labelledby={formatLabelId}
-              className="token-input mbu-select-trigger"
-              data-testid="create-link-format"
-              id={formatTriggerId}
-              type="button"
-            >
-              <Select.Value className="mbu-select-value" />
-              <Select.Icon className="mbu-select-icon">▾</Select.Icon>
-            </Select.Trigger>
-            <Select.Portal>
-              <Select.Positioner
-                className="mbu-select-positioner"
-                sideOffset={6}
-              >
-                <Select.Popup className="mbu-select-popup">
-                  <Select.List className="mbu-select-list">
-                    {LINK_FORMAT_OPTIONS.map((option) => (
-                      <Select.Item
-                        className="mbu-select-item"
-                        key={option.value}
-                        value={option.value}
-                      >
-                        <Select.ItemText>{option.label}</Select.ItemText>
-                        <Select.ItemIndicator className="mbu-select-indicator">
-                          ✓
-                        </Select.ItemIndicator>
-                      </Select.Item>
-                    ))}
-                  </Select.List>
-                </Select.Popup>
-              </Select.Positioner>
-            </Select.Portal>
-          </Select.Root>
-        </div>
-      </div>
+            variant="token"
+          />
+        </Field>
+      </Stack>
 
       {showQr ? (
-        <section className="output-panel">
-          <div className="meta-title">QRコード</div>
+        <OutputPanel>
+          <MetaTitle>QRコード</MetaTitle>
           <div style={{ display: "flex", justifyContent: "center" }}>
             <canvas ref={qrCanvasRef} />
           </div>
-        </section>
+        </OutputPanel>
       ) : null}
 
-      <section className="output-panel">
-        <div className="row-between">
-          <div className="meta-title">プレビュー</div>
-        </div>
-        <textarea
-          className="summary-output summary-output--sm"
+      <OutputPanel>
+        <RowBetween>
+          <MetaTitle>プレビュー</MetaTitle>
+        </RowBetween>
+        <Textarea
           data-testid="create-link-output"
           readOnly
+          size="small"
           value={output}
+          variant="summary"
         />
-      </section>
-    </div>
+      </OutputPanel>
+    </PaneCard>
   );
 }

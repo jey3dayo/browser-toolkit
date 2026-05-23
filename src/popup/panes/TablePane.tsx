@@ -1,11 +1,34 @@
-import { Button } from "@base-ui/react/button";
-import { Form } from "@base-ui/react/form";
-import { Input } from "@base-ui/react/input";
-import { ScrollArea } from "@base-ui/react/scroll-area";
-import { Switch } from "@base-ui/react/switch";
-import { Tooltip } from "@base-ui/react/tooltip";
 import { Result } from "@praha/byethrow";
-import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { cva } from "class-variance-authority";
+import {
+  type ComponentPropsWithoutRef,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+} from "react";
+import { Badge, type BadgeProps } from "@/components/shared/Badge";
+import { Button } from "@/components/shared/Button";
+import {
+  ButtonRow,
+  PaneCard,
+  RowBetween,
+  Stack,
+} from "@/components/shared/Layout";
+import { PatternAddForm } from "@/components/shared/PatternAddForm";
+import {
+  PatternList,
+  PatternListItem,
+} from "@/components/shared/PatternListItem";
+import { ScrollArea } from "@/components/shared/ScrollArea";
+import { Switch } from "@/components/shared/Switch";
+import { Tooltip } from "@/components/shared/Tooltip";
+import {
+  EmptyMessage,
+  Hint,
+  PaneSubtitle,
+  PaneTitle,
+} from "@/components/shared/Typography";
 import {
   normalizeFocusOverridePatterns,
   toFocusOverrideMatchPattern,
@@ -21,11 +44,6 @@ import { persistWithRollback } from "@/popup/utils/persist";
 import { requireTrimmedString } from "@/popup/utils/required-input";
 
 export type TablePaneProps = PopupPaneBaseProps;
-
-type TooltipSwitchProps = {
-  tooltip: string;
-  children: React.ReactElement;
-};
 
 type FocusDiagnosticKind =
   | "not-configured"
@@ -51,16 +69,364 @@ type FocusDiagnosticViewParams = Omit<
 
 const FOCUS_DIAGNOSTIC_SLOW_MS = 300;
 
-function TooltipSwitch(props: TooltipSwitchProps): React.JSX.Element {
+function TablePaneHeader({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"div">): React.JSX.Element {
   return (
-    <Tooltip.Root>
-      <Tooltip.Trigger render={props.children} />
-      <Tooltip.Portal>
-        <Tooltip.Positioner className="mbu-tooltip-positioner" sideOffset={6}>
-          <Tooltip.Popup className="mbu-tooltip">{props.tooltip}</Tooltip.Popup>
-        </Tooltip.Positioner>
-      </Tooltip.Portal>
-    </Tooltip.Root>
+    <div className={cva("table-pane-header stack")({ className })} {...props} />
+  );
+}
+
+function TablePaneHeading({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<typeof RowBetween>): React.JSX.Element {
+  return (
+    <RowBetween
+      className={cva("table-pane-heading")({ className })}
+      {...props}
+    />
+  );
+}
+
+function TablePaneSection({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"section">): React.JSX.Element {
+  return (
+    <section
+      className={cva("table-pane-section stack")({ className })}
+      data-testid="table-pane-section"
+      {...props}
+    />
+  );
+}
+
+function TablePaneSectionHeading({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"div">): React.JSX.Element {
+  return (
+    <div
+      className={cva("table-pane-section-heading stack-sm")({ className })}
+      {...props}
+    />
+  );
+}
+
+function TablePaneSummary({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"section">): React.JSX.Element {
+  return (
+    <section
+      className={cva("table-pane-summary")({ className })}
+      data-testid="table-pane-summary"
+      {...props}
+    />
+  );
+}
+
+function TablePaneSummaryHeading({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"div">): React.JSX.Element {
+  return (
+    <div
+      className={cva("table-pane-summary-heading")({ className })}
+      {...props}
+    />
+  );
+}
+
+function TablePaneSummaryTitle({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"p">): React.JSX.Element {
+  return (
+    <p className={cva("table-pane-summary-title")({ className })} {...props} />
+  );
+}
+
+function TablePaneSummaryCopy({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"p">): React.JSX.Element {
+  return (
+    <p className={cva("table-pane-summary-copy")({ className })} {...props} />
+  );
+}
+
+function TablePaneSummaryStatus({
+  className,
+  ...props
+}: BadgeProps): React.JSX.Element {
+  return (
+    <Badge
+      className={cva("table-pane-summary-status")({ className })}
+      {...props}
+    />
+  );
+}
+
+function TablePaneSummaryGrid({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"div">): React.JSX.Element {
+  return (
+    <div className={cva("table-pane-summary-grid")({ className })} {...props} />
+  );
+}
+
+function TablePaneSummaryItem({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"div">): React.JSX.Element {
+  return (
+    <div className={cva("table-pane-summary-item")({ className })} {...props} />
+  );
+}
+
+function TablePaneSummaryLabel({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"p">): React.JSX.Element {
+  return (
+    <p className={cva("table-pane-summary-label")({ className })} {...props} />
+  );
+}
+
+function TablePaneSummaryValue({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"p">): React.JSX.Element {
+  return (
+    <p className={cva("table-pane-summary-value")({ className })} {...props} />
+  );
+}
+
+function TablePaneSummaryMeta({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"p">): React.JSX.Element {
+  return (
+    <p className={cva("table-pane-summary-meta")({ className })} {...props} />
+  );
+}
+
+function FocusDiagnosticDescription({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"p">): React.JSX.Element {
+  return (
+    <p
+      className={cva("focus-diagnostic-description")({ className })}
+      {...props}
+    />
+  );
+}
+
+function FocusDiagnosticMeta({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"p">): React.JSX.Element {
+  return (
+    <p className={cva("focus-diagnostic-meta")({ className })} {...props} />
+  );
+}
+
+function FocusDiagnosticLoading({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"p">): React.JSX.Element {
+  return (
+    <p className={cva("focus-diagnostic-loading")({ className })} {...props} />
+  );
+}
+
+function FocusDiagnosticPanelRoot({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"section">): React.JSX.Element {
+  return (
+    <section
+      aria-live="polite"
+      className={cva("focus-diagnostic-panel")({ className })}
+      data-testid="focus-diagnostic-panel"
+      {...props}
+    />
+  );
+}
+
+function FocusDiagnosticEyebrow({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"p">): React.JSX.Element {
+  return (
+    <p className={cva("focus-diagnostic-eyebrow")({ className })} {...props} />
+  );
+}
+
+function FocusDiagnosticSummary({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"div">): React.JSX.Element {
+  return (
+    <div
+      className={cva("focus-diagnostic-summary")({ className })}
+      {...props}
+    />
+  );
+}
+
+function FocusDiagnosticUrl({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"code">): React.JSX.Element {
+  return (
+    <code className={cva("focus-diagnostic-url")({ className })} {...props} />
+  );
+}
+
+function FocusDiagnosticActions({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<typeof ButtonRow>): React.JSX.Element {
+  return (
+    <ButtonRow
+      className={cva("focus-diagnostic-actions")({ className })}
+      {...props}
+    />
+  );
+}
+
+type TablePaneSummaryCardProps = {
+  focusDiagnosticBadgeVariant: BadgeProps["variant"];
+  focusPatternSummaryLabel: string;
+  summaryFocusDescription: string;
+  summaryFocusStatusLabel: string;
+  urlPatternSummaryLabel: string;
+};
+
+function TablePaneSummaryCard({
+  focusDiagnosticBadgeVariant,
+  focusPatternSummaryLabel,
+  summaryFocusDescription,
+  summaryFocusStatusLabel,
+  urlPatternSummaryLabel,
+}: TablePaneSummaryCardProps): React.JSX.Element {
+  return (
+    <TablePaneSummary>
+      <TablePaneSummaryHeading>
+        <Stack spacing="small">
+          <TablePaneSummaryTitle>
+            このタブに必要な設定をまとめて確認できます
+          </TablePaneSummaryTitle>
+          <TablePaneSummaryCopy>
+            自動ソート対象サイトごとの行フィルタと、フォーカス維持の一致状況をこの画面で管理します。
+          </TablePaneSummaryCopy>
+        </Stack>
+        <TablePaneSummaryStatus variant={focusDiagnosticBadgeVariant}>
+          {summaryFocusStatusLabel}
+        </TablePaneSummaryStatus>
+      </TablePaneSummaryHeading>
+
+      <TablePaneSummaryGrid>
+        <TablePaneSummaryItem>
+          <TablePaneSummaryLabel>自動ソート対象サイト</TablePaneSummaryLabel>
+          <TablePaneSummaryValue>
+            {urlPatternSummaryLabel}
+          </TablePaneSummaryValue>
+          <TablePaneSummaryMeta>
+            <code>*</code> ワイルドカード対応 / protocolは無視
+          </TablePaneSummaryMeta>
+        </TablePaneSummaryItem>
+
+        <TablePaneSummaryItem>
+          <TablePaneSummaryLabel>フォーカス維持</TablePaneSummaryLabel>
+          <TablePaneSummaryValue>
+            {focusPatternSummaryLabel}
+          </TablePaneSummaryValue>
+          <TablePaneSummaryMeta>{summaryFocusDescription}</TablePaneSummaryMeta>
+        </TablePaneSummaryItem>
+      </TablePaneSummaryGrid>
+    </TablePaneSummary>
+  );
+}
+
+type FocusDiagnosticPanelProps = {
+  focusDiagnostic: FocusDiagnosticView | null;
+  focusDiagnosticBadgeVariant: BadgeProps["variant"];
+  focusDiagnosticRunning: boolean;
+  focusDiagnosticSlow: boolean;
+  onRefresh: () => void;
+  onReloadCurrentTab: () => void;
+};
+
+function FocusDiagnosticPanel({
+  focusDiagnostic,
+  focusDiagnosticBadgeVariant,
+  focusDiagnosticRunning,
+  focusDiagnosticSlow,
+  onRefresh,
+  onReloadCurrentTab,
+}: FocusDiagnosticPanelProps): React.JSX.Element {
+  return (
+    <FocusDiagnosticPanelRoot>
+      <RowBetween>
+        <Stack spacing="small">
+          <FocusDiagnosticEyebrow>現在のタブ診断</FocusDiagnosticEyebrow>
+          <FocusDiagnosticSummary>
+            <Badge
+              data-testid="focus-diagnostic-status"
+              variant={focusDiagnosticBadgeVariant}
+            >
+              {focusDiagnostic?.label ?? "診断待ち"}
+            </Badge>
+            <FocusDiagnosticUrl data-testid="focus-diagnostic-summary">
+              {focusDiagnostic?.currentUrl ?? "現在のURLを確認しています"}
+            </FocusDiagnosticUrl>
+          </FocusDiagnosticSummary>
+        </Stack>
+        <FocusDiagnosticActions>
+          <Button
+            data-testid="focus-diagnostic-refresh"
+            disabled={focusDiagnosticRunning}
+            onClick={onRefresh}
+            size="small"
+            type="button"
+            variant="ghost"
+          >
+            再診断
+          </Button>
+          {focusDiagnostic?.kind === "reload-required" ? (
+            <Button
+              data-testid="focus-diagnostic-reload"
+              onClick={onReloadCurrentTab}
+              size="small"
+              type="button"
+              variant="primary"
+            >
+              このタブを再読み込み
+            </Button>
+          ) : null}
+        </FocusDiagnosticActions>
+      </RowBetween>
+
+      <FocusDiagnosticDescription>
+        {focusDiagnostic?.description ??
+          "現在のタブにフォーカス維持が必要かどうかを確認できます"}
+      </FocusDiagnosticDescription>
+      {focusDiagnostic?.matchedPattern ? (
+        <FocusDiagnosticMeta>
+          一致パターン: <code>{focusDiagnostic.matchedPattern}</code>
+        </FocusDiagnosticMeta>
+      ) : null}
+      {focusDiagnosticSlow ? (
+        <FocusDiagnosticLoading>現在のタブを診断中です…</FocusDiagnosticLoading>
+      ) : null}
+    </FocusDiagnosticPanelRoot>
   );
 }
 
@@ -586,11 +952,12 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
     props.notify.success("このタブを再読み込みしました");
   };
 
-  let focusDiagnosticToneClass = "focus-diagnostic-status--neutral";
+  let focusDiagnosticBadgeVariant: BadgeProps["variant"] =
+    "focusDiagnosticNeutral";
   if (focusDiagnostic?.kind === "active") {
-    focusDiagnosticToneClass = "focus-diagnostic-status--active";
+    focusDiagnosticBadgeVariant = "focusDiagnosticActive";
   } else if (focusDiagnostic?.kind === "reload-required") {
-    focusDiagnosticToneClass = "focus-diagnostic-status--warning";
+    focusDiagnosticBadgeVariant = "focusDiagnosticWarning";
   }
 
   const summaryFocusStatusLabel = focusDiagnostic?.label ?? "診断待ち";
@@ -607,12 +974,11 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
       : `${focusPatterns.length}件を登録済み`;
 
   return (
-    <div className="card card-stack table-pane">
-      <div className="table-pane-header stack">
-        <div className="table-pane-heading row-between">
-          <h2 className="pane-title">サイト別機能</h2>
+    <PaneCard className="table-pane">
+      <TablePaneHeader>
+        <TablePaneHeading>
+          <PaneTitle>サイト別機能</PaneTitle>
           <Button
-            className="btn btn-primary"
             data-testid="enable-table-sort"
             onClick={() => {
               enableNow().catch(() => {
@@ -620,307 +986,150 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
               });
             }}
             type="button"
+            variant="primary"
           >
             このタブで有効化
           </Button>
-        </div>
+        </TablePaneHeading>
 
-        <section
-          className="table-pane-summary"
-          data-testid="table-pane-summary"
-        >
-          <div className="table-pane-summary-heading">
-            <div className="stack-sm">
-              <p className="table-pane-summary-title">
-                このタブに必要な設定をまとめて確認できます
-              </p>
-              <p className="table-pane-summary-copy">
-                自動ソート対象サイトごとの行フィルタと、フォーカス維持の一致状況をこの画面で管理します。
-              </p>
-            </div>
-            <span
-              className={`focus-diagnostic-status table-pane-summary-status ${focusDiagnosticToneClass}`}
-            >
-              {summaryFocusStatusLabel}
-            </span>
-          </div>
+        <TablePaneSummaryCard
+          focusDiagnosticBadgeVariant={focusDiagnosticBadgeVariant}
+          focusPatternSummaryLabel={focusPatternSummaryLabel}
+          summaryFocusDescription={summaryFocusDescription}
+          summaryFocusStatusLabel={summaryFocusStatusLabel}
+          urlPatternSummaryLabel={urlPatternSummaryLabel}
+        />
+      </TablePaneHeader>
 
-          <div className="table-pane-summary-grid">
-            <div className="table-pane-summary-item">
-              <p className="table-pane-summary-label">自動ソート対象サイト</p>
-              <p className="table-pane-summary-value">
-                {urlPatternSummaryLabel}
-              </p>
-              <p className="table-pane-summary-meta">
-                <code>*</code> ワイルドカード対応 / protocolは無視
-              </p>
-            </div>
-
-            <div className="table-pane-summary-item">
-              <p className="table-pane-summary-label">フォーカス維持</p>
-              <p className="table-pane-summary-value">
-                {focusPatternSummaryLabel}
-              </p>
-              <p className="table-pane-summary-meta">
-                {summaryFocusDescription}
-              </p>
-            </div>
-          </div>
-        </section>
-      </div>
-
-      <section
-        className="table-pane-section stack"
-        data-section="url-patterns"
-        data-testid="table-pane-section"
-      >
-        <div className="table-pane-section-heading stack-sm">
-          <h3 className="pane-subtitle">自動ソート対象サイト</h3>
-          <div className="hint">
+      <TablePaneSection data-section="url-patterns">
+        <TablePaneSectionHeading>
+          <PaneSubtitle>自動ソート対象サイト</PaneSubtitle>
+          <Hint as="div">
             テーブルの自動ソートを有効にしたいサイトを URL
             パターンで登録できます。行フィルタはサイトごとに有効化できます。
-          </div>
-        </div>
-        <Form
-          className="pattern-input-group"
-          onFormSubmit={() => {
-            addPattern().catch(() => {
-              // no-op
-            });
-          }}
-        >
-          <Input
-            className="pattern-input"
-            data-testid="pattern-input"
-            onValueChange={setPatternInput}
-            placeholder="example.com/path*"
-            type="text"
-            value={patternInput}
-          />
-          <Button
-            className="btn btn-ghost btn-small"
-            data-testid="pattern-add"
-            onClick={() => {
-              addPattern().catch(() => {
-                // no-op
-              });
-            }}
-            type="button"
-          >
-            追加
-          </Button>
-        </Form>
+          </Hint>
+        </TablePaneSectionHeading>
+        <PatternAddForm
+          buttonTestId="pattern-add"
+          inputTestId="pattern-input"
+          onSubmit={addPattern}
+          onValueChange={setPatternInput}
+          placeholder="example.com/path*"
+          value={patternInput}
+        />
 
         {patterns.length > 0 ? (
-          <ScrollArea.Root className="pattern-scrollarea">
-            <ScrollArea.Viewport className="pattern-list">
-              <ScrollArea.Content>
-                <ul
-                  aria-label="登録済みパターン"
-                  className="pattern-list-inner"
-                >
-                  {patterns.map((config) => (
-                    <li
-                      className="pattern-item pattern-item--with-toggle"
-                      key={config.pattern}
+          <ScrollArea>
+            <PatternList aria-label="登録済みパターン">
+              {patterns.map((config) => (
+                <PatternListItem
+                  action={
+                    <Button
+                      data-pattern-remove={config.pattern}
+                      onClick={() => {
+                        removePattern(config.pattern).catch(() => {
+                          // no-op
+                        });
+                      }}
+                      type="button"
+                      variant="danger"
                     >
-                      <code className="pattern-text">{config.pattern}</code>
-                      <TooltipSwitch tooltip={rowFilterTooltip}>
-                        <Switch.Root
-                          aria-label={`${config.pattern}の行フィルタリング`}
-                          checked={config.enableRowFilter}
-                          className="mbu-switch"
-                          data-testid={`row-filter-${config.pattern}`}
-                          onCheckedChange={(checked) => {
-                            togglePatternRowFilter(
-                              config.pattern,
-                              checked
-                            ).catch(() => {
+                      削除
+                    </Button>
+                  }
+                  key={config.pattern}
+                  pattern={config.pattern}
+                  toggle={
+                    <Tooltip content={rowFilterTooltip}>
+                      <Switch
+                        aria-label={`${config.pattern}の行フィルタリング`}
+                        checked={config.enableRowFilter}
+                        data-testid={`row-filter-${config.pattern}`}
+                        onCheckedChange={(checked) => {
+                          togglePatternRowFilter(config.pattern, checked).catch(
+                            () => {
                               // no-op
-                            });
-                          }}
-                        >
-                          <Switch.Thumb className="mbu-switch-thumb" />
-                        </Switch.Root>
-                      </TooltipSwitch>
-                      <Button
-                        className="btn-delete"
-                        data-pattern-remove={config.pattern}
-                        onClick={() => {
-                          removePattern(config.pattern).catch(() => {
-                            // no-op
-                          });
+                            }
+                          );
                         }}
-                        type="button"
-                      >
-                        削除
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              </ScrollArea.Content>
-            </ScrollArea.Viewport>
-            <ScrollArea.Scrollbar className="pattern-scrollbar">
-              <ScrollArea.Thumb className="pattern-thumb" />
-            </ScrollArea.Scrollbar>
-          </ScrollArea.Root>
+                      />
+                    </Tooltip>
+                  }
+                />
+              ))}
+            </PatternList>
+          </ScrollArea>
         ) : (
-          <p className="empty-message">まだパターンが登録されていません</p>
+          <EmptyMessage>まだパターンが登録されていません</EmptyMessage>
         )}
-      </section>
+      </TablePaneSection>
 
-      <section
-        className="table-pane-section stack"
-        data-section="focus-override"
-        data-testid="table-pane-section"
-      >
-        <div className="table-pane-section-heading stack-sm">
-          <h3 className="pane-subtitle">フォーカス維持</h3>
-          <div className="hint">
+      <TablePaneSection data-section="focus-override">
+        <TablePaneSectionHeading>
+          <PaneSubtitle>フォーカス維持</PaneSubtitle>
+          <Hint as="div">
             タブが非アクティブでも常に表示中として扱わせたいサイト向けです
-          </div>
-        </div>
+          </Hint>
+        </TablePaneSectionHeading>
 
-        <section
-          aria-live="polite"
-          className="focus-diagnostic-panel"
-          data-testid="focus-diagnostic-panel"
-        >
-          <div className="row-between">
-            <div className="stack-sm">
-              <p className="focus-diagnostic-eyebrow">現在のタブ診断</p>
-              <div className="focus-diagnostic-summary">
-                <span
-                  className={`focus-diagnostic-status ${focusDiagnosticToneClass}`}
-                  data-testid="focus-diagnostic-status"
-                >
-                  {focusDiagnostic?.label ?? "診断待ち"}
-                </span>
-                <code
-                  className="focus-diagnostic-url"
-                  data-testid="focus-diagnostic-summary"
-                >
-                  {focusDiagnostic?.currentUrl ?? "現在のURLを確認しています"}
-                </code>
-              </div>
-            </div>
-            <div className="button-row focus-diagnostic-actions">
-              <Button
-                className="btn btn-ghost btn-small"
-                data-testid="focus-diagnostic-refresh"
-                disabled={focusDiagnosticRunning}
-                onClick={() => {
-                  runFocusDiagnostic(true).catch(() => {
-                    // no-op
-                  });
-                }}
-                type="button"
-              >
-                再診断
-              </Button>
-              {focusDiagnostic?.kind === "reload-required" ? (
-                <Button
-                  className="btn btn-primary btn-small"
-                  data-testid="focus-diagnostic-reload"
-                  onClick={() => {
-                    reloadCurrentTab().catch(() => {
-                      // no-op
-                    });
-                  }}
-                  type="button"
-                >
-                  このタブを再読み込み
-                </Button>
-              ) : null}
-            </div>
-          </div>
-
-          <p className="focus-diagnostic-description">
-            {focusDiagnostic?.description ??
-              "現在のタブにフォーカス維持が必要かどうかを確認できます"}
-          </p>
-          {focusDiagnostic?.matchedPattern ? (
-            <p className="focus-diagnostic-meta">
-              一致パターン: <code>{focusDiagnostic.matchedPattern}</code>
-            </p>
-          ) : null}
-          {focusDiagnosticSlow ? (
-            <p className="focus-diagnostic-loading">現在のタブを診断中です…</p>
-          ) : null}
-        </section>
-
-        <div className="hint">
-          パターン追加後、現在のタブが対象なら再読み込みで確実に反映されます
-        </div>
-        <Form
-          className="pattern-input-group"
-          onFormSubmit={() => {
-            addFocusPattern().catch(() => {
+        <FocusDiagnosticPanel
+          focusDiagnostic={focusDiagnostic}
+          focusDiagnosticBadgeVariant={focusDiagnosticBadgeVariant}
+          focusDiagnosticRunning={focusDiagnosticRunning}
+          focusDiagnosticSlow={focusDiagnosticSlow}
+          onRefresh={() => {
+            runFocusDiagnostic(true).catch(() => {
               // no-op
             });
           }}
-        >
-          <Input
-            className="pattern-input"
-            data-testid="focus-pattern-input"
-            onValueChange={setFocusPatternInput}
-            placeholder="example.com/title/*"
-            type="text"
-            value={focusPatternInput}
-          />
-          <Button
-            className="btn btn-ghost btn-small"
-            data-testid="focus-pattern-add"
-            onClick={() => {
-              addFocusPattern().catch(() => {
-                // no-op
-              });
-            }}
-            type="button"
-          >
-            追加
-          </Button>
-        </Form>
+          onReloadCurrentTab={() => {
+            reloadCurrentTab().catch(() => {
+              // no-op
+            });
+          }}
+        />
+
+        <Hint as="div">
+          パターン追加後、現在のタブが対象なら再読み込みで確実に反映されます
+        </Hint>
+        <PatternAddForm
+          buttonTestId="focus-pattern-add"
+          inputTestId="focus-pattern-input"
+          onSubmit={addFocusPattern}
+          onValueChange={setFocusPatternInput}
+          placeholder="example.com/title/*"
+          value={focusPatternInput}
+        />
 
         {focusPatterns.length > 0 ? (
-          <ScrollArea.Root className="pattern-scrollarea">
-            <ScrollArea.Viewport className="pattern-list">
-              <ScrollArea.Content>
-                <ul
-                  aria-label="フォーカス維持の登録済みパターン"
-                  className="pattern-list-inner"
-                >
-                  {focusPatterns.map((pattern) => (
-                    <li
-                      className="pattern-item pattern-item--simple"
-                      key={pattern}
+          <ScrollArea>
+            <PatternList aria-label="フォーカス維持の登録済みパターン">
+              {focusPatterns.map((pattern) => (
+                <PatternListItem
+                  action={
+                    <Button
+                      data-focus-pattern-remove={pattern}
+                      onClick={() => {
+                        removeFocusPattern(pattern).catch(() => {
+                          // no-op
+                        });
+                      }}
+                      type="button"
+                      variant="danger"
                     >
-                      <code className="pattern-text">{pattern}</code>
-                      <Button
-                        className="btn-delete"
-                        data-focus-pattern-remove={pattern}
-                        onClick={() => {
-                          removeFocusPattern(pattern).catch(() => {
-                            // no-op
-                          });
-                        }}
-                        type="button"
-                      >
-                        削除
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              </ScrollArea.Content>
-            </ScrollArea.Viewport>
-            <ScrollArea.Scrollbar className="pattern-scrollbar">
-              <ScrollArea.Thumb className="pattern-thumb" />
-            </ScrollArea.Scrollbar>
-          </ScrollArea.Root>
+                      削除
+                    </Button>
+                  }
+                  key={pattern}
+                  pattern={pattern}
+                />
+              ))}
+            </PatternList>
+          </ScrollArea>
         ) : (
-          <p className="empty-message">まだパターンが登録されていません</p>
+          <EmptyMessage>まだパターンが登録されていません</EmptyMessage>
         )}
-      </section>
-    </div>
+      </TablePaneSection>
+    </PaneCard>
   );
 }

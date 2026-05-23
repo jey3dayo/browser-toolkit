@@ -1,12 +1,14 @@
-import { Button } from "@base-ui/react/button";
-import { Fieldset } from "@base-ui/react/fieldset";
-import { Form } from "@base-ui/react/form";
-import { Input } from "@base-ui/react/input";
-import { Popover } from "@base-ui/react/popover";
-import { Select } from "@base-ui/react/select";
-import { Toggle } from "@base-ui/react/toggle";
-import { ToggleGroup } from "@base-ui/react/toggle-group";
 import { useId } from "react";
+import { Button } from "@/components/shared/Button";
+import { Field } from "@/components/shared/Field";
+import { Fieldset } from "@/components/shared/Fieldset";
+import { Form } from "@/components/shared/Form";
+import { Input } from "@/components/shared/Input";
+import { ButtonRow, EditorPanel } from "@/components/shared/Layout";
+import { HelpPopover } from "@/components/shared/Popover";
+import { Select } from "@/components/shared/Select";
+import { Textarea } from "@/components/shared/Textarea";
+import { Toggle, ToggleGroup } from "@/components/shared/Toggle";
 import type { ContextAction, ContextActionKind } from "@/context_actions";
 
 type Props = {
@@ -28,6 +30,7 @@ type Props = {
 export function ActionEditorPanel(props: Props): React.JSX.Element {
   const titleInputId = useId();
   const actionLabelId = useId();
+  const promptInputId = useId();
 
   const actions = [
     { label: "新規作成", value: null as string | null },
@@ -38,107 +41,58 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
   ];
 
   return (
-    <section className="editor-panel">
+    <EditorPanel>
       <Form
         onFormSubmit={() => {
           props.onSave();
         }}
       >
-        <Fieldset.Root className="editor-form mbu-fieldset">
-          <Fieldset.Legend className="editor-title">
-            アクション編集
-          </Fieldset.Legend>
-
-          <div className="field">
-            <span className="field-name" id={actionLabelId}>
-              対象
-            </span>
-            <Select.Root
-              items={actions}
+        <Fieldset
+          legend="アクション編集"
+          legendVariant="editor"
+          variant="editor"
+        >
+          <Field label="対象" labelId={actionLabelId}>
+            <Select
+              ariaLabelledBy={actionLabelId}
               onValueChange={(value) => {
-                props.onSelectActionId(typeof value === "string" ? value : "");
+                props.onSelectActionId(value ?? "");
               }}
+              options={actions}
+              triggerTestId="action-editor-select"
               value={props.editorId || null}
-            >
-              <Select.Trigger
-                aria-labelledby={actionLabelId}
-                className="token-input mbu-select-trigger"
-                data-testid="action-editor-select"
-                type="button"
-              >
-                <Select.Value className="mbu-select-value" />
-                <Select.Icon className="mbu-select-icon">▾</Select.Icon>
-              </Select.Trigger>
-              <Select.Portal>
-                <Select.Positioner
-                  className="mbu-select-positioner"
-                  sideOffset={6}
-                >
-                  <Select.Popup className="mbu-select-popup">
-                    <Select.List className="mbu-select-list">
-                      {actions.map((item) => (
-                        <Select.Item
-                          className="mbu-select-item"
-                          key={item.value ?? "new"}
-                          value={item.value}
-                        >
-                          <Select.ItemText>{item.label}</Select.ItemText>
-                          <Select.ItemIndicator className="mbu-select-indicator">
-                            ✓
-                          </Select.ItemIndicator>
-                        </Select.Item>
-                      ))}
-                    </Select.List>
-                  </Select.Popup>
-                </Select.Positioner>
-              </Select.Portal>
-            </Select.Root>
-          </div>
+              variant="token"
+            />
+          </Field>
 
-          <label className="field" htmlFor={titleInputId}>
-            <span className="field-name">タイトル</span>
+          <Field htmlFor={titleInputId} label="タイトル">
             <Input
-              className="token-input"
               data-testid="action-editor-title"
               id={titleInputId}
               onValueChange={props.onChangeTitle}
               type="text"
               value={props.editorTitle}
+              variant="token"
             />
-          </label>
+          </Field>
 
-          <div className="field">
-            <div className="field-row">
-              <span className="field-name">種類</span>
-              <Popover.Root>
-                <Popover.Trigger
-                  aria-label="eventとは"
-                  className="mbu-popover-trigger"
-                  type="button"
-                >
-                  ?
-                </Popover.Trigger>
-                <Popover.Portal>
-                  <Popover.Positioner
-                    className="mbu-popover-positioner"
-                    sideOffset={6}
-                  >
-                    <Popover.Popup className="mbu-popover">
-                      <Popover.Title className="mbu-popover-title">
-                        event とは
-                      </Popover.Title>
-                      <Popover.Description className="mbu-popover-description">
-                        event
-                        は日時・場所・概要などを抽出してイベント形式で返すモードです。
-                        text はプロンプトに従って要約/翻訳などを行います。
-                      </Popover.Description>
-                    </Popover.Popup>
-                  </Popover.Positioner>
-                </Popover.Portal>
-              </Popover.Root>
-            </div>
+          <Field
+            label="種類"
+            labelAccessory={
+              <HelpPopover
+                ariaLabel="eventとは"
+                description={
+                  <>
+                    event
+                    は日時・場所・概要などを抽出してイベント形式で返すモードです。
+                    text はプロンプトに従って要約/翻訳などを行います。
+                  </>
+                }
+                title="event とは"
+              />
+            }
+          >
             <ToggleGroup
-              className="mbu-toggle-group"
               data-testid="action-editor-kind"
               onValueChange={(groupValue) => {
                 const next = groupValue[0];
@@ -146,73 +100,76 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
               }}
               value={[props.editorKind]}
             >
-              <Toggle className="mbu-toggle-group-item" value="text">
+              <Toggle value="text" variant="groupItem">
                 text
               </Toggle>
-              <Toggle className="mbu-toggle-group-item" value="event">
+              <Toggle value="event" variant="groupItem">
                 event
               </Toggle>
             </ToggleGroup>
-          </div>
+          </Field>
 
-          <label className="field">
-            <span className="field-name">プロンプト</span>
-            <textarea
-              className="prompt-input"
+          <Field htmlFor={promptInputId} label="プロンプト">
+            <Textarea
               data-testid="action-editor-prompt"
+              id={promptInputId}
               onChange={(event) => {
                 props.onChangePrompt(event.currentTarget.value);
               }}
               rows={6}
               value={props.editorPrompt}
+              variant="prompt"
             />
-          </label>
+          </Field>
 
-          <div className="button-row">
+          <ButtonRow>
             <Button
-              className="btn btn-primary btn-small"
               data-testid="action-editor-save"
               onClick={() => {
                 props.onSave();
               }}
+              size="small"
               type="button"
+              variant="primary"
             >
               保存
             </Button>
             <Button
-              className="btn-delete"
               data-testid="action-editor-delete"
               disabled={!props.editorId}
               onClick={() => {
                 props.onDelete();
               }}
               type="button"
+              variant="danger"
             >
               削除
             </Button>
             <Button
-              className="btn btn-ghost btn-small"
               data-testid="action-editor-clear"
               onClick={() => {
                 props.onClear();
               }}
+              size="small"
               type="button"
+              variant="ghost"
             >
               クリア
             </Button>
             <Button
-              className="btn btn-ghost btn-small"
               data-testid="action-editor-reset"
               onClick={() => {
                 props.onReset();
               }}
+              size="small"
               type="button"
+              variant="ghost"
             >
               デフォルトに戻す
             </Button>
-          </div>
-        </Fieldset.Root>
+          </ButtonRow>
+        </Fieldset>
       </Form>
-    </section>
+    </EditorPanel>
   );
 }

@@ -1,9 +1,17 @@
-import { Button } from "@base-ui/react/button";
-import { Fieldset } from "@base-ui/react/fieldset";
-import { Separator } from "@base-ui/react/separator";
-import { Switch } from "@base-ui/react/switch";
 import { Result } from "@praha/byethrow";
 import { useCallback, useEffect, useState } from "react";
+import { Button } from "@/components/shared/Button";
+import { Fieldset } from "@/components/shared/Fieldset";
+import {
+  ButtonRow,
+  PaneCard,
+  RowBetween,
+  Stack,
+} from "@/components/shared/Layout";
+import { Separator } from "@/components/shared/Separator";
+import { SwitchField } from "@/components/shared/SwitchField";
+import { TextOutput } from "@/components/shared/TextOutput";
+import { Hint, PaneTitle } from "@/components/shared/Typography";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { sendBackgroundResult } from "@/popup/utils/background_result";
 import type { LocalStorageData } from "@/storage/types";
@@ -165,64 +173,49 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
   };
 
   return (
-    <div className="card card-stack">
-      <div className="stack-sm">
-        <h2 className="pane-title">デバッグ</h2>
-        <p className="hint">開発者向けのデバッグ機能です</p>
-      </div>
+    <PaneCard>
+      <Stack spacing="small">
+        <PaneTitle>デバッグ</PaneTitle>
+        <Hint>開発者向けのデバッグ機能です</Hint>
+      </Stack>
 
       {/* デバッグモード設定 */}
-      <div className="stack">
-        <Fieldset.Root className="mbu-fieldset stack">
-          <Fieldset.Legend className="mbu-fieldset-legend">
-            デバッグモード
-          </Fieldset.Legend>
-          <div className="field">
-            <label className="field-row" htmlFor="debug-mode-switch">
-              <span className="field-name">デバッグモードを有効にする</span>
-              <Switch.Root
-                checked={debugMode}
-                className="mbu-switch"
-                data-testid="debug-mode-switch"
-                id="debug-mode-switch"
-                onCheckedChange={(checked) => {
-                  toggleDebugMode(checked).catch(() => {
-                    // no-op
-                  });
-                }}
-              >
-                <Switch.Thumb className="mbu-switch-thumb" />
-              </Switch.Root>
-            </label>
-          </div>
-          <p className="hint">
+      <Stack>
+        <Fieldset legend="デバッグモード" spacing="stack">
+          <SwitchField
+            checked={debugMode}
+            data-testid="debug-mode-switch"
+            id="debug-mode-switch"
+            label="デバッグモードを有効にする"
+            onCheckedChange={(checked) => {
+              toggleDebugMode(checked).catch(() => {
+                // no-op
+              });
+            }}
+          />
+          <Hint>
             ONにすると、デバッグログをストレージに保存しファイルとしてダウンロードできます。
             OFFの場合は、通常のconsole.logのように動作します。
-          </p>
-        </Fieldset.Root>
+          </Hint>
+        </Fieldset>
 
         {debugMode && logStats && (
-          <div className="hint">
+          <Hint as="div">
             現在のログエントリ数: {logStats.entryCount} / 1000 (サイズ:{" "}
             {logStats.sizeKB} KB)
-          </div>
+          </Hint>
         )}
-      </div>
+      </Stack>
 
       {debugMode && (
         <>
-          <Separator className="mbu-separator" />
+          <Separator />
 
           {/* ログ操作 */}
-          <div className="stack">
-            <Fieldset.Root className="mbu-fieldset stack">
-              <Fieldset.Legend className="mbu-fieldset-legend">
-                ログ操作
-              </Fieldset.Legend>
-
-              <div className="button-row">
+          <Stack>
+            <Fieldset legend="ログ操作" spacing="stack">
+              <ButtonRow>
                 <Button
-                  className="btn btn-ghost btn-small"
                   data-testid="show-debug-logs"
                   onClick={() => {
                     loadAndShowLogs().catch((error) => {
@@ -237,24 +230,26 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
                       props.notify.error("ログの読み込みに失敗しました");
                     });
                   }}
+                  size="small"
                   type="button"
+                  variant="ghost"
                 >
                   ログを表示
                 </Button>
                 <Button
-                  className="btn btn-ghost btn-small"
                   data-testid="download-debug-logs"
                   onClick={() => {
                     downloadLogs().catch(() => {
                       // no-op
                     });
                   }}
+                  size="small"
                   type="button"
+                  variant="ghost"
                 >
                   ダウンロード
                 </Button>
                 <Button
-                  className="btn-delete"
                   data-testid="clear-debug-logs"
                   onClick={() => {
                     clearLogs().catch(() => {
@@ -262,48 +257,36 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
                     });
                   }}
                   type="button"
+                  variant="danger"
                 >
                   クリア
                 </Button>
-              </div>
-            </Fieldset.Root>
+              </ButtonRow>
+            </Fieldset>
 
             {showLogs && (
-              <div className="stack">
-                <div className="row-between">
+              <Stack>
+                <RowBetween>
                   <strong>ログ内容</strong>
                   <Button
-                    className="btn-delete"
                     data-testid="hide-debug-logs"
                     onClick={() => {
                       setShowLogs(false);
                     }}
                     type="button"
+                    variant="danger"
                   >
                     閉じる
                   </Button>
-                </div>
-                <pre
-                  style={{
-                    maxHeight: "400px",
-                    overflow: "auto",
-                    padding: "12px",
-                    backgroundColor: "var(--color-bg-secondary)",
-                    border: "1px solid var(--color-border)",
-                    borderRadius: "4px",
-                    fontSize: "12px",
-                    lineHeight: "1.5",
-                    whiteSpace: "pre-wrap",
-                    wordBreak: "break-word",
-                  }}
-                >
+                </RowBetween>
+                <TextOutput variant="debugLog">
                   {logContent || "(ログが空です)"}
-                </pre>
-              </div>
+                </TextOutput>
+              </Stack>
             )}
-          </div>
+          </Stack>
         </>
       )}
-    </div>
+    </PaneCard>
   );
 }

@@ -74,12 +74,14 @@ const config: StorybookConfig = {
         "react-dom",
         "react-dom/client",
         "@base-ui/react/button",
+        "@base-ui/react/dialog",
         "@base-ui/react/field",
         "@base-ui/react/form",
         "@base-ui/react/fieldset",
         "@base-ui/react/input",
         "@base-ui/react/radio",
         "@base-ui/react/radio-group",
+        "@base-ui/react/tabs",
         "@base-ui/react/toast",
       ])
     );

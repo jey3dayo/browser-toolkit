@@ -1,10 +1,14 @@
-import { Button } from "@base-ui/react/button";
-import { Form } from "@base-ui/react/form";
-import { Input } from "@base-ui/react/input";
-import { Switch } from "@base-ui/react/switch";
 import { Result } from "@praha/byethrow";
 import { useEffect, useState } from "react";
 import { SortableList } from "@/components/SortableList";
+import { Button } from "@/components/shared/Button";
+import { Form } from "@/components/shared/Form";
+import { Input } from "@/components/shared/Input";
+import { PaneCard, RowBetween, Stack } from "@/components/shared/Layout";
+import { ListItemRow } from "@/components/shared/ListItemRow";
+import { Switch } from "@/components/shared/Switch";
+import { Textarea } from "@/components/shared/Textarea";
+import { EmptyMessage, Hint, PaneTitle } from "@/components/shared/Typography";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { persistWithRollback } from "@/popup/utils/persist";
 import { requireTrimmedString } from "@/popup/utils/required-input";
@@ -262,85 +266,87 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
   };
 
   return (
-    <div className="card card-stack">
-      <div className="row-between">
-        <h2 className="pane-title">テキストテンプレート</h2>
+    <PaneCard>
+      <RowBetween>
+        <PaneTitle>テキストテンプレート</PaneTitle>
         <Button
-          className="btn btn-ghost btn-small"
           data-testid="reset-templates"
           onClick={() => {
             resetToDefaults().catch(() => {
               // no-op
             });
           }}
+          size="small"
           type="button"
+          variant="ghost"
         >
           デフォルトに戻す
         </Button>
-      </div>
+      </RowBetween>
 
-      <div className="stack">
-        <div className="hint">
-          右クリックメニューから定型文を貼り付けられます。
-        </div>
-        <div className="hint">
+      <Stack>
+        <Hint as="div">右クリックメニューから定型文を貼り付けられます。</Hint>
+        <Hint as="div">
           非表示にしたテンプレートはメニューに表示されません。
-        </div>
+        </Hint>
 
         {editingId ? (
           <Form
-            className="stack"
             onFormSubmit={() => {
               saveEdit().catch(() => {
                 // no-op
               });
             }}
+            variant="stack"
           >
             <Input
-              className="pattern-input"
               data-testid="template-title-input"
               onValueChange={setTitleInput}
               placeholder="タイトル（例: LGTM）"
               type="text"
               value={titleInput}
+              variant="pattern"
             />
-            <textarea
-              className="pattern-input template-content-input"
+            <Textarea
               data-testid="template-content-input"
               onChange={(e) => setContentInput(e.target.value)}
               placeholder="内容（例: LGTM :+1:）"
               rows={4}
               value={contentInput}
+              variant="pattern"
             />
-            <div className="row-between">
+            <RowBetween>
               <Button
-                className="btn btn-ghost btn-small"
                 data-testid="save-template"
                 onClick={() => {
                   saveEdit().catch(() => {
                     // no-op
                   });
                 }}
+                size="small"
                 type="button"
+                variant="ghost"
               >
                 保存
               </Button>
               <Button
-                className="btn btn-ghost btn-small"
                 data-testid="cancel-edit"
                 onClick={cancelEdit}
+                size="small"
                 type="button"
+                variant="ghost"
               >
                 キャンセル
               </Button>
-            </div>
+            </RowBetween>
           </Form>
         ) : (
           <Button
-            className="btn btn-ghost btn-small"
             data-testid="add-template"
             onClick={startNew}
+            size="small"
             type="button"
+            variant="ghost"
           >
             新規追加
           </Button>
@@ -355,57 +361,54 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
               });
             }}
             renderItem={(template) => (
-              <div className="search-engine-item">
-                <div className="search-engine-content">
-                  <strong className="search-engine-name">
-                    {template.title}
-                  </strong>
-                  <code className="search-engine-url">{template.content}</code>
-                </div>
-                <div className="search-engine-controls">
-                  <Switch.Root
-                    aria-label={`${template.title}を表示`}
-                    checked={!template.hidden}
-                    className="mbu-switch"
-                    data-testid={`template-visible-${template.id}`}
-                    onCheckedChange={(checked) => {
-                      toggleTemplateHidden(template.id, !checked).catch(() => {
-                        // no-op
-                      });
-                    }}
-                  >
-                    <Switch.Thumb className="mbu-switch-thumb" />
-                  </Switch.Root>
-                  <Button
-                    className="btn-edit"
-                    data-testid={`edit-template-${template.id}`}
-                    onClick={() => {
-                      startEdit(template);
-                    }}
-                    type="button"
-                  >
-                    編集
-                  </Button>
-                  <Button
-                    className="btn-delete"
-                    data-testid={`remove-template-${template.id}`}
-                    onClick={() => {
-                      removeTemplate(template.id).catch(() => {
-                        // no-op
-                      });
-                    }}
-                    type="button"
-                  >
-                    削除
-                  </Button>
-                </div>
-              </div>
+              <ListItemRow
+                actions={
+                  <>
+                    <Switch
+                      aria-label={`${template.title}を表示`}
+                      checked={!template.hidden}
+                      data-testid={`template-visible-${template.id}`}
+                      onCheckedChange={(checked) => {
+                        toggleTemplateHidden(template.id, !checked).catch(
+                          () => {
+                            // no-op
+                          }
+                        );
+                      }}
+                    />
+                    <Button
+                      data-testid={`edit-template-${template.id}`}
+                      onClick={() => {
+                        startEdit(template);
+                      }}
+                      type="button"
+                      variant="edit"
+                    >
+                      編集
+                    </Button>
+                    <Button
+                      data-testid={`remove-template-${template.id}`}
+                      onClick={() => {
+                        removeTemplate(template.id).catch(() => {
+                          // no-op
+                        });
+                      }}
+                      type="button"
+                      variant="danger"
+                    >
+                      削除
+                    </Button>
+                  </>
+                }
+                meta={template.content}
+                title={template.title}
+              />
             )}
           />
         ) : (
-          <p className="empty-message">テンプレートが登録されていません</p>
+          <EmptyMessage>テンプレートが登録されていません</EmptyMessage>
         )}
-      </div>
-    </div>
+      </Stack>
+    </PaneCard>
   );
 }

@@ -1,4 +1,7 @@
-import { Button } from "@base-ui/react/button";
+import { Button } from "@/components/shared/Button";
+import { ButtonRow, OutputPanel, RowBetween } from "@/components/shared/Layout";
+import { Textarea } from "@/components/shared/Textarea";
+import { MetaTitle } from "@/components/shared/Typography";
 
 type Props = {
   title: string;
@@ -9,29 +12,31 @@ type Props = {
 
 export function ActionOutputPanel(props: Props): React.JSX.Element {
   return (
-    <section className="output-panel">
-      <div className="row-between">
-        <div className="meta-title">{props.title}</div>
-        <div className="button-row">
+    <OutputPanel>
+      <RowBetween>
+        <MetaTitle>{props.title}</MetaTitle>
+        <ButtonRow>
           <Button
-            className="btn btn-ghost btn-small"
             data-testid="copy-output"
             disabled={!props.canCopy}
             onClick={() => {
               props.onCopy();
             }}
+            size="small"
             type="button"
+            variant="ghost"
           >
             コピー
           </Button>
-        </div>
-      </div>
-      <textarea
-        className="summary-output summary-output--sm"
+        </ButtonRow>
+      </RowBetween>
+      <Textarea
         data-testid="action-output"
         readOnly
+        size="small"
         value={props.value}
+        variant="summary"
       />
-    </section>
+    </OutputPanel>
   );
 }

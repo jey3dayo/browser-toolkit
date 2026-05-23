@@ -67,12 +67,26 @@ export type ToastHostProps = {
 
 export function ToastHost(props: ToastHostProps): React.JSX.Element {
   const placement = props.placement ?? "screen";
+  const viewportStyle: React.CSSProperties = {
+    position: placement === "surface" ? "absolute" : "fixed",
+    inset:
+      placement === "surface"
+        ? "var(--toast-surface-inset, 12px 12px auto auto)"
+        : "var(--toast-screen-inset, 12px 12px auto auto)",
+    zIndex: 2_147_483_647,
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+    alignItems: "flex-end",
+    pointerEvents: "none",
+  };
   return (
     <Toast.Provider toastManager={props.toastManager}>
       <Toast.Portal container={props.portalContainer}>
         <Toast.Viewport
           className="mbu-toast-viewport"
           data-placement={placement}
+          style={viewportStyle}
         >
           <ToastList />
         </Toast.Viewport>
@@ -95,6 +109,7 @@ function ToastList(): React.JSX.Element {
           <Toast.Root
             className="mbu-toast-root"
             data-has-description={hasDescription ? "true" : "false"}
+            style={{ pointerEvents: "auto" }}
             toast={toast}
           >
             <Toast.Content className="mbu-toast-content">

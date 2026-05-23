@@ -5,6 +5,7 @@ import {
   OverlayAppFallbackStory,
   OverlayAppStory,
 } from "@/content/overlay/OverlayApp.story-helpers";
+import { overlayClassNames } from "./overlayClassNames";
 
 const LONG_PRIMARY_TEXT = [
   "要約結果（storybook）",
@@ -155,8 +156,8 @@ export const PromptReady: Story = {
       "#browser-toolkit-overlay"
     );
     const shadow = host?.shadowRoot ?? null;
-    const title = shadow?.querySelector(".mbu-overlay-title");
-    const chip = shadow?.querySelector(".mbu-overlay-chip");
+    const title = shadow?.querySelector(`.${overlayClassNames.title}`);
+    const chip = shadow?.querySelector(`.${overlayClassNames.chip}`);
     const auxSummary = shadow?.querySelector(".mbu-overlay-aux-summary");
     const quote = shadow?.querySelector(".mbu-overlay-quote");
 
@@ -293,7 +294,9 @@ export const ReadyLongText: Story = {
       "#browser-toolkit-overlay"
     );
     const shadow = host?.shadowRoot ?? null;
-    const panel = shadow?.querySelector<HTMLElement>(".mbu-overlay-panel");
+    const panel = shadow?.querySelector<HTMLElement>(
+      `.${overlayClassNames.panel}`
+    );
     const body = shadow?.querySelector<HTMLElement>(".mbu-overlay-body");
     const copyButton = shadow?.querySelector<HTMLElement>(
       '[data-testid="overlay-copy"]'
@@ -334,14 +337,16 @@ export const ReadyStylesApplied: Story = {
       const shadow = host?.shadowRoot ?? null;
       expect(host).toBeTruthy();
       expect(shadow).toBeTruthy();
-      expect(shadow?.querySelector(".mbu-overlay-panel")).toBeTruthy();
+      expect(shadow?.querySelector(`.${overlayClassNames.panel}`)).toBeTruthy();
     });
 
     const host = canvasElement.querySelector<HTMLDivElement>(
       "#browser-toolkit-overlay"
     );
     const shadow = host?.shadowRoot ?? null;
-    const panel = shadow?.querySelector<HTMLElement>(".mbu-overlay-panel");
+    const panel = shadow?.querySelector<HTMLElement>(
+      `.${overlayClassNames.panel}`
+    );
 
     if (!(host && shadow && panel)) {
       throw new Error("overlay host/shadow/panel not mounted");
@@ -386,14 +391,16 @@ export const ReadyStylesFallbackApplied: Story = {
       const shadow = host?.shadowRoot ?? null;
       expect(host).toBeTruthy();
       expect(shadow).toBeTruthy();
-      expect(shadow?.querySelector(".mbu-overlay-panel")).toBeTruthy();
+      expect(shadow?.querySelector(`.${overlayClassNames.panel}`)).toBeTruthy();
     });
 
     const host = canvasElement.querySelector<HTMLDivElement>(
       "#browser-toolkit-overlay-fallback"
     );
     const shadow = host?.shadowRoot ?? null;
-    const panel = shadow?.querySelector<HTMLElement>(".mbu-overlay-panel");
+    const panel = shadow?.querySelector<HTMLElement>(
+      `.${overlayClassNames.panel}`
+    );
 
     if (!(host && shadow && panel)) {
       throw new Error("overlay host/shadow/panel not mounted");

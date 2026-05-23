@@ -1,15 +1,19 @@
-import { Button } from "@base-ui/react/button";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ChatMessage } from "@/background/runtime_types";
 import { AuxTextDisclosure } from "@/components/AuxTextDisclosure";
 import { Icon } from "@/components/icon";
+import { Button } from "@/components/shared/Button";
+import { Textarea } from "@/components/shared/Textarea";
+import { TextBlock } from "@/components/shared/TextBlock";
+import { TextOutput } from "@/components/shared/TextOutput";
 import { ThemeCycleButton } from "@/components/ThemeCycleButton";
 import { CopyIcon, PinIcon } from "@/content/overlay/icons";
 import type { ExtractedEvent } from "@/shared_types";
 import type { Theme } from "@/ui/theme";
 import type { OverlayViewModel } from "./OverlayApp";
+import { overlayClassNames } from "./overlayClassNames";
 
 /**
  * Copy button component
@@ -25,12 +29,12 @@ export function OverlayCopyButton(
   return (
     <Button
       aria-label="コピー"
-      className="mbu-overlay-action mbu-overlay-icon-button mbu-overlay-copy"
       data-testid="overlay-copy"
       disabled={props.disabled}
       onClick={props.onCopy}
       title="コピー"
       type="button"
+      variant="overlayCopy"
     >
       <CopyIcon />
     </Button>
@@ -49,11 +53,15 @@ export type OverlayPopoverProps = {
 
 export function OverlayPopover(props: OverlayPopoverProps): React.JSX.Element {
   return (
-    <div className="mbu-overlay-popover">
+    <div className={overlayClassNames.popover}>
       {props.children}
-      <div className="mbu-overlay-popover-content" id={props.id} role="tooltip">
-        <div className="mbu-overlay-popover-title">{props.title}</div>
-        <div className="mbu-overlay-popover-text">{props.description}</div>
+      <div
+        className={overlayClassNames.popoverContent}
+        id={props.id}
+        role="tooltip"
+      >
+        <div className={overlayClassNames.popoverTitle}>{props.title}</div>
+        <div className={overlayClassNames.popoverText}>{props.description}</div>
       </div>
     </div>
   );
@@ -75,23 +83,23 @@ export function OverlayEventModeActions(
   props: OverlayEventModeActionsProps
 ): React.JSX.Element {
   return (
-    <div className="mbu-overlay-body-actions">
+    <div className={overlayClassNames.bodyActions}>
       {props.canOpenCalendar ? (
         <Button
-          className="mbu-overlay-action"
           disabled={!props.canOpenCalendar}
           onClick={props.onOpenCalendar}
           type="button"
+          variant="overlay"
         >
           Googleカレンダーに登録
         </Button>
       ) : null}
       {props.canDownloadIcs ? (
         <Button
-          className="mbu-overlay-action"
           disabled={!props.canDownloadIcs}
           onClick={props.onDownloadIcs}
           type="button"
+          variant="overlay"
         >
           .ics
         </Button>
@@ -119,7 +127,7 @@ export function OverlayEventDetails(
 ): React.JSX.Element {
   return (
     <>
-      <table className="mbu-overlay-event-table">
+      <table className={overlayClassNames.eventTable}>
         <tbody>
           <tr>
             <th scope="row">タイトル</th>
@@ -199,11 +207,14 @@ export function OverlayTextDetails(
   return (
     <>
       {props.statusLabel ? (
-        <div className="mbu-overlay-status">{props.statusLabel}</div>
+        <div className={overlayClassNames.status}>{props.statusLabel}</div>
       ) : null}
       <div className={primaryBlockClassName}>
         {props.markdownView ? (
-          <div className="mbu-overlay-primary-markdown mbu-overlay-primary-text">
+          <TextBlock
+            className="mbu-overlay-primary-markdown"
+            variant="overlayPrimaryText"
+          >
             <ReactMarkdown
               components={{
                 a: ({ node: _node, ...linkProps }) => (
@@ -214,9 +225,9 @@ export function OverlayTextDetails(
             >
               {props.primary}
             </ReactMarkdown>
-          </div>
+          </TextBlock>
         ) : (
-          <pre className="mbu-overlay-primary-text">{props.primary}</pre>
+          <TextOutput variant="overlayPrimaryText">{props.primary}</TextOutput>
         )}
         {showCopyButton ? (
           <OverlayCopyButton
@@ -228,17 +239,19 @@ export function OverlayTextDetails(
       {isTokenError ? (
         <Button
           aria-label="設定を開く"
-          className="mbu-overlay-action mbu-overlay-settings-link"
           onClick={openSettings}
           title="設定を開く"
           type="button"
+          variant="overlaySettingsLink"
         >
           <Icon name="settings" size={16} />
           設定を開く
         </Button>
       ) : null}
       {props.secondaryText ? (
-        <pre className="mbu-overlay-secondary-text">{props.secondaryText}</pre>
+        <TextOutput variant="overlaySecondaryText">
+          {props.secondaryText}
+        </TextOutput>
       ) : null}
       <AuxTextDisclosure
         storageKey="overlaySelectionDisclosureOpen"
@@ -262,7 +275,7 @@ export type OverlayBodyProps = OverlayTextDetailsProps & {
 
 export function OverlayBody(props: OverlayBodyProps): React.JSX.Element {
   return (
-    <div className="mbu-overlay-body">
+    <div className={overlayClassNames.body}>
       {props.mode === "event" ? (
         <OverlayEventModeActions
           canCopyPrimary={props.canCopyPrimary}
@@ -314,29 +327,58 @@ export type OverlayHeaderActionsProps = {
   onDismiss: () => void;
 };
 
+type OverlayHeaderIconActionProps = {
+  active?: boolean;
+  ariaLabel: string;
+  children: ReactNode;
+  description: string;
+  onClick: () => void;
+  popoverId: string;
+  testId: string;
+  title: string;
+};
+
+function OverlayHeaderIconAction(
+  props: OverlayHeaderIconActionProps
+): React.JSX.Element {
+  return (
+    <OverlayPopover
+      description={props.description}
+      id={props.popoverId}
+      title={props.title}
+    >
+      <Button
+        aria-describedby={props.popoverId}
+        aria-label={props.ariaLabel}
+        data-active={props.active ? "true" : undefined}
+        data-testid={props.testId}
+        onClick={props.onClick}
+        title={props.ariaLabel}
+        type="button"
+        variant="overlayIcon"
+      >
+        {props.children}
+      </Button>
+    </OverlayPopover>
+  );
+}
+
 export function OverlayHeaderActions(
   props: OverlayHeaderActionsProps
 ): React.JSX.Element {
   return (
-    <div className="mbu-overlay-actions">
-      <OverlayPopover
+    <div className={overlayClassNames.actions}>
+      <OverlayHeaderIconAction
+        active={props.pinned}
+        ariaLabel={props.pinned ? "右上固定を解除" : "右上に固定"}
         description="右上に固定します。もう一度クリックで解除。"
-        id={props.pinPopoverId}
+        onClick={props.onTogglePinned}
+        popoverId={props.pinPopoverId}
+        testId="overlay-pin"
         title="ピン留め"
       >
-        <Button
-          aria-describedby={props.pinPopoverId}
-          aria-label={props.pinned ? "右上固定を解除" : "右上に固定"}
-          className="mbu-overlay-action mbu-overlay-icon-button"
-          data-active={props.pinned ? "true" : undefined}
-          data-testid="overlay-pin"
-          onClick={props.onTogglePinned}
-          title={props.pinned ? "右上固定を解除" : "右上に固定"}
-          type="button"
-        >
-          <PinIcon />
-        </Button>
-      </OverlayPopover>
+        <PinIcon />
+      </OverlayHeaderIconAction>
       <OverlayPopover
         description="自動・ライト・ダークを順に切り替えます。"
         id={props.themePopoverId}
@@ -352,53 +394,35 @@ export function OverlayHeaderActions(
         />
       </OverlayPopover>
       {props.showMarkdownToggle ? (
-        <OverlayPopover
+        <OverlayHeaderIconAction
+          active={props.markdownView}
+          ariaLabel={
+            props.markdownView
+              ? "シンプル表示に切り替え"
+              : "Markdown表示に切り替え"
+          }
           description="Markdown表示とシンプル表示を切り替えます。"
-          id={props.markdownPopoverId}
+          onClick={props.onToggleMarkdownView}
+          popoverId={props.markdownPopoverId}
+          testId="overlay-markdown"
           title="表示切り替え"
         >
-          <Button
-            aria-describedby={props.markdownPopoverId}
-            aria-label={
-              props.markdownView
-                ? "シンプル表示に切り替え"
-                : "Markdown表示に切り替え"
-            }
-            className="mbu-overlay-action mbu-overlay-icon-button"
-            data-active={props.markdownView ? "true" : undefined}
-            data-testid="overlay-markdown"
-            onClick={props.onToggleMarkdownView}
-            title={
-              props.markdownView
-                ? "シンプル表示に切り替え"
-                : "Markdown表示に切り替え"
-            }
-            type="button"
-          >
-            <Icon
-              aria-hidden="true"
-              name={props.markdownView ? "eye" : "eye-off"}
-            />
-          </Button>
-        </OverlayPopover>
+          <Icon
+            aria-hidden="true"
+            name={props.markdownView ? "eye" : "eye-off"}
+          />
+        </OverlayHeaderIconAction>
       ) : null}
-      <OverlayPopover
+      <OverlayHeaderIconAction
+        ariaLabel="閉じる"
         description="オーバーレイを閉じます。"
-        id={props.closePopoverId}
+        onClick={props.onDismiss}
+        popoverId={props.closePopoverId}
+        testId="overlay-close"
         title="閉じる"
       >
-        <Button
-          aria-describedby={props.closePopoverId}
-          aria-label="閉じる"
-          className="mbu-overlay-action mbu-overlay-icon-button"
-          data-testid="overlay-close"
-          onClick={props.onDismiss}
-          title="閉じる"
-          type="button"
-        >
-          ×
-        </Button>
-      </OverlayPopover>
+        ×
+      </OverlayHeaderIconAction>
     </div>
   );
 }
@@ -434,32 +458,31 @@ export function OverlayChatInput(
   };
 
   return (
-    <div className="mbu-overlay-chat">
+    <div className={overlayClassNames.chat}>
       {props.chatMessages.length > 0 ? (
-        <div className="mbu-overlay-chat-messages">
+        <div className={overlayClassNames.chatMessages}>
           {props.chatMessages.map((msg, i) => (
             <div
-              className={`mbu-overlay-chat-message mbu-overlay-chat-message--${msg.role}`}
+              className={overlayClassNames.chatMessage(msg.role)}
               // biome-ignore lint/suspicious/noArrayIndexKey: chat messages are append-only
               key={i}
             >
-              <span className="mbu-overlay-chat-role">
+              <span className={overlayClassNames.chatRole}>
                 {msg.role === "user" ? "あなた" : "AI"}
               </span>
-              <pre className="mbu-overlay-chat-text">{msg.content}</pre>
+              <TextOutput variant="overlayChatText">{msg.content}</TextOutput>
             </div>
           ))}
           {props.isChatting ? (
-            <div className="mbu-overlay-chat-message mbu-overlay-chat-message--assistant">
-              <span className="mbu-overlay-chat-role">AI</span>
-              <span className="mbu-overlay-status">考え中...</span>
+            <div className={overlayClassNames.chatMessage("assistant")}>
+              <span className={overlayClassNames.chatRole}>AI</span>
+              <span className={overlayClassNames.status}>考え中...</span>
             </div>
           ) : null}
         </div>
       ) : null}
-      <div className="mbu-overlay-chat-input-row">
-        <textarea
-          className="mbu-overlay-chat-input"
+      <div className={overlayClassNames.chatInputRow}>
+        <Textarea
           disabled={props.isChatting}
           onChange={(e) => {
             setInput(e.target.value);
@@ -468,12 +491,13 @@ export function OverlayChatInput(
           placeholder="フォローアップの質問を入力（Enter で送信）"
           rows={2}
           value={input}
+          variant="overlayChat"
         />
         <Button
-          className="mbu-overlay-action"
           disabled={!input.trim() || props.isChatting}
           onClick={handleSend}
           type="button"
+          variant="overlay"
         >
           <Icon aria-hidden="true" name="message-square" size={16} />
         </Button>

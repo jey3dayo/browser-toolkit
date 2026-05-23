@@ -16,6 +16,13 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type React from "react";
+import { Button } from "@/components/shared/Button";
+
+const SORTABLE_LIST_CLASS_NAMES = {
+  item: "sortable-item",
+  itemContent: "sortable-item-content",
+  list: "sortable-list",
+} as const;
 
 interface SortableListProps<T extends { id: string }> {
   items: T[];
@@ -62,7 +69,7 @@ export function SortableList<T extends { id: string }>({
       sensors={sensors}
     >
       <SortableContext items={items} strategy={verticalListSortingStrategy}>
-        <ul className="sortable-list">
+        <ul className={SORTABLE_LIST_CLASS_NAMES.list}>
           {items.map((item) => (
             <SortableItem id={item.id} key={item.id}>
               {renderItem(item)}
@@ -100,16 +107,16 @@ function SortableItem({ id, children }: SortableItemProps) {
 
   return (
     <li ref={setNodeRef} style={style} {...attributes}>
-      <div className="sortable-item">
-        <button
-          className="drag-handle"
+      <div className={SORTABLE_LIST_CLASS_NAMES.item}>
+        <Button
           type="button"
+          variant="dragHandle"
           {...listeners}
           aria-label="ドラッグして並び替え"
         >
           ⋮⋮
-        </button>
-        <div className="sortable-item-content">{children}</div>
+        </Button>
+        <div className={SORTABLE_LIST_CLASS_NAMES.itemContent}>{children}</div>
       </div>
     </li>
   );

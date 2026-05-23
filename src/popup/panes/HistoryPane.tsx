@@ -1,6 +1,20 @@
-import { Button } from "@base-ui/react/button";
 import { Result } from "@praha/byethrow";
 import { useEffect, useState } from "react";
+import { Badge } from "@/components/shared/Badge";
+import { Button } from "@/components/shared/Button";
+import {
+  EditorPanel,
+  PaneCard,
+  RowBetween,
+  Stack,
+} from "@/components/shared/Layout";
+import { TextOutput } from "@/components/shared/TextOutput";
+import {
+  EmptyMessage,
+  Hint,
+  HintText,
+  PaneTitle,
+} from "@/components/shared/Typography";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import type { ActionHistoryEntry } from "@/storage/types";
 
@@ -55,62 +69,65 @@ export function HistoryPane(props: PopupPaneBaseProps): React.JSX.Element {
   };
 
   return (
-    <div className="card card-stack">
-      <div className="row-between">
-        <h2 className="pane-title">アクション履歴</h2>
+    <PaneCard>
+      <RowBetween>
+        <PaneTitle>アクション履歴</PaneTitle>
         {history.length > 0 ? (
           <Button
-            className="btn btn-ghost btn-small"
             onClick={() => {
               clearHistory().catch(() => {
                 // no-op
               });
             }}
+            size="small"
             type="button"
+            variant="ghost"
           >
             全削除
           </Button>
         ) : null}
-      </div>
-      <p className="hint">直近20件のアクション実行結果を保存します。</p>
+      </RowBetween>
+      <Hint>直近20件のアクション実行結果を保存します。</Hint>
 
       {history.length === 0 ? (
-        <p className="empty-message">履歴がありません</p>
+        <EmptyMessage>履歴がありません</EmptyMessage>
       ) : (
-        <div className="stack">
+        <Stack>
           {history.map((entry) => (
-            <div className="editor-panel" key={entry.id}>
-              <div className="row-between">
+            <EditorPanel key={entry.id}>
+              <RowBetween>
                 <div>
-                  <span className="chip chip-soft">{entry.actionTitle}</span>
-                  <span className="hint" style={{ marginLeft: "8px" }}>
+                  <Badge variant="chipSoft">{entry.actionTitle}</Badge>
+                  <HintText style={{ marginLeft: "8px" }}>
                     {formatDate(entry.createdAt)}
-                  </span>
+                  </HintText>
                 </div>
                 <Button
-                  className="btn btn-ghost btn-small"
                   onClick={() => {
                     copyEntry(entry.text).catch(() => {
                       // no-op
                     });
                   }}
+                  size="small"
                   type="button"
+                  variant="ghost"
                 >
                   コピー
                 </Button>
-              </div>
-              <pre
-                className="summary-output summary-output--sm"
+              </RowBetween>
+              <TextOutput
+                size="small"
                 style={{ marginTop: "8px", whiteSpace: "pre-wrap" }}
+                variant="summary"
               >
                 {entry.text.length > 200
                   ? `${entry.text.slice(0, 200)}…`
                   : entry.text}
-              </pre>
-            </div>
+              </TextOutput>
+            </EditorPanel>
           ))}
-        </div>
+        </Stack>
       )}
-    </div>
+    </PaneCard>
   );
 }

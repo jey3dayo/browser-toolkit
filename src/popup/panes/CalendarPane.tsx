@@ -1,7 +1,20 @@
-import { Button } from "@base-ui/react/button";
 import { Result } from "@praha/byethrow";
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import type { SummarizeEventSuccessPayload } from "@/background/types";
+import { Badge } from "@/components/shared/Badge";
+import { Button } from "@/components/shared/Button";
+import { CheckboxInline } from "@/components/shared/Checkbox";
+import { Field } from "@/components/shared/Field";
+import {
+  ActionRow,
+  ButtonRow,
+  OutputPanel,
+  PaneCard,
+  RowBetween,
+  Stack,
+} from "@/components/shared/Layout";
+import { Textarea } from "@/components/shared/Textarea";
+import { Hint, MetaTitle, PaneTitle } from "@/components/shared/Typography";
 import type { PaneId } from "@/popup/panes";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import type { SummaryTarget } from "@/popup/runtime";
@@ -159,13 +172,13 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
           props.notify.error({
             title: options.message,
             description: options.action ? (
-              <button
-                className="mbu-toast-action-link"
+              <Button
                 onClick={options.action.onClick}
                 type="button"
+                variant="toastActionLink"
               >
                 {options.action.label}
-              </button>
+              </Button>
             ) : undefined,
           });
           return;
@@ -192,16 +205,16 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
       props.notify.error({
         title: message,
         description: (
-          <button
-            className="mbu-toast-action-link"
+          <Button
             onClick={() => {
               props.navigateToPane("pane-settings");
               props.focusTokenInput();
             }}
             type="button"
+            variant="toastActionLink"
           >
             → 設定を開く
-          </button>
+          </Button>
         ),
       });
     } else {
@@ -333,62 +346,57 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
   };
 
   return (
-    <div className="card card-stack">
-      <div className="row-between">
-        <h2 className="pane-title">カレンダー登録</h2>
-        <span className="chip chip-soft" data-testid="calendar-source">
+    <PaneCard>
+      <RowBetween>
+        <PaneTitle>カレンダー登録</PaneTitle>
+        <Badge data-testid="calendar-source" variant="chipSoft">
           {output.status === "ready" ? output.sourceLabel : "-"}
-        </span>
-      </div>
+        </Badge>
+      </RowBetween>
 
-      <p className="hint">
+      <Hint>
         選択範囲があれば優先し、なければページ本文からイベントを抽出します。
-      </p>
+      </Hint>
 
-      <div className="stack">
-        <div className="field">
-          <span className="field-name">登録先</span>
-          <div className="action-row">
-            <label className="checkbox-inline" htmlFor={googleId}>
-              <input
-                checked={hasGoogle}
-                id={googleId}
-                onChange={() => {
-                  toggleTarget("google");
-                }}
-                type="checkbox"
-              />
+      <Stack>
+        <Field label="登録先">
+          <ActionRow>
+            <CheckboxInline
+              checked={hasGoogle}
+              id={googleId}
+              onChange={() => {
+                toggleTarget("google");
+              }}
+            >
               Googleカレンダー
-            </label>
-            <label className="checkbox-inline" htmlFor={icsId}>
-              <input
-                checked={hasIcs}
-                id={icsId}
-                onChange={() => {
-                  toggleTarget("ics");
-                }}
-                type="checkbox"
-              />
+            </CheckboxInline>
+            <CheckboxInline
+              checked={hasIcs}
+              id={icsId}
+              onChange={() => {
+                toggleTarget("ics");
+              }}
+            >
               iCal (.ics)
-            </label>
-          </div>
-        </div>
+            </CheckboxInline>
+          </ActionRow>
+        </Field>
 
-        <div className="button-row">
+        <ButtonRow>
           <Button
-            className="btn btn-primary btn-small"
             data-testid="calendar-run"
             onClick={() => {
               runCalendar().catch(() => {
                 // no-op
               });
             }}
+            size="small"
             type="button"
+            variant="primary"
           >
             抽出する
           </Button>
           <Button
-            className="btn btn-ghost btn-small"
             data-testid="calendar-copy"
             disabled={!canCopyOutput}
             onClick={() => {
@@ -396,50 +404,55 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
                 // no-op
               });
             }}
+            size="small"
             type="button"
+            variant="ghost"
           >
             コピー
           </Button>
           {hasGoogle ? (
             <Button
-              className="btn btn-ghost btn-small"
               data-testid="calendar-open-google"
               disabled={!canOpenCalendar}
               onClick={() => {
                 openCalendar();
               }}
+              size="small"
               type="button"
+              variant="ghost"
             >
               Googleカレンダー
             </Button>
           ) : null}
           {hasIcs ? (
             <Button
-              className="btn btn-ghost btn-small"
               data-testid="calendar-download-ics"
               disabled={!canDownloadIcs}
               onClick={() => {
                 downloadIcs();
               }}
+              size="small"
               type="button"
+              variant="ghost"
             >
               .ics
             </Button>
           ) : null}
-        </div>
-      </div>
+        </ButtonRow>
+      </Stack>
 
-      <section className="output-panel">
-        <div className="row-between">
-          <div className="meta-title">{outputTitle}</div>
-        </div>
-        <textarea
-          className="summary-output summary-output--sm"
+      <OutputPanel>
+        <RowBetween>
+          <MetaTitle>{outputTitle}</MetaTitle>
+        </RowBetween>
+        <Textarea
           data-testid="calendar-output"
           readOnly
+          size="small"
           value={outputValue}
+          variant="summary"
         />
-      </section>
-    </div>
+      </OutputPanel>
+    </PaneCard>
   );
 }

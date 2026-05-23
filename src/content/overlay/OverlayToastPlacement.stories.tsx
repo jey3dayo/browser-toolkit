@@ -5,6 +5,7 @@ import { expect, userEvent, waitFor } from "storybook/test";
 import { ensureShadowUiBaseStyles } from "@/ui/styles";
 import { applyTheme, isTheme, type Theme } from "@/ui/theme";
 import { createNotifications, ToastHost } from "@/ui/toast";
+import { overlayClassNames } from "./overlayClassNames";
 
 function OverlayToastPlacementStory(): React.JSX.Element {
   const hostRef = useRef<HTMLDivElement | null>(null);
@@ -36,18 +37,18 @@ function OverlayToastPlacementStory(): React.JSX.Element {
       <div ref={hostRef} />
       {shadow
         ? createPortal(
-            <div className="mbu-overlay-surface">
+            <div className={overlayClassNames.surface}>
               <ToastHost
                 placement="surface"
                 portalContainer={shadow}
                 toastManager={notifications.toastManager}
               />
-              <div className="mbu-overlay-panel" style={{ width: 520 }}>
-                <div className="mbu-overlay-header">
-                  <div className="mbu-overlay-header-left">
-                    <div className="mbu-overlay-title">Overlay Toast</div>
+              <div className={overlayClassNames.panel} style={{ width: 520 }}>
+                <div className={overlayClassNames.header}>
+                  <div className={overlayClassNames.headerLeft}>
+                    <div className={overlayClassNames.title}>Overlay Toast</div>
                   </div>
-                  <div className="mbu-overlay-actions">
+                  <div className={overlayClassNames.actions}>
                     <button
                       className="mbu-overlay-action"
                       data-testid="toast-trigger"
@@ -60,7 +61,7 @@ function OverlayToastPlacementStory(): React.JSX.Element {
                     </button>
                   </div>
                 </div>
-                <div className="mbu-overlay-body">
+                <div className={overlayClassNames.body}>
                   <div style={{ color: "var(--mbu-text-muted)", fontSize: 12 }}>
                     toastが画面外に出ないことを確認するfixtureです。
                   </div>
@@ -117,7 +118,9 @@ export const Basic: Story = {
       throw new Error("Toast not found");
     }
 
-    const panel = shadow.querySelector<HTMLElement>(".mbu-overlay-panel");
+    const panel = shadow.querySelector<HTMLElement>(
+      `.${overlayClassNames.panel}`
+    );
     if (!panel) {
       throw new Error("Panel not found");
     }

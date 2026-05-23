@@ -1,5 +1,5 @@
-import { Button } from "@base-ui/react/button";
 import { Icon, type IconName } from "@/components/icon";
+import { Button } from "@/components/shared/Button";
 import type { Theme } from "@/ui/theme";
 import { themeButtonLabel } from "@/ui/themeCycle";
 

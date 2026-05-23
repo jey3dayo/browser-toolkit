@@ -1,5 +1,6 @@
 import { Result } from "@praha/byethrow";
 import React, { useState } from "react";
+import { Button } from "@/components/shared/Button";
 import type { ContextAction } from "@/context_actions";
 import type { PaneId } from "@/popup/panes";
 import type {
@@ -83,11 +84,11 @@ export function useActionRunner(params: {
             title: options.message,
             description: options.action
               ? React.createElement(
-                  "button",
+                  Button,
                   {
-                    className: "mbu-toast-action-link",
                     onClick: options.action.onClick,
                     type: "button",
+                    variant: "toastActionLink",
                   },
                   options.action.label
                 )

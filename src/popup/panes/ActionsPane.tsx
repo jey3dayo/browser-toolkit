@@ -1,5 +1,19 @@
 import { useRef } from "react";
 import { SortableList } from "@/components/SortableList";
+import { Badge } from "@/components/shared/Badge";
+import {
+  ActionListItem,
+  EditorPanel,
+  PaneCard,
+  RowBetween,
+} from "@/components/shared/Layout";
+import {
+  ActionTitle,
+  EditorTitle,
+  EmptyMessage,
+  Hint,
+  PaneTitle,
+} from "@/components/shared/Typography";
 import type { ContextAction } from "@/context_actions";
 import type { PaneId } from "@/popup/panes";
 import { ActionButtons } from "@/popup/panes/actions/ActionButtons";
@@ -88,18 +102,18 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
   };
 
   return (
-    <div className="card card-stack">
-      <div className="row-between">
-        <h2 className="pane-title">Context Actions</h2>
-        <span className="chip chip-soft" data-testid="action-source">
+    <PaneCard>
+      <RowBetween>
+        <PaneTitle>Context Actions</PaneTitle>
+        <Badge data-testid="action-source" variant="chipSoft">
           {output.status === "ready" ? output.sourceLabel : "-"}
-        </span>
-      </div>
+        </Badge>
+      </RowBetween>
 
-      <p className="hint" data-testid="template-vars">
+      <Hint data-testid="template-vars">
         テンプレ変数: <code>{"{{text}}"}</code> <code>{"{{title}}"}</code>{" "}
         <code>{"{{url}}"}</code> <code>{"{{source}}"}</code>
-      </p>
+      </Hint>
 
       <ActionButtons
         actions={actions}
@@ -166,11 +180,11 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
         }}
       />
 
-      <section className="editor-panel">
-        <h3 className="editor-title">並び順編集</h3>
-        <div className="hint">
+      <EditorPanel>
+        <EditorTitle>並び順編集</EditorTitle>
+        <Hint as="div">
           ドラッグ&ドロップで並び替えできます。右クリックメニューの順序に反映されます。
-        </div>
+        </Hint>
         {actions.length > 0 ? (
           <SortableList
             items={actions}
@@ -180,19 +194,19 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
               });
             }}
             renderItem={(action) => (
-              <div className="action-item">
-                <span className="action-title">{action.title}</span>
-                <span className="action-kind-badge">
+              <ActionListItem>
+                <ActionTitle>{action.title}</ActionTitle>
+                <Badge variant="actionKind">
                   {action.kind === "text" && "テキスト"}
                   {action.kind === "event" && "イベント"}
-                </span>
-              </div>
+                </Badge>
+              </ActionListItem>
             )}
           />
         ) : (
-          <p className="empty-message">アクションがありません</p>
+          <EmptyMessage>アクションがありません</EmptyMessage>
         )}
-      </section>
-    </div>
+      </EditorPanel>
+    </PaneCard>
   );
 }

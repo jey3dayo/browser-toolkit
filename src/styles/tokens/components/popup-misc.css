@@ -318,6 +318,19 @@
   color: var(--input-placeholder);
 }
 
+.debug-log-output {
+  max-height: 400px;
+  padding: 12px;
+  overflow: auto;
+  font-size: 12px;
+  line-height: 1.5;
+  word-break: break-word;
+  white-space: pre-wrap;
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+}
+
 .field-label {
   display: block;
   margin-top: 8px;

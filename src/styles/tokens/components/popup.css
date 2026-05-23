@@ -147,7 +147,7 @@ body.no-js:has(.pane:target) .pane.active:not(:target) {
 }
 
 .mbu-popover-positioner {
-  z-index: 20;
+  z-index: 1100;
 }
 
 .mbu-popover {
@@ -176,7 +176,7 @@ body.no-js:has(.pane:target) .pane.active:not(:target) {
 }
 
 .mbu-tooltip-positioner {
-  z-index: 20;
+  z-index: 1100;
 }
 
 .mbu-tooltip {

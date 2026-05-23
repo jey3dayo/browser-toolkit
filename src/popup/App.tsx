@@ -1,6 +1,13 @@
-import { Tabs } from "@base-ui/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { APP_NAME } from "@/app_meta";
+import { TabsPanel, TabsRoot } from "@/components/shared/Tabs";
+import {
+  PopupContent,
+  PopupContentBody,
+  PopupContentHeader,
+  PopupShell,
+  PopupTitleBlock,
+} from "@/popup/components/PopupLayout";
 import { Sidebar } from "@/popup/components/Sidebar";
 import { handleCopyTitleLinkFailureOnPopupOpen } from "@/popup/copy-title-link-failure";
 import { replaceHashSafely } from "@/popup/hash";
@@ -96,22 +103,22 @@ export function PopupApp(): React.JSX.Element {
   }, [notifications.notify, runtime]);
 
   return (
-    <Tabs.Root
+    <TabsRoot
       onValueChange={(value) => {
         setTabValue(coercePaneId(value));
         setMenuOpen(false);
       }}
       value={tabValue}
     >
-      <div className="app-shell mbu-surface">
+      <PopupShell>
         <ToastHost
           placement="surface"
           portalContainer={document.body}
           toastManager={notifications.toastManager}
         />
-        <main className="content">
-          <header className="content-header">
-            <div className="title-block">
+        <PopupContent>
+          <PopupContentHeader>
+            <PopupTitleBlock>
               <div className="hero-logo-wrap">
                 <img
                   alt={APP_NAME}
@@ -126,73 +133,67 @@ export function PopupApp(): React.JSX.Element {
                   <h1>{APP_NAME}</h1>
                 </div>
               </div>
-            </div>
-          </header>
+            </PopupTitleBlock>
+          </PopupContentHeader>
 
-          <div className="content-body">
-            <Tabs.Panel data-pane="pane-actions" value="pane-actions">
+          <PopupContentBody>
+            <TabsPanel value="pane-actions">
               <ActionsPane
                 focusTokenInput={focusTokenInput}
                 navigateToPane={navigateToPane}
                 notify={notifications.notify}
                 runtime={runtime}
               />
-            </Tabs.Panel>
-            <Tabs.Panel data-pane="pane-calendar" value="pane-calendar">
+            </TabsPanel>
+            <TabsPanel value="pane-calendar">
               <CalendarPane
                 focusTokenInput={focusTokenInput}
                 navigateToPane={navigateToPane}
                 notify={notifications.notify}
                 runtime={runtime}
               />
-            </Tabs.Panel>
-            <Tabs.Panel data-pane="pane-table" value="pane-table">
+            </TabsPanel>
+            <TabsPanel value="pane-table">
               <TablePane notify={notifications.notify} runtime={runtime} />
-            </Tabs.Panel>
-            <Tabs.Panel data-pane="pane-create-link" value="pane-create-link">
+            </TabsPanel>
+            <TabsPanel value="pane-create-link">
               <CreateLinkPane
                 initialFormat={createLinkInitialFormat ?? undefined}
                 initialLink={createLinkInitialLink ?? undefined}
                 notify={notifications.notify}
                 runtime={runtime}
               />
-            </Tabs.Panel>
-            <Tabs.Panel
-              data-pane="pane-search-engines"
-              value="pane-search-engines"
-            >
+            </TabsPanel>
+            <TabsPanel value="pane-search-engines">
               <SearchEnginesPane
                 notify={notifications.notify}
                 runtime={runtime}
               />
-            </Tabs.Panel>
-            <Tabs.Panel
-              data-pane="pane-search-groups"
-              value="pane-search-groups"
-            >
+            </TabsPanel>
+            <TabsPanel value="pane-search-groups">
               <SearchGroupsPane
                 notify={notifications.notify}
                 runtime={runtime}
               />
-            </Tabs.Panel>
-            <Tabs.Panel data-pane="pane-templates" value="pane-templates">
+            </TabsPanel>
+            <TabsPanel value="pane-templates">
               <TemplatesPane notify={notifications.notify} runtime={runtime} />
-            </Tabs.Panel>
-            <Tabs.Panel data-pane="pane-history" value="pane-history">
+            </TabsPanel>
+            <TabsPanel value="pane-history">
               <HistoryPane notify={notifications.notify} runtime={runtime} />
-            </Tabs.Panel>
-            <Tabs.Panel data-pane="pane-debug" value="pane-debug">
+            </TabsPanel>
+            <TabsPanel value="pane-debug">
               <DebugPane notify={notifications.notify} runtime={runtime} />
-            </Tabs.Panel>
-            <Tabs.Panel data-pane="pane-settings" value="pane-settings">
+            </TabsPanel>
+            <TabsPanel value="pane-settings">
               <SettingsPane
                 notify={notifications.notify}
                 runtime={runtime}
                 tokenInputRef={tokenInputRef}
               />
-            </Tabs.Panel>
-          </div>
-        </main>
+            </TabsPanel>
+          </PopupContentBody>
+        </PopupContent>
 
         <Sidebar
           currentPane={tabValue}
@@ -200,7 +201,7 @@ export function PopupApp(): React.JSX.Element {
           onMenuOpenChange={setMenuOpen}
           onNavigate={navigateToPane}
         />
-      </div>
-    </Tabs.Root>
+      </PopupShell>
+    </TabsRoot>
   );
 }

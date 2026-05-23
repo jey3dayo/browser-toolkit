@@ -1,6 +1,13 @@
-import { Accordion } from "@base-ui/react/accordion";
-import { Check, Copy } from "lucide-react";
 import { useState } from "react";
+import { Icon } from "@/components/icon";
+import {
+  Accordion,
+  AccordionMeta,
+  AccordionNote,
+  AccordionText,
+  AccordionTextWrapper,
+} from "@/components/shared/Accordion";
+import { Button } from "@/components/shared/Button";
 import type { SummaryTarget } from "@/popup/runtime";
 
 type Props = {
@@ -8,7 +15,49 @@ type Props = {
   target: SummaryTarget;
 };
 
+type ActionTargetPreviewProps = {
+  copied: boolean;
+  isTruncated: boolean;
+  onCopy: () => void;
+  previewText: string;
+  sourceLabel: string;
+};
+
 const MAX_PREVIEW_CHARS = 4000;
+
+function ActionTargetPreview(
+  props: ActionTargetPreviewProps
+): React.JSX.Element {
+  return (
+    <>
+      <AccordionMeta>使用元: {props.sourceLabel}</AccordionMeta>
+      {props.isTruncated ? (
+        <AccordionNote>長文のため先頭4,000文字のみ表示</AccordionNote>
+      ) : null}
+      <AccordionTextWrapper>
+        <AccordionText
+          readOnly
+          size="small"
+          value={props.previewText}
+          variant="summary"
+        />
+        <Button
+          aria-label={props.copied ? "コピーしました" : "テキストをコピー"}
+          disabled={!props.previewText.trim()}
+          onClick={props.onCopy}
+          type="button"
+          variant="accordionCopy"
+        >
+          <Icon
+            aria-hidden="true"
+            name={props.copied ? "check" : "copy"}
+            size={14}
+          />
+        </Button>
+      </AccordionTextWrapper>
+    </>
+  );
+}
 
 export function ActionTargetAccordion(props: Props): React.JSX.Element | null {
   const [copied, setCopied] = useState(false);
@@ -48,41 +97,14 @@ export function ActionTargetAccordion(props: Props): React.JSX.Element | null {
   };
 
   return (
-    <Accordion.Root className="mbu-accordion" defaultValue={["target"]}>
-      <Accordion.Item className="mbu-accordion-item" value="target">
-        <Accordion.Header className="mbu-accordion-header">
-          <Accordion.Trigger className="mbu-accordion-trigger" type="button">
-            <span className="mbu-accordion-title">{label}</span>
-            <span aria-hidden="true" className="mbu-accordion-icon">
-              ▾
-            </span>
-          </Accordion.Trigger>
-        </Accordion.Header>
-        <Accordion.Panel className="mbu-accordion-panel">
-          <div className="mbu-accordion-meta">使用元: {props.sourceLabel}</div>
-          {isTruncated ? (
-            <div className="mbu-accordion-note">
-              長文のため先頭4,000文字のみ表示
-            </div>
-          ) : null}
-          <div className="mbu-accordion-text-wrapper">
-            <textarea
-              className="summary-output summary-output--sm mbu-accordion-text"
-              readOnly
-              value={previewText}
-            />
-            <button
-              aria-label={copied ? "コピーしました" : "テキストをコピー"}
-              className="mbu-accordion-copy-btn"
-              disabled={!previewText.trim()}
-              onClick={handleCopy}
-              type="button"
-            >
-              {copied ? <Check size={14} /> : <Copy size={14} />}
-            </button>
-          </div>
-        </Accordion.Panel>
-      </Accordion.Item>
-    </Accordion.Root>
+    <Accordion itemValue="target" title={label}>
+      <ActionTargetPreview
+        copied={copied}
+        isTruncated={isTruncated}
+        onCopy={handleCopy}
+        previewText={previewText}
+        sourceLabel={props.sourceLabel}
+      />
+    </Accordion>
   );
 }

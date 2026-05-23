@@ -79,4 +79,45 @@ describe("popup layout structure", () => {
       root.unmount();
     });
   });
+
+  it("keeps the active drawer menu item class stable", async () => {
+    const rootEl = dom.window.document.getElementById("root");
+    if (!rootEl) {
+      throw new Error("missing #root");
+    }
+
+    const root = createRoot(rootEl);
+    await act(async () => {
+      root.render(<PopupApp />);
+      await flush(dom.window);
+    });
+
+    const menuTrigger =
+      dom.window.document.querySelector<HTMLButtonElement>(".sidebar-brand");
+    if (!menuTrigger) {
+      throw new Error("missing menu trigger");
+    }
+
+    await act(async () => {
+      menuTrigger.click();
+      await flush(dom.window);
+    });
+
+    const activeMenuItem = dom.window.document.querySelector<HTMLButtonElement>(
+      '.menu-drawer-nav [aria-current="page"]'
+    );
+    expect(activeMenuItem).not.toBeNull();
+    expect(activeMenuItem?.className).toBe("menu-item active");
+
+    const inactiveMenuItem =
+      dom.window.document.querySelector<HTMLButtonElement>(
+        ".menu-drawer-nav .menu-item:not(.active)"
+      );
+    expect(inactiveMenuItem).not.toBeNull();
+    expect(inactiveMenuItem?.className).toBe("menu-item");
+
+    act(() => {
+      root.unmount();
+    });
+  });
 });

@@ -1,4 +1,5 @@
-import { Button } from "@base-ui/react/button";
+import { Button } from "@/components/shared/Button";
+import { ActionButtonsRow } from "@/components/shared/Layout";
 import type { ContextAction } from "@/context_actions";
 
 type Props = {
@@ -8,20 +9,21 @@ type Props = {
 
 export function ActionButtons(props: Props): React.JSX.Element {
   return (
-    <div className="action-buttons">
+    <ActionButtonsRow>
       {props.actions.map((action) => (
         <Button
-          className="btn btn-ghost btn-small"
           data-action-id={action.id}
           key={action.id}
           onClick={() => {
             props.onRun(action.id);
           }}
+          size="small"
           type="button"
+          variant="ghost"
         >
           {action.title}
         </Button>
       ))}
-    </div>
+    </ActionButtonsRow>
   );
 }

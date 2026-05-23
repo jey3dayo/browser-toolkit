@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { overlayClassNames } from "@/content/overlay/overlayClassNames";
 
 type Props = {
   summary: string;
@@ -80,9 +81,15 @@ export function AuxTextDisclosure(props: Props): React.JSX.Element | null {
   }
 
   return (
-    <details className="mbu-overlay-aux" onToggle={handleToggle} open={open}>
-      <summary className="mbu-overlay-aux-summary">{props.summary}</summary>
-      <blockquote className="mbu-overlay-quote">{trimmed}</blockquote>
+    <details
+      className={overlayClassNames.aux}
+      onToggle={handleToggle}
+      open={open}
+    >
+      <summary className={overlayClassNames.auxSummary}>
+        {props.summary}
+      </summary>
+      <blockquote className={overlayClassNames.quote}>{trimmed}</blockquote>
     </details>
   );
 }

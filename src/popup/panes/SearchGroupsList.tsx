@@ -1,4 +1,5 @@
 import { SortableList } from "@/components/SortableList";
+import { EmptyMessage } from "@/components/shared/Typography";
 import { SearchGroupItem } from "@/popup/panes/SearchGroupItem";
 import type { SearchEngineGroup } from "@/search_engine_groups";
 import type { SearchEngine } from "@/search_engine_types";
@@ -47,7 +48,7 @@ export function SearchGroupsList(
   } = props;
 
   if (groups.length === 0) {
-    return <p className="empty-message">グループが登録されていません</p>;
+    return <EmptyMessage>グループが登録されていません</EmptyMessage>;
   }
 
   return (

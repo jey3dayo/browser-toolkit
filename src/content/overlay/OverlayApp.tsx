@@ -31,6 +31,7 @@ import {
   downloadIcsFile,
   openUrlInNewTab,
 } from "./overlayActions";
+import { overlayClassNames } from "./overlayClassNames";
 import {
   type DragOffset,
   endOverlayDrag,
@@ -379,25 +380,25 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
   const showChat = viewModel.mode === "text" && viewModel.status === "ready";
 
   return (
-    <div className="mbu-overlay-surface">
+    <div className={overlayClassNames.surface}>
       <ToastHost
         placement="surface"
         portalContainer={props.portalContainer}
         toastManager={toastManager}
       />
-      <div className="mbu-overlay-panel" ref={panelRef}>
+      <div className={overlayClassNames.panel} ref={panelRef}>
         <div
-          className="mbu-overlay-header"
+          className={overlayClassNames.header}
           data-dragging={dragging ? "true" : undefined}
           onPointerCancel={endDrag}
           onPointerDown={startDrag}
           onPointerMove={moveDrag}
           onPointerUp={endDrag}
         >
-          <div className="mbu-overlay-header-left">
-            <div className="mbu-overlay-title">
+          <div className={overlayClassNames.headerLeft}>
+            <div className={overlayClassNames.title}>
               {viewModel.title}{" "}
-              <span className="mbu-overlay-chip">{sourceLabel}</span>
+              <span className={overlayClassNames.chip}>{sourceLabel}</span>
             </div>
           </div>
           <OverlayHeaderActions

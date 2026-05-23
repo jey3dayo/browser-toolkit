@@ -1,11 +1,20 @@
-import { Button } from "@base-ui/react/button";
-import { Form } from "@base-ui/react/form";
-import { Input } from "@base-ui/react/input";
-import { Select } from "@base-ui/react/select";
-import { Switch } from "@base-ui/react/switch";
 import { Result } from "@praha/byethrow";
 import { useEffect, useState } from "react";
 import { SortableList } from "@/components/SortableList";
+import { Badge } from "@/components/shared/Badge";
+import { Button } from "@/components/shared/Button";
+import { Form } from "@/components/shared/Form";
+import { Input } from "@/components/shared/Input";
+import {
+  PaneCard,
+  PatternInputRow,
+  RowBetween,
+  Stack,
+} from "@/components/shared/Layout";
+import { ListItemRow } from "@/components/shared/ListItemRow";
+import { Select } from "@/components/shared/Select";
+import { Switch } from "@/components/shared/Switch";
+import { EmptyMessage, Hint, PaneTitle } from "@/components/shared/Typography";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { persistWithRollback } from "@/popup/utils/persist";
 import { requireTrimmedString } from "@/popup/utils/required-input";
@@ -222,115 +231,87 @@ export function SearchEnginesPane(
   };
 
   return (
-    <div className="card card-stack">
-      <div className="row-between">
-        <h2 className="pane-title">検索エンジン</h2>
+    <PaneCard>
+      <RowBetween>
+        <PaneTitle>検索エンジン</PaneTitle>
         <Button
-          className="btn btn-ghost btn-small"
           data-testid="reset-search-engines"
           onClick={() => {
             resetToDefaults().catch(() => {
               // no-op
             });
           }}
+          size="small"
           type="button"
+          variant="ghost"
         >
           デフォルトに戻す
         </Button>
-      </div>
+      </RowBetween>
 
-      <div className="stack">
-        <div className="hint">
-          選択したテキストを検索エンジンで検索できます。
-        </div>
-        <div className="hint">
+      <Stack>
+        <Hint as="div">選択したテキストを検索エンジンで検索できます。</Hint>
+        <Hint as="div">
           URLテンプレートには <code>{"{query}"}</code>{" "}
           を含めてください（選択テキストに置き換わります）
-        </div>
+        </Hint>
 
         <Form
-          className="pattern-input-group pattern-input-group--wrap"
           onFormSubmit={() => {
             addEngine().catch(() => {
               // no-op
             });
           }}
+          variant="patternGroupWrap"
         >
-          <div className="pattern-input-row">
+          <PatternInputRow>
             <Input
-              className="pattern-input"
               data-testid="search-engine-name"
               onValueChange={setNameInput}
               placeholder="検索エンジン名（例: Google）"
               type="text"
               value={nameInput}
+              variant="pattern"
             />
-            <Select.Root
+            <Select
+              ariaLabel="エンコーディング"
               onValueChange={(value) => {
                 if (isSearchEngineEncoding(value)) {
                   setEncodingInput(value);
                 }
               }}
+              options={SEARCH_ENGINE_ENCODINGS.map((enc) => ({
+                label: ENCODING_LABELS[enc],
+                value: enc,
+              }))}
+              triggerTestId="search-engine-encoding"
               value={encodingInput}
-            >
-              <Select.Trigger
-                aria-label="エンコーディング"
-                className="pattern-input mbu-select-trigger"
-                data-testid="search-engine-encoding"
-                type="button"
-              >
-                <Select.Value className="mbu-select-value" />
-                <Select.Icon className="mbu-select-icon">▾</Select.Icon>
-              </Select.Trigger>
-              <Select.Portal>
-                <Select.Positioner
-                  className="mbu-select-positioner"
-                  sideOffset={6}
-                >
-                  <Select.Popup className="mbu-select-popup">
-                    <Select.List className="mbu-select-list">
-                      {SEARCH_ENGINE_ENCODINGS.map((enc) => (
-                        <Select.Item
-                          className="mbu-select-item"
-                          key={enc}
-                          value={enc}
-                        >
-                          <Select.ItemText>
-                            {ENCODING_LABELS[enc]}
-                          </Select.ItemText>
-                          <Select.ItemIndicator className="mbu-select-indicator">
-                            ✓
-                          </Select.ItemIndicator>
-                        </Select.Item>
-                      ))}
-                    </Select.List>
-                  </Select.Popup>
-                </Select.Positioner>
-              </Select.Portal>
-            </Select.Root>
-          </div>
-          <div className="pattern-input-row">
+              variant="pattern"
+            />
+          </PatternInputRow>
+          <PatternInputRow>
             <Input
-              className="pattern-input"
               data-testid="search-engine-url"
               onValueChange={setUrlInput}
               placeholder="URLテンプレート（例: https://google.com/search?q={query}）"
               type="text"
               value={urlInput}
+              variant="pattern"
             />
             <Button
-              className="btn btn-ghost btn-small"
               data-testid="add-search-engine"
               onClick={() => {
                 addEngine().catch(() => {
                   // no-op
                 });
               }}
+              size="small"
               type="button"
+              variant="ghost"
             >
               追加
             </Button>
-          </div>
+          </PatternInputRow>
         </Form>
 
         {engines.length > 0 ? (
@@ -342,56 +323,53 @@ export function SearchEnginesPane(
               });
             }}
             renderItem={(engine) => (
-              <div className="search-engine-item">
-                <div className="search-engine-content">
-                  <strong className="search-engine-name">
-                    {engine.name}
-                    {engine.encoding && engine.encoding !== "utf-8" && (
-                      <span className="badge badge-info">
-                        {ENCODING_LABELS[engine.encoding]}
-                      </span>
-                    )}
-                  </strong>
-                  <code className="search-engine-url">
-                    {engine.urlTemplate}
-                  </code>
-                </div>
-                <div className="search-engine-controls">
-                  <Switch.Root
-                    aria-label={`${engine.name}を有効化`}
-                    checked={engine.enabled}
-                    className="mbu-switch"
-                    data-testid={`engine-enabled-${engine.id}`}
-                    onCheckedChange={(checked) => {
-                      toggleEngineEnabled(engine.id, checked).catch(() => {
-                        // no-op
-                      });
-                    }}
-                  >
-                    <Switch.Thumb className="mbu-switch-thumb" />
-                  </Switch.Root>
-                  {!engine.id.startsWith("builtin:") && (
-                    <Button
-                      className="btn-delete"
-                      data-testid={`remove-engine-${engine.id}`}
-                      onClick={() => {
-                        removeEngine(engine.id).catch(() => {
+              <ListItemRow
+                actions={
+                  <>
+                    <Switch
+                      aria-label={`${engine.name}を有効化`}
+                      checked={engine.enabled}
+                      data-testid={`engine-enabled-${engine.id}`}
+                      onCheckedChange={(checked) => {
+                        toggleEngineEnabled(engine.id, checked).catch(() => {
                           // no-op
                         });
                       }}
-                      type="button"
-                    >
-                      削除
-                    </Button>
-                  )}
-                </div>
-              </div>
+                    />
+                    {!engine.id.startsWith("builtin:") && (
+                      <Button
+                        data-testid={`remove-engine-${engine.id}`}
+                        onClick={() => {
+                          removeEngine(engine.id).catch(() => {
+                            // no-op
+                          });
+                        }}
+                        type="button"
+                        variant="danger"
+                      >
+                        削除
+                      </Button>
+                    )}
+                  </>
+                }
+                meta={engine.urlTemplate}
+                title={
+                  <>
+                    {engine.name}
+                    {engine.encoding && engine.encoding !== "utf-8" && (
+                      <Badge variant="badgeInfo">
+                        {ENCODING_LABELS[engine.encoding]}
+                      </Badge>
+                    )}
+                  </>
+                }
+              />
             )}
           />
         ) : (
-          <p className="empty-message">検索エンジンが登録されていません</p>
+          <EmptyMessage>検索エンジンが登録されていません</EmptyMessage>
         )}
-      </div>
-    </div>
+      </Stack>
+    </PaneCard>
   );
 }

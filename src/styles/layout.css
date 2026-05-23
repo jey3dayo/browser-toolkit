@@ -10,7 +10,7 @@
 .menu-scrim {
   position: absolute;
   inset: 0;
-  z-index: 50;
+  z-index: 1000;
   pointer-events: none;
   background: var(--color-scrim);
   opacity: 0;
@@ -27,7 +27,7 @@ body.menu-open .menu-scrim {
   top: 0;
   right: 0;
   bottom: 0;
-  z-index: 60;
+  z-index: 1010;
   display: flex;
   visibility: hidden;
   flex-direction: column;
@@ -196,7 +196,7 @@ body.menu-open .menu-drawer {
 
 .sidebar {
   position: relative;
-  z-index: 40;
+  z-index: 900;
   display: flex;
   visibility: visible;
   flex-direction: column;

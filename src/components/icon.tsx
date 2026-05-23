@@ -1,6 +1,9 @@
 import {
   Bug,
   Calendar,
+  Check,
+  ChevronDown,
+  ChevronRight,
   Clock,
   Copy,
   Eye,
@@ -13,6 +16,7 @@ import {
   MessageSquare,
   Monitor,
   Moon,
+  Pencil,
   Pin,
   QrCode,
   Search,
@@ -26,6 +30,9 @@ import {
 export type IconName =
   | "bug"
   | "calendar"
+  | "check"
+  | "chevron-down"
+  | "chevron-right"
   | "clock"
   | "close"
   | "copy"
@@ -39,6 +46,7 @@ export type IconName =
   | "monitor"
   | "moon"
   | "pin"
+  | "pencil"
   | "qr-code"
   | "search"
   | "settings"
@@ -49,6 +57,9 @@ export type IconName =
 const icons: Record<IconName, React.ComponentType<LucideProps>> = {
   bug: Bug,
   calendar: Calendar,
+  check: Check,
+  "chevron-down": ChevronDown,
+  "chevron-right": ChevronRight,
   clock: Clock,
   close: X,
   copy: Copy,
@@ -62,6 +73,7 @@ const icons: Record<IconName, React.ComponentType<LucideProps>> = {
   monitor: Monitor,
   moon: Moon,
   pin: Pin,
+  pencil: Pencil,
   "qr-code": QrCode,
   search: Search,
   settings: Settings,
