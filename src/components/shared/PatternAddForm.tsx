@@ -11,6 +11,7 @@ type PatternAddFormProps = {
   inputTestId?: string;
   inputType?: HTMLInputTypeAttribute;
   onSubmit: () => Promise<void> | void;
+  onSubmitError: (error: unknown) => void;
   onValueChange: (value: string) => void;
   placeholder: string;
   value: string;
@@ -23,6 +24,7 @@ export function PatternAddForm({
   inputTestId,
   inputType = "text",
   onSubmit,
+  onSubmitError,
   onValueChange,
   placeholder,
   value,
@@ -32,11 +34,11 @@ export function PatternAddForm({
       return;
     }
     try {
-      Promise.resolve(onSubmit()).catch(() => {
-        // no-op
+      Promise.resolve(onSubmit()).catch((error: unknown) => {
+        onSubmitError(error);
       });
-    } catch {
-      // no-op
+    } catch (error) {
+      onSubmitError(error);
     }
   };
 

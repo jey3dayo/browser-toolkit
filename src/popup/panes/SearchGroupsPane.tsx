@@ -62,6 +62,9 @@ export function SearchGroupsPane(
           disabled={engines.length === 0}
           inputTestId="new-group-name"
           onSubmit={addNewGroup}
+          onSubmitError={() => {
+            props.notify.error(t("common.unknownError"));
+          }}
           onValueChange={setNewGroupNameInput}
           placeholder={t("searchGroups.namePlaceholder")}
           value={newGroupNameInput}

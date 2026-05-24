@@ -10,12 +10,7 @@ import {
 } from "react";
 import { Badge, type BadgeProps } from "@/components/shared/Badge";
 import { Button } from "@/components/shared/Button";
-import {
-  ButtonRow,
-  PaneCard,
-  RowBetween,
-  Stack,
-} from "@/components/shared/Layout";
+import { PaneCard, RowBetween, Stack } from "@/components/shared/Layout";
 import { PatternAddForm } from "@/components/shared/PatternAddForm";
 import {
   PatternList,
@@ -39,39 +34,22 @@ import {
   toFocusOverrideMatchPattern,
 } from "@/focus-override/patterns";
 import { t } from "@/i18n";
+import {
+  buildFocusDiagnosticView,
+  FOCUS_DIAGNOSTIC_SLOW_MS,
+  type FocusDiagnosticBadgeVariant,
+  FocusDiagnosticPanel,
+  type FocusDiagnosticView,
+  getFocusDiagnosticBadgeVariant,
+  isFocusOverrideApplied,
+  summarizeUrl,
+} from "@/popup/panes/table/FocusDiagnosticPanel";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
-import type {
-  EnableTableSortMessage,
-  FocusOverrideDiagnosticSnapshot,
-} from "@/popup/runtime";
+import type { EnableTableSortMessage } from "@/popup/runtime";
 import { persistWithRollback } from "@/popup/utils/persist";
 import { requireTrimmedString } from "@/popup/utils/required-input";
 
 export type TablePaneProps = PopupPaneBaseProps;
-
-type FocusDiagnosticKind =
-  | "not-configured"
-  | "active"
-  | "reload-required"
-  | "unavailable";
-
-type FocusDiagnosticView = {
-  kind: FocusDiagnosticKind;
-  tabId: number | null;
-  currentUrl: string | null;
-  matchedPattern: string | null;
-  label: string;
-  description: string;
-};
-
-type FocusDiagnosticViewParams = Omit<
-  FocusDiagnosticView,
-  "label" | "matchedPattern"
-> & {
-  matchedPattern?: string | null;
-};
-
-const FOCUS_DIAGNOSTIC_SLOW_MS = 300;
 
 function TablePaneHeader({
   className,
@@ -220,94 +198,8 @@ function TablePaneSummaryMeta({
   );
 }
 
-function FocusDiagnosticDescription({
-  className,
-  ...props
-}: ComponentPropsWithoutRef<"p">): React.JSX.Element {
-  return (
-    <p
-      className={cva("focus-diagnostic-description")({ className })}
-      {...props}
-    />
-  );
-}
-
-function FocusDiagnosticMeta({
-  className,
-  ...props
-}: ComponentPropsWithoutRef<"p">): React.JSX.Element {
-  return (
-    <p className={cva("focus-diagnostic-meta")({ className })} {...props} />
-  );
-}
-
-function FocusDiagnosticLoading({
-  className,
-  ...props
-}: ComponentPropsWithoutRef<"p">): React.JSX.Element {
-  return (
-    <p className={cva("focus-diagnostic-loading")({ className })} {...props} />
-  );
-}
-
-function FocusDiagnosticPanelRoot({
-  className,
-  ...props
-}: ComponentPropsWithoutRef<"section">): React.JSX.Element {
-  return (
-    <section
-      aria-live="polite"
-      className={cva("focus-diagnostic-panel")({ className })}
-      data-testid="focus-diagnostic-panel"
-      {...props}
-    />
-  );
-}
-
-function FocusDiagnosticEyebrow({
-  className,
-  ...props
-}: ComponentPropsWithoutRef<"p">): React.JSX.Element {
-  return (
-    <p className={cva("focus-diagnostic-eyebrow")({ className })} {...props} />
-  );
-}
-
-function FocusDiagnosticSummary({
-  className,
-  ...props
-}: ComponentPropsWithoutRef<"div">): React.JSX.Element {
-  return (
-    <div
-      className={cva("focus-diagnostic-summary")({ className })}
-      {...props}
-    />
-  );
-}
-
-function FocusDiagnosticUrl({
-  className,
-  ...props
-}: ComponentPropsWithoutRef<"code">): React.JSX.Element {
-  return (
-    <code className={cva("focus-diagnostic-url")({ className })} {...props} />
-  );
-}
-
-function FocusDiagnosticActions({
-  className,
-  ...props
-}: ComponentPropsWithoutRef<typeof ButtonRow>): React.JSX.Element {
-  return (
-    <ButtonRow
-      className={cva("focus-diagnostic-actions")({ className })}
-      {...props}
-    />
-  );
-}
-
 type TablePaneSummaryCardProps = {
-  focusDiagnosticBadgeVariant: BadgeProps["variant"];
+  focusDiagnosticBadgeVariant: FocusDiagnosticBadgeVariant;
   focusPatternSummaryLabel: string;
   summaryFocusDescription: string;
   summaryFocusStatusLabel: string;
@@ -362,132 +254,6 @@ function TablePaneSummaryCard({
       </TablePaneSummaryGrid>
     </TablePaneSummary>
   );
-}
-
-type FocusDiagnosticPanelProps = {
-  focusDiagnostic: FocusDiagnosticView | null;
-  focusDiagnosticBadgeVariant: BadgeProps["variant"];
-  focusDiagnosticRunning: boolean;
-  focusDiagnosticSlow: boolean;
-  onRefresh: () => void;
-  onReloadCurrentTab: () => void;
-};
-
-function FocusDiagnosticPanel({
-  focusDiagnostic,
-  focusDiagnosticBadgeVariant,
-  focusDiagnosticRunning,
-  focusDiagnosticSlow,
-  onRefresh,
-  onReloadCurrentTab,
-}: FocusDiagnosticPanelProps): React.JSX.Element {
-  return (
-    <FocusDiagnosticPanelRoot>
-      <RowBetween>
-        <Stack spacing="small">
-          <FocusDiagnosticEyebrow>
-            {t("tablePane.diagnostic.eyebrow")}
-          </FocusDiagnosticEyebrow>
-          <FocusDiagnosticSummary>
-            <Badge
-              data-testid="focus-diagnostic-status"
-              variant={focusDiagnosticBadgeVariant}
-            >
-              {focusDiagnostic?.label ?? t("tablePane.summary.pending")}
-            </Badge>
-            <FocusDiagnosticUrl data-testid="focus-diagnostic-summary">
-              {focusDiagnostic?.currentUrl ??
-                t("tablePane.diagnostic.pendingUrl")}
-            </FocusDiagnosticUrl>
-          </FocusDiagnosticSummary>
-        </Stack>
-        <FocusDiagnosticActions>
-          <Button
-            data-testid="focus-diagnostic-refresh"
-            disabled={focusDiagnosticRunning}
-            onClick={onRefresh}
-            size="small"
-            type="button"
-            variant="ghost"
-          >
-            {t("tablePane.diagnostic.refresh")}
-          </Button>
-          {focusDiagnostic?.kind === "reload-required" ? (
-            <Button
-              data-testid="focus-diagnostic-reload"
-              onClick={onReloadCurrentTab}
-              size="small"
-              type="button"
-              variant="primary"
-            >
-              {t("tablePane.diagnostic.reload")}
-            </Button>
-          ) : null}
-        </FocusDiagnosticActions>
-      </RowBetween>
-
-      <FocusDiagnosticDescription>
-        {focusDiagnostic?.description ??
-          t("tablePane.diagnostic.defaultDescription")}
-      </FocusDiagnosticDescription>
-      {focusDiagnostic?.matchedPattern ? (
-        <FocusDiagnosticMeta>
-          {t("tablePane.diagnostic.matchedPattern", {
-            pattern: focusDiagnostic.matchedPattern,
-          })}
-        </FocusDiagnosticMeta>
-      ) : null}
-      {focusDiagnosticSlow ? (
-        <FocusDiagnosticLoading>
-          {t("tablePane.diagnostic.loading")}
-        </FocusDiagnosticLoading>
-      ) : null}
-    </FocusDiagnosticPanelRoot>
-  );
-}
-
-function summarizeUrl(url: string | undefined): string | null {
-  if (!url?.trim()) {
-    return null;
-  }
-
-  try {
-    const parsed = new URL(url);
-    return `${parsed.hostname}${parsed.pathname}${parsed.search}`;
-  } catch {
-    return url;
-  }
-}
-
-function isFocusOverrideApplied(
-  snapshot: FocusOverrideDiagnosticSnapshot
-): boolean {
-  return (
-    snapshot.markerPresent &&
-    snapshot.visibilityState === "visible" &&
-    snapshot.hidden === false &&
-    snapshot.hasFocus === true
-  );
-}
-
-function buildFocusDiagnosticView(
-  params: FocusDiagnosticViewParams
-): FocusDiagnosticView {
-  const labelMap: Record<FocusDiagnosticKind, string> = {
-    "not-configured": t("tablePane.diagnostic.labels.notConfigured"),
-    active: t("tablePane.diagnostic.labels.active"),
-    "reload-required": t("tablePane.diagnostic.labels.reloadRequired"),
-    unavailable: t("tablePane.diagnostic.labels.unavailable"),
-  };
-
-  return {
-    kind: params.kind,
-    tabId: params.tabId,
-    currentUrl: params.currentUrl,
-    matchedPattern: params.matchedPattern ?? null,
-    label: labelMap[params.kind],
-    description: params.description,
-  };
 }
 
 type PatternConfigListItemProps = {
@@ -999,13 +765,8 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
     props.notify.success(t("tablePane.success.reloaded"));
   };
 
-  let focusDiagnosticBadgeVariant: BadgeProps["variant"] =
-    "focusDiagnosticNeutral";
-  if (focusDiagnostic?.kind === "active") {
-    focusDiagnosticBadgeVariant = "focusDiagnosticActive";
-  } else if (focusDiagnostic?.kind === "reload-required") {
-    focusDiagnosticBadgeVariant = "focusDiagnosticWarning";
-  }
+  const focusDiagnosticBadgeVariant =
+    getFocusDiagnosticBadgeVariant(focusDiagnostic);
 
   const summaryFocusStatusLabel =
     focusDiagnostic?.label ?? t("tablePane.summary.pending");
@@ -1060,6 +821,9 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
           buttonTestId="pattern-add"
           inputTestId="pattern-input"
           onSubmit={addPattern}
+          onSubmitError={() => {
+            props.notify.error(t("common.unknownError"));
+          }}
           onValueChange={setPatternInput}
           placeholder="example.com/path*"
           value={patternInput}
@@ -1112,6 +876,9 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
           buttonTestId="focus-pattern-add"
           inputTestId="focus-pattern-input"
           onSubmit={addFocusPattern}
+          onSubmitError={() => {
+            props.notify.error(t("common.unknownError"));
+          }}
           onValueChange={setFocusPatternInput}
           placeholder="example.com/title/*"
           value={focusPatternInput}

@@ -417,6 +417,11 @@ describe("popup Table Sort pane", { timeout: 15_000 }, () => {
     expect(dom.window.document.body.textContent).toContain(
       "このタブでは再読み込みで反映されます"
     );
+    expect(
+      dom.window.document.querySelector<HTMLElement>(
+        '[data-testid="focus-diagnostic-status"]'
+      )?.textContent
+    ).toBe("要リロード");
 
     const remove = dom.window.document.querySelector<HTMLButtonElement>(
       'button[data-focus-pattern-remove="pocket.shonenmagazine.com/title/*"]'
@@ -434,6 +439,44 @@ describe("popup Table Sort pane", { timeout: 15_000 }, () => {
         }
       | undefined;
     expect(lastCall?.focusOverridePatterns).toEqual(["example.com/reader/*"]);
+  });
+
+  it("updates focus diagnostics from the next pattern list after removal", async () => {
+    const { dom } = await setupTablePane({
+      activeTab: {
+        id: 10,
+        title: "Reader",
+        url: "https://example.com/reader/42",
+      },
+      focusPatterns: ["example.com/reader/*"],
+    });
+
+    expect(
+      dom.window.document.querySelector<HTMLElement>(
+        '[data-testid="focus-diagnostic-status"]'
+      )?.textContent
+    ).toBe("要リロード");
+
+    const remove = dom.window.document.querySelector<HTMLButtonElement>(
+      'button[data-focus-pattern-remove="example.com/reader/*"]'
+    );
+    expect(remove).not.toBeNull();
+
+    await act(async () => {
+      remove?.click();
+      await flush(dom.window, 8);
+    });
+
+    expect(
+      dom.window.document.querySelector<HTMLElement>(
+        '[data-testid="focus-diagnostic-status"]'
+      )?.textContent
+    ).toBe("未設定");
+    expect(
+      dom.window.document.querySelector(
+        '[data-testid="focus-diagnostic-reload"]'
+      )
+    ).toBeNull();
   });
 
   it("reloads the current tab from the diagnostic card", async () => {
