@@ -6,6 +6,16 @@ import {
   storageSyncGet,
   storageSyncSet,
 } from "@/background/storage";
+import {
+  normalizeSearchEngineGroups,
+  SEARCH_ENGINE_GROUP_IDS,
+  type SearchEngineGroup,
+} from "@/search_engine_groups";
+import type { SearchEngine } from "@/search_engine_types";
+import {
+  BUILTIN_SEARCH_ENGINE_IDS,
+  normalizeSearchEngines,
+} from "@/search_engines";
 import type { LocalStorageData } from "@/storage/types";
 
 /**
@@ -15,6 +25,44 @@ interface Migration {
   description: string;
   migrate: () => Promise<void>;
   version: number;
+}
+
+const SOUNDHOUSE_SEARCH_ENGINE_V2: SearchEngine = {
+  id: BUILTIN_SEARCH_ENGINE_IDS.SOUNDHOUSE,
+  name: "サウンドハウス",
+  urlTemplate:
+    "https://www.soundhouse.co.jp/search/index/?i_type=a&search_all={query}",
+  enabled: true,
+};
+
+function appendSoundHouseSearchEngine(
+  searchEngines: SearchEngine[]
+): SearchEngine[] {
+  if (
+    searchEngines.some(
+      (engine) => engine.id === BUILTIN_SEARCH_ENGINE_IDS.SOUNDHOUSE
+    )
+  ) {
+    return searchEngines;
+  }
+  return [...searchEngines, { ...SOUNDHOUSE_SEARCH_ENGINE_V2 }];
+}
+
+function appendSoundHouseToShoppingGroup(
+  searchEngineGroups: SearchEngineGroup[]
+): SearchEngineGroup[] {
+  return searchEngineGroups.map((group) => {
+    if (
+      group.id !== SEARCH_ENGINE_GROUP_IDS.SHOPPING ||
+      group.engineIds.includes(BUILTIN_SEARCH_ENGINE_IDS.SOUNDHOUSE)
+    ) {
+      return group;
+    }
+    return {
+      ...group,
+      engineIds: [...group.engineIds, BUILTIN_SEARCH_ENGINE_IDS.SOUNDHOUSE],
+    };
+  });
 }
 
 /**
@@ -55,6 +103,52 @@ const migrations: Migration[] = [
       if (Object.keys(updates).length > 0) {
         await storageLocalSet(updates);
         console.log("[migration v1] AI settings migrated:", updates);
+      }
+    },
+  },
+  {
+    version: 2,
+    description: "Add SoundHouse to default search settings",
+    migrate: async () => {
+      const data = (await storageSyncGet([
+        "searchEngines",
+        "searchEngineGroups",
+      ])) as Record<string, unknown>;
+
+      const updates: {
+        searchEngineGroups?: SearchEngineGroup[];
+        searchEngines?: SearchEngine[];
+      } = {};
+
+      if (Array.isArray(data.searchEngines)) {
+        const searchEngines = normalizeSearchEngines(data.searchEngines);
+        const nextSearchEngines = appendSoundHouseSearchEngine(searchEngines);
+        if (nextSearchEngines.length !== searchEngines.length) {
+          updates.searchEngines = nextSearchEngines;
+        }
+      }
+
+      if (Array.isArray(data.searchEngineGroups)) {
+        const searchEngineGroups = normalizeSearchEngineGroups(
+          data.searchEngineGroups
+        );
+        const shoppingGroup = searchEngineGroups.find(
+          (group) => group.id === SEARCH_ENGINE_GROUP_IDS.SHOPPING
+        );
+        if (
+          shoppingGroup &&
+          !shoppingGroup.engineIds.includes(
+            BUILTIN_SEARCH_ENGINE_IDS.SOUNDHOUSE
+          )
+        ) {
+          updates.searchEngineGroups =
+            appendSoundHouseToShoppingGroup(searchEngineGroups);
+        }
+      }
+
+      if (Object.keys(updates).length > 0) {
+        await storageSyncSet(updates);
+        console.log("[migration v2] SoundHouse search settings migrated");
       }
     },
   },

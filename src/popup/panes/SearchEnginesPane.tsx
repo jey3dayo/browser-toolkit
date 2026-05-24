@@ -27,6 +27,7 @@ import {
   type SearchEngineEncoding,
 } from "@/search_engine_types";
 import {
+  BUILTIN_SEARCH_ENGINE_ID_PREFIX,
   DEFAULT_SEARCH_ENGINES,
   isValidUrlTemplate,
   MAX_SEARCH_ENGINES,
@@ -341,7 +342,7 @@ export function SearchEnginesPane(
                         });
                       }}
                     />
-                    {!engine.id.startsWith("builtin:") && (
+                    {!engine.id.startsWith(BUILTIN_SEARCH_ENGINE_ID_PREFIX) && (
                       <Button
                         data-testid={`remove-engine-${engine.id}`}
                         onClick={() => {

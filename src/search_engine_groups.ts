@@ -5,6 +5,7 @@
  * 例: 「お買い物」グループでAmazon、楽天、ビックカメラ、ヨドバシを一括検索
  */
 
+import { BUILTIN_SEARCH_ENGINE_IDS } from "@/search_engines";
 import { isRecord } from "@/utils/guards";
 import { generateId } from "@/utils/id_generator";
 import { normalizeOptionalText } from "@/utils/text";
@@ -37,23 +38,33 @@ export type SearchEngineGroup = {
 /**
  * デフォルトの検索エンジングループ
  */
+export const SEARCH_ENGINE_GROUP_IDS = {
+  SHOPPING: "group:shopping-e8c8a7d5",
+  TREND: "group:trend-9f3b2d1a",
+} as const;
+
 export const DEFAULT_SEARCH_ENGINE_GROUPS: SearchEngineGroup[] = [
   {
-    id: "group:shopping-e8c8a7d5",
+    id: SEARCH_ENGINE_GROUP_IDS.SHOPPING,
     name: "お買い物",
     engineIds: [
-      "builtin:amazon-jp",
-      "builtin:rakuten",
-      "builtin:biccamera",
-      "builtin:yodobashi",
-      "builtin:mercari",
+      BUILTIN_SEARCH_ENGINE_IDS.AMAZON_JP,
+      BUILTIN_SEARCH_ENGINE_IDS.RAKUTEN,
+      BUILTIN_SEARCH_ENGINE_IDS.BICCAMERA,
+      BUILTIN_SEARCH_ENGINE_IDS.YODOBASHI,
+      BUILTIN_SEARCH_ENGINE_IDS.SOUNDHOUSE,
+      BUILTIN_SEARCH_ENGINE_IDS.MERCARI,
     ],
     enabled: true,
   },
   {
-    id: "group:trend-9f3b2d1a",
+    id: SEARCH_ENGINE_GROUP_IDS.TREND,
     name: "トレンド",
-    engineIds: ["builtin:x-twitter", "builtin:youtube", "builtin:google"],
+    engineIds: [
+      BUILTIN_SEARCH_ENGINE_IDS.X_TWITTER,
+      BUILTIN_SEARCH_ENGINE_IDS.YOUTUBE,
+      BUILTIN_SEARCH_ENGINE_IDS.GOOGLE,
+    ],
     enabled: true,
   },
 ];

@@ -238,7 +238,7 @@ describe("Storage Migrations", () => {
 
       expect(mockStorage.get("aiModel")).toBe("gpt-4");
       const version = await getCurrentSchemaVersion();
-      expect(version).toBe(1);
+      expect(version).toBe(2);
     });
 
     it("should migrate openaiCustomPrompt to aiCustomPrompt", async () => {
@@ -248,7 +248,7 @@ describe("Storage Migrations", () => {
 
       expect(mockStorage.get("aiCustomPrompt")).toBe("Custom prompt");
       const version = await getCurrentSchemaVersion();
-      expect(version).toBe(1);
+      expect(version).toBe(2);
     });
 
     it("should set aiProvider to openai when openaiApiToken exists", async () => {
@@ -258,7 +258,7 @@ describe("Storage Migrations", () => {
 
       expect(mockStorage.get("aiProvider")).toBe("openai");
       const version = await getCurrentSchemaVersion();
-      expect(version).toBe(1);
+      expect(version).toBe(2);
     });
 
     it("should not overwrite existing aiModel", async () => {
@@ -303,7 +303,104 @@ describe("Storage Migrations", () => {
       await expect(runMigrations()).resolves.not.toThrow();
 
       const version = await getCurrentSchemaVersion();
-      expect(version).toBe(1);
+      expect(version).toBe(2);
+    });
+  });
+
+  describe("Migration v2: SoundHouse search engine", () => {
+    it("adds SoundHouse to existing search engines and shopping group", async () => {
+      mockStorage.set("schemaVersion", 1);
+      mockStorage.set("searchEngines", [
+        {
+          id: "builtin:amazon-jp",
+          name: "Amazon",
+          urlTemplate: "https://www.amazon.co.jp/s?k={query}",
+          enabled: true,
+        },
+      ]);
+      mockStorage.set("searchEngineGroups", [
+        {
+          id: "group:shopping-e8c8a7d5",
+          name: "お買い物",
+          engineIds: ["builtin:amazon-jp"],
+          enabled: true,
+        },
+      ]);
+
+      await runMigrations();
+
+      expect(mockStorage.get("searchEngines")).toContainEqual({
+        id: "builtin:soundhouse",
+        name: "サウンドハウス",
+        urlTemplate:
+          "https://www.soundhouse.co.jp/search/index/?i_type=a&search_all={query}",
+        enabled: true,
+      });
+      expect(mockStorage.get("searchEngineGroups")).toContainEqual({
+        id: "group:shopping-e8c8a7d5",
+        name: "お買い物",
+        engineIds: ["builtin:amazon-jp", "builtin:soundhouse"],
+        enabled: true,
+      });
+      expect(mockStorage.get("schemaVersion")).toBe(2);
+    });
+
+    it("does not duplicate SoundHouse in existing settings", async () => {
+      mockStorage.set("schemaVersion", 1);
+      mockStorage.set("searchEngines", [
+        {
+          id: "builtin:soundhouse",
+          name: "サウンドハウス",
+          urlTemplate:
+            "https://www.soundhouse.co.jp/search/index/?i_type=a&search_all={query}",
+          enabled: true,
+        },
+      ]);
+      mockStorage.set("searchEngineGroups", [
+        {
+          id: "group:shopping-e8c8a7d5",
+          name: "お買い物",
+          engineIds: ["builtin:soundhouse"],
+          enabled: true,
+        },
+      ]);
+
+      await runMigrations();
+
+      const engines = mockStorage.get("searchEngines") as Array<{
+        id: string;
+      }>;
+      const groups = mockStorage.get("searchEngineGroups") as Array<{
+        engineIds: string[];
+        id: string;
+      }>;
+      const shoppingGroup = groups.find(
+        (group) => group.id === "group:shopping-e8c8a7d5"
+      );
+
+      expect(
+        engines.filter((engine) => engine.id === "builtin:soundhouse")
+      ).toHaveLength(1);
+      expect(
+        shoppingGroup?.engineIds.filter((id) => id === "builtin:soundhouse")
+      ).toHaveLength(1);
+    });
+
+    it("does not recreate a deleted shopping group", async () => {
+      mockStorage.set("schemaVersion", 1);
+      mockStorage.set("searchEngines", [
+        {
+          id: "builtin:amazon-jp",
+          name: "Amazon",
+          urlTemplate: "https://www.amazon.co.jp/s?k={query}",
+          enabled: true,
+        },
+      ]);
+      mockStorage.set("searchEngineGroups", []);
+
+      await runMigrations();
+
+      expect(mockStorage.get("searchEngineGroups")).toEqual([]);
     });
   });
 });
