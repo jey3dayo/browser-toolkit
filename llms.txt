@@ -10,7 +10,7 @@
 - Bundler: esbuild
 - Tests: Vitest (unit + Storybook) / Playwright (E2E)
 - Lint/Format: Ultracite (Biome)
-- Package manager: pnpm 10.x / Node 24+
+- Package manager: pnpm 11.x / Node 24+ (`mise.toml` pins Node 26.x)
 - Error handling: `@praha/byethrow` Result 型
 - Schema validation: Valibot
 - AI providers: OpenAI, Anthropic (Claude), z.ai (GLM)
