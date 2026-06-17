@@ -41,6 +41,21 @@ describe("search engines", () => {
     );
   });
 
+  it("builds a search URL with page metadata placeholders", () => {
+    expect(
+      buildSearchUrl(
+        "https://example.com/research?q={query}&url={url}&title={title}",
+        {
+          query: "Gemini Web 調査",
+          title: "Browser Toolkit",
+          url: "https://example.com/page?a=1",
+        }
+      )
+    ).toBe(
+      "https://example.com/research?q=Gemini%20Web%20%E8%AA%BF%E6%9F%BB&url=https%3A%2F%2Fexample.com%2Fpage%3Fa%3D1&title=Browser%20Toolkit"
+    );
+  });
+
   it("includes SoundHouse in the default shopping search group", () => {
     const shoppingGroup = DEFAULT_SEARCH_ENGINE_GROUPS.find(
       (group) => group.id === SEARCH_ENGINE_GROUP_IDS.SHOPPING

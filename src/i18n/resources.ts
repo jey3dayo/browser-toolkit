@@ -5,6 +5,7 @@ export const resources = {
         batchSearch: "まとめて検索",
         calendar: "カレンダー登録",
         copyTitleLink: "タイトルとリンクをコピー",
+        geminiResearch: "Geminiで調査",
         qrCode: "QRコードを表示",
         search: "検索",
         settings: "設定",
@@ -217,7 +218,7 @@ export const resources = {
         title: "検索エンジン",
         description: "選択したテキストを検索エンジンで検索できます。",
         urlTemplateHint:
-          "URLテンプレートには {{query}} を含めてください（選択テキストに置き換わります）",
+          "URLテンプレートには {{query}} を含めてください。必要に応じて {url} と {title} も使えます。",
         namePlaceholder: "検索エンジン名（例: Google）",
         encoding: "エンコーディング",
         empty: "検索エンジンが登録されていません",
@@ -530,6 +531,10 @@ export const resources = {
           calendarFailedTitle: "カレンダー登録に失敗しました",
           calendarTargetMissing:
             "カレンダー登録先が未選択です（ポップアップの「カレンダー」タブで設定してください）",
+        },
+        geminiResearch: {
+          copyFallbackSuccess:
+            "Geminiへの自動入力に失敗したため、プロンプトをコピーしました",
         },
         messaging: {
           pageUnavailable: "このページでは実行できません（{{message}}）",

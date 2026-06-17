@@ -105,6 +105,12 @@ export const DEFAULT_SEARCH_ENGINES: SearchEngine[] = [
 
 export const MAX_SEARCH_ENGINES = 20;
 
+export type SearchUrlTemplateValues = {
+  query: string;
+  title?: string | undefined;
+  url?: string | undefined;
+};
+
 /**
  * Validates URL template contains {query} placeholder
  */
@@ -117,14 +123,21 @@ export function isValidUrlTemplate(urlTemplate: string): boolean {
  */
 export function buildSearchUrl(
   urlTemplate: string,
-  query: string,
+  queryOrValues: string | SearchUrlTemplateValues,
   encoding?: SearchEngineEncoding
 ): string {
+  const values =
+    typeof queryOrValues === "string"
+      ? { query: queryOrValues }
+      : queryOrValues;
   const encoded =
     encoding === "shift_jis"
-      ? encodeShiftJisQuery(query)
-      : encodeURIComponent(query);
-  return urlTemplate.replace("{query}", encoded);
+      ? encodeShiftJisQuery(values.query)
+      : encodeURIComponent(values.query);
+  return urlTemplate
+    .replaceAll("{query}", encoded)
+    .replaceAll("{title}", encodeURIComponent(values.title ?? ""))
+    .replaceAll("{url}", encodeURIComponent(values.url ?? ""));
 }
 
 function coerceUrlTemplate(value: unknown): string | null {

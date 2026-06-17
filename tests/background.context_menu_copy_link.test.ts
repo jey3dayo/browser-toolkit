@@ -38,6 +38,12 @@ describe("background: context menu", () => {
           item.title === "タイトルとリンクをコピー"
       )
     ).toBe(true);
+    expect(created).toContainEqual(
+      expect.objectContaining({
+        id: "mbu-root",
+        contexts: ["page", "selection", "editable", "link"],
+      })
+    );
   });
 
   it("adds copy link submenu items under copy title/link parent", async () => {
@@ -93,6 +99,14 @@ describe("background: context menu", () => {
         id: "mbu-calendar-register",
         parentId: "mbu-root",
         title: "カレンダー登録",
+      })
+    );
+    expect(created).toContainEqual(
+      expect.objectContaining({
+        id: "mbu-gemini-research",
+        parentId: "mbu-root",
+        title: "Geminiで調査",
+        contexts: ["page", "selection", "link"],
       })
     );
   });

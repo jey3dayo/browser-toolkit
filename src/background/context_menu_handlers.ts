@@ -21,7 +21,8 @@ import { formatErrorLog } from "@/utils/errors";
  */
 export async function handleSearchEngineClick(
   engineId: string,
-  info: chrome.contextMenus.OnClickData
+  info: chrome.contextMenus.OnClickData,
+  tab?: chrome.tabs.Tab
 ): Promise<void> {
   const selectionText = info.selectionText;
   if (!selectionText) {
@@ -36,7 +37,11 @@ export async function handleSearchEngineClick(
 
   const searchUrl = buildSearchUrl(
     engine.urlTemplate,
-    selectionText,
+    {
+      query: selectionText,
+      title: tab?.title,
+      url: tab?.url ?? info.pageUrl,
+    },
     engine.encoding
   );
   chrome.tabs.create({ url: searchUrl }).catch((error) => {
@@ -65,7 +70,8 @@ export async function handleSearchEngineClick(
  */
 export async function handleBatchSearchClick(
   groupId: string,
-  info: chrome.contextMenus.OnClickData
+  info: chrome.contextMenus.OnClickData,
+  tab?: chrome.tabs.Tab
 ): Promise<void> {
   const selectionText = info.selectionText;
   if (!selectionText) {
@@ -96,7 +102,11 @@ export async function handleBatchSearchClick(
     enabledEngines.map((engine) => {
       const searchUrl = buildSearchUrl(
         engine.urlTemplate,
-        selectionText,
+        {
+          query: selectionText,
+          title: tab?.title,
+          url: tab?.url ?? info.pageUrl,
+        },
         engine.encoding
       );
       return chrome.tabs.create({ url: searchUrl });

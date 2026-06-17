@@ -3,6 +3,7 @@ export const CONTEXT_MENU_ACTION_PREFIX = "mbu-action:";
 export const CONTEXT_MENU_COPY_TITLE_LINK_ID = "mbu-copy-title-link";
 export const CONTEXT_MENU_COPY_LINK_PREFIX = "mbu-copy-link:";
 export const CONTEXT_MENU_CALENDAR_ID = "mbu-calendar-register";
+export const CONTEXT_MENU_GEMINI_RESEARCH_ID = "mbu-gemini-research";
 export const CONTEXT_MENU_SEARCH_PARENT_ID = "mbu-search-parent";
 export const CONTEXT_MENU_SEARCH_PREFIX = "mbu-search:";
 export const CONTEXT_MENU_BATCH_SEARCH_PARENT_ID = "mbu-batch-search-parent";

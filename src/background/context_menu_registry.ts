@@ -16,6 +16,7 @@ import {
   removeAllMenus,
 } from "@/background/context_menu_builder";
 import { handleCopyTitleLinkContextMenuClick } from "@/background/context_menu_copy";
+import { handleGeminiResearchContextMenuClick } from "@/background/context_menu_gemini";
 import {
   handleBatchSearchClick,
   handleSearchEngineClick,
@@ -30,6 +31,7 @@ import {
   CONTEXT_MENU_COPY_LINK_PREFIX,
   CONTEXT_MENU_COPY_TITLE_LINK_ID,
   CONTEXT_MENU_CUSTOM_SEPARATOR_ID,
+  CONTEXT_MENU_GEMINI_RESEARCH_ID,
   CONTEXT_MENU_QR_CODE_ID,
   CONTEXT_MENU_ROOT_ID,
   CONTEXT_MENU_SEARCH_PARENT_ID,
@@ -65,6 +67,7 @@ const ROOT_MENU_CONTEXTS: ContextMenuContexts = [
   "page",
   "selection",
   "editable",
+  "link",
 ];
 
 function createBuiltinRootMenuItems(): chrome.contextMenus.CreateProperties[] {
@@ -80,6 +83,12 @@ function createBuiltinRootMenuItems(): chrome.contextMenus.CreateProperties[] {
       parentId: CONTEXT_MENU_ROOT_ID,
       title: t("contextMenu.calendar"),
       contexts: ROOT_MENU_CONTEXTS,
+    },
+    {
+      id: CONTEXT_MENU_GEMINI_RESEARCH_ID,
+      parentId: CONTEXT_MENU_ROOT_ID,
+      title: t("contextMenu.geminiResearch"),
+      contexts: ["page", "selection", "link"],
     },
     {
       id: CONTEXT_MENU_BUILTIN_SEPARATOR_ID,
@@ -121,6 +130,12 @@ function handleExactMenuItemClick(
   }
   if (menuItemId === CONTEXT_MENU_CALENDAR_ID) {
     handleCalendarContextMenuClick({ tabId, info, tab }).catch(() => {
+      // no-op
+    });
+    return true;
+  }
+  if (menuItemId === CONTEXT_MENU_GEMINI_RESEARCH_ID) {
+    handleGeminiResearchContextMenuClick({ info, tabId, tab }).catch(() => {
       // no-op
     });
     return true;
@@ -173,7 +188,7 @@ export function registerContextMenuHandlers(): void {
 
       if (menuItemId.startsWith(CONTEXT_MENU_SEARCH_PREFIX)) {
         const engineId = menuItemId.slice(CONTEXT_MENU_SEARCH_PREFIX.length);
-        handleSearchEngineClick(engineId, info).catch(() => {
+        handleSearchEngineClick(engineId, info, tab).catch(() => {
           // no-op
         });
         return;
@@ -183,7 +198,7 @@ export function registerContextMenuHandlers(): void {
         const groupId = menuItemId.slice(
           CONTEXT_MENU_BATCH_SEARCH_PREFIX.length
         );
-        handleBatchSearchClick(groupId, info).catch(() => {
+        handleBatchSearchClick(groupId, info, tab).catch(() => {
           // no-op
         });
         return;
