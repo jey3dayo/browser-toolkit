@@ -8,8 +8,7 @@ describe("background: text templates initialization", () => {
   beforeEach(() => {
     mockStorage = {};
     mockLocalStorage = { debugMode: false };
-    // @ts-expect-error - mock chrome API
-    globalThis.chrome = {
+    vi.stubGlobal("chrome", {
       storage: {
         sync: {
           get: vi.fn((keys, callback) => {
@@ -57,10 +56,11 @@ describe("background: text templates initialization", () => {
       runtime: {
         lastError: undefined,
       },
-    };
+    });
   });
 
   afterEach(() => {
+    vi.unstubAllGlobals();
     vi.resetModules();
   });
 
