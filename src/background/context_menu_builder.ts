@@ -13,11 +13,46 @@
 export function createMenuItem(
   options: chrome.contextMenus.CreateProperties
 ): Promise<void> {
+  return createMenuItemWithDuplicateRetry(options, true);
+}
+
+function createMenuItemWithDuplicateRetry(
+  options: chrome.contextMenus.CreateProperties,
+  canRetryDuplicate: boolean
+): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     chrome.contextMenus.create(options, () => {
       const err = chrome.runtime.lastError;
       if (err) {
-        reject(new Error(err.message));
+        const message = err.message ?? "Failed to create context menu item";
+        if (
+          canRetryDuplicate &&
+          isDuplicateIdError(message) &&
+          options.id !== undefined
+        ) {
+          removeMenuItem(options.id)
+            .then(() => createMenuItemWithDuplicateRetry(options, false))
+            .then(resolve, reject);
+          return;
+        }
+        reject(new Error(message));
+        return;
+      }
+      resolve();
+    });
+  });
+}
+
+function isDuplicateIdError(message: string): boolean {
+  return message.includes("Cannot create item with duplicate id");
+}
+
+function removeMenuItem(id: string | number): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    chrome.contextMenus.remove(id, () => {
+      const err = chrome.runtime.lastError;
+      if (err) {
+        reject(new Error(err.message ?? "Failed to remove context menu item"));
         return;
       }
       resolve();

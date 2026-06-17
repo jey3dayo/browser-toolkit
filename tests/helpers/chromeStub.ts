@@ -22,6 +22,7 @@ export type ChromeStub = {
   };
   contextMenus: {
     removeAll: ReturnType<typeof vi.fn>;
+    remove: ReturnType<typeof vi.fn>;
     create: ReturnType<typeof vi.fn>;
     onClicked: { addListener: ReturnType<typeof vi.fn> };
   };
@@ -105,6 +106,10 @@ export function createChromeStub(options: Options = {}): ChromeStub {
     },
     contextMenus: {
       removeAll: vi.fn((callback?: () => void) => {
+        clearError();
+        callback?.();
+      }),
+      remove: vi.fn((_id: string | number, callback?: () => void) => {
         clearError();
         callback?.();
       }),
