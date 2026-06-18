@@ -5,7 +5,7 @@ export const resources = {
         batchSearch: "まとめて検索",
         calendar: "カレンダー登録",
         copyTitleLink: "タイトルとリンクをコピー",
-        geminiResearch: "Geminiで調査",
+        geminiResearch: "Geminiで要約",
         qrCode: "QRコードを表示",
         search: "検索",
         settings: "設定",

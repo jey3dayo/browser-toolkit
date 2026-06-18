@@ -105,7 +105,7 @@ describe("background: context menu", () => {
       expect.objectContaining({
         id: "mbu-gemini-research",
         parentId: "mbu-root",
-        title: "Geminiで調査",
+        title: "Geminiで要約",
         contexts: ["page", "selection", "link"],
       })
     );
