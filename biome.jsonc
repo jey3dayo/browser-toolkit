@@ -2,12 +2,19 @@
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "extends": ["ultracite/biome/core"],
   "javascript": {
-    "globals": ["chrome"]
+    "globals": ["chrome", "expect"]
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "useSortedAttributes": "off"
+      }
+    }
   },
   "linter": {
     "rules": {
-      "nursery": {
-        "noSyncScripts": "off"
+      "a11y": {
+        "noSvgWithoutTitle": "off"
       },
       "style": {
         "useConsistentTypeDefinitions": "off",
