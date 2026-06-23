@@ -238,7 +238,7 @@ describe("Storage Migrations", () => {
 
       expect(mockStorage.get("aiModel")).toBe("gpt-4");
       const version = await getCurrentSchemaVersion();
-      expect(version).toBe(2);
+      expect(version).toBe(3);
     });
 
     it("should migrate openaiCustomPrompt to aiCustomPrompt", async () => {
@@ -248,7 +248,7 @@ describe("Storage Migrations", () => {
 
       expect(mockStorage.get("aiCustomPrompt")).toBe("Custom prompt");
       const version = await getCurrentSchemaVersion();
-      expect(version).toBe(2);
+      expect(version).toBe(3);
     });
 
     it("should set aiProvider to openai when openaiApiToken exists", async () => {
@@ -258,7 +258,7 @@ describe("Storage Migrations", () => {
 
       expect(mockStorage.get("aiProvider")).toBe("openai");
       const version = await getCurrentSchemaVersion();
-      expect(version).toBe(2);
+      expect(version).toBe(3);
     });
 
     it("should not overwrite existing aiModel", async () => {
@@ -303,7 +303,7 @@ describe("Storage Migrations", () => {
       await expect(runMigrations()).resolves.not.toThrow();
 
       const version = await getCurrentSchemaVersion();
-      expect(version).toBe(2);
+      expect(version).toBe(3);
     });
   });
 
@@ -342,7 +342,7 @@ describe("Storage Migrations", () => {
         engineIds: ["builtin:amazon-jp", "builtin:soundhouse"],
         enabled: true,
       });
-      expect(mockStorage.get("schemaVersion")).toBe(2);
+      expect(mockStorage.get("schemaVersion")).toBe(3);
     });
 
     it("does not duplicate SoundHouse in existing settings", async () => {
@@ -401,6 +401,52 @@ describe("Storage Migrations", () => {
       await runMigrations();
 
       expect(mockStorage.get("searchEngineGroups")).toEqual([]);
+    });
+  });
+
+  describe("Migration v3: Yandex search engine", () => {
+    it("adds Yandex to existing search engines", async () => {
+      mockStorage.set("schemaVersion", 2);
+      mockStorage.set("searchEngines", [
+        {
+          id: "builtin:google",
+          name: "Google",
+          urlTemplate: "https://www.google.com/search?q={query}",
+          enabled: true,
+        },
+      ]);
+
+      await runMigrations();
+
+      expect(mockStorage.get("searchEngines")).toContainEqual({
+        id: "builtin:yandex",
+        name: "Yandex",
+        urlTemplate: "https://yandex.com/search/?text={query}",
+        enabled: true,
+      });
+      expect(mockStorage.get("schemaVersion")).toBe(3);
+    });
+
+    it("does not duplicate Yandex in existing settings", async () => {
+      mockStorage.set("schemaVersion", 2);
+      mockStorage.set("searchEngines", [
+        {
+          id: "builtin:yandex",
+          name: "Yandex",
+          urlTemplate: "https://yandex.com/search/?text={query}",
+          enabled: true,
+        },
+      ]);
+
+      await runMigrations();
+
+      const engines = mockStorage.get("searchEngines") as Array<{
+        id: string;
+      }>;
+
+      expect(
+        engines.filter((engine) => engine.id === "builtin:yandex")
+      ).toHaveLength(1);
     });
   });
 });

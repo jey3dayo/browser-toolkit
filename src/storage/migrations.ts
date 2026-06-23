@@ -15,6 +15,7 @@ import type { SearchEngine } from "@/search_engine_types";
 import {
   BUILTIN_SEARCH_ENGINE_IDS,
   normalizeSearchEngines,
+  YANDEX_SEARCH_ENGINE,
 } from "@/search_engines";
 import type { LocalStorageData } from "@/storage/types";
 
@@ -46,6 +47,19 @@ function appendSoundHouseSearchEngine(
     return searchEngines;
   }
   return [...searchEngines, { ...SOUNDHOUSE_SEARCH_ENGINE_V2 }];
+}
+
+function appendYandexSearchEngine(
+  searchEngines: SearchEngine[]
+): SearchEngine[] {
+  if (
+    searchEngines.some(
+      (engine) => engine.id === BUILTIN_SEARCH_ENGINE_IDS.YANDEX
+    )
+  ) {
+    return searchEngines;
+  }
+  return [...searchEngines, { ...YANDEX_SEARCH_ENGINE }];
 }
 
 function appendSoundHouseToShoppingGroup(
@@ -149,6 +163,25 @@ const migrations: Migration[] = [
       if (Object.keys(updates).length > 0) {
         await storageSyncSet(updates);
         console.log("[migration v2] SoundHouse search settings migrated");
+      }
+    },
+  },
+  {
+    version: 3,
+    description: "Add Yandex to default search settings",
+    migrate: async () => {
+      const data = (await storageSyncGet(["searchEngines"])) as Record<
+        string,
+        unknown
+      >;
+
+      if (Array.isArray(data.searchEngines)) {
+        const searchEngines = normalizeSearchEngines(data.searchEngines);
+        const nextSearchEngines = appendYandexSearchEngine(searchEngines);
+        if (nextSearchEngines.length !== searchEngines.length) {
+          await storageSyncSet({ searchEngines: nextSearchEngines });
+          console.log("[migration v3] Yandex search settings migrated");
+        }
       }
     },
   },

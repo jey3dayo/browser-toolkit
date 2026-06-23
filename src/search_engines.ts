@@ -9,6 +9,7 @@ export const BUILTIN_SEARCH_ENGINE_ID_PREFIX = "builtin:";
 export const BUILTIN_SEARCH_ENGINE_IDS = {
   GOOGLE: "builtin:google",
   DUCKDUCKGO: "builtin:duckduckgo",
+  YANDEX: "builtin:yandex",
   X_TWITTER: "builtin:x-twitter",
   X_TWITTER_EXACT: "builtin:x-twitter-exact",
   YOUTUBE: "builtin:youtube",
@@ -29,6 +30,13 @@ export const SOUNDHOUSE_SEARCH_ENGINE: SearchEngine = {
   enabled: true,
 };
 
+export const YANDEX_SEARCH_ENGINE: SearchEngine = {
+  id: BUILTIN_SEARCH_ENGINE_IDS.YANDEX,
+  name: "Yandex",
+  urlTemplate: "https://yandex.com/search/?text={query}",
+  enabled: true,
+};
+
 export const DEFAULT_SEARCH_ENGINES: SearchEngine[] = [
   {
     id: BUILTIN_SEARCH_ENGINE_IDS.GOOGLE,
@@ -42,6 +50,7 @@ export const DEFAULT_SEARCH_ENGINES: SearchEngine[] = [
     urlTemplate: "https://duckduckgo.com/?q={query}",
     enabled: true,
   },
+  YANDEX_SEARCH_ENGINE,
   {
     id: BUILTIN_SEARCH_ENGINE_IDS.X_TWITTER,
     name: "X（日本語）",
