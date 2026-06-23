@@ -267,26 +267,30 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
   };
 
   return (
-    <PaneCard>
-      <RowBetween>
-        <PaneTitle>{t("templatesPane.title")}</PaneTitle>
-        <Button
-          data-testid="reset-templates"
-          onClick={() => {
-            resetToDefaults().catch(() => {
-              // no-op
-            });
-          }}
-          size="small"
-          type="button"
-          variant="ghost"
-        >
-          {t("common.resetToDefaults")}
-        </Button>
-      </RowBetween>
+    <PaneCard className="settings-surface templates-settings-pane">
+      <section className="settings-pane-overview">
+        <RowBetween className="settings-surface-heading">
+          <Stack spacing="small">
+            <PaneTitle>{t("templatesPane.title")}</PaneTitle>
+            <Hint as="div">{t("templatesPane.description")}</Hint>
+          </Stack>
+          <Button
+            data-testid="reset-templates"
+            onClick={() => {
+              resetToDefaults().catch(() => {
+                // no-op
+              });
+            }}
+            size="small"
+            type="button"
+            variant="ghost"
+          >
+            {t("common.resetToDefaults")}
+          </Button>
+        </RowBetween>
+      </section>
 
-      <Stack>
-        <Hint as="div">{t("templatesPane.description")}</Hint>
+      <section className="card settings-card settings-pane-card">
         <Hint as="div">{t("templatesPane.hiddenDescription")}</Hint>
 
         {editingId ? (
@@ -340,15 +344,20 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
             </RowBetween>
           </Form>
         ) : (
-          <Button
-            data-testid="add-template"
-            onClick={startNew}
-            size="small"
-            type="button"
-            variant="ghost"
-          >
-            {t("templatesPane.new")}
-          </Button>
+          <RowBetween>
+            <span className="settings-section-label">
+              {t("templatesPane.title")}
+            </span>
+            <Button
+              data-testid="add-template"
+              onClick={startNew}
+              size="small"
+              type="button"
+              variant="ghost"
+            >
+              {t("templatesPane.new")}
+            </Button>
+          </RowBetween>
         )}
 
         {templates.length > 0 ? (
@@ -410,7 +419,7 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
         ) : (
           <EmptyMessage>{t("templatesPane.empty")}</EmptyMessage>
         )}
-      </Stack>
+      </section>
     </PaneCard>
   );
 }

@@ -326,9 +326,9 @@
   line-height: 1.5;
   word-break: break-word;
   white-space: pre-wrap;
-  background-color: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
+  background: color-mix(in oklab, var(--panel-soft) 88%, transparent);
+  border: 1px solid color-mix(in oklab, var(--line) 90%, transparent);
+  border-radius: 12px;
 }
 
 .field-label {
@@ -464,8 +464,57 @@ input[type="checkbox"] {
   color: var(--text);
 }
 
-.settings-pane {
+.settings-surface {
   gap: 16px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--panel) 98%, transparent),
+      color-mix(in oklab, var(--panel-soft) 82%, transparent)
+    ),
+    var(--panel);
+}
+
+.settings-surface-heading {
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.settings-surface-heading > .stack-sm {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-section-label {
+  align-self: center;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.settings-output-panel,
+.settings-log-panel {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  background: color-mix(in oklab, var(--panel) 94%, transparent);
+  border: 1px solid color-mix(in oklab, var(--line) 92%, transparent);
+  border-radius: 14px;
+}
+
+.settings-status-note {
+  width: fit-content;
+  padding: 8px 10px;
+  color: color-mix(in oklab, var(--color-primary-2) 70%, var(--text));
+  background: color-mix(
+    in oklab,
+    var(--color-primary-2) var(--accent-mix-12),
+    transparent
+  );
+  border: 1px solid color-mix(in oklab, var(--color-primary-2) 26%, var(--line));
+  border-radius: 10px;
 }
 
 .settings-pane-overview {
@@ -488,7 +537,7 @@ input[type="checkbox"] {
 }
 
 .settings-pane-overview .hint {
-  max-width: 38ch;
+  max-width: 48ch;
   color: color-mix(in oklab, var(--text-sub) 92%, var(--text));
 }
 
@@ -500,6 +549,12 @@ input[type="checkbox"] {
   border: 1px solid color-mix(in oklab, var(--line) 92%, transparent);
   border-radius: 16px;
   box-shadow: none;
+}
+
+.settings-pane-card > .field,
+.settings-pane-card > .action-row,
+.settings-pane-card > .button-row {
+  min-width: 0;
 }
 
 .settings-pane-card .mbu-fieldset-legend {
@@ -520,7 +575,37 @@ input[type="checkbox"] {
 }
 
 .settings-pane-card .button-row {
+  flex-wrap: wrap;
   gap: 8px;
+}
+
+.settings-pane-card .action-row {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.settings-pane-card .checkbox-inline,
+.settings-pane-card .mbu-radio-label {
+  min-height: 36px;
+  padding: 8px 10px;
+  background: color-mix(in oklab, var(--color-text) 3%, transparent);
+  border: 1px solid color-mix(in oklab, var(--line) 82%, transparent);
+  border-radius: 12px;
+}
+
+.settings-pane-card .checkbox-inline:hover,
+.settings-pane-card .mbu-radio-label:hover {
+  background: color-mix(in oklab, var(--color-text) 5%, transparent);
+}
+
+.settings-pane-card .checkbox-inline:has(input:checked) {
+  color: var(--text);
+  background: color-mix(
+    in oklab,
+    var(--color-primary) var(--accent-mix-12),
+    transparent
+  );
+  border-color: color-mix(in oklab, var(--color-primary) 30%, var(--line));
 }
 
 .settings-pane-card[data-section="provider"] .mbu-radio-group--horizontal {
@@ -574,6 +659,30 @@ input[type="checkbox"] {
 
 .settings-pane-card[data-section="theme"] .mbu-radio-label {
   align-items: flex-start;
+}
+
+.calendar-settings-pane .settings-pane-card,
+.debug-settings-pane .settings-pane-card,
+.templates-settings-pane .settings-pane-card {
+  gap: 14px;
+}
+
+.calendar-settings-pane .button-row,
+.debug-settings-pane .button-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(108px, 1fr));
+}
+
+.templates-settings-pane .sortable-list {
+  max-height: 380px;
+}
+
+.templates-settings-pane .row-between {
+  flex-wrap: wrap;
+}
+
+.templates-settings-pane .row-between > .btn {
+  flex-shrink: 0;
 }
 
 @media (min-width: 720px) {

@@ -285,7 +285,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
   };
 
   return (
-    <PaneCard className="settings-pane">
+    <PaneCard className="settings-surface settings-pane">
       <SettingsPaneOverview>
         <PaneTitle>{t("settings.title")}</PaneTitle>
         <Hint>{t("settings.description")}</Hint>

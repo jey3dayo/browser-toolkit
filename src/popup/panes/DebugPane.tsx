@@ -8,7 +8,6 @@ import {
   RowBetween,
   Stack,
 } from "@/components/shared/Layout";
-import { Separator } from "@/components/shared/Separator";
 import { SwitchField } from "@/components/shared/SwitchField";
 import { TextOutput } from "@/components/shared/TextOutput";
 import { Hint, PaneTitle } from "@/components/shared/Typography";
@@ -163,14 +162,16 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
   };
 
   return (
-    <PaneCard>
-      <Stack spacing="small">
-        <PaneTitle>{t("debug.title")}</PaneTitle>
-        <Hint>{t("debug.description")}</Hint>
-      </Stack>
+    <PaneCard className="settings-surface debug-settings-pane">
+      <section className="settings-pane-overview">
+        <Stack spacing="small">
+          <PaneTitle>{t("debug.title")}</PaneTitle>
+          <Hint>{t("debug.description")}</Hint>
+        </Stack>
+      </section>
 
       {/* デバッグモード設定 */}
-      <Stack>
+      <section className="card settings-card settings-pane-card">
         <Fieldset legend={t("debug.mode")} spacing="stack">
           <SwitchField
             checked={debugMode}
@@ -189,21 +190,19 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
         </Fieldset>
 
         {debugMode && logStats && (
-          <Hint as="div">
+          <Hint as="div" className="settings-status-note">
             {t("debug.stats", {
               entryCount: logStats.entryCount,
               sizeKB: logStats.sizeKB,
             })}
           </Hint>
         )}
-      </Stack>
+      </section>
 
       {debugMode && (
         <>
-          <Separator />
-
           {/* ログ操作 */}
-          <Stack>
+          <section className="card settings-card settings-pane-card">
             <Fieldset legend={t("debug.logActions")} spacing="stack">
               <ButtonRow>
                 <Button
@@ -256,7 +255,7 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
             </Fieldset>
 
             {showLogs && (
-              <Stack>
+              <Stack className="settings-log-panel">
                 <RowBetween>
                   <strong>{t("debug.logContent")}</strong>
                   <Button
@@ -275,7 +274,7 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
                 </TextOutput>
               </Stack>
             )}
-          </Stack>
+          </section>
         </>
       )}
     </PaneCard>

@@ -349,17 +349,20 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
   };
 
   return (
-    <PaneCard>
-      <RowBetween>
-        <PaneTitle>{t("calendarPane.title")}</PaneTitle>
-        <Badge data-testid="calendar-source" variant="chipSoft">
-          {output.status === "ready" ? output.sourceLabel : "-"}
-        </Badge>
-      </RowBetween>
+    <PaneCard className="settings-surface calendar-settings-pane">
+      <section className="settings-pane-overview">
+        <RowBetween className="settings-surface-heading">
+          <Stack spacing="small">
+            <PaneTitle>{t("calendarPane.title")}</PaneTitle>
+            <Hint>{t("calendarPane.description")}</Hint>
+          </Stack>
+          <Badge data-testid="calendar-source" variant="chipSoft">
+            {output.status === "ready" ? output.sourceLabel : "-"}
+          </Badge>
+        </RowBetween>
+      </section>
 
-      <Hint>{t("calendarPane.description")}</Hint>
-
-      <Stack>
+      <section className="card settings-card settings-pane-card">
         <Field label={t("calendarPane.target")}>
           <ActionRow>
             <CheckboxInline
@@ -440,9 +443,9 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
             </Button>
           ) : null}
         </ButtonRow>
-      </Stack>
+      </section>
 
-      <OutputPanel>
+      <OutputPanel className="settings-output-panel">
         <RowBetween>
           <MetaTitle>{outputTitle}</MetaTitle>
         </RowBetween>
