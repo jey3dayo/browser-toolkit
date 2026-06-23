@@ -103,7 +103,7 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
   };
 
   return (
-    <PaneCard>
+    <PaneCard className="actions-page">
       <RowBetween>
         <PaneTitle>{t("actions.title")}</PaneTitle>
         <Badge data-testid="action-source" variant="chipSoft">
