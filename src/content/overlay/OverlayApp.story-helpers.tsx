@@ -33,6 +33,14 @@ const FALLBACK_TOKENS_CSS = `
   --mbu-toast-screen-inset: 12px 12px auto auto;
   --mbu-toast-surface-inset: 12px 12px auto auto;
 }
+
+.mbu-overlay-panel {
+  display: grid;
+  color: var(--mbu-text);
+  background: var(--mbu-surface);
+  border: 1px solid var(--mbu-border);
+  border-radius: var(--mbu-radius);
+}
 `;
 
 export type OverlayStoryArgs = {
