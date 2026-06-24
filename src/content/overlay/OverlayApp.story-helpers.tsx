@@ -15,6 +15,25 @@ import { applyTheme, isTheme, type Theme } from "@/ui/theme";
 // - 日本語などを渡したい場合は`mbuPrimary`を使います（preview iframeにそのまま引き継がれます）
 //   `?path=/story/<story-id>&globals=theme:dark&mbuPrimary=要約結果（storybook）`
 const COMPONENTS_CSS_PATH = "src/styles/tokens/components.css";
+const FALLBACK_STYLE_ID = "mbu-ui-fallback-tokens";
+const FALLBACK_TOKENS_CSS = `
+:host {
+  --mbu-bg: #0f1724;
+  --mbu-surface: #1b2334;
+  --mbu-surface-2: #232d42;
+  --mbu-border: rgba(255, 255, 255, 0.12);
+  --mbu-text: #f6f7fb;
+  --mbu-text-muted: #c8d0e5;
+  --mbu-accent: #3ecf8e;
+  --mbu-danger: #e57373;
+  --mbu-radius: 14px;
+  --mbu-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  --mbu-focus-ring: 2px solid rgba(123, 220, 247, 0.55);
+  --mbu-focus-ring-offset: 2px;
+  --mbu-toast-screen-inset: 12px 12px auto auto;
+  --mbu-toast-surface-inset: 12px 12px auto auto;
+}
+`;
 
 export type OverlayStoryArgs = {
   status: OverlayViewModel["status"];
@@ -115,14 +134,19 @@ export function OverlayAppStory(args: OverlayStoryArgs): React.JSX.Element {
 }
 
 function ensureOverlayFallbackStyles(shadow: ShadowRoot): void {
-  if (shadow.querySelector("#mbu-ui-base-styles")) {
-    return;
+  if (!shadow.querySelector(`#${FALLBACK_STYLE_ID}`)) {
+    const style = shadow.ownerDocument.createElement("style");
+    style.id = FALLBACK_STYLE_ID;
+    style.textContent = FALLBACK_TOKENS_CSS;
+    shadow.appendChild(style);
   }
-  const link = shadow.ownerDocument.createElement("link");
-  link.id = "mbu-ui-base-styles";
-  link.rel = "stylesheet";
-  link.href = COMPONENTS_CSS_PATH;
-  shadow.appendChild(link);
+  if (!shadow.querySelector("#mbu-ui-base-styles")) {
+    const link = shadow.ownerDocument.createElement("link");
+    link.id = "mbu-ui-base-styles";
+    link.rel = "stylesheet";
+    link.href = COMPONENTS_CSS_PATH;
+    shadow.appendChild(link);
+  }
 }
 
 export function OverlayAppFallbackStory(
