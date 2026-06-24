@@ -15,3 +15,7 @@ minimumReleaseAgeExclude:
   - '@storybook/react-vite@10.4.2'
   - '@storybook/react@10.4.2'
   - storybook@10.4.2
+  - '@playwright/test@1.61.1'
+  - i18next@26.3.2
+  - playwright-core@1.61.1
+  - playwright@1.61.1
