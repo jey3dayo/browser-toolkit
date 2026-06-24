@@ -38,6 +38,11 @@
   transform: translateY(0);
 }
 
+.btn:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
 .btn-small {
   padding: var(--button-padding-sm);
   font-size: 12px;

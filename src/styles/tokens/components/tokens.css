@@ -43,6 +43,16 @@
   --card-shadow: var(--shadow-elevation);
   --card-padding: 16px;
 
+  /* Actions pane */
+  --actions-ink: var(--color-text);
+  --actions-muted: var(--color-text-muted);
+  --actions-surface: var(--color-surface);
+  --actions-subtle: var(--color-surface-2);
+  --actions-line: var(--color-border-ui);
+  --actions-accent: var(--color-primary);
+  --actions-success: var(--color-primary);
+  --actions-shadow: var(--shadow-elevation);
+
   /* Overlays */
   --overlay-shadow: var(--shadow-elevation);
 }

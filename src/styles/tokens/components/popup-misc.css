@@ -250,6 +250,12 @@
   background: color-mix(in oklab, var(--color-danger) 25%, transparent);
 }
 
+.btn-delete:focus-visible,
+.btn-edit:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
 .pattern-item .btn-delete {
   flex-shrink: 0;
   white-space: nowrap;
