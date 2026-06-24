@@ -7,8 +7,8 @@
   /* Layout sizing */
   --layout-popup-width: 800px;
   --layout-popup-height: 600px;
-  --layout-rail: 76px;
-  --layout-drawer: 284px;
+  --layout-rail: 58px;
+  --layout-drawer: 224px;
 
   /* Spacing semantics */
   --spacing-xs: var(--primitive-space-2);
@@ -30,8 +30,8 @@
 :host {
   --layout-popup-width: 800px;
   --layout-popup-height: 600px;
-  --layout-rail: 76px;
-  --layout-drawer: 284px;
+  --layout-rail: 58px;
+  --layout-drawer: 224px;
 
   --spacing-xs: var(--primitive-space-2);
   --spacing-sm: var(--primitive-space-3);

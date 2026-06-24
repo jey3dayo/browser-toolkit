@@ -104,7 +104,7 @@
   font: inherit;
   font-size: 12px;
   line-height: 1.4;
-  color: var(--primitive-color-blue-400);
+  color: var(--color-primary-2);
   text-decoration: underline;
   cursor: pointer;
   background: none;
@@ -112,12 +112,12 @@
 }
 
 .mbu-toast-action-link:hover {
-  color: var(--primitive-color-blue-300);
+  color: color-mix(in oklab, var(--color-primary-2) 82%, var(--color-text));
   text-decoration: none;
 }
 
 .mbu-toast-action-link:active {
-  color: var(--primitive-color-blue-500);
+  color: var(--color-primary);
 }
 
 .mbu-toast-close {

@@ -157,18 +157,21 @@
   margin-top: 12px;
   font-size: 13px;
   font-weight: 500;
-  color: white;
-  background: var(--primitive-color-blue-500);
+  color: var(--button-text-primary);
+  background: var(--button-bg-primary);
   border-radius: var(--primitive-radius-10);
-  transition: background 0.2s ease;
+  transition:
+    filter 0.2s ease,
+    transform 0.12s ease;
 }
 
 .mbu-overlay-settings-link:hover {
-  background: var(--primitive-color-blue-600);
+  filter: brightness(1.08);
 }
 
 .mbu-overlay-settings-link:active {
-  background: var(--primitive-color-blue-700);
+  filter: brightness(0.95);
+  transform: translateY(1px);
 }
 
 .mbu-overlay-event-table {

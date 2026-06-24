@@ -33,6 +33,12 @@ export function Sidebar({
   const { t } = useTranslation(undefined, { i18n });
   const menuLabel = t("sidebar.menu");
   const closeLabel = t("common.close");
+  const primaryNavigationItems = navigationItems.filter(
+    (item) => item.id !== "pane-settings"
+  );
+  const settingsNavigationItem = navigationItems.find(
+    (item) => item.id === "pane-settings"
+  );
 
   return (
     <aside aria-label={menuLabel} className="sidebar">
@@ -47,7 +53,6 @@ export function Sidebar({
         triggerClassName="sidebar-brand"
       >
         <div className="menu-drawer-header">
-          <h2 className="menu-drawer-title">{menuLabel}</h2>
           <Button
             aria-label={closeLabel}
             className="menu-close"
@@ -58,7 +63,7 @@ export function Sidebar({
           </Button>
         </div>
         <nav className="menu-drawer-nav">
-          {navigationItems.map((item) => {
+          {primaryNavigationItems.map((item) => {
             const label = t(item.labelKey);
 
             return (
@@ -79,6 +84,25 @@ export function Sidebar({
             );
           })}
         </nav>
+        {settingsNavigationItem ? (
+          <nav className="menu-drawer-footer">
+            <Button
+              aria-current={
+                currentPane === settingsNavigationItem.id ? "page" : undefined
+              }
+              className={menuItemVariants({
+                active: currentPane === settingsNavigationItem.id,
+              })}
+              onClick={() => onNavigate(settingsNavigationItem.id)}
+              type="button"
+            >
+              <span aria-hidden="true" className="menu-icon">
+                <Icon aria-hidden="true" name={settingsNavigationItem.icon} />
+              </span>
+              {t(settingsNavigationItem.labelKey)}
+            </Button>
+          </nav>
+        ) : null}
       </DrawerDialog>
       <TabsList>
         {navigationItems.map((item) => {

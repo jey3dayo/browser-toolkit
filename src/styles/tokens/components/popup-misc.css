@@ -615,7 +615,16 @@ input[type="checkbox"] {
 }
 
 .settings-pane-card[data-section="provider"] .mbu-radio-group--horizontal {
+  grid-auto-flow: row;
   gap: 8px;
+  justify-content: stretch;
+}
+
+.settings-pane-card .settings-provider-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(144px, 1fr));
+  gap: 8px;
+  width: 100%;
 }
 
 .settings-pane-card[data-section="token"] {

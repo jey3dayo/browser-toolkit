@@ -295,6 +295,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
         <RadioFieldset
           groups={[
             {
+              className: "settings-provider-options",
               options: [
                 { label: "OpenAI", value: "openai" },
                 { label: "Anthropic (Claude)", value: "anthropic" },
