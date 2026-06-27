@@ -86,16 +86,14 @@
 
   /* Interaction */
   cursor: pointer;
-  background: color-mix(in oklab, var(--panel) 90%, transparent);
+  background: transparent;
 
   /* Appearance */
   border: none;
-  border-radius: var(--primitive-radius-10);
+  border-radius: 4px;
 
   /* Shadow */
-  box-shadow:
-    0 0 0 1px var(--line),
-    0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: none;
   opacity: 0;
   backdrop-filter: blur(8px);
   transition:
@@ -113,7 +111,7 @@
 /* Button hover state */
 .mbu-accordion-copy-btn:hover:not(:disabled) {
   color: var(--text);
-  background: color-mix(in oklab, var(--panel) 100%, transparent);
+  background: color-mix(in oklab, var(--color-text) 6%, transparent);
   transform: scale(1.05);
 }
 

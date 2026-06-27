@@ -37,11 +37,12 @@ const preview: Preview = {
       ensurePopupUiBaseStyles(document);
       document.body.classList.add("is-extension");
       const theme = context.globals.theme;
+      const isFullscreen = context.parameters.layout === "fullscreen";
       applyTheme(isTheme(theme) ? theme : "auto", document);
       return (
         <div
           className="mbu-surface"
-          style={{ minHeight: "100vh", padding: 16 }}
+          style={{ minHeight: "100vh", padding: isFullscreen ? 0 : 16 }}
         >
           <Story />
         </div>

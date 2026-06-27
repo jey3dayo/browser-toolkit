@@ -397,7 +397,7 @@
   padding: 3px;
   background: color-mix(in oklab, var(--actions-line) 42%, transparent);
   border-color: var(--actions-line);
-  border-radius: 9px;
+  border-radius: 6px;
 }
 
 .actions-page .mbu-toggle-group-item {
@@ -408,7 +408,7 @@
   color: var(--actions-muted);
   background: transparent;
   border-color: transparent;
-  border-radius: 7px;
+  border-radius: 4px;
 }
 
 .actions-page .mbu-toggle-group-item:hover {

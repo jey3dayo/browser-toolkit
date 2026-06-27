@@ -230,7 +230,7 @@
   user-select: none;
   background: color-mix(in oklab, var(--color-text) 4%, transparent);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 6px;
 }
 
 .mbu-toggle:hover {
@@ -260,7 +260,7 @@
   padding: 2px;
   background: color-mix(in oklab, var(--color-text) 4%, transparent);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 6px;
 }
 
 .mbu-toggle-group-item {
@@ -272,7 +272,7 @@
   user-select: none;
   background: transparent;
   border: 0;
-  border-radius: 10px;
+  border-radius: 4px;
 }
 
 .mbu-toggle-group-item:hover {
@@ -299,7 +299,7 @@
   user-select: none;
   background: color-mix(in oklab, var(--color-text) 4%, transparent);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 6px;
 }
 
 .mbu-switch-text {
