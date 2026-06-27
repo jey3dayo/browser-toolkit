@@ -29,10 +29,18 @@
 .mbu-overlay-primary-block.mbu-overlay-primary-block--copy {
   position: relative;
   display: block;
+  min-height: 40px;
 }
 
 .mbu-overlay-primary-block--copy .mbu-overlay-primary-text {
-  padding-right: 0;
+  min-height: 40px;
+  padding-right: 48px;
+}
+
+.mbu-overlay-primary-block--copy
+  .mbu-overlay-primary-text:not(.mbu-overlay-primary-markdown) {
+  display: flex;
+  align-items: center;
 }
 
 .mbu-overlay-primary-block--copy .mbu-overlay-copy {
@@ -40,7 +48,7 @@
   top: 0;
   right: 0;
   z-index: 1;
-  display: block;
+  display: inline-flex;
   margin-left: 0;
 }
 

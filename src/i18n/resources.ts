@@ -93,6 +93,7 @@ export const resources = {
           thinking: "考え中...",
           placeholder: "フォローアップの質問を入力（Enter で送信）",
           transcriptLabel: "フォローアップの会話履歴",
+          send: "フォローアップを送信",
           jumpToLatest: "最新の応答へ移動",
         },
         summary: {
@@ -257,6 +258,9 @@ export const resources = {
         cancelName: "取消",
         includeEngineAria: "{{group}}に{{engine}}を含める",
         enableAria: "{{name}}を有効化",
+        editAria: "{{name}}を編集",
+        expandAria: "{{name}}を展開",
+        collapseAria: "{{name}}を折りたたみ",
         errors: {
           nameRequired: "グループ名を入力してください",
           saveFailed: "保存に失敗しました",

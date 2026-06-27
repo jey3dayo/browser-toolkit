@@ -190,6 +190,7 @@ export function SearchGroupItem(
           }}
         />
         <Button
+          aria-label={t("searchGroups.editAria", { name: group.name })}
           data-testid={`edit-group-${group.id}`}
           onClick={(event) => {
             event.stopPropagation();
@@ -219,6 +220,10 @@ export function SearchGroupItem(
   const listItemLeading = useMemo(
     () => (
       <Button
+        aria-label={t(
+          isExpanded ? "searchGroups.collapseAria" : "searchGroups.expandAria",
+          { name: group.name }
+        )}
         data-testid={`expand-group-${group.id}`}
         onClick={() => {
           toggleGroupExpand(group.id);
@@ -233,7 +238,7 @@ export function SearchGroupItem(
         />
       </Button>
     ),
-    [group.id, isExpanded, toggleGroupExpand]
+    [group.id, group.name, isExpanded, toggleGroupExpand]
   );
 
   return (

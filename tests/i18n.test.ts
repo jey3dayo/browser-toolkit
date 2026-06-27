@@ -55,6 +55,7 @@ describe("i18n", () => {
     expect(i18n.t("overlay.chat.transcriptLabel")).toBe(
       "フォローアップの会話履歴"
     );
+    expect(i18n.t("overlay.chat.send")).toBe("フォローアップを送信");
     expect(i18n.t("overlay.chat.jumpToLatest")).toBe("最新の応答へ移動");
   });
 
@@ -64,6 +65,15 @@ describe("i18n", () => {
     expect(i18n.t("settings.testToken")).toBe("トークン確認");
     expect(i18n.t("templatesPane.new")).toBe("新規追加");
     expect(i18n.t("calendarPane.run")).toBe("抽出する");
+    expect(i18n.t("searchGroups.editAria", { name: "買い物" })).toBe(
+      "買い物を編集"
+    );
+    expect(i18n.t("searchGroups.expandAria", { name: "買い物" })).toBe(
+      "買い物を展開"
+    );
+    expect(i18n.t("searchGroups.collapseAria", { name: "買い物" })).toBe(
+      "買い物を折りたたみ"
+    );
     expect(i18n.t("debug.logActions")).toBe("ログ操作");
     expect(i18n.t("tablePane.summary.registeredCount", { count: 2 })).toBe(
       "2件を登録済み"

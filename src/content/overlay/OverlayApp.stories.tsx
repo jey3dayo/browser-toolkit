@@ -119,16 +119,45 @@ export const Ready: Story = {
     const copyButton = shadow?.querySelector<HTMLElement>(
       '[data-testid="overlay-copy"]'
     );
+    const closeButton = shadow?.querySelector<HTMLElement>(
+      '[data-testid="overlay-close"]'
+    );
+    const chatRow = shadow?.querySelector<HTMLElement>(
+      ".mbu-overlay-chat-input-row"
+    );
+    const sendButton = shadow?.querySelector<HTMLElement>(
+      '[aria-label="フォローアップを送信"]'
+    );
+    const selectionSummary = shadow?.querySelector<HTMLElement>(
+      ".mbu-overlay-aux-summary"
+    );
     const primary = shadow?.querySelector<HTMLElement>(
       ".mbu-overlay-primary-text"
     );
-    if (!(shadow && copyButton && primary)) {
-      throw new Error("overlay copy/primary not found");
+    if (
+      !(shadow && copyButton && closeButton && chatRow && sendButton && primary)
+    ) {
+      throw new Error("overlay controls not found");
     }
 
     const copyRect = copyButton.getBoundingClientRect();
     const primaryRect = primary.getBoundingClientRect();
+    const chatRowRect = chatRow.getBoundingClientRect();
+    const sendRect = sendButton.getBoundingClientRect();
     expect(copyRect.top).toBeLessThanOrEqual(primaryRect.top + 2);
+    expect(copyRect.right).toBeCloseTo(sendRect.right, 1);
+    expect(copyRect.width).toBeCloseTo(sendRect.width, 1);
+    expect(copyRect.width).toBeCloseTo(40, 1);
+    expect(copyButton.querySelector("svg")).toBeTruthy();
+    expect(closeButton.querySelector("svg")).toBeTruthy();
+    expect(sendButton.getAttribute("title")).toBe("フォローアップを送信");
+    expect(sendButton.hasAttribute("disabled")).toBe(true);
+    expect(sendRect.top).toBeGreaterThanOrEqual(chatRowRect.top - 1);
+    expect(sendRect.bottom).toBeLessThanOrEqual(chatRowRect.bottom + 1);
+    if (selectionSummary) {
+      const selectionRect = selectionSummary.getBoundingClientRect();
+      expect(selectionRect.top).toBeGreaterThanOrEqual(copyRect.bottom + 8);
+    }
   },
 };
 

@@ -425,7 +425,7 @@ export function OverlayHeaderActions(
         testId="overlay-close"
         title={t("common.close")}
       >
-        ×
+        <Icon aria-hidden="true" name="close" />
       </OverlayHeaderIconAction>
     </div>
   );
@@ -561,10 +561,12 @@ export function OverlayChatInput(
           variant="overlayChat"
         />
         <Button
+          aria-label={t("overlay.chat.send")}
           disabled={!input.trim() || props.isChatting}
           onClick={handleSend}
+          title={t("overlay.chat.send")}
           type="button"
-          variant="overlay"
+          variant="overlayIcon"
         >
           <Icon aria-hidden="true" name="message-square" size={16} />
         </Button>
