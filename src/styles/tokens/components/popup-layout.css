@@ -288,10 +288,10 @@
   font-weight: 600;
   color: var(--actions-ink);
   letter-spacing: 0;
-  background: var(--actions-surface);
-  border: 1px solid var(--actions-line);
-  border-radius: 8px;
-  box-shadow: 0 1px 1px rgba(17, 24, 39, 0.04);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  box-shadow: none;
 }
 
 .actions-page .action-buttons .btn:hover:not(:disabled):not([data-disabled]) {
@@ -300,12 +300,8 @@
     var(--actions-accent) 6%,
     var(--actions-surface)
   );
-  border-color: color-mix(
-    in oklab,
-    var(--actions-accent) 20%,
-    var(--actions-line)
-  );
-  box-shadow: 0 4px 12px rgba(17, 24, 39, 0.07);
+  border-color: transparent;
+  box-shadow: none;
   transform: translateY(-1px);
 }
 
@@ -438,7 +434,7 @@
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 .actions-page .button-row .btn-primary {
@@ -450,14 +446,14 @@
 
 .actions-page .button-row .btn-ghost {
   color: var(--actions-ink);
-  background: var(--actions-surface);
-  border-color: var(--actions-line);
+  background: transparent;
+  border-color: transparent;
 }
 
 .actions-page .button-row .btn-delete {
   color: var(--color-danger);
-  background: color-mix(in oklab, var(--color-danger) 8%, transparent);
-  border: 1px solid color-mix(in oklab, var(--color-danger) 18%, transparent);
+  background: transparent;
+  border: 1px solid transparent;
 }
 
 .actions-page .sortable-item {

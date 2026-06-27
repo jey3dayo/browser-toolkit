@@ -231,11 +231,7 @@
   padding: var(--button-padding-sm);
   color: color-mix(in oklab, var(--color-danger) 65%, var(--color-text));
   cursor: pointer;
-  background: color-mix(
-    in oklab,
-    var(--color-danger) var(--accent-mix-14),
-    transparent
-  );
+  background: transparent;
   border: none;
   border-radius: var(--button-radius-sm);
 }
@@ -247,7 +243,7 @@
 }
 
 .btn-delete:hover:not(:disabled):not([data-disabled]) {
-  background: color-mix(in oklab, var(--color-danger) 25%, transparent);
+  background: color-mix(in oklab, var(--color-danger) 12%, transparent);
 }
 
 .btn-delete:focus-visible,
@@ -807,17 +803,13 @@ input[type="checkbox"] {
   padding: var(--button-padding-sm);
   color: color-mix(in oklab, var(--color-primary) 65%, var(--color-text));
   cursor: pointer;
-  background: color-mix(
-    in oklab,
-    var(--color-primary) var(--accent-mix-14),
-    transparent
-  );
+  background: transparent;
   border: none;
   border-radius: var(--button-radius-sm);
 }
 
 .btn-edit:hover {
-  background: color-mix(in oklab, var(--color-primary) 25%, transparent);
+  background: color-mix(in oklab, var(--color-primary) 12%, transparent);
 }
 
 /* Search Groups: inline name edit */

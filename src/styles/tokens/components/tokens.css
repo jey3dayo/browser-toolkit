@@ -5,10 +5,10 @@
 :root,
 :host {
   /* Buttons */
-  --button-radius: var(--radius-md);
+  --button-radius: 6px;
   --button-padding: 10px 14px;
   --button-padding-sm: 6px 10px;
-  --button-radius-sm: var(--radius-sm);
+  --button-radius-sm: 6px;
   --button-font-weight: 700;
 
   --button-bg-primary: linear-gradient(
@@ -20,9 +20,9 @@
   --button-shadow-primary: 0 10px 30px
     color-mix(in oklab, var(--color-primary) 25%, transparent);
 
-  --button-bg-ghost: color-mix(in oklab, var(--color-text) 4%, transparent);
+  --button-bg-ghost: transparent;
   --button-text-ghost: var(--color-text);
-  --button-border-ghost: 1px solid var(--color-border);
+  --button-border-ghost: 1px solid transparent;
 
   /* Inputs */
   --input-padding: 10px 12px;
