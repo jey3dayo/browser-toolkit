@@ -45,6 +45,8 @@ Browser Toolkitは、個人用のChrome拡張機能（Manifest V3）です。Web
 | Technical architecture / runtime policy | `.kiro/steering/tech.md` | Chrome Extension MV3、runtime境界、storage、timeout、AI provider、品質ゲート |
 | Code organization / placement | `.kiro/steering/structure.md` | ディレクトリ構成、entrypoint責務、feature placement、命名規則 |
 | Runtime coding rules / security | `.claude/rules/development.md`, `.claude/rules/security.md` | TypeScript、Result、XSS、secret handling などの実装ルール |
+| Durable UI design system | `DESIGN.md` | popup / overlay / shared UI の再利用可能な視覚ルール、design tokens、Storybook reference |
+| UI design review routing | `DESIGN_REVIEW.md` | `DESIGN.md` / shared UI / feature-local の振り分け、Storybook参照、レビュー手順 |
 | UI display messages | `src/i18n/resources.ts` | i18next で読む表示文言と translation key |
 | Popup / overlay shared UI | `src/components/`, `src/ui/`, `src/styles/` | 共有React部品、theme、toast、Shadow DOM styles |
 | Style tokens / theme details | `docs/style-management.md` | design token layers、theme switching、ShadowRoot stylesheet integration の説明 |
