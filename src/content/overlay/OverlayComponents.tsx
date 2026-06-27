@@ -1,3 +1,4 @@
+import { MessageScroller } from "@shadcn/react/message-scroller";
 import { type ReactNode, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -435,10 +436,10 @@ export function OverlayHeaderActions(
  */
 function createKeyedChatMessages(
   messages: ChatMessage[]
-): { key: string; message: ChatMessage }[] {
+): { key: string; message: ChatMessage; messageId: string }[] {
   const occurrenceCounts = new Map<string, number>();
 
-  return messages.map((message) => {
+  return messages.map((message, index) => {
     const signature = `${message.role}:${message.content}`;
     const occurrence = occurrenceCounts.get(signature) ?? 0;
     occurrenceCounts.set(signature, occurrence + 1);
@@ -446,6 +447,7 @@ function createKeyedChatMessages(
     return {
       key: `${signature}:${occurrence}`,
       message,
+      messageId: `overlay-chat-message-${index}`,
     };
   });
 }
@@ -481,33 +483,70 @@ export function OverlayChatInput(
   return (
     <div className={overlayClassNames.chat}>
       {props.chatMessages.length > 0 ? (
-        <div className={overlayClassNames.chatMessages}>
-          {keyedChatMessages.map(({ key, message }) => (
-            <div
-              className={overlayClassNames.chatMessage(message.role)}
-              key={key}
+        <MessageScroller.Provider
+          autoScroll
+          defaultScrollPosition="last-anchor"
+          scrollPreviousItemPeek={24}
+        >
+          <MessageScroller.Root className={overlayClassNames.chatScrollerRoot}>
+            <MessageScroller.Viewport
+              aria-label={t("overlay.chat.transcriptLabel")}
+              className={overlayClassNames.chatScrollerViewport}
             >
-              <span className={overlayClassNames.chatRole}>
-                {message.role === "user"
-                  ? t("overlay.chat.user")
-                  : t("overlay.chat.assistant")}
-              </span>
-              <TextOutput variant="overlayChatText">
-                {message.content}
-              </TextOutput>
-            </div>
-          ))}
-          {props.isChatting ? (
-            <div className={overlayClassNames.chatMessage("assistant")}>
-              <span className={overlayClassNames.chatRole}>
-                {t("overlay.chat.assistant")}
-              </span>
-              <span className={overlayClassNames.status}>
-                {t("overlay.chat.thinking")}
-              </span>
-            </div>
-          ) : null}
-        </div>
+              <MessageScroller.Content
+                aria-busy={props.isChatting}
+                className={overlayClassNames.chatMessages}
+                spacerClassName={overlayClassNames.chatScrollerSpacer}
+              >
+                {keyedChatMessages.map(({ key, message, messageId }) => (
+                  <MessageScroller.Item
+                    className={overlayClassNames.chatScrollerItem}
+                    key={key}
+                    messageId={messageId}
+                    scrollAnchor={message.role === "user"}
+                  >
+                    <div
+                      className={overlayClassNames.chatMessage(message.role)}
+                    >
+                      <span className={overlayClassNames.chatRole}>
+                        {message.role === "user"
+                          ? t("overlay.chat.user")
+                          : t("overlay.chat.assistant")}
+                      </span>
+                      <TextOutput variant="overlayChatText">
+                        {message.content}
+                      </TextOutput>
+                    </div>
+                  </MessageScroller.Item>
+                ))}
+                {props.isChatting ? (
+                  <MessageScroller.Item
+                    className={overlayClassNames.chatScrollerItem}
+                    messageId="overlay-chat-thinking"
+                  >
+                    <div className={overlayClassNames.chatMessage("assistant")}>
+                      <span className={overlayClassNames.chatRole}>
+                        {t("overlay.chat.assistant")}
+                      </span>
+                      <span className={overlayClassNames.status}>
+                        {t("overlay.chat.thinking")}
+                      </span>
+                    </div>
+                  </MessageScroller.Item>
+                ) : null}
+              </MessageScroller.Content>
+            </MessageScroller.Viewport>
+            <MessageScroller.Button
+              aria-label={t("overlay.chat.jumpToLatest")}
+              className={overlayClassNames.chatScrollerButton}
+              direction="end"
+              title={t("overlay.chat.jumpToLatest")}
+              type="button"
+            >
+              <Icon aria-hidden="true" name="chevron-down" size={14} />
+            </MessageScroller.Button>
+          </MessageScroller.Root>
+        </MessageScroller.Provider>
       ) : null}
       <div className={overlayClassNames.chatInputRow}>
         <Textarea

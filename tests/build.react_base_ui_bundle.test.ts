@@ -27,17 +27,19 @@ describe("React/Base UI bundling", () => {
     }
   });
 
-  it("bundles React, ReactDOM, and @base-ui/react for MV3 targets", async () => {
+  it("bundles React, ReactDOM, Base UI, and shadcn MessageScroller for MV3 targets", async () => {
     const result = await build({
       stdin: {
         contents: [
           "import * as React from 'react';",
           "import { createRoot } from 'react-dom/client';",
           "import { Tabs } from '@base-ui/react';",
+          "import { MessageScroller } from '@shadcn/react/message-scroller';",
           "",
           "const el = React.createElement('div', null, 'ok');",
           "void el;",
           "void Tabs;",
+          "void MessageScroller;",
           'void createRoot(document.createElement("div"));',
         ].join("\n"),
         resolveDir: process.cwd(),

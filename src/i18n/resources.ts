@@ -92,6 +92,8 @@ export const resources = {
           assistant: "AI",
           thinking: "考え中...",
           placeholder: "フォローアップの質問を入力（Enter で送信）",
+          transcriptLabel: "フォローアップの会話履歴",
+          jumpToLatest: "最新の応答へ移動",
         },
         summary: {
           title: "要約",

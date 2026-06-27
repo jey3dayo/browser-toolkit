@@ -44,6 +44,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@praha/byethrow": "^0.12.0",
+    "@shadcn/react": "0.1.0",
     "class-variance-authority": "^0.7.1",
     "date-fns": "^4.4.0",
     "encoding-japanese": "^2.2.0",

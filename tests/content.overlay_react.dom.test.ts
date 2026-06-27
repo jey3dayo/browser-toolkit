@@ -1,7 +1,9 @@
+import { Result } from "@praha/byethrow";
 import { JSDOM } from "jsdom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { flush } from "./helpers/async";
 import { type ChromeStub, createChromeStub } from "./helpers/chromeStub";
+import { inputValue } from "./helpers/forms";
 
 type ContentRequest =
   | {
@@ -396,5 +398,109 @@ describe("content overlay (React + Shadow DOM)", () => {
       ".mbu-overlay-secondary-text"
     );
     expect(secondary?.textContent ?? "").not.toContain("引用テキスト");
+  });
+
+  it("renders follow-up chat messages through the message scroller contract", async () => {
+    await import("@/content.ts");
+    const [listener] = listeners;
+    if (!listener) {
+      throw new Error("missing message listener");
+    }
+
+    let resolveChat: ((value: unknown) => void) | null = null;
+    chromeStub.runtime.sendMessage.mockImplementation((message: unknown) => {
+      if (
+        typeof message === "object" &&
+        message !== null &&
+        "action" in message &&
+        message.action === "chatFollowUp"
+      ) {
+        return new Promise((resolve) => {
+          resolveChat = resolve;
+        });
+      }
+      return Promise.resolve({ ok: true });
+    });
+
+    await dispatchMessage(
+      listener,
+      {
+        action: "showActionOverlay",
+        status: "ready",
+        mode: "text",
+        source: "page",
+        title: "Test",
+        primary: "最初の回答",
+      },
+      dom.window
+    );
+
+    const host = dom.window.document.querySelector<HTMLDivElement>(
+      "#browser-toolkit-overlay"
+    );
+    const shadow = host?.shadowRoot ?? null;
+    expect(shadow).not.toBeNull();
+
+    const textarea = shadow?.querySelector<HTMLTextAreaElement>(
+      ".mbu-overlay-chat-input"
+    );
+    if (!textarea) {
+      throw new Error("chat textarea not found");
+    }
+    inputValue(dom.window, textarea, "追加質問");
+    await flush(dom.window, 2);
+
+    const sendButton = shadow?.querySelector<HTMLButtonElement>(
+      ".mbu-overlay-chat-input-row button"
+    );
+    expect(sendButton).not.toBeNull();
+    expect(sendButton?.disabled).toBe(false);
+
+    sendButton?.click();
+    await flush(dom.window, 6);
+
+    const viewport = shadow?.querySelector<HTMLElement>(
+      ".mbu-overlay-chat-scroller-viewport"
+    );
+    expect(viewport?.getAttribute("role")).toBe("region");
+    expect(viewport?.getAttribute("aria-label")).toBe(
+      "フォローアップの会話履歴"
+    );
+
+    const transcript = shadow?.querySelector<HTMLElement>(
+      ".mbu-overlay-chat-messages"
+    );
+    expect(transcript?.getAttribute("role")).toBe("log");
+    expect(transcript?.getAttribute("aria-busy")).toBe("true");
+
+    const userItem = shadow?.querySelector<HTMLElement>(
+      '[data-message-id="overlay-chat-message-0"]'
+    );
+    expect(userItem?.getAttribute("data-scroll-anchor")).toBe("true");
+    expect(userItem?.textContent).toContain("追加質問");
+
+    const thinkingItem = shadow?.querySelector<HTMLElement>(
+      '[data-message-id="overlay-chat-thinking"]'
+    );
+    expect(thinkingItem?.getAttribute("data-scroll-anchor")).toBe("false");
+    expect(thinkingItem?.textContent).toContain("考え中...");
+
+    const jumpButton = shadow?.querySelector<HTMLButtonElement>(
+      ".mbu-overlay-chat-scroller-button"
+    );
+    expect(jumpButton?.getAttribute("aria-label")).toBe("最新の応答へ移動");
+
+    resolveChat?.(Result.succeed({ text: "追加回答" }));
+    await flush(dom.window, 8);
+
+    const assistantItem = shadow?.querySelector<HTMLElement>(
+      '[data-message-id="overlay-chat-message-1"]'
+    );
+    expect(assistantItem?.getAttribute("data-scroll-anchor")).toBe("false");
+    expect(assistantItem?.textContent).toContain("追加回答");
+    expect(transcript?.getAttribute("aria-busy")).toBe("false");
+    expect(
+      shadow?.querySelector('[data-message-id="overlay-chat-thinking"]')
+    ).toBeNull();
   });
 });

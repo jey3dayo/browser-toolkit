@@ -52,6 +52,10 @@ describe("i18n", () => {
     expect(i18n.t("overlay.hints.processingMayTakeSeconds")).toBe(
       "処理に数秒かかることがあります。"
     );
+    expect(i18n.t("overlay.chat.transcriptLabel")).toBe(
+      "フォローアップの会話履歴"
+    );
+    expect(i18n.t("overlay.chat.jumpToLatest")).toBe("最新の応答へ移動");
   });
 
   it("resolves remaining popup and background labels from ja resources", () => {

@@ -259,12 +259,66 @@
   border-top: 1px solid var(--mbu-border);
 }
 
+.mbu-overlay-chat-scroller {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 180px;
+  overflow: hidden;
+}
+
+.mbu-overlay-chat-scroller-viewport {
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
 .mbu-overlay-chat-messages {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 180px;
-  overflow-y: auto;
+}
+
+.mbu-overlay-chat-scroller-item {
+  contain-intrinsic-size: auto 48px;
+  content-visibility: auto;
+}
+
+.mbu-overlay-chat-scroller-spacer {
+  flex: 0 0 auto;
+}
+
+.mbu-overlay-chat-scroller-button {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  color: var(--mbu-text);
+  cursor: pointer;
+  background: color-mix(in oklab, var(--mbu-surface) 92%, transparent);
+  border: 1px solid var(--mbu-border);
+  border-radius: 999px;
+  box-shadow: var(--mbu-shadow);
+  opacity: 1;
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.mbu-overlay-chat-scroller-button[data-active="false"] {
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+.mbu-overlay-chat-scroller-button:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .mbu-overlay-chat-message {
