@@ -130,7 +130,7 @@
   color: var(--mbu-text);
   appearance: none;
   cursor: pointer;
-  background: color-mix(in oklab, var(--mbu-surface) 72%, transparent);
+  background: transparent;
   border: 1px solid transparent;
   border-radius: 6px;
   transition:
@@ -163,16 +163,16 @@
 /* Overlay copy button */
 .mbu-overlay-copy {
   gap: 0;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   margin-left: auto;
   overflow: hidden;
   color: var(--mbu-text-muted);
   white-space: nowrap;
-  background: color-mix(in oklab, var(--mbu-surface) 72%, transparent);
+  background: transparent;
   border-radius: 6px;
-  opacity: 0.4;
+  opacity: 0.62;
   transition:
     background 140ms ease,
     color 140ms ease,
@@ -235,7 +235,7 @@
   appearance: none;
   touch-action: none;
   cursor: grab;
-  background: color-mix(in oklab, var(--mbu-surface) 72%, transparent);
+  background: transparent;
   border: 1px solid transparent;
   border-radius: 6px;
 }
@@ -310,7 +310,7 @@
   height: 28px;
   color: var(--mbu-text);
   cursor: pointer;
-  background: color-mix(in oklab, var(--mbu-surface) 82%, transparent);
+  background: color-mix(in oklab, var(--mbu-surface) 72%, transparent);
   border: 1px solid transparent;
   border-radius: 6px;
   box-shadow: var(--mbu-shadow);
@@ -368,6 +368,10 @@
   height: auto;
   min-height: 42px;
   border-radius: 6px;
+}
+
+.mbu-overlay-chat-input-row .mbu-overlay-icon-button:disabled {
+  background: transparent;
 }
 
 .mbu-overlay-chat-input {

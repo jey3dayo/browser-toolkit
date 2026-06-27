@@ -29,12 +29,12 @@
 .mbu-overlay-primary-block.mbu-overlay-primary-block--copy {
   position: relative;
   display: block;
-  min-height: 40px;
+  min-height: 32px;
 }
 
 .mbu-overlay-primary-block--copy .mbu-overlay-primary-text {
-  min-height: 40px;
-  padding-right: 48px;
+  min-height: 32px;
+  padding-right: 40px;
 }
 
 .mbu-overlay-primary-block--copy

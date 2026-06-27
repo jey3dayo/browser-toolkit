@@ -146,8 +146,8 @@ export const Ready: Story = {
     const sendRect = sendButton.getBoundingClientRect();
     expect(copyRect.top).toBeLessThanOrEqual(primaryRect.top + 2);
     expect(copyRect.right).toBeCloseTo(sendRect.right, 1);
-    expect(copyRect.width).toBeCloseTo(sendRect.width, 1);
-    expect(copyRect.width).toBeCloseTo(40, 1);
+    expect(copyRect.width).toBeCloseTo(32, 1);
+    expect(sendRect.width).toBeCloseTo(40, 1);
     expect(copyButton.querySelector("svg")).toBeTruthy();
     expect(closeButton.querySelector("svg")).toBeTruthy();
     expect(sendButton.getAttribute("title")).toBe("フォローアップを送信");
