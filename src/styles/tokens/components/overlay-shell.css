@@ -12,7 +12,7 @@
   color: var(--mbu-text);
   background: var(--mbu-surface);
   border: 1px solid var(--mbu-border);
-  border-radius: var(--mbu-radius);
+  border-radius: 8px;
   box-shadow: var(--mbu-shadow);
 }
 
@@ -61,7 +61,7 @@
   color: var(--mbu-text-muted);
   background: color-mix(in oklab, var(--mbu-surface) 60%, transparent);
   border: 1px solid var(--mbu-border);
-  border-radius: 999px;
+  border-radius: 4px;
 }
 
 .mbu-overlay-actions {
@@ -92,7 +92,7 @@
   pointer-events: none;
   background: color-mix(in oklab, var(--mbu-surface) 94%, transparent);
   border: 1px solid var(--mbu-border);
-  border-radius: 10px;
+  border-radius: 6px;
   box-shadow: var(--mbu-shadow);
   opacity: 0;
   transform: translateY(-4px) scale(0.98);
@@ -130,9 +130,22 @@
   color: var(--mbu-text);
   appearance: none;
   cursor: pointer;
-  background: color-mix(in oklab, var(--mbu-surface) 92%, transparent);
-  border: 1px solid var(--mbu-border);
-  border-radius: 10px;
+  background: color-mix(in oklab, var(--mbu-surface) 72%, transparent);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  transition:
+    background 140ms ease,
+    color 140ms ease,
+    opacity 140ms ease;
+}
+
+.mbu-overlay-action:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--mbu-text) 8%, var(--mbu-surface));
+}
+
+.mbu-overlay-action:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .mbu-overlay-action:disabled {
@@ -157,12 +170,11 @@
   overflow: hidden;
   color: var(--mbu-text-muted);
   white-space: nowrap;
-  background: color-mix(in oklab, var(--mbu-surface) 96%, transparent);
-  border-radius: 10px;
+  background: color-mix(in oklab, var(--mbu-surface) 72%, transparent);
+  border-radius: 6px;
   opacity: 0.4;
   transition:
     background 140ms ease,
-    border-color 140ms ease,
     color 140ms ease,
     opacity 140ms ease,
     width 140ms ease;
@@ -173,7 +185,6 @@
   padding: 0 8px;
   color: var(--mbu-text);
   background: color-mix(in oklab, var(--mbu-accent) 10%, var(--mbu-surface));
-  border-color: color-mix(in oklab, var(--mbu-accent) 45%, var(--mbu-border));
   opacity: 1;
 }
 
@@ -206,12 +217,10 @@
 
 .mbu-overlay-icon-button[data-active="true"] {
   background: color-mix(in oklab, var(--mbu-accent) 14%, var(--mbu-surface));
-  border-color: color-mix(in oklab, var(--mbu-accent) 55%, var(--mbu-border));
 }
 
 .mbu-overlay-primary {
   background: color-mix(in oklab, var(--mbu-accent) 14%, var(--mbu-surface));
-  border-color: color-mix(in oklab, var(--mbu-accent) 55%, var(--mbu-border));
 }
 
 .mbu-overlay-drag {
@@ -226,9 +235,9 @@
   appearance: none;
   touch-action: none;
   cursor: grab;
-  background: color-mix(in oklab, var(--mbu-surface) 85%, transparent);
-  border: 1px solid var(--mbu-border);
-  border-radius: 10px;
+  background: color-mix(in oklab, var(--mbu-surface) 72%, transparent);
+  border: 1px solid transparent;
+  border-radius: 6px;
 }
 
 .mbu-overlay-drag:active {
@@ -301,9 +310,9 @@
   height: 28px;
   color: var(--mbu-text);
   cursor: pointer;
-  background: color-mix(in oklab, var(--mbu-surface) 92%, transparent);
-  border: 1px solid var(--mbu-border);
-  border-radius: 999px;
+  background: color-mix(in oklab, var(--mbu-surface) 82%, transparent);
+  border: 1px solid transparent;
+  border-radius: 6px;
   box-shadow: var(--mbu-shadow);
   opacity: 1;
   transition:
@@ -358,19 +367,23 @@
   width: 40px;
   height: auto;
   min-height: 42px;
-  border-radius: 10px;
+  border-radius: 6px;
 }
 
 .mbu-overlay-chat-input {
+  box-sizing: border-box;
   flex: 1;
-  padding: 6px 10px;
+  height: 42px;
+  min-height: 42px;
+  padding: 11px 10px;
   font-family: inherit;
   font-size: 12px;
+  line-height: 18px;
   color: var(--mbu-text);
   resize: none;
   background: var(--mbu-surface);
   border: 1px solid var(--mbu-border);
-  border-radius: 10px;
+  border-radius: 6px;
 }
 
 .mbu-overlay-chat-input:focus {

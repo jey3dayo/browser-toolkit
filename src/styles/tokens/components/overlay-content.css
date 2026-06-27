@@ -103,7 +103,7 @@
   white-space: pre;
   background: color-mix(in oklab, var(--mbu-surface) 85%, transparent);
   border: 1px solid var(--mbu-border);
-  border-radius: 10px;
+  border-radius: 6px;
 }
 
 .mbu-overlay-primary-markdown pre code {
@@ -119,7 +119,7 @@
   background: color-mix(in oklab, var(--mbu-accent) 8%, var(--mbu-surface));
   border-left: 3px solid
     color-mix(in oklab, var(--mbu-accent) 55%, var(--mbu-border));
-  border-radius: 10px;
+  border-radius: 6px;
 }
 
 .mbu-overlay-primary-markdown hr {
@@ -136,7 +136,7 @@
   border-spacing: 0;
   border-collapse: separate;
   border: 1px solid var(--mbu-border);
-  border-radius: 10px;
+  border-radius: 6px;
 }
 
 .mbu-overlay-primary-markdown th,
@@ -167,7 +167,7 @@
   font-weight: 500;
   color: white;
   background: var(--primitive-color-blue-500);
-  border-radius: var(--primitive-radius-10);
+  border-radius: 6px;
   transition: background 0.2s ease;
 }
 
@@ -187,7 +187,7 @@
   border-collapse: separate;
   background: color-mix(in oklab, var(--mbu-surface) 92%, transparent);
   border: 1px solid var(--mbu-border);
-  border-radius: 12px;
+  border-radius: 6px;
 }
 
 .mbu-overlay-event-table th,
@@ -227,14 +227,14 @@
   border: 1px solid var(--mbu-border);
   border-left: 4px solid
     color-mix(in oklab, var(--mbu-accent) 60%, var(--mbu-border));
-  border-radius: 12px;
+  border-radius: 6px;
 }
 
 .mbu-overlay-aux {
   overflow: hidden;
   background: color-mix(in oklab, var(--mbu-surface) 92%, transparent);
   border: 1px solid var(--mbu-border);
-  border-radius: 12px;
+  border-radius: 6px;
 }
 
 .mbu-overlay-aux-summary {
@@ -272,5 +272,5 @@
   border-top: 1px solid var(--mbu-border);
   border-left: 4px solid
     color-mix(in oklab, var(--mbu-accent) 60%, var(--mbu-border));
-  border-radius: 0 0 12px 12px;
+  border-radius: 0 0 6px 6px;
 }
