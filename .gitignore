@@ -10,6 +10,8 @@ tmp/
 btop.log
 storybook-static
 .grepai/
+playwright-report/
+test-results/
 
 # Visual regression test snapshots
 __snapshots__/
