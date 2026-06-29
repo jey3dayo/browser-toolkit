@@ -14,24 +14,20 @@ Browser Toolkitは、個人用のChrome拡張機能（Manifest V3）です。Web
 
 ## 🎯 開発前に必読
 
-プロジェクトの詳細な仕様・設計は `.kiro/steering/` 配下に整理されています。**コード変更前に必ずこれらを参照してください**:
+プロジェクトの詳細な仕様・設計は `docs/`、`.claude/rules/`、`DESIGN.md` に整理されています。**コード変更前に必ず関連する正本を参照してください**:
 
 ### 必読ドキュメント
 
-1. **[.kiro/steering/tech.md](.kiro/steering/tech.md)**
-   - 技術スタック、ビルド設定、ランタイム境界
-   - TypeScript/esbuildの設定、Storage API、OpenAI連携の実装詳細
-   - エラーハンドリングパターン、品質ゲート
+1. **[docs/architecture.md](docs/architecture.md)**
+   - ランタイム境界、AI統一インターフェース、Storage migration、主要コンポーネント
+   - Chrome Extension MV3 と service worker / content script / popup の責務
 
-2. **[.kiro/steering/product.md](.kiro/steering/product.md)**
-   - プロダクトの目的と価値
-   - 各機能の仕様とUX原則
-   - データ・プライバシーポリシー
+2. **[docs/context-actions.md](docs/context-actions.md)**
+   - Context Actions の対象解決、AI provider への送信範囲、組み込み action
+   - カレンダー抽出、privacy 上の注意点
 
-3. **[.kiro/steering/structure.md](.kiro/steering/structure.md)**
-   - プロジェクト構成とディレクトリ構造
-   - エントリーポイント（background/content/popup）の責務
-   - コーディングパターンと命名規則
+3. **[.claude/rules/development.md](.claude/rules/development.md)** / **[.claude/rules/security.md](.claude/rules/security.md)**
+   - TypeScript、Result、XSS、secret handling、実装時の安全ルール
 
 ## Source Of Truth
 
@@ -41,9 +37,9 @@ Browser Toolkitは、個人用のChrome拡張機能（Manifest V3）です。Web
 | --- | --- | --- |
 | Agent runtime entrypoint | `AGENTS.md` -> `CLAUDE.md` | agent runtime が最初に読む入口。実体は `CLAUDE.md` に集約 |
 | Agent workflow / source routing / SSoT table | `CLAUDE.md` | 開発時の高レベルルール、正本表、entrypoint docs のルーティング |
-| Product scope / UX principles | `.kiro/steering/product.md` | 機能範囲、価値、UX原則、データ・プライバシー方針 |
-| Technical architecture / runtime policy | `.kiro/steering/tech.md` | Chrome Extension MV3、runtime境界、storage、timeout、AI provider、品質ゲート |
-| Code organization / placement | `.kiro/steering/structure.md` | ディレクトリ構成、entrypoint責務、feature placement、命名規則 |
+| Product scope / user-facing behavior | `README.md`, `docs/context-actions.md` | 機能範囲、利用者向け説明、Context Actions の送信対象と privacy 方針 |
+| Technical architecture / runtime policy | `docs/architecture.md`, `.claude/rules/development.md` | Chrome Extension MV3、runtime境界、storage、timeout、AI provider、品質ゲート |
+| Code organization / placement | `CLAUDE.md`, `docs/architecture.md`, source tree | ディレクトリ構成、entrypoint責務、feature placement、命名規則 |
 | Runtime coding rules / security | `.claude/rules/development.md`, `.claude/rules/security.md` | TypeScript、Result、XSS、secret handling などの実装ルール |
 | Durable UI design system | `DESIGN.md` | popup / overlay / shared UI の再利用可能な視覚ルール、design tokens、Storybook reference |
 | UI design review routing | `DESIGN_REVIEW.md` | `DESIGN.md` / shared UI / feature-local の振り分け、Storybook参照、レビュー手順 |
@@ -55,7 +51,7 @@ Browser Toolkitは、個人用のChrome拡張機能（Manifest V3）です。Web
 | Context Actions implementation / prompts | `src/context_actions.ts`, `src/prompts/` | action defaults と AI prompt template。表示文言とは分けて扱う |
 | Storage schema / migrations | `src/storage/`, `src/storage/migrations.ts`, `src/schemas/` | storage shape、migration、runtime validation |
 | User-facing setup / usage | `README.md` | インストール、使い方、開発セットアップ、利用者向け機能説明 |
-| Long-form architecture reference | `docs/architecture.md` | 詳細な設計解説。方針判断では `.kiro/steering/*` を優先し、内容を整合させる |
+| Long-form architecture reference | `docs/architecture.md` | 詳細な設計解説。方針判断ではこの表の正本と実装を優先し、内容を整合させる |
 | Build / verification commands | `package.json`, `mise.toml` | scripts、CI相当の検証、tool versions |
 | Generated extension output | `dist/` | build artifact。source of truth ではない |
 
@@ -79,7 +75,7 @@ Browser Toolkitは、個人用のChrome拡張機能（Manifest V3）です。Web
 - **テスト**: Vitest (unit + Storybook tests)
 - **フォーマット/Lint**: Ultracite (Biome)
 
-**詳細**: `.kiro/steering/tech.md` を参照
+**詳細**: [docs/architecture.md](docs/architecture.md) を参照
 
 ## 🎨 プロダクト理解（概要）
 
@@ -94,7 +90,7 @@ Browser Toolkitは、個人用のChrome拡張機能（Manifest V3）です。Web
 - **テーマ一貫性**: ライト/ダークテーマをポップアップとページ内UIで統一
 - **明確なエラー表示**: 失敗時は明確なメッセージを表示
 
-**詳細**: `.kiro/steering/product.md` を参照
+**詳細**: [README.md](README.md) と [docs/context-actions.md](docs/context-actions.md) を参照
 
 ## 📁 コードベース構造（概要）
 
@@ -115,7 +111,7 @@ browser-toolkit/
 │   ├── openai/             # OpenAI設定
 │   ├── storage/            # Storageスキーマ型定義
 │   └── prompts/            # 組み込みアクションプロンプト（TOML）
-├── .kiro/steering/         # 技術・プロダクト・構造の詳細ドキュメント
+├── docs/                   # architecture / feature / setup references
 └── .claude/rules/          # 開発ルール（日本語）
 ```
 
@@ -125,7 +121,7 @@ browser-toolkit/
 - **Background worker**: 特権API（chrome.contextMenus、OpenAI fetch）
 - **Popup**: 設定画面、カスタムアクション管理
 
-**詳細**: `.kiro/steering/structure.md` を参照
+**詳細**: [docs/architecture.md](docs/architecture.md) を参照
 
 ## ⚠️ 開発時の重要な注意点
 
@@ -167,19 +163,13 @@ browser-toolkit/
 - **[docs/icon-setup.md](docs/icon-setup.md)**: アイコン作成手順
 - **[docs/style-management.md](docs/style-management.md)**: Design Tokens とテーマ管理
 
-### 設計ドキュメント（必読）
-
-- **[.kiro/steering/tech.md](.kiro/steering/tech.md)**: 技術仕様
-- **[.kiro/steering/product.md](.kiro/steering/product.md)**: プロダクト仕様
-- **[.kiro/steering/structure.md](.kiro/steering/structure.md)**: コードベース構造
-
 ### 開発ルール
 
 - **[.claude/rules/development.md](.claude/rules/development.md)**: コーディング規約、セキュリティガイドライン、リリースフロー
 
 ## 🔍 コード変更時のチェックリスト
 
-1. **理解**: 該当する `.kiro/steering/` ドキュメントを読んだか？
+1. **理解**: 該当する source of truth ドキュメントを読んだか？
 2. **設計**: 既存のパターン・アーキテクチャに従っているか？
 3. **セキュリティ**: XSS対策、入力検証を実装したか？
 4. **テスト**: ユニットテストを書いたか？手動テストを行ったか？
@@ -210,10 +200,10 @@ mise run build
 ## 🎯 このドキュメントの使い方
 
 1. **最初に読む**: プロジェクト全体像を理解
-2. **コード変更前**: `.kiro/steering/` の関連ドキュメントを参照
+2. **コード変更前**: Source Of Truth 表から関連ドキュメントを参照
 3. **実装中**: `.claude/rules/development.md` でコーディング規約を確認
 4. **テスト/リリース**: チェックリストを活用
 
 ---
 
-**重要**: このドキュメントは概要です。詳細は必ず `.kiro/steering/` 配下のドキュメントを参照してください。
+**重要**: このドキュメントは概要です。詳細は必ず Source Of Truth 表で該当する正本を確認してください。
