@@ -1,3 +1,16 @@
+---
+type: guide
+title: E2Eテストチェックリスト
+description: Browser Toolkit を Chrome 拡張機能として手動 E2E テストするための準備、検証項目、完了サインをまとめる。
+resource: urn:browser-toolkit:docs:e2e-test-checklist
+tags:
+  - category/testing
+  - audience/developer
+timestamp: 2026-06-29
+audience: developer
+owner: browser-toolkit
+---
+
 # E2Eテストチェックリスト
 
 このドキュメントは、Browser ToolkitのChrome拡張機能として手動E2Eテストを実行するためのチェックリストです。

@@ -1,3 +1,16 @@
+---
+type: reference
+title: Style Management
+description: Browser Toolkit の design token layers、theme switching、ShadowRoot stylesheet integration を説明する。
+resource: urn:browser-toolkit:docs:style-management
+tags:
+  - category/design-system
+  - audience/developer
+timestamp: 2026-06-29
+audience: developer
+owner: browser-toolkit
+---
+
 # Style Management (Design Tokens)
 
 This project manages UI styling via **Design Tokens** (CSS custom properties) and a `data-theme` attribute for runtime theme switching.

@@ -1,3 +1,16 @@
+---
+type: guide
+title: アイコン・ロゴセットアップガイド
+description: Browser Toolkit の拡張機能アイコンとロゴを作成、更新、検証する手順を説明する。
+resource: urn:browser-toolkit:docs:icon-setup
+tags:
+  - category/assets
+  - audience/developer
+timestamp: 2026-06-29
+audience: developer
+owner: browser-toolkit
+---
+
 # アイコン・ロゴセットアップガイド
 
 このドキュメントは、Chrome拡張機能のアイコンとロゴを作成・更新する手順を記録しています。
@@ -159,8 +172,8 @@ optipng -o7 images/icon*.png
 ## 🔗 参考リンク
 
 - [Chrome拡張機能のアイコンガイドライン](https://developer.chrome.com/docs/extensions/mv3/manifest/icons/)
-- [ImageMagick公式ドキュメント](https://imagemagick.org/index.php)
-- [透過処理のベストプラクティス](https://imagemagick.org/Usage/masking/)
+- [ImageMagick公式ドキュメント](https://imagemagick.org/script/command-line-processing.php/)
+- [透過処理のベストプラクティス](https://usage.imagemagick.org/masking/)
 
 ## 📝 履歴
 

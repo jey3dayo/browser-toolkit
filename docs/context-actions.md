@@ -1,3 +1,16 @@
+---
+type: reference
+title: Context Actions
+description: AI provider を使った Context Actions の実行対象、実行経路、組み込み action、privacy 上の注意点を説明する。
+resource: urn:browser-toolkit:docs:context-actions
+tags:
+  - category/feature
+  - audience/developer
+timestamp: 2026-06-29
+audience: developer
+owner: browser-toolkit
+---
+
 # Context Actions（OpenAI）
 
 Context Actions は OpenAI を使った「ページ上でそのまま使える」軽量アクションです。

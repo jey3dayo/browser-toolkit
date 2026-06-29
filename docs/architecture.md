@@ -1,3 +1,16 @@
+---
+type: reference
+title: Browser Toolkit アーキテクチャ
+description: Chrome Extension Manifest V3 としての Browser Toolkit の設計原則、runtime 境界、主要コンポーネントを説明する。
+resource: urn:browser-toolkit:docs:architecture
+tags:
+  - category/architecture
+  - audience/developer
+timestamp: 2026-06-29
+audience: developer
+owner: browser-toolkit
+---
+
 # Browser Toolkit アーキテクチャ
 
 このドキュメントは、Browser Toolkitの設計原則、アーキテクチャパターン、および主要なコンポーネントについて説明します。
