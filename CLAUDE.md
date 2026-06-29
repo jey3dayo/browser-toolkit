@@ -61,6 +61,15 @@ Browser Toolkitは、個人用のChrome拡張機能（Manifest V3）です。Web
 
 新しいルールや仕様を追加するときは、表の正本に入れてください。表示文言は `src/i18n/resources.ts` に置き、UI層で `t()` に解決します。AI prompt は `src/prompts/`、storage key と migration は `src/storage/`、runtime validation は `src/schemas/`、protocol marker や既存データ互換の正規表現はそれを所有する実装モジュールに置き、表示文言と混同しないでください。
 
+## Release / Permission Review
+
+`manifest.json` の権限や host permission を変更する場合は、実装前に以下を確認してください。
+
+- `<all_urls>` は、全ページでのテーブルソート、選択テキスト取得、ページ本文フォールバック、Shadow DOM オーバーレイ表示に必要です。より狭い match pattern へ変更する場合は、これらの既存機能が対象外ページで壊れないかを明示的に検証してください。
+- `scripting` は active tab への機能注入、`downloads` は `.ics` などのファイル出力、`notifications` はユーザー向け通知、`alarms` は Manifest V3 service worker の復帰補助に使います。未使用に見える権限を削る前に、対応する runtime path を `src/background.ts`、`src/content.ts`、`src/popup/` から確認してください。
+- AI provider の endpoint を追加・変更するときは、`src/constants/api-endpoints.ts`、`manifest.json` の `host_permissions`、`content_security_policy.connect-src` を同じ差分で揃えてください。
+- Chrome Web Store など外部配布に進む前は、強い権限の理由をリリース説明に転記できる粒度で残してください。
+
 ## 🛠️ 技術スタック（概要）
 
 - **プラットフォーム**: Chrome Extension (Manifest V3)
@@ -176,6 +185,8 @@ browser-toolkit/
 4. **テスト**: ユニットテストを書いたか？手動テストを行ったか？
 5. **品質**: `mise run ci` を実行したか（format + lint + test + storybook test + build）？
 6. **ドキュメント**: 必要に応じてドキュメントを更新したか？
+
+UI、popup、overlay、design token、shared component を変更した場合は、PR 前に `mise run test:storybook` も必須確認として扱ってください。GitHub Actions では Storybook/browser checks が merge queue / manual に寄っているため、PR 時点の UI 回帰はローカル確認で補います。
 
 ## 📝 開発フロー
 

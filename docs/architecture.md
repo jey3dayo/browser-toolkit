@@ -425,6 +425,29 @@ function handleTestAiTokenRequest(
 
 ---
 
+## ストレージマイグレーション運用
+
+`src/storage/migrations.ts` は、拡張機能の install/update 時に `runMigrations()` から順番に実行されます。schema version と migration log は `chrome.storage.local` の reserved key で管理し、migration 前には `chrome.storage.sync` と `chrome.storage.local` の両方を backup します。
+
+### 失敗時の確認ポイント
+
+- background console で `[migrations]` または `Failed to run storage migrations` のログを確認します。
+- migration log は `getMigrationLog()` で取得できます。
+- backup は `listBackups()` で新しい順に取得できます。保持数は直近3件です。
+
+### 復旧方針
+
+- まず backup の `timestamp` と `version` を確認し、戻したい時点を特定します。
+- `restoreFromBackup(timestamp)` は、backup に存在しない current key を削除し、sync/local data を復元します。ただし reserved key は local restore 対象から除外します。
+- 復旧後は schema version が backup version に戻るため、次回 `runMigrations()` で未適用 migration が再実行されます。migration を追加するときは、同じ migration が複数回走っても設定を重複追加しない形にしてください。
+
+### 変更時の検証
+
+- storage schema や migration を変更したら、旧データ相当の fixture または手動データで `runMigrations()` を通し、backup 作成、schema version 更新、重複実行時の無変更を確認してください。
+- provider token など `chrome.storage.local` の secret-like data は sync storage に移さないでください。
+
+---
+
 ## 設計原則
 
 ### 1. 型安全性優先
