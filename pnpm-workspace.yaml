@@ -1,6 +1,7 @@
 allowBuilds:
   "@swc/core": false
   esbuild: true
+  lefthook: true
   unrs-resolver: true
 minimumReleaseAgeExclude:
   - '@types/react@19.2.16'
