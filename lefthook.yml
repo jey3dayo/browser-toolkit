@@ -4,6 +4,13 @@ pre-commit:
       glob: "*.{js,jsx,ts,tsx,json,jsonc,css,md,mdx}"
       run: pnpm exec ultracite fix {staged_files}
       stage_fixed: true
+    - name: format toml
+      glob: "*.toml"
+      run: taplo fmt {staged_files}
+      stage_fixed: true
+    - name: lint workflows
+      glob: ".github/workflows/*.{yml,yaml}"
+      run: actionlint {staged_files}
 
 pre-push:
   jobs:
