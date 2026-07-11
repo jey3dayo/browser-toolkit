@@ -241,7 +241,7 @@ export function registerContextMenuHandlers(): void {
  * Refreshes all context menus by rebuilding them from current settings.
  * Uses builder utilities to reduce code duplication.
  */
-export async function refreshContextMenus(): Promise<void> {
+export async function refreshContextMenus(): Promise<boolean> {
   try {
     await removeAllMenus();
 
@@ -260,15 +260,23 @@ export async function refreshContextMenus(): Promise<void> {
     // Search engines section
     const enabledEngines = searchEngines.filter((engine) => engine.enabled);
 
-    await debugLog("refreshContextMenus", "searchEngines loaded", {
+    debugLog("refreshContextMenus", "searchEngines loaded", {
       searchEngines,
+    }).catch(() => {
+      // no-op
     });
-    await debugLog("refreshContextMenus", "enabledEngines filtered", {
+    debugLog("refreshContextMenus", "enabledEngines filtered", {
       enabledEngines,
+    }).catch(() => {
+      // no-op
     });
 
     if (enabledEngines.length > 0) {
-      await debugLog("refreshContextMenus", "creating search parent menu");
+      debugLog("refreshContextMenus", "creating search parent menu").catch(
+        () => {
+          // no-op
+        }
+      );
       await createMenuItem({
         id: CONTEXT_MENU_SEARCH_PARENT_ID,
         parentId: CONTEXT_MENU_ROOT_ID,
@@ -276,28 +284,31 @@ export async function refreshContextMenus(): Promise<void> {
         contexts: ["selection"],
       });
 
-      await runSequentially(enabledEngines, (engine) =>
+      await runSequentially(enabledEngines, (engine) => {
         debugLog("refreshContextMenus", "creating search engine menu", {
           engine,
-        }).then(() =>
-          createMenuItem({
-            id: `${CONTEXT_MENU_SEARCH_PREFIX}${engine.id}`,
-            parentId: CONTEXT_MENU_SEARCH_PARENT_ID,
-            title: engine.name,
-            contexts: ["selection"],
-          })
-        )
-      );
+        }).catch(() => {
+          // no-op
+        });
+        return createMenuItem({
+          id: `${CONTEXT_MENU_SEARCH_PREFIX}${engine.id}`,
+          parentId: CONTEXT_MENU_SEARCH_PARENT_ID,
+          title: engine.name,
+          contexts: ["selection"],
+        });
+      });
 
       // Batch search groups section
       const groups = await ensureSearchEngineGroupsInitialized();
       const enabledGroups = groups.filter((group) => group.enabled);
 
       if (enabledGroups.length > 0) {
-        await debugLog(
+        debugLog(
           "refreshContextMenus",
           "creating batch search parent menu"
-        );
+        ).catch(() => {
+          // no-op
+        });
         await createMenuItem({
           id: CONTEXT_MENU_BATCH_SEARCH_PARENT_ID,
           parentId: CONTEXT_MENU_ROOT_ID,
@@ -305,18 +316,19 @@ export async function refreshContextMenus(): Promise<void> {
           contexts: ["selection"],
         });
 
-        await runSequentially(enabledGroups, (group) =>
+        await runSequentially(enabledGroups, (group) => {
           debugLog("refreshContextMenus", "creating batch search menu", {
             group,
-          }).then(() =>
-            createMenuItem({
-              id: `${CONTEXT_MENU_BATCH_SEARCH_PREFIX}${group.id}`,
-              parentId: CONTEXT_MENU_BATCH_SEARCH_PARENT_ID,
-              title: group.name,
-              contexts: ["selection"],
-            })
-          )
-        );
+          }).catch(() => {
+            // no-op
+          });
+          return createMenuItem({
+            id: `${CONTEXT_MENU_BATCH_SEARCH_PREFIX}${group.id}`,
+            parentId: CONTEXT_MENU_BATCH_SEARCH_PARENT_ID,
+            title: group.name,
+            contexts: ["selection"],
+          });
+        });
       }
 
       await createSeparator(
@@ -390,6 +402,7 @@ export async function refreshContextMenus(): Promise<void> {
       title: t("contextMenu.settings"),
       contexts: ROOT_MENU_CONTEXTS,
     });
+    return true;
   } catch (error) {
     await debugLog(
       "refreshContextMenus",
@@ -397,6 +410,7 @@ export async function refreshContextMenus(): Promise<void> {
       { error: formatErrorLog("", {}, error) },
       "error"
     );
+    return false;
   }
 }
 
@@ -413,6 +427,13 @@ export function scheduleRefreshContextMenus(): Promise<void> {
     .catch(() => {
       // no-op
     })
-    .then(() => refreshContextMenus());
+    .then(async () => {
+      // SW 復帰ごとの再構築を廃止した分、失敗時の自己回復機会が減るため、
+      // 途中失敗で空/部分メニューのまま固定されないよう1回だけ再試行する。
+      const succeeded = await refreshContextMenus();
+      if (!succeeded) {
+        await refreshContextMenus();
+      }
+    });
   return contextMenuRefreshQueue;
 }

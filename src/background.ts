@@ -79,7 +79,10 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 registerContextMenuHandlers();
 registerRuntimeMessageHandlers();
 
-scheduleRefreshContextMenus();
+// メニュー登録はブラウザプロセス側に永続化されるため、SW復帰のたびに
+// 再構築する必要はない（removeAll から再作成までの間にメニューが
+// 空/部分的になるウィンドウが生じ、右クリックメニュー消失の原因になる）。
+// 再構築は onInstalled / onStartup / storage.onChanged のみで行う。
 syncFocusOverrideContentScript().catch(() => {
   // no-op
 });
