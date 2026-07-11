@@ -220,7 +220,7 @@ function withFallbackKeys(
   });
 }
 
-export const storageSyncGet = createStorageWrapper<[string[]], unknown>(
+export const storageSyncGet = createStorageWrapper<[string[] | null], unknown>(
   (resolve, reject, keys) => {
     chrome.storage.sync.get(keys, (syncItems) => {
       const err = chrome.runtime.lastError;
@@ -245,7 +245,10 @@ export const storageSyncGet = createStorageWrapper<[string[]], unknown>(
 
         const fallbackKeys = (markerData[markerKey] as string[]) ?? [];
         const fallbackKeySet = new Set(fallbackKeys);
-        const keysInLocal = keys.filter((key) => fallbackKeySet.has(key));
+        const keysInLocal =
+          keys === null
+            ? fallbackKeys
+            : keys.filter((key) => fallbackKeySet.has(key));
 
         if (keysInLocal.length === 0) {
           // No fallback keys, return sync data
@@ -334,7 +337,7 @@ export const storageSyncSet = createStorageWrapper<
   });
 });
 
-export const storageLocalGet = createStorageWrapper<[string[]], unknown>(
+export const storageLocalGet = createStorageWrapper<[string[] | null], unknown>(
   (resolve, reject, keys) => {
     chrome.storage.local.get(keys, (items) => {
       const err = chrome.runtime.lastError;

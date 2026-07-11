@@ -270,8 +270,8 @@ export async function getMigrationLog(): Promise<MigrationLogEntry[]> {
 export async function backupBeforeMigration(version: number): Promise<void> {
   try {
     // Get all sync and local storage data
-    const syncData = await storageSyncGet([]);
-    const localData = await storageLocalGet([]);
+    const syncData = await storageSyncGet(null);
+    const localData = await storageLocalGet(null);
 
     const backup: BackupData = {
       timestamp: Date.now(),
@@ -297,7 +297,7 @@ export async function backupBeforeMigration(version: number): Promise<void> {
  * Clean old backups (keep only last 3)
  */
 export async function cleanOldBackups(): Promise<void> {
-  const allData = await storageLocalGet([]);
+  const allData = await storageLocalGet(null);
   const backupKeys = Object.keys(allData as Record<string, unknown>)
     .filter((key) => key.startsWith(BACKUP_KEY_PREFIX))
     .sort()
@@ -317,7 +317,7 @@ export async function cleanOldBackups(): Promise<void> {
  * List all backups
  */
 export async function listBackups(): Promise<BackupData[]> {
-  const allData = await storageLocalGet([]);
+  const allData = await storageLocalGet(null);
   const backupEntries: BackupData[] = [];
   for (const [key, value] of Object.entries(
     allData as Record<string, unknown>
@@ -344,11 +344,11 @@ export async function restoreFromBackup(timestamp: number): Promise<void> {
 
   try {
     // Get current data to identify keys to remove
-    const currentSyncData = (await storageSyncGet([])) as Record<
+    const currentSyncData = (await storageSyncGet(null)) as Record<
       string,
       unknown
     >;
-    const currentLocalData = (await storageLocalGet([])) as Record<
+    const currentLocalData = (await storageLocalGet(null)) as Record<
       string,
       unknown
     >;

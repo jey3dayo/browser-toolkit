@@ -23,10 +23,7 @@ function setupChromeMocks() {
       sync: {
         get: vi.fn((keys, callback) => {
           const result: Record<string, any> = {};
-          if (
-            Array.isArray(keys) &&
-            (keys.length === 0 || keys[0] === null || keys[0] === undefined)
-          ) {
+          if (keys === null || keys === undefined) {
             // Get all items
             for (const [key, value] of mockStorage.entries()) {
               if (
@@ -62,17 +59,12 @@ function setupChromeMocks() {
       local: {
         get: vi.fn((keys, callback) => {
           const result: Record<string, any> = {};
-          if (
-            !Array.isArray(keys) ||
-            keys.length === 0 ||
-            keys[0] === null ||
-            keys[0] === undefined
-          ) {
+          if (keys === null || keys === undefined) {
             // Get all items
             for (const [key, value] of mockStorage.entries()) {
               result[key] = value;
             }
-          } else {
+          } else if (Array.isArray(keys)) {
             for (const key of keys) {
               if (mockStorage.has(key)) {
                 result[key] = mockStorage.get(key);
@@ -125,6 +117,20 @@ describe("Storage Migrations", () => {
     });
   });
 
+  describe("chrome.storage mock parity with real Chrome", () => {
+    it("returns an empty object when local.get is called with []", async () => {
+      mockStorage.set("someKey", "someValue");
+
+      const result = await new Promise<Record<string, unknown>>((resolve) => {
+        chrome.storage.local.get([], (items) => {
+          resolve(items as Record<string, unknown>);
+        });
+      });
+
+      expect(result).toEqual({});
+    });
+  });
+
   describe("backupBeforeMigration", () => {
     it("should create backup with current data", async () => {
       mockStorage.set("testKey", "testValue");
@@ -135,6 +141,20 @@ describe("Storage Migrations", () => {
       const backups = await listBackups();
       expect(backups.length).toBeGreaterThanOrEqual(1);
       expect(backups[0].version).toBe(3);
+    });
+
+    it("should not create an empty snapshot when sync/local data exists", async () => {
+      mockStorage.set("searchEngines", [{ id: "builtin:amazon-jp" }]);
+      mockStorage.set("openaiApiToken", "sk-test123");
+
+      await backupBeforeMigration(3);
+
+      const backups = await listBackups();
+      const backup = backups[0];
+      expect(backup.localData.searchEngines).toEqual([
+        { id: "builtin:amazon-jp" },
+      ]);
+      expect(backup.localData.openaiApiToken).toBe("sk-test123");
     });
   });
 
@@ -209,6 +229,25 @@ describe("Storage Migrations", () => {
       await expect(restoreFromBackup(9999)).rejects.toThrow(
         "Backup not found: 9999"
       );
+    });
+
+    it("should only remove keys added after the backup, not all data", async () => {
+      const backup: BackupData = {
+        timestamp: 1000,
+        version: 1,
+        syncData: { keptSyncKey: "kept" },
+        localData: { keptLocalKey: "kept" },
+      };
+      mockStorage.set("backup_1_1000", backup);
+      mockStorage.set("keptSyncKey", "kept");
+      mockStorage.set("keptLocalKey", "kept");
+      mockStorage.set("addedAfterBackup", "shouldBeRemoved");
+
+      await restoreFromBackup(1000);
+
+      expect(mockStorage.get("keptSyncKey")).toBe("kept");
+      expect(mockStorage.get("keptLocalKey")).toBe("kept");
+      expect(mockStorage.has("addedAfterBackup")).toBe(false);
     });
   });
 
