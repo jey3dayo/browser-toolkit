@@ -216,9 +216,9 @@ export function useFocusDiagnostic(
   const focusDiagnosticBadgeVariant =
     getFocusDiagnosticBadgeVariant(focusDiagnostic);
 
-  const syncFocusPatternsRef = (patterns: string[]): void => {
+  const syncFocusPatternsRef = useCallback((patterns: string[]): void => {
     focusPatternsRef.current = patterns;
-  };
+  }, []);
 
   return {
     focusDiagnostic,

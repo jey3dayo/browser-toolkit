@@ -95,7 +95,13 @@ export function useFocusPatterns(
       cancelled = true;
       window.removeEventListener("hashchange", diagnoseIfVisible);
     };
-  }, [props.runtime]);
+  }, [
+    props.runtime,
+    requestFocusDiagnostic,
+    setPatterns,
+    syncFocusPatternsRef,
+    setFocusPatterns,
+  ]);
 
   const parseFocusPatternInput = (): string | null => {
     const raw = requireTrimmedString({
