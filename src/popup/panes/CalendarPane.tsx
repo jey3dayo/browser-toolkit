@@ -72,11 +72,9 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
         />
 
         <CalendarActionButtons
-          canCopyOutput={canCopyOutput}
-          canDownloadIcs={canDownloadIcs}
-          canOpenCalendar={canOpenCalendar}
-          hasGoogle={hasGoogle}
-          hasIcs={hasIcs}
+          copyState={{ visible: true, enabled: canCopyOutput }}
+          googleState={{ visible: hasGoogle, enabled: canOpenCalendar }}
+          icsState={{ visible: hasIcs, enabled: canDownloadIcs }}
           onCopy={() => {
             copyOutput().catch(() => {
               // no-op

@@ -2,16 +2,19 @@ import { Button } from "@/components/shared/Button";
 import { ButtonRow } from "@/components/shared/Layout";
 import { t } from "@/i18n";
 
+export type CalendarActionButtonState = {
+  visible: boolean;
+  enabled: boolean;
+};
+
 type Props = {
   onRun: () => void;
   onCopy: () => void;
   onOpenCalendar: () => void;
   onDownloadIcs: () => void;
-  canCopyOutput: boolean;
-  canOpenCalendar: boolean;
-  canDownloadIcs: boolean;
-  hasGoogle: boolean;
-  hasIcs: boolean;
+  copyState: CalendarActionButtonState;
+  googleState: CalendarActionButtonState;
+  icsState: CalendarActionButtonState;
 };
 
 export function CalendarActionButtons(props: Props): React.JSX.Element {
@@ -28,7 +31,7 @@ export function CalendarActionButtons(props: Props): React.JSX.Element {
       </Button>
       <Button
         data-testid="calendar-copy"
-        disabled={!props.canCopyOutput}
+        disabled={!props.copyState.enabled}
         onClick={props.onCopy}
         size="small"
         type="button"
@@ -36,10 +39,10 @@ export function CalendarActionButtons(props: Props): React.JSX.Element {
       >
         {t("common.copy")}
       </Button>
-      {props.hasGoogle ? (
+      {props.googleState.visible ? (
         <Button
           data-testid="calendar-open-google"
-          disabled={!props.canOpenCalendar}
+          disabled={!props.googleState.enabled}
           onClick={props.onOpenCalendar}
           size="small"
           type="button"
@@ -48,10 +51,10 @@ export function CalendarActionButtons(props: Props): React.JSX.Element {
           {t("calendarPane.googleCalendar")}
         </Button>
       ) : null}
-      {props.hasIcs ? (
+      {props.icsState.visible ? (
         <Button
           data-testid="calendar-download-ics"
-          disabled={!props.canDownloadIcs}
+          disabled={!props.icsState.enabled}
           onClick={props.onDownloadIcs}
           size="small"
           type="button"
