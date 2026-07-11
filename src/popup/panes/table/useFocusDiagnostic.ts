@@ -2,14 +2,16 @@ import { Result } from "@praha/byethrow";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { t } from "@/i18n";
 import {
-  buildFocusDiagnosticView,
   FOCUS_DIAGNOSTIC_SLOW_MS,
   type FocusDiagnosticBadgeVariant,
   type FocusDiagnosticView,
+} from "@/popup/panes/table/FocusDiagnosticPanel";
+import {
+  buildFocusDiagnosticView,
   getFocusDiagnosticBadgeVariant,
   isFocusOverrideApplied,
   summarizeUrl,
-} from "@/popup/panes/table/FocusDiagnosticPanel";
+} from "@/popup/panes/table/focusDiagnosticView";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 
 export type UseFocusDiagnosticResult = {

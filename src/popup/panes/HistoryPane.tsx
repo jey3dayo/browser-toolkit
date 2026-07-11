@@ -20,6 +20,16 @@ import { i18n } from "@/i18n";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import type { ActionHistoryEntry } from "@/storage/types";
 
+function formatDate(timestamp: number): string {
+  const date = new Date(timestamp);
+  return date.toLocaleString("ja-JP", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export function HistoryPane(props: PopupPaneBaseProps): React.JSX.Element {
   const { t } = useTranslation(undefined, { i18n });
   const [history, setHistory] = useState<ActionHistoryEntry[]>([]);
@@ -59,16 +69,6 @@ export function HistoryPane(props: PopupPaneBaseProps): React.JSX.Element {
     } catch {
       props.notify.error(t("history.errors.copyFailed"));
     }
-  };
-
-  const formatDate = (timestamp: number): string => {
-    const date = new Date(timestamp);
-    return date.toLocaleString("ja-JP", {
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
   };
 
   return (

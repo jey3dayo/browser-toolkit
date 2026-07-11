@@ -179,6 +179,12 @@ type OverlayTextDetailsProps = {
   onCopyPrimary: () => void;
 };
 
+function openSettings(): void {
+  chrome.runtime.sendMessage({ action: "openPopupSettings" }).catch((error) => {
+    console.error("Failed to open settings:", error);
+  });
+}
+
 function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {
   const isTokenError =
     props.status === "error" &&
@@ -186,14 +192,6 @@ function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {
       props.primary.includes("トークン") ||
       props.primary.includes("未設定") ||
       props.primary.includes("API Key"));
-
-  const openSettings = (): void => {
-    chrome.runtime
-      .sendMessage({ action: "openPopupSettings" })
-      .catch((error) => {
-        console.error("Failed to open settings:", error);
-      });
-  };
 
   const showCopyButton = props.mode !== "event" && props.canCopyPrimary;
   const primaryBlockClassName = [

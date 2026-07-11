@@ -4,7 +4,6 @@ import { Badge, type BadgeProps } from "@/components/shared/Badge";
 import { Button } from "@/components/shared/Button";
 import { ButtonRow, RowBetween, Stack } from "@/components/shared/Layout";
 import { t } from "@/i18n";
-import type { FocusOverrideDiagnosticSnapshot } from "@/popup/runtime";
 
 export type FocusDiagnosticKind =
   | "not-configured"
@@ -19,13 +18,6 @@ export type FocusDiagnosticView = {
   matchedPattern: string | null;
   label: string;
   description: string;
-};
-
-type FocusDiagnosticViewParams = Omit<
-  FocusDiagnosticView,
-  "label" | "matchedPattern"
-> & {
-  matchedPattern?: string | null;
 };
 
 export type FocusDiagnosticBadgeVariant = BadgeProps["variant"];
@@ -198,56 +190,4 @@ export function FocusDiagnosticPanel({
       ) : null}
     </FocusDiagnosticPanelRoot>
   );
-}
-
-export function summarizeUrl(url: string | undefined): string | null {
-  if (!url?.trim()) {
-    return null;
-  }
-  try {
-    const parsed = new URL(url);
-    return `${parsed.hostname}${parsed.pathname}${parsed.search}`;
-  } catch {
-    return url;
-  }
-}
-
-export function isFocusOverrideApplied(
-  snapshot: FocusOverrideDiagnosticSnapshot
-): boolean {
-  return (
-    snapshot.markerPresent &&
-    snapshot.visibilityState === "visible" &&
-    snapshot.hidden === false &&
-    snapshot.hasFocus === true
-  );
-}
-
-export function buildFocusDiagnosticView(
-  params: FocusDiagnosticViewParams
-): FocusDiagnosticView {
-  const labelMap: Record<FocusDiagnosticKind, string> = {
-    "not-configured": t("tablePane.diagnostic.labels.notConfigured"),
-    active: t("tablePane.diagnostic.labels.active"),
-    "reload-required": t("tablePane.diagnostic.labels.reloadRequired"),
-    unavailable: t("tablePane.diagnostic.labels.unavailable"),
-  };
-
-  return {
-    ...params,
-    label: labelMap[params.kind],
-    matchedPattern: params.matchedPattern ?? null,
-  };
-}
-
-export function getFocusDiagnosticBadgeVariant(
-  focusDiagnostic: FocusDiagnosticView | null
-): FocusDiagnosticBadgeVariant {
-  if (focusDiagnostic?.kind === "active") {
-    return "focusDiagnosticActive";
-  }
-  if (focusDiagnostic?.kind === "reload-required") {
-    return "focusDiagnosticWarning";
-  }
-  return "focusDiagnosticNeutral";
 }

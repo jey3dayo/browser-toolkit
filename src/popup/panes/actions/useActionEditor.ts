@@ -20,6 +20,14 @@ const EMPTY_EDITOR_STATE: EditorState = {
   prompt: "",
 } satisfies EditorState;
 
+function createActionId(): string {
+  const uuid =
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  return `custom:${uuid}`;
+}
+
 export function useActionEditor(params: {
   actions: ContextAction[];
   actionsById: Map<string, ContextAction>;
@@ -65,14 +73,6 @@ export function useActionEditor(params: {
       kind: action.kind,
       prompt: action.prompt,
     });
-  };
-
-  const createActionId = (): string => {
-    const uuid =
-      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-        ? crypto.randomUUID()
-        : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    return `custom:${uuid}`;
   };
 
   const saveEditor = async (): Promise<void> => {
