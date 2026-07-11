@@ -17,3 +17,6 @@ minimumReleaseAgeExclude:
   - "@storybook/react-vite@10.4.2"
   - "@storybook/react@10.4.2"
   - storybook@10.4.2
+trustPolicy: no-downgrade
+trustPolicyExclude:
+  - semver@6.3.1
