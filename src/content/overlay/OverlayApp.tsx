@@ -1,50 +1,20 @@
-import { Result } from "@praha/byethrow";
-import {
-  useEffect,
-  useId,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import type {
-  ChatFollowUpResponse,
-  ChatMessage,
-} from "@/background/runtime_types";
-import { t } from "@/i18n";
+import { useId, useMemo, useRef, useState } from "react";
 import type { ExtractedEvent, SummarySource } from "@/shared_types";
-import { applyTheme, type Theme } from "@/ui/theme";
+import { applyTheme } from "@/ui/theme";
 import { nextTheme } from "@/ui/themeCycle";
-import {
-  loadStoredTheme,
-  normalizeTheme,
-  persistTheme,
-  themeFromHost,
-} from "@/ui/themeStorage";
+import { persistTheme } from "@/ui/themeStorage";
 import { createNotifications, ToastHost } from "@/ui/toast";
-import {
-  OverlayBody,
-  OverlayChatInput,
-  OverlayHeaderActions,
-} from "./OverlayComponents";
+import { OverlayHeader } from "./OverlayApp/OverlayHeader";
+import { useOverlayChat } from "./OverlayApp/useOverlayChat";
+import { useOverlayPositioning } from "./OverlayApp/useOverlayPositioning";
+import { useOverlayTheme } from "./OverlayApp/useOverlayTheme";
+import { OverlayBody, OverlayChatInput } from "./OverlayComponents";
 import {
   copyTextToClipboard,
   downloadIcsFile,
   openUrlInNewTab,
 } from "./overlayActions";
 import { overlayClassNames } from "./overlayClassNames";
-import {
-  type DragOffset,
-  endOverlayDrag,
-  getPanelSize,
-  moveOverlayDrag,
-  type PanelSize,
-  type Point,
-  positionOverlayHost,
-  startOverlayDrag,
-  toggleOverlayPinned,
-  updateOverlayToastSurfaceInset,
-} from "./overlayPosition";
 import {
   canCopyPrimaryFromViewModel,
   canDownloadIcsFromViewModel,
@@ -84,175 +54,20 @@ type Props = {
 export function OverlayApp(props: Props): React.JSX.Element | null {
   const { toastManager, notify } = useMemo(() => createNotifications(), []);
   const viewModel = props.viewModel;
-  const [theme, setTheme] = useState<Theme>(() => themeFromHost(props.host));
+  const [theme, setTheme] = useOverlayTheme(props.host, props.portalContainer);
   const [markdownView, setMarkdownView] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const pinPopoverId = useId();
   const themePopoverId = useId();
   const markdownPopoverId = useId();
   const closePopoverId = useId();
-  const panelSizeRef = useRef<PanelSize>({
-    width: 520,
-    height: 300,
-  });
-  const [pinned, setPinned] = useState(false);
-  const [pinnedPos, setPinnedPos] = useState<Point | null>(null);
-  const [dragging, setDragging] = useState(false);
-  const dragOffsetRef = useRef<DragOffset | null>(null);
-  const updateOverlayPositionRef = useRef<() => void>(() => undefined);
 
-  // Chat state
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [isChatting, setIsChatting] = useState(false);
-  const chatRequestIdRef = useRef(0);
-  const prevPrimaryRef = useRef<string | null>(null);
+  const { pinned, dragging, startDrag, moveDrag, endDrag, togglePinned } =
+    useOverlayPositioning({ host: props.host, viewModel, panelRef });
 
-  updateOverlayPositionRef.current = (): void => {
-    positionOverlayHost({
-      open: viewModel.open,
-      host: props.host,
-      size: panelSizeRef.current,
-      pinned,
-      pinnedPos,
-      anchorRect: viewModel.anchorRect,
-    });
-    updateOverlayToastSurfaceInset({
-      host: props.host,
-      panel: panelRef.current,
-    });
-  };
-
-  useEffect(() => {
-    let disposed = false;
-    const fallback = themeFromHost(props.host);
-
-    loadStoredTheme(fallback)
-      .then((storedTheme) => {
-        if (disposed) {
-          return;
-        }
-        setTheme(storedTheme);
-        applyTheme(storedTheme, props.portalContainer);
-      })
-      .catch(() => {
-        // no-op
-      });
-
-    if (typeof chrome === "undefined") {
-      return () => {
-        disposed = true;
-      };
-    }
-
-    const onChanged = chrome.storage?.onChanged;
-    if (!onChanged?.addListener) {
-      return () => {
-        disposed = true;
-      };
-    }
-
-    const handleChange = (
-      changes: Record<string, chrome.storage.StorageChange>,
-      areaName: string
-    ): void => {
-      if (areaName !== "local") {
-        return;
-      }
-      if (!("theme" in changes)) {
-        return;
-      }
-      const change = changes.theme as chrome.storage.StorageChange | undefined;
-      const nextValue = normalizeTheme(change?.newValue);
-      setTheme(nextValue);
-      applyTheme(nextValue, props.portalContainer);
-    };
-
-    onChanged.addListener(handleChange);
-
-    return () => {
-      disposed = true;
-      onChanged.removeListener?.(handleChange);
-    };
-  }, [props.host, props.portalContainer]);
-
-  useLayoutEffect(() => {
-    if (!viewModel.open) {
-      return;
-    }
-
-    const panel = panelRef.current;
-    if (!panel || typeof ResizeObserver === "undefined") {
-      return;
-    }
-
-    let lastWidth = 0;
-    let lastHeight = 0;
-
-    const commit = (size: PanelSize): void => {
-      const width = Math.round(size.width);
-      const height = Math.round(size.height);
-      if (width <= 0 || height <= 0) {
-        return;
-      }
-      if (width === lastWidth && height === lastHeight) {
-        return;
-      }
-      lastWidth = width;
-      lastHeight = height;
-      panelSizeRef.current = { width, height };
-      updateOverlayPositionRef.current();
-    };
-
-    const observer = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (!entry) {
-        return;
-      }
-      commit({
-        width: entry.contentRect.width,
-        height: entry.contentRect.height,
-      });
-    });
-
-    observer.observe(panel);
-    commit(getPanelSize(panel));
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [viewModel.open]);
-
-  // [1] Reset chat state when AI result changes to a new context
-  useEffect(() => {
-    if (
-      prevPrimaryRef.current !== null &&
-      prevPrimaryRef.current !== viewModel.primary
-    ) {
-      setChatMessages([]);
-      setIsChatting(false);
-      chatRequestIdRef.current += 1;
-    }
-    prevPrimaryRef.current = viewModel.primary ?? null;
-  }, [viewModel.primary]);
-
-  useLayoutEffect(() => {
-    updateOverlayPositionRef.current();
-  });
-
-  useLayoutEffect(() => {
-    if (!viewModel.open) {
-      return;
-    }
-
-    const updatePosition = (): void => {
-      updateOverlayPositionRef.current();
-    };
-
-    window.addEventListener("resize", updatePosition);
-    return () => {
-      window.removeEventListener("resize", updatePosition);
-    };
-  }, [viewModel.open]);
+  const { chatMessages, isChatting, handleChatSend } = useOverlayChat(
+    viewModel.primary
+  );
 
   if (!viewModel.open) {
     return null;
@@ -272,36 +87,6 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
     downloadIcsFile(notify, viewModel.ics ?? "");
   };
 
-  const startDrag = (event: React.PointerEvent<HTMLDivElement>): void => {
-    startOverlayDrag({
-      event,
-      host: props.host,
-      dragOffsetRef,
-      setDragging,
-      setPinnedPos,
-    });
-  };
-
-  const moveDrag = (event: React.PointerEvent<HTMLDivElement>): void => {
-    moveOverlayDrag({
-      event,
-      pinned,
-      panel: panelRef.current,
-      dragging,
-      dragOffsetRef,
-      setPinned,
-      setPinnedPos,
-    });
-  };
-
-  const endDrag = (event: React.PointerEvent<HTMLDivElement>): void => {
-    endOverlayDrag({ event, dragging, dragOffsetRef, setDragging });
-  };
-
-  const togglePinned = (): void => {
-    toggleOverlayPinned({ pinned, setPinned, setPinnedPos });
-  };
-
   const toggleTheme = (): void => {
     const next = nextTheme(theme);
     setTheme(next);
@@ -313,68 +98,6 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
 
   const toggleMarkdownView = (): void => {
     setMarkdownView((current) => !current);
-  };
-
-  const handleChatSend = (text: string): void => {
-    if (!text.trim() || isChatting) {
-      return;
-    }
-    const requestId = ++chatRequestIdRef.current;
-    const userMessage: ChatMessage = { role: "user", content: text.trim() };
-    const nextMessages = [...chatMessages, userMessage];
-    setChatMessages(nextMessages);
-    setIsChatting(true);
-
-    chrome.runtime
-      .sendMessage({
-        action: "chatFollowUp",
-        messages: nextMessages,
-        context: viewModel.primary,
-      })
-      .then((response: unknown) => {
-        if (requestId !== chatRequestIdRef.current) {
-          return;
-        }
-        const res = response as ChatFollowUpResponse | undefined;
-        if (res && Result.isSuccess(res) && res.value.text) {
-          setChatMessages((prev) => [
-            ...prev,
-            { role: "assistant", content: res.value.text },
-          ]);
-        } else {
-          const errorMsg =
-            res && Result.isFailure(res)
-              ? res.error
-              : t("content.overlay.chatResponseFailed");
-          setChatMessages((prev) => [
-            ...prev,
-            {
-              role: "assistant",
-              content: t("content.overlay.errorPrefix", { message: errorMsg }),
-            },
-          ]);
-        }
-      })
-      .catch(() => {
-        if (requestId !== chatRequestIdRef.current) {
-          return;
-        }
-        setChatMessages((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            content: t("content.overlay.errorPrefix", {
-              message: t("content.overlay.chatFailed"),
-            }),
-          },
-        ]);
-      })
-      .finally(() => {
-        if (requestId !== chatRequestIdRef.current) {
-          return;
-        }
-        setIsChatting(false);
-      });
   };
 
   const sourceLabel = sourceLabelFromSource(viewModel.source);
@@ -397,35 +120,27 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
         toastManager={toastManager}
       />
       <div className={overlayClassNames.panel} ref={panelRef}>
-        <div
-          className={overlayClassNames.header}
-          data-dragging={dragging ? "true" : undefined}
+        <OverlayHeader
+          closePopoverId={closePopoverId}
+          dragging={dragging}
+          markdownPopoverId={markdownPopoverId}
+          markdownView={markdownView}
+          onDismiss={props.onDismiss}
           onPointerCancel={endDrag}
           onPointerDown={startDrag}
           onPointerMove={moveDrag}
           onPointerUp={endDrag}
-        >
-          <div className={overlayClassNames.headerLeft}>
-            <div className={overlayClassNames.title}>
-              {viewModel.title}{" "}
-              <span className={overlayClassNames.chip}>{sourceLabel}</span>
-            </div>
-          </div>
-          <OverlayHeaderActions
-            closePopoverId={closePopoverId}
-            markdownPopoverId={markdownPopoverId}
-            markdownView={markdownView}
-            onDismiss={props.onDismiss}
-            onToggleMarkdownView={toggleMarkdownView}
-            onTogglePinned={togglePinned}
-            onToggleTheme={toggleTheme}
-            pinned={pinned}
-            pinPopoverId={pinPopoverId}
-            showMarkdownToggle={showMarkdownToggle}
-            theme={theme}
-            themePopoverId={themePopoverId}
-          />
-        </div>
+          onToggleMarkdownView={toggleMarkdownView}
+          onTogglePinned={togglePinned}
+          onToggleTheme={toggleTheme}
+          pinned={pinned}
+          pinPopoverId={pinPopoverId}
+          showMarkdownToggle={showMarkdownToggle}
+          sourceLabel={sourceLabel}
+          theme={theme}
+          themePopoverId={themePopoverId}
+          title={viewModel.title}
+        />
 
         <OverlayBody
           canCopyPrimary={canCopyPrimary}
