@@ -16,6 +16,41 @@ export type DebugLogEntry = {
   data?: unknown;
 };
 
+const SENSITIVE_KEY_PATTERN =
+  /token|apikey|api_key|authorization|secret|password/i;
+
+function redactSensitiveData(
+  value: unknown,
+  seen: WeakSet<object> = new WeakSet()
+): unknown {
+  if (Array.isArray(value)) {
+    if (seen.has(value)) {
+      return value;
+    }
+    seen.add(value);
+    return value.map((v) => redactSensitiveData(v, seen));
+  }
+  if (value && typeof value === "object") {
+    if (seen.has(value)) {
+      return value;
+    }
+    seen.add(value);
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, v]) =>
+        SENSITIVE_KEY_PATTERN.test(key)
+          ? [
+              key,
+              typeof v === "string"
+                ? `[REDACTED len=${v.length}]`
+                : "[REDACTED]",
+            ]
+          : [key, redactSensitiveData(v, seen)]
+      )
+    );
+  }
+  return value;
+}
+
 function safeStringify(value: unknown): string {
   try {
     return JSON.stringify(value) ?? String(value);
@@ -56,7 +91,7 @@ export async function debugLog(
     level,
     context,
     message,
-    data,
+    data: redactSensitiveData(data),
   };
 
   // コンソール出力（常に実行）

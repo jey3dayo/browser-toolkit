@@ -277,7 +277,11 @@ function handleTestAiTokenRequest(
       await debugLog(
         "handleTestAiTokenRequest",
         "Failed to test AI token",
-        { error, request },
+        {
+          error,
+          action: request.action,
+          hasToken: typeof request.token === "string",
+        },
         "error"
       );
       sendResponse(
