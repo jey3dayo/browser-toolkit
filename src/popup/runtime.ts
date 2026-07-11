@@ -1,16 +1,8 @@
 import { Result } from "@praha/byethrow";
 import type { SummaryTarget } from "@/background/types";
 import { matchesAnyPattern } from "@/content/url-pattern";
-import type { ContextAction } from "@/context_actions";
-import type { DomainPatternConfig } from "@/domain-pattern-configs";
-import type { FocusOverrideStorageData } from "@/focus-override/patterns";
-import type { SearchEngineGroup } from "@/search_engine_groups";
-import type { SearchEngine } from "@/search_engine_types";
-import type { CalendarRegistrationTarget } from "@/shared_types";
-import type { LocalStorageData } from "@/storage/types";
-import type { TextTemplate } from "@/text_templates";
+import type { LocalStorageData, SyncStorageData } from "@/storage/types";
 import { toErrorMessage } from "@/utils/errors";
-import type { LinkFormat } from "@/utils/link_format";
 
 // Re-export types from background/types for popup components
 export type {
@@ -18,17 +10,7 @@ export type {
   SummarizeEventResponse,
   SummaryTarget,
 } from "@/background/types";
-
-export type SyncStorageData = {
-  domainPatternConfigs?: DomainPatternConfig[];
-  focusOverridePatterns?: FocusOverrideStorageData["focusOverridePatterns"];
-  contextActions?: ContextAction[];
-  linkFormat?: LinkFormat;
-  calendarTargets?: CalendarRegistrationTarget[];
-  searchEngines?: SearchEngine[];
-  searchEngineGroups?: SearchEngineGroup[];
-  textTemplates?: TextTemplate[];
-};
+export type { SyncStorageData } from "@/storage/types";
 
 export type EnableTableSortMessage = { action: "enableTableSort" };
 export type EnableTableSortResponse = { success: boolean };

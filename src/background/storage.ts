@@ -126,15 +126,17 @@ function clearFallbackStateForKeys(
   reject: (reason: Error) => void
 ): void {
   withFallbackKeys(reject, (fallbackKeys, markerKey) => {
-    const keysToClear = keys.filter((key) => fallbackKeys.includes(key));
+    const fallbackKeySet = new Set(fallbackKeys);
+    const keysToClear = keys.filter((key) => fallbackKeySet.has(key));
 
     if (keysToClear.length === 0) {
       resolve();
       return;
     }
 
+    const keysToClearSet = new Set(keysToClear);
     const newFallbackKeys = fallbackKeys.filter(
-      (key) => !keysToClear.includes(key)
+      (key) => !keysToClearSet.has(key)
     );
 
     chrome.storage.local.remove(keysToClear, () => {
@@ -242,7 +244,8 @@ export const storageSyncGet = createStorageWrapper<[string[]], unknown>(
         }
 
         const fallbackKeys = (markerData[markerKey] as string[]) ?? [];
-        const keysInLocal = keys.filter((key) => fallbackKeys.includes(key));
+        const fallbackKeySet = new Set(fallbackKeys);
+        const keysInLocal = keys.filter((key) => fallbackKeySet.has(key));
 
         if (keysInLocal.length === 0) {
           // No fallback keys, return sync data

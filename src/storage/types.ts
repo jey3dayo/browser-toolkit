@@ -1,3 +1,10 @@
+import type { ContextAction } from "@/context_actions";
+import type { DomainPatternConfig } from "@/domain-pattern-configs";
+import type { FocusOverrideStorageData } from "@/focus-override/patterns";
+import type { SearchEngineGroup } from "@/search_engine_groups";
+import type { SearchEngine } from "@/search_engine_types";
+import type { CalendarRegistrationTarget } from "@/shared_types";
+import type { TextTemplate } from "@/text_templates";
 import type { Theme } from "@/ui/theme";
 import type { LinkFormat } from "@/utils/link_format";
 
@@ -35,4 +42,15 @@ export type LocalStorageData = {
   lastCopyTitleLinkFailure?: CopyTitleLinkFailure;
   debugMode?: boolean;
   actionHistory?: ActionHistoryEntry[];
+};
+
+export type SyncStorageData = {
+  domainPatternConfigs?: DomainPatternConfig[];
+  focusOverridePatterns?: FocusOverrideStorageData["focusOverridePatterns"];
+  contextActions?: ContextAction[];
+  linkFormat?: LinkFormat;
+  calendarTargets?: CalendarRegistrationTarget[];
+  searchEngines?: SearchEngine[];
+  searchEngineGroups?: SearchEngineGroup[];
+  textTemplates?: TextTemplate[];
 };

@@ -138,11 +138,12 @@ function GroupEngineMembershipList({
   engines,
   onCheckedChange,
 }: GroupEngineMembershipListProps): React.JSX.Element {
+  const engineIdSet = new Set(group.engineIds);
   return (
     <div className="group-engines-list">
       {engines.map((engine) => (
         <GroupEngineMembershipRow
-          checked={group.engineIds.includes(engine.id)}
+          checked={engineIdSet.has(engine.id)}
           engine={engine}
           group={group}
           key={engine.id}
