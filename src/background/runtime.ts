@@ -1,8 +1,10 @@
+import { Result } from "@praha/byethrow";
 import { runtimeHandlers } from "@/background/runtime_handlers";
 import type {
   RuntimeRequest,
   RuntimeSendResponse,
 } from "@/background/runtime_types";
+import { t } from "@/i18n";
 
 export function registerRuntimeMessageHandlers(): void {
   chrome.runtime.onMessage.addListener(
@@ -14,7 +16,8 @@ export function registerRuntimeMessageHandlers(): void {
       const handler =
         runtimeHandlers[request.action as keyof typeof runtimeHandlers];
       if (!handler) {
-        return true;
+        sendResponse(Result.fail(t("background.runtime.unknownAction")));
+        return false;
       }
       return handler(request as never, sendResponse);
     }

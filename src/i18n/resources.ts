@@ -522,6 +522,7 @@ export const resources = {
           eventSummaryFailed: "イベント要約に失敗しました",
           openSettingsFailed: "設定画面を開けませんでした",
           chatFailed: "チャット応答に失敗しました",
+          unknownAction: "不明なアクションです",
         },
         contextActions: {
           selectionPrefix: "選択範囲:\n{{text}}",
