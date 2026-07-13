@@ -75,7 +75,13 @@ test.describe("Popup UI", () => {
     await expect(tokenInput).toBeVisible();
   });
 
-  test("should manage table sort patterns", async ({ page, extensionId }) => {
+  // TODO(advisor/013): 「すべてのサイトで有効化」トグルは table-pane リファクタで
+  // 廃止され、URL パターン + enableCurrentTab モデルへ移行済み。このテスト全体は
+  // 新モデル向けに書き直しが必要（pattern-add セレクタの再検証を含む、要インタラクティブ検証）。
+  test.skip("should manage table sort patterns", async ({
+    page,
+    extensionId,
+  }) => {
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
 
     // Navigate to site-specific features

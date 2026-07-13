@@ -87,11 +87,11 @@ syncFocusOverrideContentScript().catch(() => {
   // no-op
 });
 
-// Service Worker Keep-Alive
-// Manifest V3のService Workerは30秒でスリープするため、
-// chrome.alarmsを使って定期的にService Workerを起こし続ける
-// 注: chrome.alarms.create()のperiodInMinutesの最小値は1分
-// 1分間隔でもService Workerのタイムアウト（30秒）を防げるため十分
+// Service Worker 定期ウェイク
+// MV3 の Service Worker は約30秒のアイドルでスリープする。chrome.alarms の
+// 最小間隔は1分のため、この alarm は30秒のアイドルタイムアウトを継続的に
+// 防ぐものではない（間隔中に SW はスリープしうる）。イベントリスナーが必要時に
+// SW を起こすため機能上の問題はなく、この alarm は定期的な heartbeat ログ用途で残している。
 if (typeof chrome !== "undefined" && chrome.alarms) {
   chrome.alarms.create("keep-alive", { periodInMinutes: 1 });
   chrome.alarms.onAlarm.addListener((alarm) => {
