@@ -1,7 +1,7 @@
 import type { JSDOM } from "jsdom";
 import { act } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { OPENAI_MODELS } from "@/constants/models";
+import { ANTHROPIC_MODELS, OPENAI_MODELS } from "@/constants/models";
 import { flush } from "./helpers/async";
 import { inputValue, selectBaseUiOption } from "./helpers/forms";
 import {
@@ -256,6 +256,36 @@ describe("popup Settings pane", () => {
       expect.any(Function)
     );
     expect(modelSelect?.textContent).toContain(OPENAI_MODELS.GPT_4O_MINI);
+  });
+
+  it("switches provider and persists a consistent provider/model pair", async () => {
+    const anthropicRadio = dom.window.document.querySelector<HTMLInputElement>(
+      'input[name="aiProvider"][value="anthropic"]'
+    );
+    expect(anthropicRadio).not.toBeNull();
+
+    await act(async () => {
+      anthropicRadio?.click();
+      await flush(dom.window);
+    });
+
+    expect(chromeStub.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({ aiProvider: "anthropic" }),
+      expect.any(Function)
+    );
+    expect(chromeStub.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        aiModel: ANTHROPIC_MODELS.CLAUDE_SONNET_4_5,
+      }),
+      expect.any(Function)
+    );
+
+    const modelSelect = dom.window.document.querySelector<HTMLButtonElement>(
+      '[data-testid="ai-model"]'
+    );
+    expect(modelSelect?.textContent).toContain(
+      ANTHROPIC_MODELS.CLAUDE_SONNET_4_5
+    );
   });
 
   it("orders theme options into primary and auto groups", () => {
