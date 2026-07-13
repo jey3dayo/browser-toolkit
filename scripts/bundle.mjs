@@ -1,4 +1,4 @@
-import { build } from "esbuild";
+import { build, context } from "esbuild";
 import { copyStyles, cssRawPlugin, watchStyles } from "./build-shared.mjs";
 
 const isWatch = process.argv.includes("--watch");
@@ -42,18 +42,26 @@ try {
   if (isWatch) {
     await copyStyles();
     watchStyles();
-    await build({
+    const ctx = await context({
       ...buildOptions,
-      watch: {
-        onRebuild(error) {
-          if (error) {
-            console.error("[esbuild] rebuild failed", error);
-          } else {
-            console.log("[esbuild] rebuild succeeded");
-          }
+      plugins: [
+        ...buildOptions.plugins,
+        {
+          name: "rebuild-logger",
+          setup(pluginBuild) {
+            pluginBuild.onEnd((result) => {
+              if (result.errors.length > 0) {
+                console.error("[esbuild] rebuild failed", result.errors);
+              } else {
+                console.log("[esbuild] rebuild succeeded");
+              }
+            });
+          },
         },
-      },
+      ],
     });
+    await ctx.watch();
+    console.log("[esbuild] watching for changes...");
   } else {
     await build(buildOptions);
   }
