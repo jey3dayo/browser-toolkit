@@ -14,7 +14,7 @@ export type SettingsModelSectionProps = {
   providerConfigs: typeof PROVIDER_CONFIGS;
   model: string;
   setModel: (value: string) => void;
-  saveModel: (value: string) => Promise<void>;
+  saveModel: (value: string, providerOverride?: AiProvider) => Promise<void>;
 };
 
 export function SettingsModelSection({

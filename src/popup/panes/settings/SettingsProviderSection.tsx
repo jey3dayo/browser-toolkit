@@ -18,7 +18,7 @@ export type SettingsProviderSectionProps = {
   setModel: (value: string) => void;
   setToken: (value: string) => void;
   saveProvider: (value: AiProvider) => Promise<void>;
-  saveModel: (value: string) => Promise<void>;
+  saveModel: (value: string, providerOverride?: AiProvider) => Promise<void>;
 };
 
 export function SettingsProviderSection({
@@ -56,7 +56,7 @@ export function SettingsProviderSection({
     // トークンロード完了後に保存
     try {
       await saveProvider(newProvider);
-      await saveModel(defaultModel);
+      await saveModel(defaultModel, newProvider);
     } catch {
       // no-op
     }

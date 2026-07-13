@@ -45,7 +45,7 @@ export type UseSettingsState = {
   testToken: () => Promise<void>;
   savePrompt: () => Promise<void>;
   clearPrompt: () => Promise<void>;
-  saveModel: (value: string) => Promise<void>;
+  saveModel: (value: string, providerOverride?: AiProvider) => Promise<void>;
   saveProvider: (value: AiProvider) => Promise<void>;
   saveTheme: (value: Theme) => Promise<void>;
 };
@@ -195,8 +195,11 @@ export function useSettingsState(
     );
   };
 
-  const saveModel = async (value: string): Promise<void> => {
-    const normalized = normalizeAiModel(provider, value);
+  const saveModel = async (
+    value: string,
+    providerOverride?: AiProvider
+  ): Promise<void> => {
+    const normalized = normalizeAiModel(providerOverride ?? provider, value);
     await runtime.storageLocalSet({
       aiModel: normalized,
     });
