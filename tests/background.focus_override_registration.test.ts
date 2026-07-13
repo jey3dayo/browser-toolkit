@@ -61,4 +61,49 @@ describe("background: focus override registration", () => {
     });
     expect(chromeStub.scripting.registerContentScripts).not.toHaveBeenCalled();
   });
+
+  it("serializes overlapping calls so registration never overlaps", async () => {
+    chromeStub.storage.sync.get.mockImplementation(
+      (_keys: unknown, callback?: (items: unknown) => void) => {
+        chromeStub.runtime.lastError = null;
+        callback?.({
+          focusOverridePatterns: ["https://pocket.shonenmagazine.com/title/*"],
+        });
+      }
+    );
+
+    let inFlight = 0;
+    let maxConcurrent = 0;
+
+    const trackConcurrency = async () => {
+      inFlight += 1;
+      maxConcurrent = Math.max(maxConcurrent, inFlight);
+      await Promise.resolve();
+      inFlight -= 1;
+    };
+
+    chromeStub.scripting.getRegisteredContentScripts.mockImplementation(
+      async () => {
+        await trackConcurrency();
+        return [];
+      }
+    );
+    chromeStub.scripting.registerContentScripts.mockImplementation(async () => {
+      await trackConcurrency();
+    });
+
+    const { syncFocusOverrideContentScript } = await import(
+      "@/background/focus_override_registration"
+    );
+
+    const first = syncFocusOverrideContentScript();
+    const second = syncFocusOverrideContentScript();
+
+    await expect(Promise.all([first, second])).resolves.toBeDefined();
+
+    expect(maxConcurrent).toBe(1);
+    expect(chromeStub.scripting.registerContentScripts).toHaveBeenCalledTimes(
+      2
+    );
+  });
 });
