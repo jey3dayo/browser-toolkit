@@ -13,20 +13,25 @@ row when done.
 
 ## Execution order & status
 
-| Plan | Title                                                                        | Priority | Effort | Depends on  | Status |
-| ---- | ---------------------------------------------------------------------------- | -------- | ------ | ----------- | ------ |
-| 001  | Migration バックアップ/リストアを実 Chrome の storage API で正しく動作させる | P1       | S      | —           | DONE   |
-| 002  | API トークンが debug ログ・コンソール・エクスポートに平文で出ないようにする  | P1       | S      | —           | DONE   |
-| 003  | 未知の runtime action に対して即座に失敗応答を返す                           | P2       | S      | —           | DONE   |
-| 004  | esbuild の minify を有効化し content.js の parse/compile コストを削減        | P1       | S      | —           | DONE   |
-| 005  | table-sort を Schwartzian transform で O(n) キー前計算に                     | P2       | M      | —           | DONE   |
-| 006  | calendar / .ics 生成チェーンにユニットテストを追加（現状ゼロ）               | P2       | M      | —           | DONE   |
-| 007  | `saveModel` の stale closure を修正し provider/model の不整合永続化を防ぐ    | P2       | S      | —           | DONE   |
-| 008  | security.md の CSP 例を shipped manifest と一致させる（doc ドリフト）        | P2       | S      | —           | DONE   |
-| 009  | content bundle スリム化（eager preload 撤去 + content 専用 icon セット）     | P3       | S      | 004         | TODO   |
-| 010  | esbuild watch を context()/watch() API へ移行（`pnpm run watch` 修復）       | P2       | S      | 004 (stack) | DONE   |
+| Plan | Title                                                                        | Priority | Effort | Depends on  | Status  |
+| ---- | ---------------------------------------------------------------------------- | -------- | ------ | ----------- | ------- |
+| 001  | Migration バックアップ/リストアを実 Chrome の storage API で正しく動作させる | P1       | S      | —           | DONE    |
+| 002  | API トークンが debug ログ・コンソール・エクスポートに平文で出ないようにする  | P1       | S      | —           | DONE    |
+| 003  | 未知の runtime action に対して即座に失敗応答を返す                           | P2       | S      | —           | DONE    |
+| 004  | esbuild の minify を有効化し content.js の parse/compile コストを削減        | P1       | S      | —           | DONE    |
+| 005  | table-sort を Schwartzian transform で O(n) キー前計算に                     | P2       | M      | —           | DONE    |
+| 006  | calendar / .ics 生成チェーンにユニットテストを追加（現状ゼロ）               | P2       | M      | —           | DONE    |
+| 007  | `saveModel` の stale closure を修正し provider/model の不整合永続化を防ぐ    | P2       | S      | —           | DONE    |
+| 008  | security.md の CSP 例を shipped manifest と一致させる（doc ドリフト）        | P2       | S      | —           | DONE    |
+| 009  | content bundle スリム化（G=preload gating のみ採用 / H=icon 分割は却下）     | P3       | S      | 004         | PARTIAL |
+| 010  | esbuild watch を context()/watch() API へ移行（`pnpm run watch` 修復）       | P2       | S      | 004 (stack) | DONE    |
 
-Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale)
+Status values: TODO | IN PROGRESS | DONE | PARTIAL | BLOCKED (with one-line reason) | REJECTED (with one-line rationale)
+
+### plan 009 の扱い（PARTIAL）
+
+- **Group A（Finding G: eager preload の pointerdown ゲート化）は採用・main にマージ済み**（commit `ca644a6`）。重い React/markdown 初期化を初回ユーザー操作まで遅延。
+- **Group B（Finding H: content 専用 icon セットへの分割）は却下（REJECTED）**。理由: 効果は content.js の約 **4,535 bytes（≈0.66%）** のみ（lucide アイコンは個々が極小で、当初「25アイコン」見出しほどの旨味がなかった。content.js の本体重量は react-dom / react-markdown）。一方コストは、このリポジトリが明示的なテスト `tests/ui.shared_primitives.test.ts`（lucide-react import の一元化を強制する境界不変条件）を緩めること＋ drift しやすい並行アイコンモジュールの新設。0.66% のためにこの意図的なアーキテクチャ境界を壊す価値はないと判断。content.js の本質的削減が必要なら PERF-02（react/markdown の code-splitting）で取り組む。
 
 ## Recommended order & dependency notes
 
