@@ -14,13 +14,13 @@
 
 ## Status
 
-- **Priority**: P1
-- **Effort**: S
-- **Risk**: LOW
-- **Depends on**: none
-- **Category**: perf
-- **Planned at**: commit `31dee9a`, 2026-07-14
-- **Issue**: (none — internal plan, not published as a GitHub issue)
+- Priority: P1
+- Effort: S
+- Risk: LOW
+- Depends on: none
+- Category: perf
+- Planned at: commit `31dee9a`, 2026-07-14
+- Issue: (none — internal plan, not published as a GitHub issue)
 
 ## Why this matters
 
@@ -145,11 +145,11 @@ no behavior change.
 
 ## Scope
 
-**In scope** (the only file you should modify):
+#### In scope (the only file you should modify)
 
 - `scripts/bundle.mjs`
 
-**Out of scope** (do NOT touch, even though they look related):
+#### Out of scope (do NOT touch, even though they look related)
 
 - `manifest.json` — no permission or content_script config change needed.
 - Anything under `src/` — no source code change is needed; the finding is
@@ -199,7 +199,7 @@ Do not change anything else in the file — the `isWatch` conditional
 branching in the `try` block, the `entryPoints`, `define`, `loader`, or
 `plugins` keys are all out of scope for this change.
 
-**Verify**: `sed -n '1,40p' scripts/bundle.mjs` (or open the file) → confirm
+Verify: `sed -n '1,40p' scripts/bundle.mjs` (or open the file) → confirm
 the `buildOptions` object now contains both `sourcemap: isWatch` and
 `minify: !isWatch`, and no other lines changed.
 
@@ -209,14 +209,14 @@ the `buildOptions` object now contains both `sourcemap: isWatch` and
 pnpm run build
 ```
 
-**Verify**: exits 0. Then:
+Verify: exits 0. Then:
 
 ```bash
 ls -la dist/content.js
 ```
 
 Expected: file size is substantially smaller than the pre-change baseline of
-**1,857,449 bytes** (~1.86MB). A reduction to well under 1MB (commonly
+#### 1,857,449 bytes
 60-70% smaller for typical esbuild minification) is expected; treat "no
 meaningful reduction" (e.g. still >1.5MB) as a STOP condition, not something
 to explain away.
@@ -240,7 +240,7 @@ timeout 15 pnpm run watch || true
 watch` in the background, wait a few seconds, then stop it — do not let it
 run indefinitely.)
 
-**Verify**: console output includes `[esbuild] rebuild succeeded` (or the
+Verify: console output includes `[esbuild] rebuild succeeded` (or the
 initial build completes without error), and after it runs at least once,
 `ls dist/*.map` lists `.map` files (e.g. `dist/content.js.map`,
 `dist/background.js.map`, etc.) — confirming dev builds still emit
@@ -250,7 +250,7 @@ job) before continuing.
 Re-run `pnpm run build` once more afterward to leave `dist/` in the
 production (minified, no sourcemap) state expected by Step 2's checks:
 
-**Verify**: `pnpm run build` exits 0; `ls dist/*.map` again shows no files.
+Verify: `pnpm run build` exits 0; `ls dist/*.map` again shows no files.
 
 ## Test plan
 

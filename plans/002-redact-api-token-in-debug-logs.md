@@ -14,12 +14,12 @@
 
 ## Status
 
-- **Priority**: P1
-- **Effort**: S
-- **Risk**: LOW
-- **Depends on**: none
-- **Category**: security
-- **Planned at**: commit `8ec023e`, 2026-07-12
+- Priority: P1
+- Effort: S
+- Risk: LOW
+- Depends on: none
+- Category: security
+- Planned at: commit `8ec023e`, 2026-07-12
 
 ## Why this matters
 
@@ -56,13 +56,13 @@
 
 ## Scope
 
-**In scope** (the only files you should modify):
+#### In scope (the only files you should modify)
 
 - `src/utils/debug_log.ts`
 - `src/background/runtime_handlers.ts`
 - `tests/utils.debug_log.test.ts`
 
-**Out of scope** (do NOT touch, even though they look related):
+#### Out of scope (do NOT touch, even though they look related)
 
 - `src/popup/panes/settings/useSettingsState.ts` — トークンの送信自体は正当（テストに必要）。
 - トークンの保存経路（`storage.local`）の変更 — 既に正しい。
@@ -108,7 +108,7 @@ function redactSensitiveData(value: unknown): unknown {
 
 `debugLog` 内で `logEntry` を作る際に `data: redactSensitiveData(data)` を適用する（コンソール・storage 保存・ダウンロードのすべてが `logEntry.data` 経由なので一点で塞がる）。`Error` インスタンスは object 扱いだが列挙可能プロパティが少ないため既存の `safeStringify` 挙動を壊さないこと（既存テストが緑のままであることを確認）。
 
-**Verify**: `pnpm typecheck` → exit 0。
+Verify: `pnpm typecheck` → exit 0。
 
 ### Step 2: runtime_handlers.ts の呼び出しからトークンを外す
 
@@ -120,7 +120,7 @@ function redactSensitiveData(value: unknown): unknown {
 
 （redactor は防御第二層。第一層としてそもそも渡さない。）
 
-**Verify**: `rg -n "request \}" src/background/runtime_handlers.ts` で `handleTestAiTokenRequest` 内のマッチが消えている。
+Verify: `rg -n "request \}" src/background/runtime_handlers.ts` で `handleTestAiTokenRequest` 内のマッチが消えている。
 
 ### Step 3: テスト追加
 
@@ -130,11 +130,11 @@ function redactSensitiveData(value: unknown): unknown {
 2. ネストしたオブジェクト（`{ request: { token: "..." } }`）でも redact される。
 3. 機微でないフィールド（`{ url: "https://example.com" }`）はそのまま残る。
 
-**Verify**: `pnpm test:unit:node -- tests/utils.debug_log.test.ts` → all pass（新規 3 本含む）。
+Verify: `pnpm test:unit:node -- tests/utils.debug_log.test.ts` → all pass（新規 3 本含む）。
 
 ### Step 4: 全体確認
 
-**Verify**: `pnpm test` → all pass、`pnpm format && pnpm lint` → exit 0。
+Verify: `pnpm test` → all pass、`pnpm format && pnpm lint` → exit 0。
 
 ## Test plan
 

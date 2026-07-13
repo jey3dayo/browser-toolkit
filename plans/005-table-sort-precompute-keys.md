@@ -14,12 +14,12 @@
 
 ## Status
 
-- **Priority**: P2
-- **Effort**: M
-- **Risk**: LOW-MED (must preserve tie-break semantics exactly)
-- **Depends on**: none
-- **Category**: perf
-- **Planned at**: commit `31dee9a`, 2026-07-14
+- Priority: P2
+- Effort: M
+- Risk: LOW-MED (must preserve tie-break semantics exactly)
+- Depends on: none
+- Category: perf
+- Planned at: commit `31dee9a`, 2026-07-14
 
 ## Why this matters
 
@@ -135,13 +135,13 @@ signature or return type, and do not change any line in `sortTable`,
 
 ## Scope
 
-**In scope** (the only files you should modify):
+#### In scope (the only files you should modify)
 
 - `src/content/table-sort.ts`
 - `tests/content.table_sort_a11y.dom.test.ts` (extend with new `describe`
   blocks — do not remove or alter the existing test)
 
-**Out of scope** (do NOT touch, even though they look related):
+#### Out of scope (do NOT touch, even though they look related)
 
 - `src/content/table-observer.ts`, `src/content/table-auto-exec.ts` — not
   part of this finding.
@@ -166,7 +166,7 @@ signature or return type, and do not change any line in `sortTable`,
 git checkout -b advisor/005-table-sort-precompute-keys
 ```
 
-**Verify**: `git branch --show-current` → `advisor/005-table-sort-precompute-keys`
+Verify: `git branch --show-current` → `advisor/005-table-sort-precompute-keys`
 
 ### Step 2: Rewrite `sortRows` to precompute keys once per row
 
@@ -201,7 +201,7 @@ function sortRows(
 Do not change the function signature (`rows: HTMLTableRowElement[], columnIndex: number, isAscending: boolean): void`).
 Do not change any other function in the file.
 
-**Verify**: `pnpm run typecheck` → exit 0, no errors.
+Verify: `pnpm run typecheck` → exit 0, no errors.
 
 ### Step 3: Confirm no other caller depends on `sortRows` return value
 
@@ -213,7 +213,7 @@ Expected: exactly two matches — the `function sortRows(` declaration and the
 single call site inside `sortTable` (`sortRows(rows, columnIndex, isAscending);`),
 and that call site does not use a return value (statement, no assignment).
 
-**Verify**: output matches the above; if a third call site or a
+Verify: output matches the above; if a third call site or a
 return-value usage appears, STOP and report (see STOP conditions).
 
 ## Test plan
@@ -228,14 +228,14 @@ return-value usage appears, STOP and report (see STOP conditions).
   change requiring the export list to change, which is out of scope here).
 - Add new tests to `tests/content.table_sort_a11y.dom.test.ts`, in a new
   `describe("table sort ordering", () => { ... })` block, covering:
-  1. **Pure numeric column, ascending then descending**: table with a
+  1. Pure numeric column, ascending then descending: table with a
      "Score" column of `["10", "2", "1"]`. Click header once → ascending
      numeric order `["1", "2", "10"]` (NOT lexicographic `["1","10","2"]`).
      Click again → descending `["10", "2", "1"]`.
-  2. **Pure string column, Japanese locale ordering, ascending + descending**:
+  2. Pure string column, Japanese locale ordering, ascending + descending:
      a "Name" column with Japanese strings, e.g. `["う", "あ", "い"]`. Click
      once → `["あ", "い", "う"]`. Click again → `["う", "い", "あ"]`.
-  3. **Mixed column (numeric-looking and non-numeric cells together)**: e.g.
+  3. Mixed column (numeric-looking and non-numeric cells together): e.g.
      `["10", "apple", "2"]`. Because `parseNumericValue("apple")` is `NaN`,
      the current (and new) implementation falls back to
      `localeCompare(..., "ja")` for the WHOLE column, not per-pair numeric
@@ -243,12 +243,12 @@ return-value usage appears, STOP and report (see STOP conditions).
      `["10", "2", "apple"].sort((a,b) => a.localeCompare(b,"ja"))` computed
      inline in the test (or hardcode the expected order after computing it
      once) — do not assume standard ASCII sort.
-  4. **Missing/empty cell**: a row where the target column's `<td>` is
+  4. Missing/empty cell: a row where the target column's `<td>` is
      absent or empty; the fallback `?? ""` must apply so the cell sorts as
      empty string, not throw. Add one such row to one of the above cases and
      assert it does not throw and lands in the correct position for
      `localeCompare("", other, "ja")`.
-  5. **Characterization/regression check**: before writing Step 2's change,
+  5. Characterization/regression check: before writing Step 2's change,
      if time allows, run the NEW tests against the CURRENT (unmodified)
      `sortRows` first to confirm they pass against old behavior — this
      proves the tests capture existing semantics, not just the new code's

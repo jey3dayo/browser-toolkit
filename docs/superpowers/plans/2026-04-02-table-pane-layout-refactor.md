@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** `サイト別機能` ペインを `header summary + URLパターン card + フォーカス維持 card` 構成に整理し、主 CTA と診断状態を初見で把握しやすくする。
+Goal: `サイト別機能` ペインを `header summary + URLパターン card + フォーカス維持 card` 構成に整理し、主 CTA と診断状態を初見で把握しやすくする。
 
-**Architecture:** `src/popup/panes/TablePane.tsx` のロジックは維持し、DOM 構造と className を再編してレイアウトを作り直す。スタイル変更は `popup-misc.css` に集約し、既存の popup token / control class を流用して差分を局所化する。
+Architecture: `src/popup/panes/TablePane.tsx` のロジックは維持し、DOM 構造と className を再編してレイアウトを作り直す。スタイル変更は `popup-misc.css` に集約し、既存の popup token / control class を流用して差分を局所化する。
 
-**Tech Stack:** React 19, TypeScript, Base UI, popup design-token CSS, Vitest, Storybook stories
+Tech Stack: React 19, TypeScript, Base UI, popup design-token CSS, Vitest, Storybook stories
 
 ---
 
@@ -33,7 +33,7 @@
 
 ### Task 1: Lock the new DOM contract with failing tests
 
-**Files:**
+### Files:
 - Modify: `tests/popup.table_sort_pane.test.ts`
 - Modify: `src/popup/panes/TablePane.tsx`
 - Verify: `tests/popup.navigation.test.tsx`
@@ -141,7 +141,7 @@ git commit -m "refactor: reorganize table pane structure"
 
 ### Task 2: Apply the summary/card visual hierarchy
 
-**Files:**
+### Files:
 - Modify: `src/styles/tokens/components/popup-misc.css`
 - Modify: `src/popup/panes/TablePane.tsx`
 
@@ -249,7 +249,7 @@ git commit -m "style: add summary and card hierarchy to table pane"
 
 ### Task 3: Add a visual harness and finish verification
 
-**Files:**
+### Files:
 - Modify: `src/popup/panes/TablePane.stories.tsx`
 - Verify: `tests/popup.table_sort_pane.test.ts`
 - Verify: `tests/popup.navigation.test.tsx`

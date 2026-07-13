@@ -18,13 +18,13 @@
 
 ## Status
 
-- **Priority**: P2
-- **Effort**: S
-- **Risk**: LOW
-- **Depends on**: plans/004-enable-esbuild-minify.md (stacked — same file; base branch is `advisor/004-enable-esbuild-minify`)
-- **Category**: dx
-- **Planned at**: commit `630fc34` (branch `advisor/004-enable-esbuild-minify`), 2026-07-14
-- **Issue**: (none)
+- Priority: P2
+- Effort: S
+- Risk: LOW
+- Depends on: plans/004-enable-esbuild-minify.md (stacked — same file; base branch is `advisor/004-enable-esbuild-minify`)
+- Category: dx
+- Planned at: commit `630fc34` (branch `advisor/004-enable-esbuild-minify`), 2026-07-14
+- Issue: (none)
 
 ## Why this matters
 
@@ -133,11 +133,11 @@ esbuild's `onEnd` plugin hook (the `onRebuild` callback no longer exists).
 
 ## Scope
 
-**In scope** (the only file you should modify):
+#### In scope (the only file you should modify)
 
 - `scripts/bundle.mjs`
 
-**Out of scope** (do NOT touch):
+#### Out of scope (do NOT touch)
 
 - The `buildOptions` object contents (entryPoints, define, loader, sourcemap,
   minify, plugins list) — unchanged.
@@ -164,7 +164,7 @@ git checkout advisor/004-enable-esbuild-minify
 git checkout -b advisor/010-migrate-esbuild-watch-api
 ```
 
-**Verify**: `git branch --show-current` → `advisor/010-migrate-esbuild-watch-api`,
+Verify: `git branch --show-current` → `advisor/010-migrate-esbuild-watch-api`,
 and `git log --oneline -1` shows plan 004's commit `630fc34` as HEAD's parent
 lineage (i.e. `git show HEAD:scripts/bundle.mjs` contains `minify: !isWatch`).
 If `minify: !isWatch` is NOT present, you branched from the wrong base — STOP.
@@ -226,7 +226,7 @@ Do not change `buildOptions`, the `else` branch, or the outer `catch`. The
 "rebuild succeeded/failed" logging behavior is preserved. `ctx.watch()` keeps
 the process alive (do not call `ctx.dispose()` — the watcher must keep running).
 
-**Verify**: `pnpm run typecheck` → exit 0 (this is a `.mjs` script, but run it to
+Verify: `pnpm run typecheck` → exit 0 (this is a `.mjs` script, but run it to
 confirm nothing else broke), and visually confirm the import line now includes
 `context` and the watch branch uses `context(...)` + `ctx.watch()`.
 
@@ -242,7 +242,7 @@ timeout 20 pnpm run watch; echo "exit:$?"
 (If `timeout` is unavailable, run `pnpm run watch` in the background, wait ~10s,
 capture output, then kill it. Do NOT leave it running.)
 
-**Verify**: the output includes `[esbuild] rebuild succeeded` and
+Verify: the output includes `[esbuild] rebuild succeeded` and
 `[esbuild] watching for changes...` (the initial build fired the `onEnd` hook),
 and there is NO `Invalid option in build() call: "watch"` error. The `exit:$?`
 will typically be `124` (killed by timeout) — that is EXPECTED and means watch
@@ -262,7 +262,7 @@ Expected: lists `.map` files (e.g. `dist/content.js.map`, `dist/background.js.ma
 pnpm run build
 ```
 
-**Verify**: exits 0. Then:
+Verify: exits 0. Then:
 
 ```bash
 ls -la dist/content.js && ls dist/*.map 2>/dev/null; echo "map-exit:$?"

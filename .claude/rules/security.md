@@ -33,7 +33,7 @@
 
 ### 1. テキストコンテンツの挿入
 
-**推奨**: `textContent` または `innerText`
+推奨: `textContent` または `innerText`
 
 ```typescript
 // ✅ 安全
@@ -45,7 +45,7 @@ element.innerHTML = userInput;
 
 ### 2. DOM要素の動的生成
 
-**推奨**: `createElement()` + `appendChild()`
+推奨: `createElement()` + `appendChild()`
 
 ```typescript
 // ✅ 安全
@@ -59,7 +59,7 @@ parent.innerHTML = `<div>${userInput}</div>`;
 
 ### 3. Markdown表示
 
-**推奨**: `react-markdown`（既に使用中）
+推奨: `react-markdown`（既に使用中）
 
 ```tsx
 // ✅ 安全（src/content/overlay/OverlayComponents.tsx）
@@ -70,7 +70,7 @@ import ReactMarkdown from "react-markdown";
 
 ### 4. HTMLサニタイズが必要な場合
 
-**推奨**: DOMPurify（必要に応じて導入）
+推奨: DOMPurify（必要に応じて導入）
 
 ```typescript
 import DOMPurify from "dompurify";
@@ -83,7 +83,7 @@ const cleanHtml = DOMPurify.sanitize(userInput, {
 element.innerHTML = cleanHtml;
 ```
 
-**注意**: DOMPurifyを使用する場合も：
+注意: DOMPurifyを使用する場合も：
 
 1. コードレビューで承認必須
 2. ユニットテストでXSSケースを追加必須
@@ -123,7 +123,7 @@ cell.textContent = value;
 document.execCommand("insertText", false, template.content);
 ```
 
-**推奨**: コメントで注意喚起
+推奨: コメントで注意喚起
 
 ```typescript
 // SECURITY: Do NOT replace with innerHTML or insertAdjacentHTML
@@ -247,12 +247,12 @@ grep -r "eval(" src/
 
 XSSや脆弱性を発見した場合：
 
-1. **即座に報告**: プロジェクトメンテナーに連絡
-2. **影響範囲の特定**: どの機能が影響を受けるか
-3. **緊急パッチ作成**: 修正PRを最優先で作成
-4. **ユーザーへの通知**: 必要に応じてアップデート案内
+1. 即座に報告: プロジェクトメンテナーに連絡
+2. 影響範囲の特定: どの機能が影響を受けるか
+3. 緊急パッチ作成: 修正PRを最優先で作成
+4. ユーザーへの通知: 必要に応じてアップデート案内
 
 ---
 
-**最終更新**: 2026-02-13
-**レビュー**: セキュリティガイドラインは定期的に見直してください
+最終更新: 2026-02-13
+レビュー: セキュリティガイドラインは定期的に見直してください

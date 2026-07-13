@@ -14,12 +14,12 @@
 
 ## Status
 
-- **Priority**: P2
-- **Effort**: S
-- **Risk**: LOW
-- **Depends on**: none
-- **Category**: bug
-- **Planned at**: commit `31dee9a`, 2026-07-14
+- Priority: P2
+- Effort: S
+- Risk: LOW
+- Depends on: none
+- Category: bug
+- Planned at: commit `31dee9a`, 2026-07-14
 
 ## Why this matters
 
@@ -177,7 +177,7 @@ instead of relying on the masking re-normalization.
 
 ## Scope
 
-**In scope** (the only files you should modify):
+#### In scope (the only files you should modify)
 
 - `src/popup/panes/settings/useSettingsState.ts`
 - `src/popup/panes/settings/SettingsProviderSection.tsx`
@@ -185,7 +185,7 @@ instead of relying on the masking re-normalization.
   `saveModel` prop type, to match the new signature — no behavior change)
 - `tests/popup.settings_pane.dom.test.ts`
 
-**Out of scope** (do NOT touch, even though they look related):
+#### Out of scope (do NOT touch, even though they look related)
 
 - `src/schemas/provider.ts` — `normalizeAiModel` itself is correct; do not
   change its signature or logic.
@@ -251,7 +251,7 @@ In `src/popup/panes/settings/useSettingsState.ts`:
 `AiProvider` is already imported in this file (line 13), so no new import is
 needed.
 
-**Verify**: `pnpm run typecheck` → this step alone will likely fail because
+Verify: `pnpm run typecheck` → this step alone will likely fail because
 the two callers (Step 2/3) still use the old signature in a way that's still
 compatible (optional param, so old call sites `saveModel(value)` remain valid)
 — typecheck should still pass after this step alone. Confirm: `pnpm run typecheck` exits 0.
@@ -296,7 +296,7 @@ In `src/popup/panes/settings/SettingsProviderSection.tsx`:
 
 `AiProvider` is already imported in this file (line 8).
 
-**Verify**: `pnpm run typecheck` → exit 0, no errors.
+Verify: `pnpm run typecheck` → exit 0, no errors.
 
 ### Step 3: Update `SettingsModelSection.tsx`'s prop type to match (no behavior change)
 
@@ -319,7 +319,7 @@ in this file — it correctly calls `saveModel(normalized)` with the current
 provider already baked into `normalized` via `normalizeAiModel(provider, value)`,
 and needs no override.
 
-**Verify**: `pnpm run typecheck` → exit 0, no errors.
+Verify: `pnpm run typecheck` → exit 0, no errors.
 
 ### Step 4: Add a regression test for provider switch
 
@@ -387,7 +387,7 @@ line 259, before the `"orders theme options..."` test). The test must:
    );
    ```
 
-**Verify**: `pnpm test -- tests/popup.settings_pane.dom.test.ts` → all tests in
+Verify: `pnpm test -- tests/popup.settings_pane.dom.test.ts` → all tests in
 this file pass, including the new one. Run this test WITHOUT the Step 1-3
 fix first (or `git stash` the source changes) to confirm it fails against the
 old code — this confirms the test actually exercises the bug — then re-apply

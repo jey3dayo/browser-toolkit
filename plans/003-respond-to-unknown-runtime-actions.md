@@ -14,12 +14,12 @@
 
 ## Status
 
-- **Priority**: P2
-- **Effort**: S
-- **Risk**: LOW
-- **Depends on**: none
-- **Category**: bug
-- **Planned at**: commit `8ec023e`, 2026-07-12
+- Priority: P2
+- Effort: S
+- Risk: LOW
+- Depends on: none
+- Category: bug
+- Planned at: commit `8ec023e`, 2026-07-12
 
 ## Why this matters
 
@@ -61,13 +61,13 @@
 
 ## Scope
 
-**In scope** (the only files you should modify):
+#### In scope (the only files you should modify)
 
 - `src/background/runtime.ts`
 - `src/i18n/resources.ts`（新規キー 1 件のみ）
 - `tests/background.runtime_unknown_action.test.ts`（新規作成）
 
-**Out of scope** (do NOT touch, even though they look related):
+#### Out of scope (do NOT touch, even though they look related)
 
 - `src/background/runtime_handlers.ts` — 各 handler の応答挙動は正しい。
 - `src/content/` 側のメッセージリスナー — 別経路であり今回の対象外。
@@ -85,7 +85,7 @@
 
 `src/i18n/resources.ts` の `background.runtime` 配下に、既存キー（`actionFailed`、`tokenTestFailed` 等）と同じ形式で `unknownAction`（日本語文言例: 「不明なアクションです」）を追加する。ja がプライマリの構造に倣うこと（ファイル内の既存 `background.runtime.*` の並びを確認して同じ場所に置く）。
 
-**Verify**: `pnpm test:unit:node -- tests/i18n.test.ts` → all pass（リソース整合性テストが通る）。
+Verify: `pnpm test:unit:node -- tests/i18n.test.ts` → all pass（リソース整合性テストが通る）。
 
 ### Step 2: 未知 action への応答
 
@@ -100,7 +100,7 @@ if (!handler) {
 
 必要な import（`Result` は `@praha/byethrow`、`t` は既存 handler ファイルと同じ import 元 — `src/background/runtime_handlers.ts` の import を確認して同じパスを使う）を追加する。同期応答なので戻り値は `false`。
 
-**Verify**: `pnpm typecheck` → exit 0。
+Verify: `pnpm typecheck` → exit 0。
 
 ### Step 3: テスト追加
 
@@ -110,11 +110,11 @@ if (!handler) {
 2. `{ action: "definitelyNotARealAction" }` で呼び出し、(a) `sendResponse` が同期的に 1 回呼ばれ、渡された値が `Result.isFailure` で真、(b) リスナーの戻り値が `false` であることを検証。
 3. 既知 action（例: 任意の実在 handler）では従来どおり handler へ委譲されることの回帰テスト。
 
-**Verify**: `pnpm test:unit:node -- tests/background.runtime_unknown_action.test.ts` → all pass。
+Verify: `pnpm test:unit:node -- tests/background.runtime_unknown_action.test.ts` → all pass。
 
 ### Step 4: 全体確認
 
-**Verify**: `pnpm test` → all pass、`pnpm format && pnpm lint` → exit 0。
+Verify: `pnpm test` → all pass、`pnpm format && pnpm lint` → exit 0。
 
 ## Test plan
 

@@ -14,12 +14,12 @@
 
 ## Status
 
-- **Priority**: P2
-- **Effort**: S
-- **Risk**: LOW
-- **Depends on**: none
-- **Category**: docs (security-adjacent)
-- **Planned at**: commit `31dee9a`, 2026-07-14
+- Priority: P2
+- Effort: S
+- Risk: LOW
+- Depends on: none
+- Category: docs (security-adjacent)
+- Planned at: commit `31dee9a`, 2026-07-14
 
 ## Why this matters
 
@@ -110,11 +110,11 @@ No build, typecheck, or test run is required — this is a doc-only change with 
 
 ## Scope
 
-**In scope** (the only file you should modify):
+#### In scope (the only file you should modify)
 
 - `.claude/rules/security.md`
 
-**Out of scope** (do NOT touch, even though they look related):
+#### Out of scope (do NOT touch, even though they look related)
 
 - `manifest.json` — this file is correct as shipped; do not edit it.
 - `src/constants/api-endpoints.ts` — correct as is; referenced only for context.
@@ -153,7 +153,7 @@ with:
 
 Keep the preceding line `manifest.jsonのCSPを厳格化（Issue #143）：` as is.
 
-**Verify**: `grep -n "connect-src" .claude/rules/security.md` → outputs a line containing `connect-src 'self' https://api.openai.com https://api.anthropic.com https://api.z.ai`.
+Verify: `grep -n "connect-src" .claude/rules/security.md` → outputs a line containing `connect-src 'self' https://api.openai.com https://api.anthropic.com https://api.z.ai`.
 
 ### Step 2: Confirm the doc's `extension_pages` string byte-matches the manifest
 
@@ -165,7 +165,7 @@ MANIFEST_VAL=$(grep -o '"extension_pages": "[^"]*"' manifest.json | sed 's/^"ext
 if [ "$DOC_VAL" = "$MANIFEST_VAL" ]; then echo MATCH; else echo MISMATCH; fi
 ```
 
-**Verify**: output is exactly `MATCH`. If `MISMATCH`, re-check Step 1 for typos (do not proceed until this passes).
+Verify: output is exactly `MATCH`. If `MISMATCH`, re-check Step 1 for typos (do not proceed until this passes).
 
 ### Step 3: Add the `connect-src` explanation paragraph
 
@@ -175,7 +175,7 @@ Immediately after the JSON code block from Step 1 (still inside section "2."), a
 `connect-src` は拡張機能ページが `fetch`/`XMLHttpRequest` で接続できるホストを制限する、このCSPの中核的な制約です。AIプロバイダのエンドポイントを追加・変更する場合は、`src/constants/api-endpoints.ts` の `ALLOWED_API_ORIGINS`、`manifest.json` の `host_permissions`、`content_security_policy.connect-src` を必ず同じ差分で揃えてください（詳細は `CLAUDE.md` の「Release / Permission Review」を参照）。
 ```
 
-**Verify**: `grep -n "connect-src" .claude/rules/security.md` → now returns two matches (one inside the JSON block, one in this new paragraph).
+Verify: `grep -n "connect-src" .claude/rules/security.md` → now returns two matches (one inside the JSON block, one in this new paragraph).
 
 ## Test plan
 

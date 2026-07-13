@@ -24,11 +24,11 @@ The same token system is used for:
 
 The token system is structured in 3 layers:
 
-1. **Primitive tokens** (`src/styles/tokens/primitives.css`)
+1. Primitive tokens (`src/styles/tokens/primitives.css`)
    - Physical values (palette, spacing, radii, shadows, typography)
-2. **Semantic tokens** (`src/styles/tokens/semantic.css`)
+2. Semantic tokens (`src/styles/tokens/semantic.css`)
    - Meaning-based values (surface/text/border/primary/etc), theme-aware
-3. **Component tokens** (`src/styles/tokens/components.css`)
+3. Component tokens (`src/styles/tokens/components.css`)
    - Component-specific values (button/input/card tokens) and shared component styles (toast/overlay)
 
 ## Theme Switching (`data-theme`)

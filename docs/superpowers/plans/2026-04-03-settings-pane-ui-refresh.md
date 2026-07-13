@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** `設定` ペインを `overview + 5 setting cards` 構成に再編し、保存/確認/削除の強弱と `ダーク / ライト / 自動` のテーマ導線を見た目で理解しやすくする。
+Goal: `設定` ペインを `overview + 5 setting cards` 構成に再編し、保存/確認/削除の強弱と `ダーク / ライト / 自動` のテーマ導線を見た目で理解しやすくする。
 
-**Architecture:** `src/popup/panes/SettingsPane.tsx` の state と storage/runtime の flow は維持し、DOM 構造と className を整理してカード UI を構築する。SettingsPane 専用スタイルは `popup-misc.css` に局所化し、既存の popup token / control class を流用して差分を最小限にする。検証は `tests/popup.settings_pane.test.ts` の fail-first 更新と Storybook の populated story を軸に行う。
+Architecture: `src/popup/panes/SettingsPane.tsx` の state と storage/runtime の flow は維持し、DOM 構造と className を整理してカード UI を構築する。SettingsPane 専用スタイルは `popup-misc.css` に局所化し、既存の popup token / control class を流用して差分を最小限にする。検証は `tests/popup.settings_pane.test.ts` の fail-first 更新と Storybook の populated story を軸に行う。
 
-**Tech Stack:** React 19, TypeScript, Base UI, popup design-token CSS, Vitest, Storybook
+Tech Stack: React 19, TypeScript, Base UI, popup design-token CSS, Vitest, Storybook
 
 ---
 
@@ -36,7 +36,7 @@
 
 ### Task 1: Lock the new overview-and-cards DOM contract
 
-**Files:**
+### Files:
 - Modify: `tests/popup.settings_pane.test.ts`
 - Modify: `src/popup/panes/SettingsPane.tsx`
 
@@ -130,7 +130,7 @@ git commit -m "refactor: reorganize settings pane structure"
 
 ### Task 2: Lock token action hierarchy and theme ordering with tests
 
-**Files:**
+### Files:
 - Modify: `tests/popup.settings_pane.test.ts`
 - Modify: `src/popup/panes/SettingsPane.tsx`
 
@@ -240,7 +240,7 @@ git commit -m "refactor: reorder settings pane actions and theme controls"
 
 ### Task 3: Apply localized settings styles and add a visual harness
 
-**Files:**
+### Files:
 - Modify: `src/styles/tokens/components/popup-misc.css`
 - Modify: `src/popup/panes/SettingsPane.stories.tsx`
 - Verify: `tests/popup.settings_pane.test.ts`

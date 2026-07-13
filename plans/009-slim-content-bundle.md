@@ -14,19 +14,19 @@
 
 ## Status
 
-- **Priority**: P3
-- **Effort**: S
-- **Risk**: LOW
-- **Depends on**: plans/004-*.md (minify) — measure bundle size AFTER plan 004 has landed, so this plan's win is attributable and not muddled by minifier noise. If plan 004 has not landed yet, STOP and report rather than measuring against an unminified baseline.
-- **Category**: perf / tech-debt
-- **Planned at**: commit `31dee9a`, 2026-07-14
+- Priority: P3
+- Effort: S
+- Risk: LOW
+- Depends on: plans/004-*.md (minify) — measure bundle size AFTER plan 004 has landed, so this plan's win is attributable and not muddled by minifier noise. If plan 004 has not landed yet, STOP and report rather than measuring against an unminified baseline.
+- Category: perf / tech-debt
+- Planned at: commit `31dee9a`, 2026-07-14
 
 ## Why this matters
 
 `src/content.ts` is injected into **every** HTML page the user visits (Manifest V3 content script, `<all_urls>`). Two unrelated things in its dependency graph make that injection heavier than it needs to be:
 
-1. **(G) Eager preload of heavy modules.** On every HTML document, `content.ts` unconditionally kicks off `loadNotificationModule()` and `loadOverlayModule()` at load time — not when the user actually triggers a notification or opens the overlay. `overlay-helpers.ts` pulls in `react`, `react-dom/client`, and (transitively via `OverlayApp`) `react-markdown` + `remark-gfm`. That initialization work runs on pages where the user never touches the extension.
-2. **(H) Icon over-import.** `src/components/icon.tsx` builds a `Record<IconName, Component>` that eagerly imports ~25 `lucide-react` icon components as named imports and assigns them all into one object literal. Because every icon is referenced in that object literal (even ones the content script never renders), a bundler cannot tree-shake the unused ones out of `content.js` — all 25 icons ship in the content bundle even though the content-reachable UI only ever renders 9 of them.
+1. (G) Eager preload of heavy modules. On every HTML document, `content.ts` unconditionally kicks off `loadNotificationModule()` and `loadOverlayModule()` at load time — not when the user actually triggers a notification or opens the overlay. `overlay-helpers.ts` pulls in `react`, `react-dom/client`, and (transitively via `OverlayApp`) `react-markdown` + `remark-gfm`. That initialization work runs on pages where the user never touches the extension.
+2. (H) Icon over-import. `src/components/icon.tsx` builds a `Record<IconName, Component>` that eagerly imports ~25 `lucide-react` icon components as named imports and assigns them all into one object literal. Because every icon is referenced in that object literal (even ones the content script never renders), a bundler cannot tree-shake the unused ones out of `content.js` — all 25 icons ship in the content bundle even though the content-reachable UI only ever renders 9 of them.
 
 Fixing (G) removes work that runs on every page load for a feature (overlay/toast) most page-loads never use. Fixing (H) removes bytes that are provably unreachable from the content script's actual render paths. Both are small, low-risk, purely internal refactors — no behavior change for the user once the overlay/toast are actually invoked.
 
@@ -131,7 +131,7 @@ Fixing (G) removes work that runs on every page load for a feature (overlay/toas
 
 ## Scope
 
-**In scope** (the only files you should modify):
+#### In scope (the only files you should modify)
 
 - `src/content.ts`
 - `src/content/overlay/icons.tsx`
@@ -141,7 +141,7 @@ Fixing (G) removes work that runs on every page load for a feature (overlay/toas
 - `src/content/overlay/icons.stories.tsx` (only if it breaks due to Step Group B and needs an import-path fix)
 - `plans/README.md` (status row update at the end)
 
-**Out of scope** (do NOT touch, even though they look related):
+#### Out of scope (do NOT touch, even though they look related)
 
 - `scripts/bundle.mjs` and any minify/bundler config — that is plan 004's territory; this plan only changes what source code is reachable, not how it is bundled.
 - `manifest.json` — no permission or injection-target changes here.
@@ -161,7 +161,7 @@ Fixing (G) removes work that runs on every page load for a feature (overlay/toas
 
 Run `pnpm run build` (must have plan 004's minify changes already merged — if `dist/content.js` is not minified, i.e. contains multi-space indentation and full variable names, STOP and report that plan 004 is a prerequisite). Record the byte size:
 
-**Verify**: `ls -la dist/content.js` → note the size in bytes. Keep this number to compare after Step A2 and after Step Group B.
+Verify: `ls -la dist/content.js` → note the size in bytes. Keep this number to compare after Step A2 and after Step Group B.
 
 ### Step A2: Replace the unconditional preload with a first-user-intent gate
 
@@ -205,7 +205,7 @@ Place this in the same location the removed block occupied (right after the `tes
 
 Do not remove or rename `loadNotificationModule`, `loadOverlayModule`, or any of their existing call sites elsewhere in the file (`getOrCreateToastMount`, `showNotification`, `getOrCreateOverlayMount`, `handleCloseOverlay`, `showActionOverlay`, `showSummaryOverlay`, the `onContextActionsChange` callback passed to `setupTableAutoExec`) — those already call the loaders lazily on demand and remain the primary path; Step A2 only changes the _extra_ eager warm-up call.
 
-**Verify**:
+#### Verify
 
 - `pnpm run typecheck` → exit 0, no errors.
 - `pnpm run build` → exit 0.
@@ -214,7 +214,7 @@ Do not remove or rename `loadNotificationModule`, `loadOverlayModule`, or any of
 
 ### Step A3: Confirm existing tests still pass
 
-**Verify**: `pnpm test` → all pass, no new failures. If `src/content.test.ts` (or similarly named) asserts on preload timing/call counts for `loadNotificationModule`/`loadOverlayModule` at module-load time, expect it to need updating to assert the loaders are NOT called until a `pointerdown` fires — locate such a test with `grep -rln "loadNotificationModule\|loadOverlayModule" src/**/*.test.ts` before concluding none exists.
+Verify: `pnpm test` → all pass, no new failures. If `src/content.test.ts` (or similarly named) asserts on preload timing/call counts for `loadNotificationModule`/`loadOverlayModule` at module-load time, expect it to need updating to assert the loaders are NOT called until a `pointerdown` fires — locate such a test with `grep -rln "loadNotificationModule\|loadOverlayModule" src/**/*.test.ts` before concluding none exists.
 
 ## Step Group B: stop content-reachable code from pulling in all 25 lucide icons
 
@@ -274,7 +274,7 @@ export function ContentIcon({
 
 Match the exact icon-name string values used today (`"chevron-down"`, `"close"`, etc.) — these must be byte-identical to the `name="..."` values already used in `OverlayComponents.tsx` and `ThemeCycleButton.tsx`, or the switch to the new component will silently render nothing.
 
-**Verify**: `pnpm run typecheck` → exit 0 (new file compiles standalone; it is not yet imported anywhere, so this just checks the file itself is valid TypeScript).
+Verify: `pnpm run typecheck` → exit 0 (new file compiles standalone; it is not yet imported anywhere, so this just checks the file itself is valid TypeScript).
 
 ### Step B2: Point content-only consumers at the new local icon component
 
@@ -286,7 +286,7 @@ Update these three files to import `ContentIcon` (aliased as `Icon` at the impor
 
 Do not touch `src/components/icon.tsx` in this step — it must keep serving the popup with the full 25-icon set, completely unchanged.
 
-**Verify**:
+#### Verify
 
 - `pnpm run typecheck` → exit 0.
 - `grep -rn '"@/components/icon"' src/content/overlay/icons.tsx src/content/overlay/OverlayComponents.tsx src/components/ThemeCycleButton.tsx` → no matches (all three now import from `@/content/overlay/content-icon`).
@@ -296,11 +296,11 @@ Do not touch `src/components/icon.tsx` in this step — it must keep serving the
 
 Open `src/content/overlay/icons.stories.tsx`. If it imports anything from `@/components/icon` (e.g. `IconName`) that no longer applies, update it to reference the new `content-icon` module's exports instead. If it only imports `PinIcon`/`CopyIcon` from `./icons` and never references `@/components/icon` directly, no change is needed here.
 
-**Verify**: `pnpm run test:storybook` → all pass, including any `icons.stories.tsx` / `ThemeCycleButton.stories.tsx` stories.
+Verify: `pnpm run test:storybook` → all pass, including any `icons.stories.tsx` / `ThemeCycleButton.stories.tsx` stories.
 
 ### Step B4: Confirm the popup's icon set is unaffected
 
-**Verify**:
+#### Verify
 
 - `pnpm test` → all pass.
 - `pnpm run test:storybook` → all pass (this includes popup-side stories that render icons via `@/components/icon`).
@@ -308,7 +308,7 @@ Open `src/content/overlay/icons.stories.tsx`. If it imports anything from `@/com
 
 ### Step B5: Measure the bundle size win
 
-**Verify**: `pnpm run build` → exit 0, then `ls -la dist/content.js` → size must be smaller than the Step A1 baseline (Step Group A's timing change alone won't shrink bytes much; the icon cut in Step Group B is what should show a measurable byte reduction). Also check `ls -la dist/popup.js` and confirm its size is unchanged or only trivially different (popup still imports the full 25-icon barrel) — a large change there would indicate the popup's icon usage was accidentally affected.
+Verify: `pnpm run build` → exit 0, then `ls -la dist/content.js` → size must be smaller than the Step A1 baseline (Step Group A's timing change alone won't shrink bytes much; the icon cut in Step Group B is what should show a measurable byte reduction). Also check `ls -la dist/popup.js` and confirm its size is unchanged or only trivially different (popup still imports the full 25-icon barrel) — a large change there would indicate the popup's icon usage was accidentally affected.
 
 ## Test plan
 

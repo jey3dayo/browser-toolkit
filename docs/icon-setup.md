@@ -52,12 +52,12 @@ magick -version
 magick logo-source.jpg -fuzz 10% -transparent white images/logo.png
 ```
 
-**オプション説明:**
+### オプション説明:
 
 - `-fuzz 10%`: 白色の許容範囲（0-100%、値が大きいほど広範囲を透過）
 - `-transparent white`: 白色を透過に変換
 
-**注意点:**
+### 注意点:
 
 - JPEGは透過をサポートしないため、必ずPNG形式で保存
 - `-fuzz`の値は画像によって調整が必要（5-15%が一般的）
@@ -89,7 +89,7 @@ identify images/icon16.png
 # 出力例: images/icon16.png PNG 16x16 16x16+0+0 8-bit sRGB 3329B
 ```
 
-**確認ポイント:**
+### 確認ポイント:
 
 - ファイル形式がPNGであること
 - 透過（RGBA）が含まれていること
@@ -117,9 +117,9 @@ magick images/logo.png -resize 128x128 images/icon128.png
 
 ### 問題: 透過がうまくいかない
 
-**原因**: `-fuzz`の値が不適切、または背景色が純白でない
+原因: `-fuzz`の値が不適切、または背景色が純白でない
 
-**解決策**:
+#### 解決策
 
 ```bash
 # fuzz値を調整（10% → 15%）
@@ -134,9 +134,9 @@ magick logo.jpg -fuzz 10% -transparent '#F0F0F0' output.png
 
 ### 問題: アイコンがぼやける
 
-**原因**: リサイズアルゴリズムが適切でない
+原因: リサイズアルゴリズムが適切でない
 
-**解決策**:
+#### 解決策
 
 ```bash
 # シャープなリサイズ（ランチョス法）
@@ -148,9 +148,9 @@ magick images/logo.png -resize 16x16 -unsharp 0x1 images/icon16.png
 
 ### 問題: ファイルサイズが大きすぎる
 
-**原因**: PNG圧縮が不十分
+原因: PNG圧縮が不十分
 
-**解決策**:
+#### 解決策
 
 ```bash
 # 高圧縮で保存

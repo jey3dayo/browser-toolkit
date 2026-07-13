@@ -14,12 +14,12 @@
 
 ## Status
 
-- **Priority**: P2
-- **Effort**: M
-- **Risk**: LOW
-- **Depends on**: none
-- **Category**: tests
-- **Planned at**: commit `31dee9a`, 2026-07-14
+- Priority: P2
+- Effort: M
+- Risk: LOW
+- Depends on: none
+- Category: tests
+- Planned at: commit `31dee9a`, 2026-07-14
 
 ## Why this matters
 
@@ -67,14 +67,14 @@ The calendar-extract feature (README headline feature: extract an event from sel
 
 ## Scope
 
-**In scope** (the only files you should create):
+#### In scope (the only files you should create)
 
 - `tests/utils.ics.test.ts` (create)
 - `tests/utils.event_date_range.test.ts` (create)
 - `tests/background.calendar.test.ts` (create)
 - `plans/README.md` (status row update only, if it exists)
 
-**Out of scope** (do NOT touch, even though you are reading them closely):
+#### Out of scope (do NOT touch, even though you are reading them closely)
 
 - `src/utils/ics.ts`, `src/utils/event_date_range.ts`, `src/background/calendar.ts`, `src/schemas/extracted_event.ts`, `src/utils/date_utils.ts` — read-only. If writing a test surfaces what looks like a real bug (e.g. an off-by-one, an unreachable branch that should be reachable, wrong escaping order), **do not fix it** — write the test asserting the ACTUAL current behavior (even if it looks surprising), and separately report the suspected bug in your final summary. Do not silently "correct" the test to hide a real defect, and do not edit production code under this plan.
 - Any other test file under `tests/` — do not modify existing tests.
@@ -92,30 +92,30 @@ The calendar-extract feature (README headline feature: extract an event from sel
 
 Cover `buildIcs` from `src/utils/ics.ts`. Import via `@/utils/ics`. Use a minimal valid `ExtractedEvent` (import type from `@/shared_types`) as your base fixture and vary fields per case. Cases:
 
-1. **Special-character escaping**: an event whose `title`/`description` contains `,`, `;`, `\`, and an embedded `\n`. Assert the `SUMMARY:`/`DESCRIPTION:` line contains the escaped forms (`\,`, `\;`, `\\`, `\n`-as-two-chars) and that a raw `\r` in the input does not survive into the output.
-2. **75-char line folding boundary**: a `title` long enough that the folded `SUMMARY:` line must wrap (e.g. 100+ ASCII chars). Assert the output contains `\r\n ` (CRLF + single space) as a continuation marker, and that no single physical line inside the ICS payload (when split on `\r\n`, treating a line starting with a space as a continuation of the previous) exceeds 75 characters before folding logic is applied — concretely: assert the raw unfolded line info by reconstructing (strip `\r\n ` continuations and rejoin) and comparing to the original unescaped/escaped title content.
-3. **All-day event formatting**: `allDay: true`, `start: "2025-12-16"`, no `end`. Assert `DTSTART;VALUE=DATE:20251216` and `DTEND;VALUE=DATE:20251217` (exclusive end, +1 day per `nextDateYyyyMmDd`) appear as separate lines.
-4. **Timed (UTC) event formatting**: `start: "2025-12-16T10:00:00+09:00"`, `end: "2025-12-16T11:00:00+09:00"`. Assert `DTSTART:20251216T010000Z` and `DTEND:20251216T020000Z` (UTC-converted, matching the `date_utils.test.ts:21-25` pattern for the +09:00 offset).
-5. **Null on invalid input**: `start: ""` (or any input that makes `computeEventDateRange` return `null`) → `buildIcs` returns `null`.
-6. **Optional fields omitted**: no `location`, no `description` → assert the output contains no `LOCATION:` or `DESCRIPTION:` line (use `.includes("LOCATION:")` / `.includes("DESCRIPTION:")` on the result string, false in both cases).
+1. Special-character escaping: an event whose `title`/`description` contains `,`, `;`, `\`, and an embedded `\n`. Assert the `SUMMARY:`/`DESCRIPTION:` line contains the escaped forms (`\,`, `\;`, `\\`, `\n`-as-two-chars) and that a raw `\r` in the input does not survive into the output.
+2. 75-char line folding boundary: a `title` long enough that the folded `SUMMARY:` line must wrap (e.g. 100+ ASCII chars). Assert the output contains `\r\n ` (CRLF + single space) as a continuation marker, and that no single physical line inside the ICS payload (when split on `\r\n`, treating a line starting with a space as a continuation of the previous) exceeds 75 characters before folding logic is applied — concretely: assert the raw unfolded line info by reconstructing (strip `\r\n ` continuations and rejoin) and comparing to the original unescaped/escaped title content.
+3. All-day event formatting: `allDay: true`, `start: "2025-12-16"`, no `end`. Assert `DTSTART;VALUE=DATE:20251216` and `DTEND;VALUE=DATE:20251217` (exclusive end, +1 day per `nextDateYyyyMmDd`) appear as separate lines.
+4. Timed (UTC) event formatting: `start: "2025-12-16T10:00:00+09:00"`, `end: "2025-12-16T11:00:00+09:00"`. Assert `DTSTART:20251216T010000Z` and `DTEND:20251216T020000Z` (UTC-converted, matching the `date_utils.test.ts:21-25` pattern for the +09:00 offset).
+5. Null on invalid input: `start: ""` (or any input that makes `computeEventDateRange` return `null`) → `buildIcs` returns `null`.
+6. Optional fields omitted: no `location`, no `description` → assert the output contains no `LOCATION:` or `DESCRIPTION:` line (use `.includes("LOCATION:")` / `.includes("DESCRIPTION:")` on the result string, false in both cases).
 7. Assert the overall structure: result starts with `BEGIN:VCALENDAR\r\n`, ends with `END:VCALENDAR\r\n`, and contains `VERSION:2.0`, `BEGIN:VEVENT`, `END:VEVENT`.
 
-**Verify**: `pnpm test -- ics` → all new tests pass, exit 0.
+Verify: `pnpm test -- ics` → all new tests pass, exit 0.
 
 ### Step 2: Write `tests/utils.event_date_range.test.ts`
 
 Cover `computeEventDateRange` from `src/utils/event_date_range.ts`. Cases:
 
-1. **All-day, no end**: `{ start: "2025-12-16", allDay: true }` → `{ kind: "allDay", startYyyyMmDd: "20251216", endYyyyMmDdExclusive: "20251217" }`.
-2. **All-day, end before or equal to start gets corrected**: `{ start: "2025-12-16", end: "2025-12-16", allDay: true }` → `endYyyyMmDdExclusive: "20251217"` (corrected per lines 43-45). Also test `end` strictly before `start` (e.g. `end: "2025-12-10"`) → same correction to `"20251217"`.
-3. **All-day inferred from date-only `start` without explicit `allDay`**: `{ start: "2025-12-16" }` (no `allDay` field) → still `kind: "allDay"` (per line 91: `Boolean(startDateOnly)` triggers all-day even if `allDay` is undefined).
-4. **All-day with valid multi-day end**: `{ start: "2025-12-16", end: "2025-12-20", allDay: true }` → `endYyyyMmDdExclusive: "20251220"` (end passed through unchanged, no +1 adjustment, since `end > start`).
-5. **Datetime, explicit end, UTC conversion**: `{ start: "2025-12-16T10:00:00+09:00", end: "2025-12-16T12:00:00+09:00" }` → `kind: "dateTime"`, `startUtc: "20251216T010000Z"`, `endUtc: "20251216T030000Z"`.
-6. **Datetime, no end defaults to +1 hour**: `{ start: "2025-12-16T10:00:00+09:00" }` → `endUtc` is exactly one hour after `startUtc` (`"20251216T020000Z"`).
-7. **Datetime, end <= start gets corrected to +1 hour**: `{ start: "2025-12-16T10:00:00+09:00", end: "2025-12-16T09:00:00+09:00" }` → `endUtc` becomes one hour after `startUtc`, not the (earlier) provided end.
-8. **Null on empty/unparseable start**: `{ start: "" }` → `null`. `{ start: "not a date" }` → `null`.
+1. All-day, no end: `{ start: "2025-12-16", allDay: true }` → `{ kind: "allDay", startYyyyMmDd: "20251216", endYyyyMmDdExclusive: "20251217" }`.
+2. All-day, end before or equal to start gets corrected: `{ start: "2025-12-16", end: "2025-12-16", allDay: true }` → `endYyyyMmDdExclusive: "20251217"` (corrected per lines 43-45). Also test `end` strictly before `start` (e.g. `end: "2025-12-10"`) → same correction to `"20251217"`.
+3. All-day inferred from date-only `start` without explicit `allDay`: `{ start: "2025-12-16" }` (no `allDay` field) → still `kind: "allDay"` (per line 91: `Boolean(startDateOnly)` triggers all-day even if `allDay` is undefined).
+4. All-day with valid multi-day end: `{ start: "2025-12-16", end: "2025-12-20", allDay: true }` → `endYyyyMmDdExclusive: "20251220"` (end passed through unchanged, no +1 adjustment, since `end > start`).
+5. Datetime, explicit end, UTC conversion: `{ start: "2025-12-16T10:00:00+09:00", end: "2025-12-16T12:00:00+09:00" }` → `kind: "dateTime"`, `startUtc: "20251216T010000Z"`, `endUtc: "20251216T030000Z"`.
+6. Datetime, no end defaults to +1 hour: `{ start: "2025-12-16T10:00:00+09:00" }` → `endUtc` is exactly one hour after `startUtc` (`"20251216T020000Z"`).
+7. Datetime, end <= start gets corrected to +1 hour: `{ start: "2025-12-16T10:00:00+09:00", end: "2025-12-16T09:00:00+09:00" }` → `endUtc` becomes one hour after `startUtc`, not the (earlier) provided end.
+8. Null on empty/unparseable start: `{ start: "" }` → `null`. `{ start: "not a date" }` → `null`.
 
-**Verify**: `pnpm test -- event_date_range` → all new tests pass, exit 0.
+Verify: `pnpm test -- event_date_range` → all new tests pass, exit 0.
 
 ### Step 3: Write `tests/background.calendar.test.ts`
 
@@ -134,13 +134,13 @@ Cover `normalizeEvent`, `buildGoogleCalendarUrl`, and `buildCalendarArtifacts` f
 
 `buildCalendarArtifacts` cases: 10. `targets: ["google"]` with a valid event → result has `calendarUrl` set, `ics` is `undefined`, `errors` is empty. 11. `targets: ["ics"]` with a valid event → result has `ics` set (starts with `"BEGIN:VCALENDAR"`), `calendarUrl` is `undefined`, `errors` is empty. 12. `targets: ["google", "ics"]` with an event whose `start` is unparseable (e.g. `""`) → both `calendarUrl` and `ics` are `undefined`, and `errors` contains exactly 2 messages (one per failed target) — assert the exact two message strings from `buildGoogleCalendarUrlFailureMessage` output and the literal `".ics の生成に失敗しました"`. 13. `targets: []` → `calendarUrl` and `ics` both `undefined`, `errors` empty, `eventText` still populated (via `formatEventText`, always run).
 
-**Verify**: `pnpm test -- calendar` → all new tests pass, exit 0. Note this filter may also match `tests/background.context_menu_calendar*` or similar existing files if present — check `pnpm test -- calendar` output lists your new file and no prior failures were introduced; if the filter is too broad, run the exact file instead: `pnpm test tests/background.calendar.test.ts`.
+Verify: `pnpm test -- calendar` → all new tests pass, exit 0. Note this filter may also match `tests/background.context_menu_calendar*` or similar existing files if present — check `pnpm test -- calendar` output lists your new file and no prior failures were introduced; if the filter is too broad, run the exact file instead: `pnpm test tests/background.calendar.test.ts`.
 
 ### Step 4: Full verification pass
 
 Run the full suite and quality gates.
 
-**Verify**:
+#### Verify
 
 - `pnpm test` → exit 0, all tests pass including the 3 new files.
 - `pnpm run typecheck` → exit 0.
