@@ -28,6 +28,7 @@ row when done.
 | 011  | focus-override 登録を promise queue で直列化（check-then-act 競合の解消）    | P3       | S      | —           | DONE    |
 | 012  | `url-pattern.ts` を `src/utils/` へ移動（popup→content 層 import の解消）    | P3       | S      | —           | DONE    |
 | 013  | keep-alive コメント訂正 + 廃止 UI 参照の e2e を skip 化                      | P3       | S      | —           | DONE    |
+| 014  | TypeScript 6.0.3 → 7.0.x アップグレード（full ci で経験的検証）              | P2       | S/M    | —           | BLOCKED |
 
 Status values: TODO | IN PROGRESS | DONE | PARTIAL | BLOCKED (with one-line reason) | REJECTED (with one-line rationale)
 
@@ -55,7 +56,8 @@ Round 2 で検出したが今回プラン化しなかったもの。再監査を
 - ~~**focus-override 登録の check-then-act 競合**~~ → **plan 011 で解消済み（DONE）**。promise queue で直列化（`scheduleRefreshContextMenus` パターン）。
 - ~~**keep-alive alarm のコメント誤り**~~ → **plan 013 で解消済み（DONE）**。コメントを正確化（alarm コードは不変）。
 - **stale Playwright e2e**: 廃止 UI 参照の2テストは plan 013 で `test.skip`+TODO 化。**未解決の別問題**: `pnpm exec playwright test --list` が `SyntaxError: Cannot use 'import.meta' outside a module`（`tests/e2e/setup.ts` 起因）で列挙すら失敗する（base tree でも再現＝既存）。e2e スイートは事実上機能停止・CI 非対象。現行 URL パターンモデル向けの e2e 書き直し＋ESM 設定修正が follow-up（要インタラクティブ検証）。
-- `@shadcn/react@0.1.0`（pre-1.0 固定 runtime dep）: `MessageScroller` 1個のみ利用。vendoring か許容理由の明文化を推奨するが S / 低優先（今回の safe バッチからは除外）。
+- **`@shadcn/react@0.1.0`（pre-1.0 固定 runtime dep）** → **調査の上 vendoring せず保持（許容）**。精査すると `MessageScroller` は単一の小部品ではなく複合スクロールアンカリング primitive（`Provider`/`Root`/`Viewport`/`Content`/`Item`/`Button` を `OverlayComponents.tsx` の overlay チャットで約15箇所使用）。MIT・稼働中・exact pin 済み。vendoring は scroll-anchoring ロジックの再実装＝overlay チャット UX の回帰リスクが高く、当初見積もり(S)より重い。0.66% 未満の依存削減のためにリスクを取る価値はないと判断し保持。将来 upstream が放置/削除された場合に再検討。
+- **plan 014（TS 6.0.3 → 7.0.x）は BLOCKED**: リポジトリ自身の `minimumReleaseAge: 10080`（=7日）supply-chain ポリシーが `typescript@7.0.2`（2026-07-08 公開、npm 唯一の stable 7.0.x）を拒否（本日 2026-07-13 時点で 5日）。ポリシーは意図的な security 統制のため bypass せず。**~2026-07-15 に自動解禁**され、用意済みの plan 014 を再実行すれば通る見込み（tsconfig は TS7 適合済み、唯一の残リスクは Storybook `react-docgen-typescript` の TS7 programmatic API 依存＝再実行時に実測）。`minimumReleaseAgeExclude` への typescript 追加は統制を弱めるメンテナ判断のため独断不可。
 
 ### Direction findings（メンテナ判断・未プラン化）
 
