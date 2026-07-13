@@ -150,10 +150,12 @@ manifest.jsonのCSPを厳格化（Issue #143）：
 ```json
 {
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://api.openai.com https://api.anthropic.com https://api.z.ai"
   }
 }
 ```
+
+`connect-src` は拡張機能ページが `fetch`/`XMLHttpRequest` で接続できるホストを制限する、このCSPの中核的な制約です。AIプロバイダのエンドポイントを追加・変更する場合は、`src/constants/api-endpoints.ts` の `ALLOWED_API_ORIGINS`、`manifest.json` の `host_permissions`、`content_security_policy.connect-src` を必ず同じ差分で揃えてください（詳細は `CLAUDE.md` の「Release / Permission Review」を参照）。
 
 ### 3. 入力検証
 
