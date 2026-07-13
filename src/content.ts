@@ -92,14 +92,23 @@ import { parseNumericValue } from "@/utils/number_parser";
     testHooks.parseNumericValue = parseNumericValue;
   }
 
-  // 2回目以降の初期化では副作用を追加しない（idempotent）
-  // overlay/toastのpreloadはHTMLドキュメントでのみ実行
-  if (supportsHtmlDocument) {
+  // overlay/toastのpreloadは最初のユーザー操作をトリガーに行う（HTMLドキュメントのみ）
+  function preloadInteractiveModules(): void {
+    if (!supportsHtmlDocument) {
+      return;
+    }
     loadNotificationModule().catch(() => {
       // no-op
     });
     loadOverlayModule().catch(() => {
       // no-op
+    });
+  }
+
+  if (supportsHtmlDocument) {
+    document.addEventListener("pointerdown", preloadInteractiveModules, {
+      once: true,
+      passive: true,
     });
   }
 
