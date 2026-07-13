@@ -1,5 +1,4 @@
 import { Result } from "@praha/byethrow";
-import { matchesAnyPattern } from "@/content/url-pattern";
 import type {
   ActiveTabInfo,
   FocusOverrideDiagnosticSnapshot,
@@ -11,6 +10,7 @@ import type {
   TestOpenAiTokenRequest,
 } from "@/popup/runtime";
 import type { LocalStorageData } from "@/storage/types";
+import { matchesAnyPattern } from "@/utils/url-pattern";
 
 type Options = {
   sync?: Partial<SyncStorageData>;

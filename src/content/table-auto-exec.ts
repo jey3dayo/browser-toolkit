@@ -6,11 +6,11 @@ import {
   stopTableObserver,
 } from "@/content/table-observer";
 import { enableTableSort } from "@/content/table-sort";
-import { matchesAnyPattern } from "@/content/url-pattern";
 import {
   type DomainPatternConfig,
   getCurrentPatternRowFilterSetting as getCurrentPatternRowFilterSettingFromConfig,
 } from "@/domain-pattern-configs";
+import { matchesAnyPattern } from "@/utils/url-pattern";
 
 export type TableAutoExecDeps = {
   showNotification: (message: string) => void;
