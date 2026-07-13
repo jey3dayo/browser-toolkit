@@ -38,7 +38,7 @@ async function unregisterFocusOverrideContentScriptIfNeeded(): Promise<void> {
   });
 }
 
-export async function syncFocusOverrideContentScript(): Promise<void> {
+async function performFocusOverrideSync(): Promise<void> {
   if (!chrome.scripting?.registerContentScripts) {
     return;
   }
@@ -61,4 +61,15 @@ export async function syncFocusOverrideContentScript(): Promise<void> {
       world: "MAIN",
     },
   ]);
+}
+
+let focusOverrideSyncQueue: Promise<void> = Promise.resolve();
+
+export function syncFocusOverrideContentScript(): Promise<void> {
+  focusOverrideSyncQueue = Promise.resolve(focusOverrideSyncQueue)
+    .catch(() => {
+      // no-op
+    })
+    .then(() => performFocusOverrideSync());
+  return focusOverrideSyncQueue;
 }
