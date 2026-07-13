@@ -33,7 +33,8 @@ const buildOptions = {
     ".css": "css",
   },
   outdir: "dist",
-  sourcemap: true,
+  sourcemap: isWatch,
+  minify: !isWatch,
   plugins: [cssRawPlugin],
 };
 
