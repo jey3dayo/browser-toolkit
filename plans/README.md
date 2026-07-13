@@ -45,7 +45,7 @@ Status values: TODO | IN PROGRESS | DONE | PARTIAL | BLOCKED (with one-line reas
 
 Round 2 で検出したが今回プラン化しなかったもの。再監査を避けるため記録する。良い次候補には ✅ を付す。
 
-- ✅ **同名 storage helper の2実装**（`src/storage/helpers.ts` vs `src/background/storage.ts` が `storageLocalGet`/`storageSyncGet`/`storageLocalSet` を別実装・別意味論で export）: HIGH conf / M effort の correctness hazard。次ラウンドの有力候補。今回は推奨セット外のため保留。
+- ~~**同名 storage helper の2実装**~~ → **調査の上 REJECTED（やらない）**。当初「統合すべき correctness hazard」と framing したが、精査で覆った: (1) 実際は3層（content=`storage/helpers.ts` [Result, naive] / background=`background/storage.ts` [throw, quota+notifications+i18n] / popup=`popup/runtime.ts` の `createStorageSetter` [plain sync.set + Storybook 用 localStorage フォールバック]）で、いずれもランタイム境界に適した別物。content は background の notifications/quota/i18n を持ち込めない（特に content.js を slim した直後）。戻り契約も Result vs throw で非互換のため統合は高リスク・低見返り。(2) 疑った潜在バグ（background の `focus_override_registration.ts` が naive sync-only read で quota-fallback 退避キーを見落とす）は **phantom**: `focusOverridePatterns` は popup の plain `sync.set` でのみ書かれ、`__storage_fallback_keys__` marker を設定する quota-aware `storageSyncSet` は当該キーに使われない → naive read は常に正しい。残るのは純粋な命名の重複ニットのみで、投資対効果なし。
 - ✅ **content-script の本格 code-splitting**（PERF-02）: `format:"iife"` + splitting 無しで react/markdown/lucide が content.js に inline。effort **L** / MED risk の設計変更。004→009 の後に検討する spike 候補。
 - **`@shadcn/react@0.1.0`（pre-1.0 固定 runtime dep）**: `MessageScroller` 1個のみ利用。vendoring か許容理由の明文化を推奨するが S / 低優先。
 - **focus-override 登録の check-then-act 競合**（`focus_override_registration.ts:41`）: MED conf、swallow + 自己回復で実害小。`context_menu_registry` の queue パターンを流用すれば S で解消可能。
