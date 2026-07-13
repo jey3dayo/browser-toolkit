@@ -102,21 +102,22 @@ function sortRows(
   columnIndex: number,
   isAscending: boolean
 ): void {
-  rows.sort((a, b) => {
-    const aCell = a.cells[columnIndex]?.textContent?.trim() ?? "";
-    const bCell = b.cells[columnIndex]?.textContent?.trim() ?? "";
+  const keyed = rows.map((row) => {
+    const text = row.cells[columnIndex]?.textContent?.trim() ?? "";
+    return { row, text, num: parseNumericValue(text) };
+  });
 
-    const aNum = parseNumericValue(aCell);
-    const bNum = parseNumericValue(bCell);
-
-    if (!(Number.isNaN(aNum) || Number.isNaN(bNum))) {
-      return isAscending ? aNum - bNum : bNum - aNum;
+  keyed.sort((a, b) => {
+    if (!(Number.isNaN(a.num) || Number.isNaN(b.num))) {
+      return isAscending ? a.num - b.num : b.num - a.num;
     }
 
     return isAscending
-      ? aCell.localeCompare(bCell, "ja")
-      : bCell.localeCompare(aCell, "ja");
+      ? a.text.localeCompare(b.text, "ja")
+      : b.text.localeCompare(a.text, "ja");
   });
+
+  rows.splice(0, rows.length, ...keyed.map((entry) => entry.row));
 }
 
 function applyRowFilterIfEnabled(params: {
