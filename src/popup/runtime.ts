@@ -1,8 +1,8 @@
 import { Result } from "@praha/byethrow";
 import type { SummaryTarget } from "@/background/types";
-import { matchesAnyPattern } from "@/content/url-pattern";
 import type { LocalStorageData, SyncStorageData } from "@/storage/types";
 import { toErrorMessage } from "@/utils/errors";
+import { matchesAnyPattern } from "@/utils/url-pattern";
 
 // Re-export types from background/types for popup components
 export type {

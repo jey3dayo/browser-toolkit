@@ -1,5 +1,5 @@
 import { Result } from "@praha/byethrow";
-import { patternToRegex } from "@/content/url-pattern";
+import { patternToRegex } from "@/utils/url-pattern";
 
 export type DomainPatternConfig = {
   pattern: string;

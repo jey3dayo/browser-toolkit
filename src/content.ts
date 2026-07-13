@@ -11,13 +11,13 @@ import { setupTableAutoExec } from "@/content/table-auto-exec";
 import { stopTableObserver } from "@/content/table-observer";
 import { createThemeManager } from "@/content/theme-manager";
 import type { GlobalContentState } from "@/content/types";
-import { matchesAnyPattern, patternToRegex } from "@/content/url-pattern";
 import type {
   ActionOverlayRequest,
   SummaryOverlayRequest,
 } from "@/content-script-messages";
 import { storageLocalSet } from "@/storage/helpers";
 import { parseNumericValue } from "@/utils/number_parser";
+import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
 
 (() => {
   const supportsHtmlDocument = (() => {
@@ -75,7 +75,7 @@ import { parseNumericValue } from "@/utils/number_parser";
   // ========================================
   // 1. ユーティリティ関数（URLパターン）
   // ========================================
-  // → @/content/url-pattern に移動
+  // → @/utils/url-pattern に移動
 
   type ContentTestHooks = {
     patternToRegex?: (pattern: string) => RegExp;
