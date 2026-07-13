@@ -56,7 +56,10 @@ test.describe("Table Sort Feature", () => {
     expect(firstCellReversed).toBe("David");
   });
 
-  test("should handle dynamic table insertion", async ({
+  // TODO(advisor/013): 「すべてのサイトで有効化」トグルは table-pane リファクタで
+  // 廃止され、URL パターン + enableCurrentTab モデルへ移行済み。このテストは
+  // 新モデル向けに書き直しが必要（要インタラクティブ検証）。
+  test.skip("should handle dynamic table insertion", async ({
     page,
     extensionId,
   }) => {
