@@ -13,22 +13,22 @@ row when done.
 
 ## Execution order & status
 
-| Plan | Title                                                                        | Priority | Effort | Depends on  | Status  |
-| ---- | ---------------------------------------------------------------------------- | -------- | ------ | ----------- | ------- |
-| 001  | Migration バックアップ/リストアを実 Chrome の storage API で正しく動作させる | P1       | S      | —           | DONE    |
-| 002  | API トークンが debug ログ・コンソール・エクスポートに平文で出ないようにする  | P1       | S      | —           | DONE    |
-| 003  | 未知の runtime action に対して即座に失敗応答を返す                           | P2       | S      | —           | DONE    |
-| 004  | esbuild の minify を有効化し content.js の parse/compile コストを削減        | P1       | S      | —           | DONE    |
-| 005  | table-sort を Schwartzian transform で O(n) キー前計算に                     | P2       | M      | —           | DONE    |
-| 006  | calendar / .ics 生成チェーンにユニットテストを追加（現状ゼロ）               | P2       | M      | —           | DONE    |
-| 007  | `saveModel` の stale closure を修正し provider/model の不整合永続化を防ぐ    | P2       | S      | —           | DONE    |
-| 008  | security.md の CSP 例を shipped manifest と一致させる（doc ドリフト）        | P2       | S      | —           | DONE    |
-| 009  | content bundle スリム化（G=preload gating のみ採用 / H=icon 分割は却下）     | P3       | S      | 004         | PARTIAL |
-| 010  | esbuild watch を context()/watch() API へ移行（`pnpm run watch` 修復）       | P2       | S      | 004 (stack) | DONE    |
-| 011  | focus-override 登録を promise queue で直列化（check-then-act 競合の解消）    | P3       | S      | —           | DONE    |
-| 012  | `url-pattern.ts` を `src/utils/` へ移動（popup→content 層 import の解消）    | P3       | S      | —           | DONE    |
-| 013  | keep-alive コメント訂正 + 廃止 UI 参照の e2e を skip 化                      | P3       | S      | —           | DONE    |
-| 014  | TypeScript 6.0.3 → 7.0.x アップグレード（full ci で経験的検証）              | P2       | S/M    | —           | BLOCKED |
+| Plan | Title                                                                            | Priority | Effort | Depends on  | Status  |
+| ---- | -------------------------------------------------------------------------------- | -------- | ------ | ----------- | ------- |
+| 001  | Migration バックアップ/リストアを実 Chrome の storage API で正しく動作させる     | P1       | S      | —           | DONE    |
+| 002  | API トークンが debug ログ・コンソール・エクスポートに平文で出ないようにする      | P1       | S      | —           | DONE    |
+| 003  | 未知の runtime action に対して即座に失敗応答を返す                               | P2       | S      | —           | DONE    |
+| 004  | esbuild の minify を有効化し content.js の parse/compile コストを削減            | P1       | S      | —           | DONE    |
+| 005  | table-sort を Schwartzian transform で O(n) キー前計算に                         | P2       | M      | —           | DONE    |
+| 006  | calendar / .ics 生成チェーンにユニットテストを追加（現状ゼロ）                   | P2       | M      | —           | DONE    |
+| 007  | `saveModel` の stale closure を修正し provider/model の不整合永続化を防ぐ        | P2       | S      | —           | DONE    |
+| 008  | security.md の CSP 例を shipped manifest と一致させる（doc ドリフト）            | P2       | S      | —           | DONE    |
+| 009  | content bundle スリム化（G=preload gating のみ採用 / H=icon 分割は却下）         | P3       | S      | 004         | PARTIAL |
+| 010  | esbuild watch を context()/watch() API へ移行（`pnpm run watch` 修復）           | P2       | S      | 004 (stack) | DONE    |
+| 011  | focus-override 登録を promise queue で直列化（check-then-act 競合の解消）        | P3       | S      | —           | DONE    |
+| 012  | `url-pattern.ts` を `src/utils/` へ移動（popup→content 層 import の解消）        | P3       | S      | —           | DONE    |
+| 013  | keep-alive コメント訂正 + 廃止 UI 参照の e2e を skip 化                          | P3       | S      | —           | DONE    |
+| 014  | TypeScript 6.0.3 → 7.0.2 アップグレード（full ci 緑・2テストを TS API から分離） | P2       | M      | —           | DONE\*  |
 
 Status values: TODO | IN PROGRESS | DONE | PARTIAL | BLOCKED (with one-line reason) | REJECTED (with one-line rationale)
 
@@ -57,7 +57,9 @@ Round 2 で検出したが今回プラン化しなかったもの。再監査を
 - ~~**keep-alive alarm のコメント誤り**~~ → **plan 013 で解消済み（DONE）**。コメントを正確化（alarm コードは不変）。
 - **stale Playwright e2e**: 廃止 UI 参照の2テストは plan 013 で `test.skip`+TODO 化。**未解決の別問題**: `pnpm exec playwright test --list` が `SyntaxError: Cannot use 'import.meta' outside a module`（`tests/e2e/setup.ts` 起因）で列挙すら失敗する（base tree でも再現＝既存）。e2e スイートは事実上機能停止・CI 非対象。現行 URL パターンモデル向けの e2e 書き直し＋ESM 設定修正が follow-up（要インタラクティブ検証）。
 - **`@shadcn/react@0.1.0`（pre-1.0 固定 runtime dep）** → **調査の上 vendoring せず保持（許容）**。精査すると `MessageScroller` は単一の小部品ではなく複合スクロールアンカリング primitive（`Provider`/`Root`/`Viewport`/`Content`/`Item`/`Button` を `OverlayComponents.tsx` の overlay チャットで約15箇所使用）。MIT・稼働中・exact pin 済み。vendoring は scroll-anchoring ロジックの再実装＝overlay チャット UX の回帰リスクが高く、当初見積もり(S)より重い。0.66% 未満の依存削減のためにリスクを取る価値はないと判断し保持。将来 upstream が放置/削除された場合に再検討。
-- **plan 014（TS 6.0.3 → 7.0.x）は BLOCKED**: リポジトリ自身の `minimumReleaseAge: 10080`（=7日）supply-chain ポリシーが `typescript@7.0.2`（2026-07-08 公開、npm 唯一の stable 7.0.x）を拒否（本日 2026-07-13 時点で 5日）。ポリシーは意図的な security 統制のため bypass せず。**~2026-07-15 に自動解禁**され、用意済みの plan 014 を再実行すれば通る見込み（tsconfig は TS7 適合済み、唯一の残リスクは Storybook `react-docgen-typescript` の TS7 programmatic API 依存＝再実行時に実測）。`minimumReleaseAgeExclude` への typescript 追加は統制を弱めるメンテナ判断のため独断不可。
+- **plan 014（TS 6.0.3 → 7.0.2）は DONE\*（実装・検証完了、push タイミングのみ保留）**: メンテナ承認のもと一時 override（`PNPM_CONFIG_MINIMUM_RELEASE_AGE=0`、`pnpm-workspace.yaml` 本体は不変）で 7.0.2 を install し、**full ci（typecheck/lint/test 404・0 skip/test:storybook 57/build）が TS7 で全緑**を実測。commit `171131d` → main へマージ `37f5b16`。
+  - **TS7 で必要だった唯一のコード対応**: 従来 TS コンパイラ API（`ts.createProgram`/`sys`/`createSourceFile`/`ScriptTarget` 等）は TS7 でパッケージの `.` エントリから削除された（`typescript/unstable/*` へ class ベースで移動）。これに依存していた2テストを **TS API から分離**して対応: `typecheck.tsx_support.test.ts` は `tsc --noEmit` を subprocess 実行、`ui.shared_primitives.test.ts` の Base UI 境界ガードは AST から軽量 import 正規表現スキャンへ（allowlist・assertion は不変）。Storybook(react-docgen) と esbuild build は TS7 で無改修で通過。
+  - **DONE\* の理由（push 保留）**: pnpm 11.9 は `pnpm exec`・lefthook フック・CI を含む全操作で**ロックファイルを minimumReleaseAge ポリシー検査**する。7.0.2（07-08 公開）は **~2026-07-15 まで** env override 無しの pnpm 操作を弾く。push すると remote 必須チェック「Quality Gate」と他コントリビュータの pnpm 操作が ~1.5日壊れる。**推奨: ~07-15 に push（自動でポリシー適合）**。恒久解を望むなら `minimumReleaseAgeExclude` に typescript + `@typescript/typescript-*`（21 platform binaries）追加（統制の恒久弱化＝メンテナ判断）。
 
 ### Direction findings（メンテナ判断・未プラン化）
 
