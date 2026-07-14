@@ -28,7 +28,7 @@ row when done.
 | 011  | focus-override 登録を promise queue で直列化（check-then-act 競合の解消）        | P3       | S      | —           | DONE    |
 | 012  | `url-pattern.ts` を `src/utils/` へ移動（popup→content 層 import の解消）        | P3       | S      | —           | DONE    |
 | 013  | keep-alive コメント訂正 + 廃止 UI 参照の e2e を skip 化                          | P3       | S      | —           | DONE    |
-| 014  | TypeScript 6.0.3 → 7.0.2 アップグレード（full ci 緑・2テストを TS API から分離） | P2       | M      | —           | DONE\*  |
+| 014  | TypeScript 6.0.3 → 7.0.2 アップグレード（full ci 緑・2テストを TS API から分離） | P2       | M      | —           | DONE    |
 
 Status values: TODO | IN PROGRESS | DONE | PARTIAL | BLOCKED (with one-line reason) | REJECTED (with one-line rationale)
 
@@ -59,7 +59,7 @@ Round 2 で検出したが今回プラン化しなかったもの。再監査を
 - **`@shadcn/react@0.1.0`（pre-1.0 固定 runtime dep）** → **調査の上 vendoring せず保持（許容）**。精査すると `MessageScroller` は単一の小部品ではなく複合スクロールアンカリング primitive（`Provider`/`Root`/`Viewport`/`Content`/`Item`/`Button` を `OverlayComponents.tsx` の overlay チャットで約15箇所使用）。MIT・稼働中・exact pin 済み。vendoring は scroll-anchoring ロジックの再実装＝overlay チャット UX の回帰リスクが高く、当初見積もり(S)より重い。0.66% 未満の依存削減のためにリスクを取る価値はないと判断し保持。将来 upstream が放置/削除された場合に再検討。
 - **plan 014（TS 6.0.3 → 7.0.2）は DONE\*（実装・検証完了、push タイミングのみ保留）**: メンテナ承認のもと一時 override（`PNPM_CONFIG_MINIMUM_RELEASE_AGE=0`、`pnpm-workspace.yaml` 本体は不変）で 7.0.2 を install し、**full ci（typecheck/lint/test 404・0 skip/test:storybook 57/build）が TS7 で全緑**を実測。commit `171131d` → main へマージ `37f5b16`。
   - **TS7 で必要だった唯一のコード対応**: 従来 TS コンパイラ API（`ts.createProgram`/`sys`/`createSourceFile`/`ScriptTarget` 等）は TS7 でパッケージの `.` エントリから削除された（`typescript/unstable/*` へ class ベースで移動）。これに依存していた2テストを **TS API から分離**して対応: `typecheck.tsx_support.test.ts` は `tsc --noEmit` を subprocess 実行、`ui.shared_primitives.test.ts` の Base UI 境界ガードは AST から軽量 import 正規表現スキャンへ（allowlist・assertion は不変）。Storybook(react-docgen) と esbuild build は TS7 で無改修で通過。
-  - **DONE\* の理由（push 保留）**: pnpm 11.9 は `pnpm exec`・lefthook フック・CI を含む全操作で**ロックファイルを minimumReleaseAge ポリシー検査**する。7.0.2（07-08 公開）は **~2026-07-15 まで** env override 無しの pnpm 操作を弾く。push すると remote 必須チェック「Quality Gate」と他コントリビュータの pnpm 操作が ~1.5日壊れる。**推奨: ~07-15 に push（自動でポリシー適合）**。恒久解を望むなら `minimumReleaseAgeExclude` に typescript + `@typescript/typescript-*`（21 platform binaries）追加（統制の恒久弱化＝メンテナ判断）。
+  - **push 解決（メンテナ選択）**: pnpm 11.9 は `pnpm exec`・lefthook フック・CI を含む全操作で lockfile を minimumReleaseAge 検査するため、7.0.2 は env override 無しだと ~07-15 まで弾かれる問題があった。メンテナ判断で `pnpm-workspace.yaml` の `minimumReleaseAgeExclude` に **`typescript@7.0.2` + 20 platform binaries（`@typescript/typescript-*@7.0.2`）を 7.0.2 固定で追加**（既存の react/storybook 除外と同じ version-pin 方式。将来の typescript には age soak を維持＝統制弱化を最小化）。これで env なしで full ci 緑を確認し push。**注意**: TS を将来更新する際はこの 21 エントリを新バージョンに更新するか、soak 期間経過後に除外を削除すること。
 
 ### Direction findings（メンテナ判断・未プラン化）
 
