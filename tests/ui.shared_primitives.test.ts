@@ -1,7 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 const dirname =
@@ -35,7 +34,10 @@ const allowedNativePreFiles = new Set(["src/components/shared/TextOutput.tsx"]);
 const allowedNativeTextareaFiles = new Set([
   "src/components/shared/Textarea.tsx",
 ]);
-const baseUiModulePattern = /^@base-ui\/react(?:\/.*)?$/;
+// Matches `import ... from "@base-ui/react"` and subpath specifiers such as
+// `@base-ui/react/dialog`. Scans import statements textually to stay decoupled
+// from the `typescript` programmatic API (removed from TS7's main entry).
+const baseUiImportPattern = /\bfrom\s+["']@base-ui\/react(?:\/[^"']*)?["']/;
 const directTextSurfaceClassPattern =
   /className=["'][^"']*(?:summary-output|prompt-input|mbu-overlay-(?:chat-input|chat-text|primary-text|secondary-text))(?:\s|["'])/;
 const directFieldClassPattern =
@@ -114,32 +116,8 @@ function findFilesMatching(pattern: RegExp): string[] {
     .sort();
 }
 
-function hasBaseUiImport(sourceText: string): boolean {
-  const sourceFile = ts.createSourceFile(
-    "source.tsx",
-    sourceText,
-    ts.ScriptTarget.Latest,
-    true,
-    ts.ScriptKind.TSX
-  );
-
-  return sourceFile.statements.some(
-    (statement) =>
-      ts.isImportDeclaration(statement) &&
-      ts.isStringLiteral(statement.moduleSpecifier) &&
-      baseUiModulePattern.test(statement.moduleSpecifier.text)
-  );
-}
-
 function findFilesWithBaseUiImports(): string[] {
-  return listSourceFiles(sourceRoot)
-    .filter(
-      (filePath) =>
-        !filePath.endsWith(".stories.tsx") &&
-        hasBaseUiImport(fs.readFileSync(filePath, "utf8"))
-    )
-    .map(toProjectPath)
-    .sort();
+  return findFilesMatching(baseUiImportPattern);
 }
 
 describe("shared UI primitive boundaries", () => {
