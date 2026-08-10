@@ -8,8 +8,8 @@
  * OpenAI モデル定数
  */
 export const OPENAI_MODELS = {
-  GPT_5_6_TERRA: "gpt-5.6-terra",
   GPT_5_6_LUNA: "gpt-5.6-luna",
+  GPT_5_6_TERRA: "gpt-5.6-terra",
 } as const;
 
 /**
