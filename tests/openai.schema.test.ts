@@ -4,6 +4,11 @@ import { OPENAI_MODEL_OPTIONS, safeParseOpenAiModel } from "@/schemas/openai";
 
 describe("schemas/openai", () => {
   it("accepts supported models", () => {
+    expect(OPENAI_MODEL_OPTIONS).toEqual([
+      OPENAI_MODELS.GPT_5_6_TERRA,
+      OPENAI_MODELS.GPT_5_6_LUNA,
+    ]);
+
     for (const model of OPENAI_MODEL_OPTIONS) {
       const parsed = safeParseOpenAiModel(model);
       expect(parsed.success).toBe(true);
@@ -15,12 +20,14 @@ describe("schemas/openai", () => {
 
   it("migrates deprecated models", () => {
     const legacyModels = [
-      { input: "gpt-5.4-2026-03-05", expected: OPENAI_MODELS.DEFAULT },
-      { input: "gpt-5.4", expected: OPENAI_MODELS.DEFAULT },
-      { input: "gpt-5.2", expected: OPENAI_MODELS.DEFAULT },
-      { input: "gpt-5.2-chat-latest", expected: OPENAI_MODELS.DEFAULT },
-      { input: "gpt-5.1", expected: OPENAI_MODELS.DEFAULT },
-      { input: "gpt-4o", expected: OPENAI_MODELS.GPT_4O_MINI },
+      { input: "default", expected: OPENAI_MODELS.GPT_5_6_TERRA },
+      { input: "gpt-5.5", expected: OPENAI_MODELS.GPT_5_6_TERRA },
+      { input: "gpt-5.4-2026-03-05", expected: OPENAI_MODELS.GPT_5_6_TERRA },
+      { input: "gpt-5.4", expected: OPENAI_MODELS.GPT_5_6_TERRA },
+      { input: "gpt-5.2", expected: OPENAI_MODELS.GPT_5_6_TERRA },
+      { input: "gpt-5.2-chat-latest", expected: OPENAI_MODELS.GPT_5_6_TERRA },
+      { input: "gpt-5.1", expected: OPENAI_MODELS.GPT_5_6_TERRA },
+      { input: "gpt-4o", expected: OPENAI_MODELS.GPT_5_6_TERRA },
     ];
 
     for (const { input, expected } of legacyModels) {

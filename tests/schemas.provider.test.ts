@@ -35,11 +35,11 @@ describe("schemas/provider", () => {
 
   describe("normalizeAiModel", () => {
     it("returns the value if it is a valid model for the provider", () => {
-      expect(normalizeAiModel("openai", OPENAI_MODELS.GPT_5_5)).toBe(
-        OPENAI_MODELS.GPT_5_5
+      expect(normalizeAiModel("openai", OPENAI_MODELS.GPT_5_6_TERRA)).toBe(
+        OPENAI_MODELS.GPT_5_6_TERRA
       );
-      expect(normalizeAiModel("openai", OPENAI_MODELS.GPT_4O_MINI)).toBe(
-        OPENAI_MODELS.GPT_4O_MINI
+      expect(normalizeAiModel("openai", OPENAI_MODELS.GPT_5_6_LUNA)).toBe(
+        OPENAI_MODELS.GPT_5_6_LUNA
       );
       expect(
         normalizeAiModel("anthropic", ANTHROPIC_MODELS.CLAUDE_SONNET_4_5)
@@ -50,7 +50,9 @@ describe("schemas/provider", () => {
     });
 
     it("returns the default model if value is undefined", () => {
-      expect(normalizeAiModel("openai", undefined)).toBe(OPENAI_MODELS.DEFAULT);
+      expect(normalizeAiModel("openai", undefined)).toBe(
+        OPENAI_MODELS.GPT_5_6_TERRA
+      );
       expect(normalizeAiModel("anthropic", undefined)).toBe(
         ANTHROPIC_MODELS.CLAUDE_SONNET_4_5
       );
@@ -59,7 +61,7 @@ describe("schemas/provider", () => {
 
     it("returns the default model if value is invalid for the provider", () => {
       expect(normalizeAiModel("openai", "invalid-model")).toBe(
-        OPENAI_MODELS.DEFAULT
+        OPENAI_MODELS.GPT_5_6_TERRA
       );
       expect(normalizeAiModel("anthropic", "gpt-4")).toBe(
         ANTHROPIC_MODELS.CLAUDE_SONNET_4_5
@@ -68,16 +70,20 @@ describe("schemas/provider", () => {
     });
 
     it("maps deprecated openai model ids to supported ones", () => {
-      expect(normalizeAiModel("openai", "gpt-5.1")).toBe(OPENAI_MODELS.DEFAULT);
-      expect(normalizeAiModel("openai", "gpt-5.4")).toBe(OPENAI_MODELS.DEFAULT);
+      expect(normalizeAiModel("openai", "gpt-5.1")).toBe(
+        OPENAI_MODELS.GPT_5_6_TERRA
+      );
+      expect(normalizeAiModel("openai", "gpt-5.4")).toBe(
+        OPENAI_MODELS.GPT_5_6_TERRA
+      );
       expect(normalizeAiModel("openai", "gpt-5.4-2026-03-05")).toBe(
-        OPENAI_MODELS.DEFAULT
+        OPENAI_MODELS.GPT_5_6_TERRA
       );
       expect(normalizeAiModel("openai", "gpt-5.2-chat-latest")).toBe(
-        OPENAI_MODELS.DEFAULT
+        OPENAI_MODELS.GPT_5_6_TERRA
       );
       expect(normalizeAiModel("openai", "gpt-4o")).toBe(
-        OPENAI_MODELS.GPT_4O_MINI
+        OPENAI_MODELS.GPT_5_6_TERRA
       );
     });
   });

@@ -25,7 +25,7 @@ export const PROVIDER_CONFIGS: Record<
 > = {
   openai: {
     label: "OpenAI",
-    defaultModel: OPENAI_MODELS.DEFAULT,
+    defaultModel: OPENAI_MODELS.GPT_5_6_TERRA,
     models: OPENAI_MODEL_LIST,
     baseUrl: "https://api.openai.com/v1",
   },
@@ -63,12 +63,18 @@ export function safeParseAiProvider(value: unknown): AiProvider | null {
 }
 
 const LEGACY_OPENAI_MODEL_MAP: Record<string, string> = {
-  "gpt-4o": OPENAI_MODELS.GPT_4O_MINI,
-  "gpt-5.4-2026-03-05": OPENAI_MODELS.DEFAULT,
-  "gpt-5.4": OPENAI_MODELS.DEFAULT,
-  "gpt-5.1": OPENAI_MODELS.DEFAULT,
-  "gpt-5.2": OPENAI_MODELS.DEFAULT,
-  "gpt-5.2-chat-latest": OPENAI_MODELS.DEFAULT,
+  default: OPENAI_MODELS.GPT_5_6_TERRA,
+  "gpt-4o": OPENAI_MODELS.GPT_5_6_TERRA,
+  "gpt-4o-mini": OPENAI_MODELS.GPT_5_6_TERRA,
+  "gpt-5-mini": OPENAI_MODELS.GPT_5_6_TERRA,
+  "gpt-5-nano": OPENAI_MODELS.GPT_5_6_TERRA,
+  "gpt-5-pro": OPENAI_MODELS.GPT_5_6_TERRA,
+  "gpt-5.1": OPENAI_MODELS.GPT_5_6_TERRA,
+  "gpt-5.2": OPENAI_MODELS.GPT_5_6_TERRA,
+  "gpt-5.2-chat-latest": OPENAI_MODELS.GPT_5_6_TERRA,
+  "gpt-5.4": OPENAI_MODELS.GPT_5_6_TERRA,
+  "gpt-5.4-2026-03-05": OPENAI_MODELS.GPT_5_6_TERRA,
+  "gpt-5.5": OPENAI_MODELS.GPT_5_6_TERRA,
 };
 
 /**

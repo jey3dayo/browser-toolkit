@@ -4,15 +4,10 @@ import {
   safeParseOpenAiModel,
 } from "@/schemas/openai";
 
-export const DEFAULT_OPENAI_MODEL = OPENAI_MODELS.DEFAULT;
-export const DEFAULT_OPENAI_REQUEST_MODEL = OPENAI_MODELS.GPT_5_5;
+export const DEFAULT_OPENAI_MODEL = OPENAI_MODELS.GPT_5_6_TERRA;
 type OpenAiModelOption = OpenAiModelOptionSchema;
 
 export function normalizeOpenAiModel(value: unknown): OpenAiModelOption {
   const parsed = safeParseOpenAiModel(value);
   return parsed.success ? parsed.output : DEFAULT_OPENAI_MODEL;
-}
-
-export function resolveOpenAiRequestModel(model: string): string {
-  return model === OPENAI_MODELS.DEFAULT ? DEFAULT_OPENAI_REQUEST_MODEL : model;
 }

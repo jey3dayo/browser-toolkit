@@ -1,4 +1,3 @@
-import { resolveOpenAiRequestModel } from "@/openai/settings";
 import type { AiProvider } from "@/schemas/provider";
 import { PROVIDER_CONFIGS } from "@/schemas/provider";
 import type { ChatCompletionAdapter, ChatRequestBody } from "./adapter";
@@ -7,13 +6,12 @@ import { extractApiErrorMessage } from "./adapter-helpers";
 type OpenAiCompatibleProvider = Extract<AiProvider, "openai" | "zai">;
 
 function buildOpenAiRequestBody(body: ChatRequestBody): ChatRequestBody {
-  const resolvedModel = resolveOpenAiRequestModel(body.model);
-  if (!resolvedModel.startsWith("gpt-5")) {
-    return { ...body, model: resolvedModel };
+  if (!body.model.startsWith("gpt-5")) {
+    return body;
   }
 
   const { temperature: _temperature, ...rest } = body;
-  return { ...rest, model: resolvedModel };
+  return rest;
 }
 
 export function extractOpenAiCompatibleChoiceText(

@@ -8,12 +8,8 @@
  * OpenAI モデル定数
  */
 export const OPENAI_MODELS = {
-  DEFAULT: "default",
-  GPT_5_5: "gpt-5.5",
-  GPT_5_MINI: "gpt-5-mini",
-  GPT_5_NANO: "gpt-5-nano",
-  GPT_5_PRO: "gpt-5-pro",
-  GPT_4O_MINI: "gpt-4o-mini",
+  GPT_5_6_TERRA: "gpt-5.6-terra",
+  GPT_5_6_LUNA: "gpt-5.6-luna",
 } as const;
 
 /**

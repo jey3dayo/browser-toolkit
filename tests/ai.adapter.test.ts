@@ -4,7 +4,6 @@ import { getAdapter } from "@/ai/get-adapter";
 import { openaiAdapter } from "@/ai/openai-adapter";
 import { zaiAdapter } from "@/ai/zai-adapter";
 import { OPENAI_MODELS } from "@/constants/models";
-import { DEFAULT_OPENAI_REQUEST_MODEL } from "@/openai/settings";
 
 describe("ai/adapter", () => {
   describe("getAdapter", () => {
@@ -24,7 +23,7 @@ describe("ai/adapter", () => {
   describe("openaiAdapter", () => {
     it("builds request with correct URL and headers", () => {
       const { url, init } = openaiAdapter.buildRequest("test-token", {
-        model: "OPENAI_MODELS.GPT_4O_MINI",
+        model: OPENAI_MODELS.GPT_5_6_LUNA,
         messages: [{ role: "user", content: "test" }],
       });
 
@@ -36,9 +35,9 @@ describe("ai/adapter", () => {
       });
     });
 
-    it("resolves default model before sending to OpenAI API", () => {
+    it("removes temperature for GPT-5 OpenAI models", () => {
       const { init } = openaiAdapter.buildRequest("test-token", {
-        model: OPENAI_MODELS.DEFAULT,
+        model: OPENAI_MODELS.GPT_5_6_TERRA,
         temperature: 0.2,
         messages: [{ role: "user", content: "test" }],
       });
@@ -47,13 +46,13 @@ describe("ai/adapter", () => {
         model?: string;
         temperature?: number;
       };
-      expect(body.model).toBe(DEFAULT_OPENAI_REQUEST_MODEL);
+      expect(body.model).toBe(OPENAI_MODELS.GPT_5_6_TERRA);
       expect(body.temperature).toBeUndefined();
     });
 
     it("keeps temperature for non GPT-5 OpenAI models", () => {
       const { init } = openaiAdapter.buildRequest("test-token", {
-        model: OPENAI_MODELS.GPT_4O_MINI,
+        model: "gpt-4o-mini",
         temperature: 0.2,
         messages: [{ role: "user", content: "test" }],
       });

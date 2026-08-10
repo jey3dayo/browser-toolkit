@@ -29,7 +29,7 @@ describe("ai/settings", () => {
     it("falls back to old keys when new keys are missing", () => {
       const storage: LocalStorageData = {
         openaiApiToken: "sk-old-token",
-        openaiModel: OPENAI_MODELS.GPT_4O_MINI,
+        openaiModel: "gpt-4o-mini",
         openaiCustomPrompt: "old prompt",
       };
 
@@ -39,7 +39,7 @@ describe("ai/settings", () => {
       if (Result.isSuccess(result)) {
         expect(result.value.provider).toBe("openai");
         expect(result.value.token).toBe("sk-old-token");
-        expect(result.value.model).toBe(OPENAI_MODELS.GPT_4O_MINI);
+        expect(result.value.model).toBe(OPENAI_MODELS.GPT_5_6_TERRA);
         expect(result.value.customPrompt).toBe("old prompt");
         expect(result.value.baseUrl).toBe("https://api.openai.com/v1");
       }
@@ -134,13 +134,13 @@ describe("ai/settings", () => {
       const mockStorage = {
         get: async (_keys: string[]) => ({
           openaiApiToken: "sk-old-token",
-          openaiModel: OPENAI_MODELS.GPT_4O_MINI,
+          openaiModel: "gpt-4o-mini",
           openaiCustomPrompt: "old prompt",
         }),
         set: (items: Record<string, unknown>) => {
           expect(items.aiProvider).toBe("openai");
           // openaiApiTokenはそのまま維持（プロバイダー別キー）
-          expect(items.aiModel).toBe(OPENAI_MODELS.GPT_4O_MINI);
+          expect(items.aiModel).toBe("gpt-4o-mini");
           expect(items.aiCustomPrompt).toBe("old prompt");
           return Promise.resolve();
         },

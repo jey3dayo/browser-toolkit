@@ -147,7 +147,7 @@
 - AI プロバイダー: OpenAI / Anthropic / z.ai を切り替え
 - API Token: 選択中のプロバイダーのトークンを保存（`chrome.storage.local` に保存。同期されません）
 - モデルID: プロバイダーごとのプリセットから選択 + 任意のモデルIDを入力可
-  - OpenAI デフォルト: `gpt-5.4`
+  - OpenAI: `gpt-5.6-terra`（デフォルト）/ `gpt-5.6-luna`
   - Anthropic デフォルト: `claude-sonnet-4-5`
   - z.ai デフォルト: `glm-4.7`
 - 追加指示（任意。出力の口調やフォーマットの好みに）

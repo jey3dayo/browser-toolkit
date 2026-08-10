@@ -240,22 +240,22 @@ describe("popup Settings pane", () => {
     );
     expect(modelSelect).not.toBeNull();
 
-    expect(modelSelect?.textContent).toContain(OPENAI_MODELS.DEFAULT);
+    expect(modelSelect?.textContent).toContain(OPENAI_MODELS.GPT_5_6_TERRA);
 
     await act(async () => {
       await selectBaseUiOption(
         dom.window,
         modelSelect as HTMLButtonElement,
-        OPENAI_MODELS.GPT_4O_MINI
+        OPENAI_MODELS.GPT_5_6_LUNA
       );
       await flush(dom.window);
     });
 
     expect(chromeStub.storage.local.set).toHaveBeenCalledWith(
-      expect.objectContaining({ aiModel: OPENAI_MODELS.GPT_4O_MINI }),
+      expect.objectContaining({ aiModel: OPENAI_MODELS.GPT_5_6_LUNA }),
       expect.any(Function)
     );
-    expect(modelSelect?.textContent).toContain(OPENAI_MODELS.GPT_4O_MINI);
+    expect(modelSelect?.textContent).toContain(OPENAI_MODELS.GPT_5_6_LUNA);
   });
 
   it("switches provider and persists a consistent provider/model pair", async () => {
