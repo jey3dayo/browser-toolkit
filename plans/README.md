@@ -1,11 +1,14 @@
 # Implementation Plans
 
-Two audit rounds by the improve skill:
+Three audit rounds by the improve skill:
 
 - Round 1 (quick audit, 2026-07-12, commit `8ec023e`): plans 001–003 — all DONE.
 - Round 2 (standard audit, 2026-07-14, commit `31dee9a`): plans 004–009 — covers the
   areas Round 1 explicitly skipped (performance, tech debt, dependencies, docs,
   test coverage, direction).
+- Round 3 (standard audit, 2026-08-10, commit `9c49e9b`): plans 015–019 — hotspot-weighted
+  on the un-audited delta since Round 2 (plans 010–014 plus commits `fde5e29`, `c4aa820`,
+  `da5cf02`, `9c49e9b`), plus verification-baseline and release-hygiene findings.
 
 Execute in the order below unless dependencies say otherwise. Each executor:
 read the plan fully before starting, honor its STOP conditions, and update your
@@ -29,8 +32,52 @@ row when done.
 | 012  | `url-pattern.ts` を `src/utils/` へ移動（popup→content 層 import の解消）        | P3       | S      | —           | DONE    |
 | 013  | keep-alive コメント訂正 + 廃止 UI 参照の e2e を skip 化                          | P3       | S      | —           | DONE    |
 | 014  | TypeScript 6.0.3 → 7.0.2 アップグレード（full ci 緑・2テストを TS API から分離） | P2       | M      | —           | DONE    |
+| 015  | Playwright e2e スイートを列挙・実行可能な状態に戻す（`import.meta` 除去）         | P1       | M      | —           | DONE\*  |
+| 016  | 期限切れの `minimumReleaseAgeExclude` 34 エントリを全削除（gate 復活）            | P1       | S      | —           | DONE\*  |
+| 017  | 重複した OpenAI legacy モデルマップを `src/constants/models.ts` へ統合            | P2       | S      | —           | DONE\*  |
+| 018  | Anthropic モデル一覧を Claude 5 系へ更新 + adapter の Claude 5 互換性修正         | P2       | M      | —           | DONE\*  |
+| 019  | manifest/package.json の version 同期 + content preload listener の冪等化         | P3       | S      | —           | DONE\*  |
 
 Status values: TODO | IN PROGRESS | DONE | PARTIAL | BLOCKED (with one-line reason) | REJECTED (with one-line rationale)
+
+### Round 3 の DONE\* の意味（2026-08-10 時点）
+
+015–019 は **実装・検証完了、ただし未コミット**。Orchestrator-Worker 方式（Worker = sonnet ×4、うち 017→018 は
+同一 Worker が直列実施）で `advisor/round3-parallel` ブランチ上に適用し、差分は Orchestrator が全件レビュー済み。
+
+full gate の実測（2026-08-10 17:54–17:55、format を除く）:
+
+| gate | 結果 |
+| --- | --- |
+| `pnpm run lint` | exit 0 |
+| `pnpm run typecheck` | exit 0 |
+| `pnpm run test` | 64 files / **408 tests pass**、skip 0（Round 3 前は 63 files / 402 tests。+6 は 015 が 0、017 が 1、018 が 4、019 が 1） |
+| `pnpm run test:storybook` | 18 files / **57 tests pass** |
+| `pnpm run build` | exit 0 |
+| `pnpm exec playwright test --list` | **6 tests in 2 files**（Round 3 前は列挙不能・0 件） |
+| `pnpm install`（env override なし） | exit 0、release age エラーなし |
+
+`mise run ci` は使わず個別コマンドで実施した。理由: `mise run ci` は先頭で `pnpm run format`
+（`ultracite fix` をリポジトリ全体へ適用）を走らせ、当時未コミットだった `src/styles/**` と `DESIGN.md` の
+外部変更を巻き込んで書き換えてしまうため。コミット後に `mise run ci` を通し直すこと。
+
+未実施として残っているもの:
+
+- **コミットと push**（メンテナ判断待ち）。
+- **018 の実機確認**: 実際の Anthropic API に対する要約実行とトークン検証。有効な API トークンが必要なため未実施。Claude 5 系への切り替えで `temperature` 400 が解消したことは unit test（`tests/ai.adapter.test.ts`）でのみ担保されている。
+- ~~**015 の e2e 実行**~~: **実行済み（2026-08-10 17:58）**。`pnpm exec playwright test` を実ブラウザで完走させた結果は
+  **4 failed / 2 skipped / 0 passed**。015 のゴール（列挙・実行可能性の回復）は達成しており、この 4 件はいずれも
+  015 の回帰ではなく、列挙が止まっていた間に蓄積した既存の腐りである。内訳と診断:
+  - `popup.spec.ts` 3 件 = **assertion の腐り**。`h2` に「アクション」を期待するが実際は "Context Actions"、
+    存在しない「モデルID」「追加指示」ラベルを参照している。UI 側が正しく、テストが追随していない。
+  - `table-sort.spec.ts` 1 件 = **harness の構造的制約**。fixture が `file://` ページで、`setup.ts` の
+    `launchPersistentContext` は `--disable-extensions-except` / `--load-extension` しか渡していない。
+    Chrome 拡張は「ファイル URL へのアクセスを許可」を有効にしない限り `file://` へ content script を注入できないため、
+    `table.dataset.sortable = "true"`（`src/content/table-sort.ts:36`）が実行されず永久にタイムアウトする。
+    実装は正しく、この構成では原理的に通らない。
+  - follow-up 候補: popup 3 件のアサーション更新（または plan 013 に倣った skip 化）と、table-sort fixture の
+    `file://` からローカル HTTP サーバまたは拡張内 `web_accessible_resources` ページへの移行。
+- **019 の手動確認**: content script 再注入時の `pointerdown` リスナ数の目視確認。
 
 ### plan 009 の扱い（PARTIAL）
 
@@ -78,6 +125,36 @@ Round 2 で検出したが今回プラン化しなかったもの。再監査を
 - AI トークンは `chrome.storage.local` 保存（Round 2 再確認）: sync 保存経路は存在しない。指摘なし。
 - manifest 権限は全て使用中（Round 2 再確認）: `downloads`/`notifications`/`alarms`/`contextMenus`/`scripting`/`activeTab`/`<all_urls>` すべて呼び出し元あり。
 - `pnpm audit` の high advisories: minimatch / rollup とも dev/test-only（本番は esbuild bundle）。runtime 非到達のため housekeeping のみ。
+
+## Round 3（2026-08-10, commit `9c49e9b`）
+
+推奨順: **015 → 016 → 017 → 018 → 019**（leverage 順）。全プランに hard dependency はない。
+015 / 016 / 019 は相互独立で並行実行可能。017 と 018 は同じファイル（`src/constants/models.ts`、
+`src/schemas/provider.ts`）を触るため、017 → 018 の順にすると衝突が少ない（依存ではなく順序の推奨）。
+
+018 は Part A（モデル ID の更新）と Part B（adapter の Claude 5 互換性修正）から成り、**片方だけを
+マージしてはいけない**。Claude 5 系は `temperature` を拒否するため、Part A 単独では Anthropic の
+要約・翻訳とトークン検証が全て 400 になる（この故障は typecheck / lint / vitest では検出できない）。
+
+### Round 3 で検出したが却下した findings
+
+再監査を避けるため記録する。
+
+- **Anthropic adapter の `extractText` が `content[0].text` 固定** → **却下**。extended thinking を有効化していないため `content[0]` は常に text ブロック。潜在的な堅牢性ニットであり現行バグではない。
+- **`typecheck.tsx_support.test.ts` に negative case（型エラーを検出できることの検証）がない** → **却下**。plan 014 以前も同じ 1 テスト構成であり、TS7 移行による退行ではない。テスト自体は `tsc --noEmit` の非ゼロ終了を正しく捕捉している（`execFileSync` の throw 経路を確認済み）。
+- **plan 014 で Base UI / lucide 境界ガードが AST → 正規表現に弱化** → **flag のみ（プラン化せず）**。`import()` 動的インポートや再エクスポート経由は検出できず、plan 009 Group B 却下の根拠に使った不変条件は当時より弱い。ただし同ファイルの他の 20 件以上のチェックは元から正規表現ベースで、弱化は 2 パターン分に限られる。実害の観測がないため投資対効果が低いと判断。
+- **`typecheck.tsx_support.test.ts` が repo ルートに `tsconfig.tsx-typecheck-<uuid>.json` を書き、`.gitignore` に該当パターンがない** → **flag のみ**。`finally` で削除されるため通常は残らない。強制終了時に untracked ファイルが残る程度の影響。
+- **plans 010 / 011 / 012 / 004 の実装 diff** → **確認済み・問題なし**。scope creep や半端な適用はない。`scripts/bundle.mjs` の `minify: !isWatch` / `sourcemap: isWatch` / `context()` 実装、`url-pattern.ts` の `src/utils/` への移動をいずれも実コードで確認。typecheck・lint・unit test（63 files / 402 tests）が全緑であることも実測。
+
+## Audit scope note (Round 3)
+
+standard 監査。Round 1 / 2 が全 9 カテゴリを掃き終えているため、Round 3 は **Round 2 基点 `31dee9a` 以降の
+未監査デルタ**（plans 010–014 の実装 + 直近 4 コミット）を中心に hotspot 重み付けで実施。
+カバー: correctness（デルタ全体）/ tests（e2e ベースライン、plan 014 のテスト書き換え）/ dependencies
+（`minimumReleaseAgeExclude`）/ tech debt（モデル shim の重複）/ 機能鮮度（プロバイダのモデル一覧）/
+リリース衛生（version 二重管理）。
+深追いしなかった領域: popup の re-render プロファイリング、Storybook / visual 回帰の実行、
+`src/i18n/resources.ts` の網羅性、`dist/`、z.ai（GLM）のモデル鮮度（一次情報が確認できず未検証）。
 
 ## Audit scope note (Round 2)
 
