@@ -275,7 +275,7 @@ describe("popup Settings pane", () => {
     );
     expect(chromeStub.storage.local.set).toHaveBeenCalledWith(
       expect.objectContaining({
-        aiModel: ANTHROPIC_MODELS.CLAUDE_SONNET_4_5,
+        aiModel: ANTHROPIC_MODELS.CLAUDE_SONNET_5,
       }),
       expect.any(Function)
     );
@@ -284,7 +284,7 @@ describe("popup Settings pane", () => {
       '[data-testid="ai-model"]'
     );
     expect(modelSelect?.textContent).toContain(
-      ANTHROPIC_MODELS.CLAUDE_SONNET_4_5
+      ANTHROPIC_MODELS.CLAUDE_SONNET_5
     );
   });
 

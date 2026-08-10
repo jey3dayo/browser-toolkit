@@ -14,11 +14,13 @@ export const OPENAI_MODELS = {
 
 /**
  * Anthropic (Claude) モデル定数
+ *
+ * ID は日付サフィックスなしのエイリアスを使う（Anthropic の推奨形式）。
  */
 export const ANTHROPIC_MODELS = {
-  CLAUDE_SONNET_4_5: "claude-sonnet-4-5-20250929",
-  CLAUDE_HAIKU_4_5: "claude-haiku-4-5-20251001",
-  CLAUDE_OPUS_4_6: "claude-opus-4-6",
+  CLAUDE_OPUS_5: "claude-opus-5",
+  CLAUDE_SONNET_5: "claude-sonnet-5",
+  CLAUDE_HAIKU_4_5: "claude-haiku-4-5",
 } as const;
 
 /**
@@ -45,3 +47,28 @@ export const ANTHROPIC_MODEL_LIST = Object.values(ANTHROPIC_MODELS);
  * z.aiモデル一覧（配列）
  */
 export const ZAI_MODEL_LIST = Object.values(ZAI_MODELS);
+
+/**
+ * 廃止された OpenAI モデル ID から現行モデルへの読み替え表
+ *
+ * 既存ユーザーの保存済み設定を壊さないために必要。OpenAI モデルを更新する際は
+ * ここだけを編集すれば `src/schemas/openai.ts` と `src/schemas/provider.ts` の
+ * 両方に反映される。
+ */
+export const LEGACY_OPENAI_MODEL_MAP: Record<
+  string,
+  (typeof OPENAI_MODEL_LIST)[number]
+> = {
+  default: OPENAI_MODELS.GPT_5_6_TERRA,
+  "gpt-4o": OPENAI_MODELS.GPT_5_6_TERRA,
+  "gpt-4o-mini": OPENAI_MODELS.GPT_5_6_TERRA,
+  "gpt-5-mini": OPENAI_MODELS.GPT_5_6_TERRA,
+  "gpt-5-nano": OPENAI_MODELS.GPT_5_6_TERRA,
+  "gpt-5-pro": OPENAI_MODELS.GPT_5_6_TERRA,
+  "gpt-5.1": OPENAI_MODELS.GPT_5_6_TERRA,
+  "gpt-5.2": OPENAI_MODELS.GPT_5_6_TERRA,
+  "gpt-5.2-chat-latest": OPENAI_MODELS.GPT_5_6_TERRA,
+  "gpt-5.4": OPENAI_MODELS.GPT_5_6_TERRA,
+  "gpt-5.4-2026-03-05": OPENAI_MODELS.GPT_5_6_TERRA,
+  "gpt-5.5": OPENAI_MODELS.GPT_5_6_TERRA,
+};

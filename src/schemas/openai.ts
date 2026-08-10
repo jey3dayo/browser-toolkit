@@ -1,29 +1,17 @@
 import { picklist, pipe, safeParse, string, transform, trim } from "valibot";
-import { OPENAI_MODEL_LIST, OPENAI_MODELS } from "@/constants/models";
+import {
+  LEGACY_OPENAI_MODEL_MAP,
+  OPENAI_MODEL_LIST,
+} from "@/constants/models";
 
 export const OPENAI_MODEL_OPTIONS = OPENAI_MODEL_LIST;
 
 export type OpenAiModelOption = (typeof OPENAI_MODEL_OPTIONS)[number];
 
-const DEPRECATED_MODEL_MAP: Record<string, OpenAiModelOption> = {
-  default: OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-4o": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-4o-mini": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5-mini": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5-nano": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5-pro": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5.1": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5.2": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5.2-chat-latest": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5.4": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5.4-2026-03-05": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5.5": OPENAI_MODELS.GPT_5_6_TERRA,
-};
-
 const OpenAiModelSchema = pipe(
   string(),
   trim(),
-  transform((value) => DEPRECATED_MODEL_MAP[value] ?? value),
+  transform((value) => LEGACY_OPENAI_MODEL_MAP[value] ?? value),
   picklist(OPENAI_MODEL_OPTIONS)
 );
 

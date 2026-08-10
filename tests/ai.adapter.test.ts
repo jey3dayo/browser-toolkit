@@ -132,6 +132,23 @@ describe("ai/adapter", () => {
       expect(body.max_tokens).toBe(100);
     });
 
+    it("omits sampling params rejected by current Claude models", () => {
+      // Claude 4.6 以降は temperature / top_p / top_k を受け付けず 400 を返す。
+      // 共通呼び出し元（src/background/openai.ts）は temperature を常に載せるため、
+      // adapter 側で落とす必要がある。
+      const { init } = anthropicAdapter.buildRequest("test-token", {
+        model: "claude-sonnet-5",
+        messages: [{ role: "user", content: "test" }],
+        temperature: 0.2,
+      });
+
+      const body = JSON.parse(init.body as string) as Record<string, unknown>;
+      expect(body).not.toHaveProperty("temperature");
+      expect(body).not.toHaveProperty("top_p");
+      expect(body).not.toHaveProperty("top_k");
+      expect(body.model).toBe("claude-sonnet-5");
+    });
+
     it("extracts text from valid response", () => {
       const response = {
         content: [{ text: "  Hello  " }],
