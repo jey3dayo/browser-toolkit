@@ -60,9 +60,12 @@ Status values: TODO | IN PROGRESS | DONE | PARTIAL | BLOCKED (with one-line reas
 | `21906b2` | `build(deps): drop expired minimumReleaseAge exclusions...` | **plan 016**（`pnpm-workspace.yaml` −34 行） |
 | `33aa38f` | `test(e2e): restore Playwright suite enumeration...` | **plan 015**（`tests/e2e/setup.ts` / `table-sort.spec.ts` のパス解決を `__dirname` ベースへ。`manifest.json` と fixture HTML の実在を実行時に検証） |
 | `bb18e46` | `feat(ai): refresh Anthropic models to Claude 5, drop unsupported sampling params, and dedupe the OpenAI legacy model map` | **plan 017 + 018**（下記の理由で 1 コミット） |
-| `6d29d1c` | `fix(content): sync package version with manifest and make preload registration idempotent` | **plan 019**（`package.json` `1.0.2 → 0.2.2`、`tests/manifest.version_sync.test.ts` 追加、`src/content.ts` の preload listener を冪等ガードの後ろへ移動） |
+| `6d29d1c` | `fix(content): sync package version with manifest and make preload registration idempotent` | **plan 019**（`package.json` `1.0.2 → 0.2.2`、`tests/manifest.version_sync.test.ts` 追加、`src/content.ts` の preload listener を冪等ガードの後ろへ移動）。※ version 同期テストはのちに削除。下記「version 同期の扱い」参照 |
 | `90d6b40` | `refactor(ui): flatten popup chrome...` | Round 3 とは無関係な UI デザイン整理（別作業） |
 | `c1598ad` | `docs(plans): add Round 3 plans 015-019...` | プラン 5 本の md + この README |
+
+`6d29d1c` は plan 019 の受入チェックリストが求める Part A / Part B の 2 コミット分割に従わず 1 コミットにまとめている
+（意図的な逸脱。メッセージは両方を記述しており内容は整合。マージ済み履歴をこのためだけに書き換えることはしない）。
 
 `bb18e46` で 017 と 018 を分けなかった理由: 両者は `src/constants/models.ts` / `src/schemas/provider.ts` /
 `tests/schemas.provider.test.ts` の 3 ファイルで hunk が交互に並んでおり、分割には部分 stage が必要になる。
@@ -75,6 +78,23 @@ lefthook の `stage_fixed` がフォーマット後にファイル全体を再 s
 **AI provider のリクエスト互換性を追う場合は `bb18e46` を見ること。** `lefthook.yml` はいずれのコミットにも
 含まれない — `8013aa6`（`chore(hooks): split pre-push gate into globbed per-stage jobs`）は Round 3 とは
 無関係な別作業である。
+
+#### version 同期の扱い（plan 019 の前提は誤りだった）
+
+plan 019 は「`manifest.json` と `package.json` の version がドリフトしており、同期する仕組みが無い」という前提だったが、
+履歴を追うとこれは**誤り**である。両者は独立した 2 系列として、同一コミットで patch 単位に歩調を合わせて手動維持されていた。
+
+| commit | manifest | package |
+| --- | --- | --- |
+| `ed780ce refactor: migrate JS to TS` | （0.1.0 系のまま） | 1.0.0 として独立開始 |
+| `1786117 chore: bump version` | 0.2.0 → 0.2.1 | 1.0.0 → 1.0.1 |
+| `96c25fe chore(release): enable gemini summary build` | 0.2.1 → 0.2.2 | 1.0.1 → 1.0.2 |
+
+つまり `6d29d1c` は衛生上の修正ではなく、**2 系列を 1 系列へ統合する製品判断**の実装だった。
+追加された `tests/manifest.version_sync.test.ts` は「両者は常に一致する」という、履歴が支持しない不変条件を
+encode していたため、**メンテナ判断で削除した**。`package.json` の `version` はどのビルド経路にも CI にも
+読まれていない（出荷 version の正本は `manifest.json`）ので、値そのものは `0.2.2` のまま据え置く。
+今後 version を上げる場合、拘束するテストは無い — `manifest.json` を正本として更新すること。
 
 full gate の実測（2026-08-10 17:54–17:55、format を除く）:
 
@@ -97,18 +117,22 @@ full gate の実測（2026-08-10 17:54–17:55、format を除く）:
 
 - **push**（メンテナ判断待ち）。push 時は lefthook の pre-push で full gate が走る。作業ツリーはクリーンで、コミット後の `mise run ci` も green。
 - **018 の実機確認**: 実際の Anthropic API に対する要約実行とトークン検証。有効な API トークンが必要なため未実施。Claude 5 系への切り替えで `temperature` 400 が解消したことは unit test（`tests/ai.adapter.test.ts`）でのみ担保されている。
-- ~~**015 の e2e 実行**~~: **実行済み（2026-08-10 17:58）**。`pnpm exec playwright test` を実ブラウザで完走させた結果は
-  **4 failed / 2 skipped / 0 passed**。015 のゴール（列挙・実行可能性の回復）は達成しており、この 4 件はいずれも
-  015 の回帰ではなく、列挙が止まっていた間に蓄積した既存の腐りである。内訳と診断:
-  - `popup.spec.ts` 3 件 = **assertion の腐り**。`h2` に「アクション」を期待するが実際は "Context Actions"、
-    存在しない「モデルID」「追加指示」ラベルを参照している。UI 側が正しく、テストが追随していない。
-  - `table-sort.spec.ts` 1 件 = **harness の構造的制約**。fixture が `file://` ページで、`setup.ts` の
-    `launchPersistentContext` は `--disable-extensions-except` / `--load-extension` しか渡していない。
-    Chrome 拡張は「ファイル URL へのアクセスを許可」を有効にしない限り `file://` へ content script を注入できないため、
-    `table.dataset.sortable = "true"`（`src/content/table-sort.ts:36`）が実行されず永久にタイムアウトする。
-    実装は正しく、この構成では原理的に通らない。
-  - follow-up 候補: popup 3 件のアサーション更新（または plan 013 に倣った skip 化）と、table-sort fixture の
-    `file://` からローカル HTTP サーバまたは拡張内 `web_accessible_resources` ページへの移行。
+- ~~**015 の e2e 実行**~~ → **解消済み。現在 `pnpm exec playwright test` は 4 passed / 2 skipped / 0 failed**
+  （`b32532f` マージ後に実測）。経緯:
+  - 初回実行（2026-08-10 17:58）は **4 failed / 2 skipped / 0 passed**。015 のゴール（列挙・実行可能性の回復）は
+    達成しており、この 4 件は 015 の回帰ではなく、列挙が止まっていた間に蓄積した既存の腐りだった。
+  - `popup.spec.ts` 3 件 = **assertion の腐り**（`h2` に「アクション」を期待するが実際は "Context Actions"、
+    存在しない「モデルID」「追加指示」ラベルを参照）→ **`bf7a5d1` で現行 UI の文言・ロールに合わせて修正**。
+    文言の正本は `src/i18n/resources.ts`。`theme-cycle-button` は overlay 専用でポップアップに存在しないため、
+    設定ペインのラジオ操作へ差し替えた。
+  - `table-sort.spec.ts` 1 件 = **harness の構造的制約**（fixture が `file://` で、拡張は「ファイル URL への
+    アクセスを許可」なしに `file://` へ content script を注入できず `table.dataset.sortable = "true"` に到達しない）
+    → **`4abc963` で `tests/e2e/fixtures/serve.mjs`（Node 標準のみ・依存追加なし）を追加し、
+    `playwright.config.ts` の `webServer` で `http://localhost:4173` 配信へ移行**。
+    併せて、テストが popup を通常タブとして開くと popup 自身がアクティブタブになり `enableNow()` の
+    `chrome.tabs.query({active,currentWindow})` が誤解決する問題を `page.bringToFront()` で補正した
+    （実際のツールバー popup はタブ化しないため製品バグではない。sol reviewer も同結論）。
+  - e2e は依然 CI 非対象（`headless: false` で実ブラウザを起動するため）。ローカル確認用。
 - **019 の手動確認**: content script 再注入時の `pointerdown` リスナ数の目視確認。
 
 ### plan 009 の扱い（PARTIAL）
@@ -134,7 +158,7 @@ Round 2 で検出したが今回プラン化しなかったもの。再監査を
 - ~~**`pnpm run watch` が現状壊れている**（plan 004 実行中に発見）~~ → **plan 010 で解消済み（DONE）**。esbuild `context()`/`ctx.watch()` へ移行し、rebuild ログは `onEnd` プラグインで維持。010 は 004 の上に stack。
 - ~~**focus-override 登録の check-then-act 競合**~~ → **plan 011 で解消済み（DONE）**。promise queue で直列化（`scheduleRefreshContextMenus` パターン）。
 - ~~**keep-alive alarm のコメント誤り**~~ → **plan 013 で解消済み（DONE）**。コメントを正確化（alarm コードは不変）。
-- ~~**stale Playwright e2e**（列挙不能）~~ → **plan 015 で解消済み（`33aa38f`）**。`import.meta` を `__dirname` ベースへ置き換え、列挙は 0 件 → 6 tests / 2 files に回復。廃止 UI 参照の2テストは plan 013 で `test.skip`+TODO 化済み。**残る follow-up**（Round 3 の「未実施として残っているもの」参照）: 実行すると 4 failed で、popup のアサーション腐り 3 件と fixture が `file://` のため content script が注入されない構造的制約 1 件。いずれも 015 の回帰ではない。e2e は依然 CI 非対象。
+- ~~**stale Playwright e2e**（列挙不能）~~ → **plan 015 で解消済み（`33aa38f`）**。`import.meta` を `__dirname` ベースへ置き換え、列挙は 0 件 → 6 tests / 2 files に回復。廃止 UI 参照の2テストは plan 013 で `test.skip`+TODO 化済み。列挙復旧後に露出した 4 failed（popup のアサーション腐り 3 件 + fixture が `file://` で content script 未注入 1 件）は **`bf7a5d1` / `4abc963` で解消し、現在 4 passed / 2 skipped / 0 failed**。e2e は依然 CI 非対象（実ブラウザ起動のためローカル確認用）。
 - **`@shadcn/react@0.1.0`（pre-1.0 固定 runtime dep）** → **調査の上 vendoring せず保持（許容）**。精査すると `MessageScroller` は単一の小部品ではなく複合スクロールアンカリング primitive（`Provider`/`Root`/`Viewport`/`Content`/`Item`/`Button` を `OverlayComponents.tsx` の overlay チャットで約15箇所使用）。MIT・稼働中・exact pin 済み。vendoring は scroll-anchoring ロジックの再実装＝overlay チャット UX の回帰リスクが高く、当初見積もり(S)より重い。0.66% 未満の依存削減のためにリスクを取る価値はないと判断し保持。将来 upstream が放置/削除された場合に再検討。
 - **plan 014（TS 6.0.3 → 7.0.2）は DONE\*（実装・検証完了、push タイミングのみ保留）**: メンテナ承認のもと一時 override（`PNPM_CONFIG_MINIMUM_RELEASE_AGE=0`、`pnpm-workspace.yaml` 本体は不変）で 7.0.2 を install し、**full ci（typecheck/lint/test 404・0 skip/test:storybook 57/build）が TS7 で全緑**を実測。commit `171131d` → main へマージ `37f5b16`。
   - **TS7 で必要だった唯一のコード対応**: 従来 TS コンパイラ API（`ts.createProgram`/`sys`/`createSourceFile`/`ScriptTarget` 等）は TS7 でパッケージの `.` エントリから削除された（`typescript/unstable/*` へ class ベースで移動）。これに依存していた2テストを **TS API から分離**して対応: `typecheck.tsx_support.test.ts` は `tsc --noEmit` を subprocess 実行、`ui.shared_primitives.test.ts` の Base UI 境界ガードは AST から軽量 import 正規表現スキャンへ（allowlist・assertion は不変）。Storybook(react-docgen) と esbuild build は TS7 で無改修で通過。
