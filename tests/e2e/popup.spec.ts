@@ -78,16 +78,23 @@ test.describe("Popup UI", () => {
     // "{{provider}} API トークン" (src/i18n/resources.ts `settings.apiToken`),
     // not English "OpenAI API Token"; Base UI's Fieldset renders it as a
     // group with an accessible name rather than a plain <legend>/<label>
-    // element (src/components/shared/Fieldset.tsx). The model select's
-    // Field has no htmlFor either, so it also surfaces only via the group's
-    // accessible name (src/popup/panes/settings/SettingsModelSection.tsx).
-    // Only "追加指示" (customPrompt) renders as a real <label>
+    // element (src/components/shared/Fieldset.tsx). Only "追加指示"
+    // (customPrompt) renders as a real <label>
     // (src/popup/panes/settings/SettingsPromptSection.tsx).
     await expect(
       page.getByRole("group", { name: "OpenAI API トークン" })
     ).toBeVisible();
     await expect(page.getByRole("group", { name: "モデル" })).toBeVisible();
     await expect(page.locator('label:has-text("追加指示")')).toBeVisible();
+
+    // The model card shows "モデル" exactly once: the Fieldset legend is the
+    // only visible label, while the Select trigger exposes the same name to
+    // assistive tech via aria-label (Base UI renders it as a combobox, not a
+    // button). Guards the fix in
+    // src/popup/panes/settings/SettingsModelSection.tsx, where a second
+    // identical label used to render as an unassociated <span>.
+    await expect(page.getByRole("combobox", { name: "モデル" })).toBeVisible();
+    await expect(page.getByText("モデル", { exact: true })).toHaveCount(1);
 
     // Verify token input is password type
     const tokenInput = page.locator('input[type="password"]');
