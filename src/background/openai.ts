@@ -204,7 +204,7 @@ export async function testAiToken(
     settings.token,
     {
       model: settings.model,
-      max_completion_tokens: 5,
+      max_completion_tokens: 1024,
       temperature: 0,
       messages: [
         { role: "system", content: "You are a health check bot." },

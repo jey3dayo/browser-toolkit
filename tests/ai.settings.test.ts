@@ -10,7 +10,7 @@ describe("ai/settings", () => {
       const storage: LocalStorageData = {
         aiProvider: "anthropic",
         anthropicApiToken: "sk-test-token",
-        aiModel: ANTHROPIC_MODELS.CLAUDE_SONNET_4_5,
+        aiModel: ANTHROPIC_MODELS.CLAUDE_SONNET_5,
         aiCustomPrompt: "test prompt",
       };
 
@@ -20,7 +20,7 @@ describe("ai/settings", () => {
       if (Result.isSuccess(result)) {
         expect(result.value.provider).toBe("anthropic");
         expect(result.value.token).toBe("sk-test-token");
-        expect(result.value.model).toBe(ANTHROPIC_MODELS.CLAUDE_SONNET_4_5);
+        expect(result.value.model).toBe(ANTHROPIC_MODELS.CLAUDE_SONNET_5);
         expect(result.value.customPrompt).toBe("test prompt");
         expect(result.value.baseUrl).toBe("https://api.anthropic.com/v1");
       }
@@ -124,7 +124,7 @@ describe("ai/settings", () => {
       expect(Result.isSuccess(result)).toBe(true);
 
       if (Result.isSuccess(result)) {
-        expect(result.value.model).toBe(ANTHROPIC_MODELS.CLAUDE_SONNET_4_5);
+        expect(result.value.model).toBe(ANTHROPIC_MODELS.CLAUDE_SONNET_5);
       }
     });
   });

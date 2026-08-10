@@ -6,6 +6,7 @@
  * - max_completion_tokens → max_tokens
  * - response_format は非対応（プロンプトで指示）
  * - レスポンスは content[0].text
+ * - temperature / top_p / top_k は非対応（Claude 4.6 以降で削除。送ると 400）
  */
 
 import { PROVIDER_CONFIGS } from "@/schemas/provider";
@@ -30,11 +31,6 @@ export const anthropicAdapter: ChatCompletionAdapter = {
     // systemメッセージがあれば追加
     if (systemMessages.length > 0) {
       anthropicBody.system = systemMessages.map((m) => m.content).join("\n\n");
-    }
-
-    // temperatureがあれば追加
-    if (body.temperature !== undefined) {
-      anthropicBody.temperature = body.temperature;
     }
 
     const init: RequestInit = {

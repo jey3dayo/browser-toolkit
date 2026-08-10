@@ -13,6 +13,7 @@ colors:
   surfaceLightRaised: "#f3f4f6"
   textLight: "#111827"
   primaryLight: "#4285f4"
+  primaryLightStrong: "#1b64da"
 typography:
   ui:
     fontFamily: '"Segoe UI", "Helvetica Neue", system-ui, sans-serif'
@@ -105,8 +106,8 @@ components:
     rounded: "{rounded.md}"
     padding: "10px 12px"
   lightPrimaryButton:
-    backgroundColor: "{colors.primaryLight}"
-    textColor: "{colors.textLight}"
+    backgroundColor: "{colors.primaryLightStrong}"
+    textColor: "{colors.bgLight}"
     typography: "{typography.compactAction}"
     rounded: "{rounded.md}"
     padding: "10px 14px"
@@ -130,6 +131,8 @@ CSS custom properties in `src/styles/tokens/` are the implementation source of t
 
 Dark theme uses slate surfaces with green/cyan accents. Light theme uses white/gray surfaces with blue/cyan accents. Auto theme follows `prefers-color-scheme` when `data-theme` is absent.
 
+Primary fills are flat: a solid `--color-primary` (or `--color-primary-strong` in light theme, which keeps AA contrast under white label text). Do not use accent gradients or colored glow shadows on buttons, icon wells, or nav items — reserve gradients for the product brandmark alone.
+
 Primary color is reserved for the main affirmative action, selected state, active state, and focused affordance. Danger color is reserved for destructive or failure states. Muted text is used for labels, descriptions, helper text, and secondary metadata.
 
 ## Typography
@@ -148,6 +151,8 @@ Overlay UI should fit within `min(560px, calc(100vw - 32px))`, cap height to the
 
 ## Elevation & Depth
 
+A selected or active state gets exactly one visual treatment, not several saying the same thing. Do not stack a tinted background, a ring, a shadow, a filled icon chip and an indicator bar on the same element — pick the single strongest one.
+
 Use one raised surface layer for cards, popovers, dialogs, overlays, and toasts. Shadows should come from `--shadow-elevation` or the corresponding `--mbu-shadow`. Avoid stacked card-on-card layouts unless the inner surface is an actual dialog, popover, or repeated list item.
 
 Scrims are only for modal focus or blocking overlays. Non-modal overlays should rely on border, shadow, and header contrast instead of dimming the page.
@@ -165,6 +170,8 @@ Shared React primitives in `src/components/shared/` are the default building blo
 Buttons use semantic variants: primary for the main action, ghost for secondary actions, danger for destructive actions, overlay variants for Shadow DOM surfaces, and icon-only variants when a familiar symbol is enough. Disabled controls must visibly reduce emphasis and must not imply success.
 
 Inputs, selects, textareas, fieldsets, switches, toggles, tabs, dialogs, popovers, tooltips, and scroll areas should use the existing shared primitives before adding local markup. Form labels and helper text stay close to their control and use muted text.
+
+Radio, checkbox and switch options sit directly on their card surface. The control itself is the selected-state affordance, so do not wrap each option in its own bordered chip inside a card. Buttons size to their label; do not stretch an action across an equal-width grid, which makes the primary action read as a banner.
 
 Cards are for bounded tool surfaces and repeated items, not for wrapping entire page sections. Lists should keep row alignment, drag handles, expand controls, and badges stable across hover, focus, selected, disabled, empty, loading, error, and success states.
 

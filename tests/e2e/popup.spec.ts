@@ -4,8 +4,10 @@ test.describe("Popup UI", () => {
   test("should navigate between panes", async ({ page, extensionId }) => {
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
 
-    // Verify initial pane is Actions
-    await expect(page.locator("h2")).toHaveText("アクション");
+    // Verify initial pane is Actions (heading text is the fixed pane title
+    // "Context Actions", not the "アクション" nav label; see
+    // src/popup/panes/ActionsPane.tsx + src/i18n/resources.ts `actions.title`)
+    await expect(page.locator("h2")).toHaveText("Context Actions");
 
     // Navigate to Settings
     await page.click('button[aria-label="設定"]');
@@ -21,17 +23,26 @@ test.describe("Popup UI", () => {
 
     // Navigate back to Actions
     await page.click('button[aria-label="アクション"]');
-    await expect(page.locator("h2")).toHaveText("アクション");
+    await expect(page.locator("h2")).toHaveText("Context Actions");
   });
 
   test("should persist theme selection", async ({ page, extensionId }) => {
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
 
+    // The popup no longer exposes a single theme-cycle button (that concept
+    // now lives only in the content-script overlay, see
+    // src/components/ThemeCycleButton.tsx). Popup theme selection is a radio
+    // group in the Settings pane (src/popup/panes/settings/SettingsThemeSection.tsx),
+    // with labels sourced from src/i18n/resources.ts `theme.light` / `theme.dark`.
+    await page.click('button[aria-label="設定"]');
+    await expect(page.locator("h2")).toHaveText("設定");
+
     // Get initial theme
     const initialTheme = await page.locator("html").getAttribute("data-theme");
 
-    // Click theme cycle button
-    await page.click('[data-testid="theme-cycle-button"]');
+    // Switch to the theme option that differs from the current one
+    const nextThemeLabel = initialTheme === "dark" ? "ライト" : "ダーク";
+    await page.click(`label:has-text("${nextThemeLabel}")`);
 
     // Wait for theme to change
     await page.waitForTimeout(300);
@@ -63,11 +74,19 @@ test.describe("Popup UI", () => {
     await page.click('button[aria-label="設定"]');
     await expect(page.locator("h2")).toHaveText("設定");
 
-    // Verify settings sections exist
+    // Verify settings sections exist. The token fieldset legend is
+    // "{{provider}} API トークン" (src/i18n/resources.ts `settings.apiToken`),
+    // not English "OpenAI API Token"; Base UI's Fieldset renders it as a
+    // group with an accessible name rather than a plain <legend>/<label>
+    // element (src/components/shared/Fieldset.tsx). The model select's
+    // Field has no htmlFor either, so it also surfaces only via the group's
+    // accessible name (src/popup/panes/settings/SettingsModelSection.tsx).
+    // Only "追加指示" (customPrompt) renders as a real <label>
+    // (src/popup/panes/settings/SettingsPromptSection.tsx).
     await expect(
-      page.locator('label:has-text("OpenAI API Token")')
+      page.getByRole("group", { name: "OpenAI API トークン" })
     ).toBeVisible();
-    await expect(page.locator('label:has-text("モデルID")')).toBeVisible();
+    await expect(page.getByRole("group", { name: "モデル" })).toBeVisible();
     await expect(page.locator('label:has-text("追加指示")')).toBeVisible();
 
     // Verify token input is password type

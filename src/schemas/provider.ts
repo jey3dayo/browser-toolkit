@@ -5,6 +5,7 @@ import { check, pipe, safeParse, string } from "valibot";
 import {
   ANTHROPIC_MODEL_LIST,
   ANTHROPIC_MODELS,
+  LEGACY_OPENAI_MODEL_MAP,
   OPENAI_MODEL_LIST,
   OPENAI_MODELS,
   ZAI_MODEL_LIST,
@@ -31,7 +32,7 @@ export const PROVIDER_CONFIGS: Record<
   },
   anthropic: {
     label: "Anthropic (Claude)",
-    defaultModel: ANTHROPIC_MODELS.CLAUDE_SONNET_4_5,
+    defaultModel: ANTHROPIC_MODELS.CLAUDE_SONNET_5,
     models: ANTHROPIC_MODEL_LIST,
     baseUrl: "https://api.anthropic.com/v1",
   },
@@ -61,21 +62,6 @@ export function safeParseAiProvider(value: unknown): AiProvider | null {
   const result = safeParse(aiProviderSchema, value);
   return result.success ? (result.output as AiProvider) : null;
 }
-
-const LEGACY_OPENAI_MODEL_MAP: Record<string, string> = {
-  default: OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-4o": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-4o-mini": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5-mini": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5-nano": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5-pro": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5.1": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5.2": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5.2-chat-latest": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5.4": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5.4-2026-03-05": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5.5": OPENAI_MODELS.GPT_5_6_TERRA,
-};
 
 /**
  * プロバイダーに応じたモデルの正規化
