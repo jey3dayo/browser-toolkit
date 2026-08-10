@@ -42,8 +42,31 @@ Status values: TODO | IN PROGRESS | DONE | PARTIAL | BLOCKED (with one-line reas
 
 ### Round 3 の DONE\* の意味（2026-08-10 時点）
 
-015–019 は **実装・検証完了、ただし未コミット**。Orchestrator-Worker 方式（Worker = sonnet ×4、うち 017→018 は
-同一 Worker が直列実施）で `advisor/round3-parallel` ブランチ上に適用し、差分は Orchestrator が全件レビュー済み。
+015–019 は **実装・検証完了・コミット済み、push は未実施**。Orchestrator-Worker 方式（Worker = sonnet ×4、うち
+017→018 は同一 Worker が直列実施）で `advisor/round3-parallel` ブランチ上に適用し、差分は Orchestrator が
+全件レビュー済み。
+
+#### どのコミットに何が入ったか（重要）
+
+`advisor/round3-parallel` 上で 015–019 は**プラン単位に分かれておらず、コミットメッセージが内容を
+取りこぼしている**。並行して動いていた別エージェントがコミットを作成したためで、メッセージだけを見て
+変更点を辿ることはできない。amend での修正はメンテナ判断で行わず、この表を追跡の正本とする。
+
+| commit | メッセージ | 実際に入っている変更 |
+| --- | --- | --- |
+| `21906b2` | `build(deps): drop expired minimumReleaseAge exclusions to restore the soak gate` | **plan 016** のみ（`pnpm-workspace.yaml` −34 行）。メッセージと内容は一致している |
+| `063339d` | `test(e2e): restore Playwright suite enumeration by replacing import.meta with __dirname` | **plan 015 / 017 / 018 / 019 の全コード変更 + プラン 5 本の md + この README**（20 ファイル / +2324 行）。メッセージは 015 のことしか述べていない |
+
+`063339d` に実際に含まれる変更の内訳:
+
+- **015**: `tests/e2e/setup.ts` / `tests/e2e/table-sort.spec.ts` のパス解決を `__dirname` ベースへ。`manifest.json` と fixture HTML の実在を実行時に検証。
+- **017**: OpenAI legacy モデルマップを `src/constants/models.ts` の `LEGACY_OPENAI_MODEL_MAP` に統合（`src/schemas/openai.ts` / `src/schemas/provider.ts` の重複を削除）。
+- **018**: `ANTHROPIC_MODELS` を Claude 5 系（`claude-opus-5` / `claude-sonnet-5` / `claude-haiku-4-5`）へ。`defaultModel` を `claude-sonnet-5` へ。**`src/ai/anthropic-adapter.ts` が `temperature` を送らないよう変更**し、`src/background/openai.ts` の health check `max_completion_tokens` を `5 → 1024` へ。
+- **019**: `package.json` の `version` を `manifest.json` に合わせ（`1.0.2 → 0.2.2`）、`tests/manifest.version_sync.test.ts` を追加。`src/content.ts` の preload listener を冪等ガードの後ろへ移動。
+
+**AI provider のリクエスト互換性を追う場合は `063339d` を見ること**（メッセージからは辿れない）。同コミットには
+`lefthook.yml` は含まれない — 直前の `8013aa6`（`chore(hooks): split pre-push gate into globbed per-stage jobs`）は
+Round 3 とは無関係な別作業である。
 
 full gate の実測（2026-08-10 17:54–17:55、format を除く）:
 
@@ -63,7 +86,7 @@ full gate の実測（2026-08-10 17:54–17:55、format を除く）:
 
 未実施として残っているもの:
 
-- **コミットと push**（メンテナ判断待ち）。
+- **push**（メンテナ判断待ち）。push 時は lefthook の pre-push で full gate が走る。作業ツリーに他作業の未コミット変更（`DESIGN.md`、`src/styles/**`）が混在している間は結果が変わりうる点に注意。
 - **018 の実機確認**: 実際の Anthropic API に対する要約実行とトークン検証。有効な API トークンが必要なため未実施。Claude 5 系への切り替えで `temperature` 400 が解消したことは unit test（`tests/ai.adapter.test.ts`）でのみ担保されている。
 - ~~**015 の e2e 実行**~~: **実行済み（2026-08-10 17:58）**。`pnpm exec playwright test` を実ブラウザで完走させた結果は
   **4 failed / 2 skipped / 0 passed**。015 のゴール（列挙・実行可能性の回復）は達成しており、この 4 件はいずれも
