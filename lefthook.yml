@@ -14,5 +14,37 @@ pre-commit:
 
 pre-push:
   jobs:
-    - name: ci gate
-      run: mise run ci
+    # CI (.github/workflows/ci.yml) と同じ順序・粒度で分割し、失敗したゲートを特定できるようにする
+    - name: lint
+      glob:
+        - "*.{js,jsx,ts,tsx,mjs,cjs,json,jsonc,css}"
+        - "tsconfig.json"
+        - "biome.jsonc"
+        - "package.json"
+        - "pnpm-lock.yaml"
+      run: mise run lint
+    - name: test
+      glob:
+        - "*.{js,jsx,ts,tsx,mjs,cjs,json,jsonc,css}"
+        - "vitest.config.ts"
+        - "package.json"
+        - "pnpm-lock.yaml"
+      run: mise run test
+    - name: test:storybook
+      glob:
+        - "src/**/*.{ts,tsx,css}"
+        - ".storybook/**"
+        - "playwright.config.ts"
+        - "vitest.config.ts"
+        - "package.json"
+        - "pnpm-lock.yaml"
+      run: mise run test:storybook
+    - name: build
+      glob:
+        - "*.{js,jsx,ts,tsx,mjs,cjs,json,jsonc,css}"
+        - "manifest.json"
+        - "popup.html"
+        - "scripts/**"
+        - "package.json"
+        - "pnpm-lock.yaml"
+      run: mise run build
