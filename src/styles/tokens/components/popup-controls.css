@@ -6,7 +6,7 @@
   border-radius: var(--button-radius);
   transition:
     transform 0.08s ease,
-    box-shadow 0.12s ease,
+    filter 0.12s ease,
     background 0.2s ease;
 }
 
@@ -30,12 +30,15 @@
   border: var(--button-border-ghost);
 }
 
+/* Feedback lives on the press, not on hover: a resting row of buttons should
+   stay still until the pointer actually commits. */
 .btn:hover:not(:disabled):not([data-disabled]) {
-  transform: translateY(-1px);
+  filter: brightness(1.06);
 }
 
 .btn:active:not(:disabled):not([data-disabled]) {
-  transform: translateY(0);
+  filter: none;
+  transform: scale(0.97);
 }
 
 .btn:focus-visible {

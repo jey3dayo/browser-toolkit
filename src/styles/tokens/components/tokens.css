@@ -11,14 +11,12 @@
   --button-radius-sm: 6px;
   --button-font-weight: 700;
 
-  --button-bg-primary: linear-gradient(
-    135deg,
-    var(--color-primary),
-    var(--color-primary-2)
-  );
+  /* DESIGN.md buttonPrimary: flat primary fill, no gradient or glow.
+     Uses the -strong ramp so light theme keeps AA contrast against
+     --button-text-primary (white); it equals --color-primary in dark. */
+  --button-bg-primary: var(--color-primary-strong, var(--color-primary));
   --button-text-primary: var(--color-bg);
-  --button-shadow-primary: 0 10px 30px
-    color-mix(in oklab, var(--color-primary) 25%, transparent);
+  --button-shadow-primary: none;
 
   --button-bg-ghost: transparent;
   --button-text-ghost: var(--color-text);
@@ -75,7 +73,7 @@
 
     --popup-width: 800px;
     --popup-height: 600px;
-    --rail: 76px;
+    --rail: 56px;
     --drawer: 284px;
 
     --mbu-bg: #0f1724;
