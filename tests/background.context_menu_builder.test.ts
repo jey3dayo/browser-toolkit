@@ -14,18 +14,15 @@ describe("background: context menu builder", () => {
     vi.unstubAllGlobals();
   });
 
-  it("removes and retries when Chrome reports a duplicate menu id", async () => {
-    chromeStub.contextMenus.create
-      .mockImplementationOnce((_properties, callback?: () => void) => {
+  it("updates the existing item when Chrome reports a duplicate menu id", async () => {
+    chromeStub.contextMenus.create.mockImplementationOnce(
+      (_properties, callback?: () => void) => {
         chromeStub.runtime.lastError = {
           message: "Cannot create item with duplicate id mbu-search-parent",
         };
         callback?.();
-      })
-      .mockImplementationOnce((_properties, callback?: () => void) => {
-        chromeStub.runtime.lastError = null;
-        callback?.();
-      });
+      }
+    );
 
     const { createMenuItem } = await import(
       "@/background/context_menu_builder"
@@ -39,11 +36,15 @@ describe("background: context menu builder", () => {
       })
     ).resolves.toBeUndefined();
 
-    expect(chromeStub.contextMenus.remove).toHaveBeenCalledWith(
+    expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
       "mbu-search-parent",
+      {
+        title: "Search",
+        contexts: ["selection"],
+      },
       expect.any(Function)
     );
-    expect(chromeStub.contextMenus.create).toHaveBeenCalledTimes(2);
+    expect(chromeStub.contextMenus.remove).not.toHaveBeenCalled();
   });
 
   it("rejects non-duplicate creation errors", async () => {
@@ -67,33 +68,5 @@ describe("background: context menu builder", () => {
         contexts: ["selection"],
       })
     ).rejects.toThrow("Parent item not found");
-
-    expect(chromeStub.contextMenus.remove).not.toHaveBeenCalled();
-  });
-
-  it("rejects when duplicate recovery also reports a duplicate id", async () => {
-    chromeStub.contextMenus.create.mockImplementation(
-      (_properties, callback?: () => void) => {
-        chromeStub.runtime.lastError = {
-          message: "Cannot create item with duplicate id mbu-search-parent",
-        };
-        callback?.();
-      }
-    );
-
-    const { createMenuItem } = await import(
-      "@/background/context_menu_builder"
-    );
-
-    await expect(
-      createMenuItem({
-        id: "mbu-search-parent",
-        title: "Search",
-        contexts: ["selection"],
-      })
-    ).rejects.toThrow("Cannot create item with duplicate id");
-
-    expect(chromeStub.contextMenus.remove).toHaveBeenCalledTimes(1);
-    expect(chromeStub.contextMenus.create).toHaveBeenCalledTimes(2);
   });
 });

@@ -24,6 +24,7 @@ export type ChromeStub = {
     removeAll: ReturnType<typeof vi.fn>;
     remove: ReturnType<typeof vi.fn>;
     create: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
     onClicked: { addListener: ReturnType<typeof vi.fn> };
   };
   tabs: {
@@ -117,6 +118,16 @@ export function createChromeStub(options: Options = {}): ChromeStub {
         clearError();
         callback?.();
       }),
+      update: vi.fn(
+        (
+          _id: string | number,
+          _updateProperties: unknown,
+          callback?: () => void
+        ) => {
+          clearError();
+          callback?.();
+        }
+      ),
       onClicked: {
         addListener: vi.fn(),
       },
