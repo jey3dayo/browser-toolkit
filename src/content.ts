@@ -92,6 +92,15 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
     testHooks.parseNumericValue = parseNumericValue;
   }
 
+  if (globalState.initialized) {
+    return;
+  }
+  globalState.initialized = true;
+
+  // ここから下は content script の再注入時に実行されない。
+  // 再注入ごとにリスナやタイマーを増やさないため、副作用の登録はすべてこの
+  // ガードより後ろに置く（plan 009 の preload gating を含む）。
+
   // overlay/toastのpreloadは最初のユーザー操作をトリガーに行う（HTMLドキュメントのみ）
   function preloadInteractiveModules(): void {
     if (!supportsHtmlDocument) {
@@ -112,10 +121,6 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
     });
   }
 
-  if (globalState.initialized) {
-    return;
-  }
-  globalState.initialized = true;
   themeManager.refreshThemeFromStorage().catch(() => {
     // no-op
   });
