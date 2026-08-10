@@ -1,13 +1,24 @@
 import fs from "node:fs";
 import path from "node:path";
+import { FIXTURES_BASE_URL } from "../../playwright.config";
 import { expect, test } from "./setup";
 
 const PRODUCT_NAME_REGEX = /商品[ABC]/;
 
-const TEST_PAGE_URL = `file://${path.resolve(__dirname, "fixtures/test-table.html")}`;
+// Served by tests/e2e/fixtures/serve.mjs (see playwright.config.ts webServer)
+// so the extension's content script can inject; file:// URLs cannot be
+// enabled for extension access via CLI launch flags alone. setup.ts's
+// `context` fixture bypasses Playwright's default baseURL wiring, so build
+// the absolute URL explicitly rather than relying on relative page.goto().
+const TEST_PAGE_URL = `${FIXTURES_BASE_URL}/test-table.html`;
 
-if (!fs.existsSync(new URL(TEST_PAGE_URL).pathname)) {
-  throw new Error(`Missing e2e fixture page: ${TEST_PAGE_URL}`);
+const testTableFixturePath = path.resolve(
+  __dirname,
+  "fixtures/test-table.html"
+);
+
+if (!fs.existsSync(testTableFixturePath)) {
+  throw new Error(`Missing e2e fixture page: ${testTableFixturePath}`);
 }
 
 test.describe("Table Sort Feature", () => {
@@ -25,6 +36,14 @@ test.describe("Table Sort Feature", () => {
     // Navigate to site-specific features pane
     await popupPage.click('button[aria-label="サイト別機能"]');
     await popupPage.waitForSelector("text=サイト別機能");
+
+    // "このタブで有効化" resolves the target tab via
+    // chrome.tabs.query({ active: true, currentWindow: true }). Opening the
+    // popup as a regular tab (via context.newPage()) — unlike a real
+    // toolbar-icon popup, which never becomes the active tab — makes the
+    // popup itself the active tab, so it must be brought back into the
+    // background before triggering enableNow().
+    await page.bringToFront();
 
     // Enable for current tab
     await popupPage.click("text=このタブで有効化");
