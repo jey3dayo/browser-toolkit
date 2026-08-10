@@ -1,7 +1,14 @@
+import fs from "node:fs";
 import path from "node:path";
 import { expect, test } from "./setup";
 
 const PRODUCT_NAME_REGEX = /商品[ABC]/;
+
+const TEST_PAGE_URL = `file://${path.resolve(__dirname, "fixtures/test-table.html")}`;
+
+if (!fs.existsSync(new URL(TEST_PAGE_URL).pathname)) {
+  throw new Error(`Missing e2e fixture page: ${TEST_PAGE_URL}`);
+}
 
 test.describe("Table Sort Feature", () => {
   test("should enable sorting on basic table", async ({
@@ -9,8 +16,7 @@ test.describe("Table Sort Feature", () => {
     extensionId,
   }) => {
     // Load test page
-    const testPagePath = `file://${path.join(import.meta.dirname, "fixtures/test-table.html")}`;
-    await page.goto(testPagePath);
+    await page.goto(TEST_PAGE_URL);
 
     // Open popup and enable table sort for all sites
     const popupPage = await page.context().newPage();
@@ -63,8 +69,7 @@ test.describe("Table Sort Feature", () => {
     page,
     extensionId,
   }) => {
-    const testPagePath = `file://${path.join(import.meta.dirname, "fixtures/test-table.html")}`;
-    await page.goto(testPagePath);
+    await page.goto(TEST_PAGE_URL);
 
     // Enable table sort globally
     const popupPage = await page.context().newPage();

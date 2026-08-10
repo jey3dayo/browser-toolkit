@@ -1,5 +1,20 @@
+import fs from "node:fs";
 import path from "node:path";
 import { type BrowserContext, test as base, chromium } from "@playwright/test";
+
+// 拡張機能ルート = manifest.json があるリポジトリ直下。
+// Playwright は e2e ファイルを CJS へ変換するため、ESM 専用のパス解決 API は使えない。
+const extensionRoot = path.resolve(__dirname, "../../");
+
+function resolveExtensionRoot(): string {
+  const manifestPath = path.join(extensionRoot, "manifest.json");
+  if (!fs.existsSync(manifestPath)) {
+    throw new Error(
+      `Extension root does not contain manifest.json: ${extensionRoot}`
+    );
+  }
+  return extensionRoot;
+}
 
 export const test = base.extend<{
   context: BrowserContext;
@@ -7,7 +22,7 @@ export const test = base.extend<{
 }>({
   // biome-ignore lint/correctness/noEmptyPattern: Playwright fixture pattern
   context: async ({}, use) => {
-    const pathToExtension = path.join(import.meta.dirname, "../../");
+    const pathToExtension = resolveExtensionRoot();
     const context = await chromium.launchPersistentContext("", {
       headless: false,
       args: [
