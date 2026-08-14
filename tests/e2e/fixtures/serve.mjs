@@ -5,8 +5,9 @@
 // something that cannot be toggled via CLI launch flags. Serving fixtures
 // over http://localhost instead lets the extension's <all_urls> content
 // script matches apply normally during Playwright e2e runs.
-import http from "node:http";
+
 import { createReadStream, existsSync, statSync } from "node:fs";
+import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -29,7 +30,7 @@ const server = http.createServer((req, res) => {
   );
 
   // ROOT + sep なので、fixtures-evil のような兄弟ディレクトリを弾ける
-  if (!resolvedPath.startsWith(ROOT + path.sep) || !existsSync(resolvedPath)) {
+  if (!(resolvedPath.startsWith(ROOT + path.sep) && existsSync(resolvedPath))) {
     res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
     res.end("Not found");
     return;

@@ -18,10 +18,7 @@ export function createMenuItem(
       const err = chrome.runtime.lastError;
       if (err) {
         const message = err.message ?? "Failed to create context menu item";
-        if (
-          isDuplicateIdError(message) &&
-          options.id !== undefined
-        ) {
+        if (isDuplicateIdError(message) && options.id !== undefined) {
           updateMenuItem(options.id, options).then(resolve, reject);
           return;
         }

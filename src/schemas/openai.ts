@@ -1,8 +1,5 @@
 import { picklist, pipe, safeParse, string, transform, trim } from "valibot";
-import {
-  LEGACY_OPENAI_MODEL_MAP,
-  OPENAI_MODEL_LIST,
-} from "@/constants/models";
+import { LEGACY_OPENAI_MODEL_MAP, OPENAI_MODEL_LIST } from "@/constants/models";
 
 export const OPENAI_MODEL_OPTIONS = OPENAI_MODEL_LIST;
 

@@ -224,8 +224,8 @@ body.menu-open .sidebar {
   place-items: center;
   width: 36px;
   height: 36px;
-  margin-bottom: 6px;
   padding: 0;
+  margin-bottom: 6px;
   overflow: hidden;
   color: color-mix(in oklab, var(--color-bg) 92%, var(--color-text));
   appearance: none;

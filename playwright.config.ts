@@ -30,7 +30,7 @@ export default defineConfig({
   // inject (Chrome extensions cannot inject into file:// URLs without a
   // manual "Allow access to file URLs" toggle that CLI flags cannot set).
   webServer: {
-    command: `node tests/e2e/fixtures/serve.mjs`,
+    command: "node tests/e2e/fixtures/serve.mjs",
     url: FIXTURES_BASE_URL,
     reuseExistingServer: !process.env.CI,
     env: { E2E_FIXTURES_PORT: String(FIXTURES_PORT) },

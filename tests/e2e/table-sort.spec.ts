@@ -13,7 +13,7 @@ const PRODUCT_NAME_REGEX = /商品[ABC]/;
 const TEST_PAGE_URL = `${FIXTURES_BASE_URL}/test-table.html`;
 
 const testTableFixturePath = path.resolve(
-  __dirname,
+  import.meta.dirname,
   "fixtures/test-table.html"
 );
 

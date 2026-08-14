@@ -4,7 +4,7 @@ import { type BrowserContext, test as base, chromium } from "@playwright/test";
 
 // 拡張機能ルート = manifest.json があるリポジトリ直下。
 // Playwright は e2e ファイルを CJS へ変換するため、ESM 専用のパス解決 API は使えない。
-const extensionRoot = path.resolve(__dirname, "../../");
+const extensionRoot = path.resolve(import.meta.dirname, "../../");
 
 function resolveExtensionRoot(): string {
   const manifestPath = path.join(extensionRoot, "manifest.json");
