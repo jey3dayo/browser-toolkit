@@ -74,6 +74,7 @@ describe("ai/adapter", () => {
       expect(openaiAdapter.extractText({})).toBeNull();
       expect(openaiAdapter.extractText({ choices: [] })).toBeNull();
       expect(openaiAdapter.extractText({ choices: [{}] })).toBeNull();
+      expect(openaiAdapter.extractText({ choices: [null] })).toBeNull();
     });
 
     it("extracts error message from error response", () => {

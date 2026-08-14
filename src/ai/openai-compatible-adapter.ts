@@ -26,8 +26,13 @@ export function extractOpenAiCompatibleChoiceText(
     return null;
   }
 
-  const first = choices[0] as { message?: { content?: unknown } };
-  const content = first.message?.content;
+  const [first] = choices as unknown[];
+  if (typeof first !== "object" || first === null) {
+    return null;
+  }
+
+  const { message } = first as { message?: { content?: unknown } };
+  const content = message?.content;
   if (typeof content !== "string") {
     return null;
   }
