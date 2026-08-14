@@ -15,9 +15,9 @@ type EditorState = {
 
 const EMPTY_EDITOR_STATE: EditorState = {
   id: "",
-  title: "",
   kind: "text",
   prompt: "",
+  title: "",
 } satisfies EditorState;
 
 function createActionId(): string {
@@ -69,28 +69,28 @@ export function useActionEditor(params: {
     }
     setEditor({
       id: action.id,
-      title: action.title,
       kind: action.kind,
       prompt: action.prompt,
+      title: action.title,
     });
   };
 
   const saveEditor = async (): Promise<void> => {
     const title = requireTrimmedString({
-      value: editor.title,
       emptyMessage: t("actions.errors.titleRequired"),
       notify: params.notify,
+      value: editor.title,
     });
     if (!title) {
       return;
     }
 
-    const prompt = editor.prompt;
+    const { prompt } = editor;
     if (editor.kind === "text") {
       const hasPrompt = requireTrimmedString({
-        value: prompt,
         emptyMessage: t("actions.errors.promptRequired"),
         notify: params.notify,
+        value: prompt,
       });
       if (!hasPrompt) {
         return;
@@ -100,9 +100,9 @@ export function useActionEditor(params: {
     const nextId = editor.id || createActionId();
     const next: ContextAction = {
       id: nextId,
-      title,
       kind: editor.kind,
       prompt,
+      title,
     };
 
     const previous = params.actions;
@@ -117,18 +117,18 @@ export function useActionEditor(params: {
         params.setActions(nextActions);
         setEditor((current) => ({ ...current, id: nextId }));
       },
-      rollback: () => {
-        params.setActions(previous);
+      onFailure: () => {
+        params.notify.error(t("actions.errors.saveFailed"));
+      },
+      onSuccess: () => {
+        params.notify.success(t("actions.success.saved"));
       },
       persist: () =>
         params.runtime.storageSyncSet({
           contextActions: nextActions,
         }),
-      onSuccess: () => {
-        params.notify.success(t("actions.success.saved"));
-      },
-      onFailure: () => {
-        params.notify.error(t("actions.errors.saveFailed"));
+      rollback: () => {
+        params.setActions(previous);
       },
     });
   };
@@ -149,22 +149,22 @@ export function useActionEditor(params: {
   };
 
   return {
+    deleteEditor,
     editorId: editor.id,
-    editorTitle: editor.title,
     editorKind: editor.kind,
     editorPrompt: editor.prompt,
-    setEditorTitle: (title) => {
-      setEditor((current) => ({ ...current, title }));
-    },
+    editorTitle: editor.title,
+    resetEditorState,
+    saveEditor,
+    selectActionForEdit,
     setEditorKind: (kind) => {
       setEditor((current) => ({ ...current, kind }));
     },
     setEditorPrompt: (prompt) => {
       setEditor((current) => ({ ...current, prompt }));
     },
-    selectActionForEdit,
-    saveEditor,
-    deleteEditor,
-    resetEditorState,
+    setEditorTitle: (title) => {
+      setEditor((current) => ({ ...current, title }));
+    },
   };
 }

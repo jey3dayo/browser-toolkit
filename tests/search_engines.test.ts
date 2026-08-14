@@ -12,20 +12,20 @@ import {
 describe("search engines", () => {
   it("includes SoundHouse in default search engines", () => {
     expect(DEFAULT_SEARCH_ENGINES).toContainEqual({
+      enabled: true,
       id: BUILTIN_SEARCH_ENGINE_IDS.SOUNDHOUSE,
       name: "サウンドハウス",
       urlTemplate:
         "https://www.soundhouse.co.jp/search/index/?i_type=a&search_all={query}",
-      enabled: true,
     });
   });
 
   it("includes Yandex in default search engines", () => {
     expect(DEFAULT_SEARCH_ENGINES).toContainEqual({
+      enabled: true,
       id: BUILTIN_SEARCH_ENGINE_IDS.YANDEX,
       name: "Yandex",
       urlTemplate: "https://yandex.com/search/?text={query}",
-      enabled: true,
     });
   });
 

@@ -29,6 +29,13 @@ describe("React/Base UI bundling", () => {
 
   it("bundles React, ReactDOM, Base UI, and shadcn MessageScroller for MV3 targets", async () => {
     const result = await build({
+      bundle: true,
+      define: {
+        "process.env.NODE_ENV": '"production"',
+      },
+      format: "iife",
+      outfile: "out.js",
+      platform: "browser",
       stdin: {
         contents: [
           "import * as React from 'react';",
@@ -45,13 +52,6 @@ describe("React/Base UI bundling", () => {
         resolveDir: process.cwd(),
         sourcefile: "ui-entry.ts",
       },
-      bundle: true,
-      define: {
-        "process.env.NODE_ENV": '"production"',
-      },
-      format: "iife",
-      outfile: "out.js",
-      platform: "browser",
       target: "es2020",
       write: false,
     });

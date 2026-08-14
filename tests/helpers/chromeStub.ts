@@ -56,12 +56,12 @@ export function createChromeStub(options: Options = {}): ChromeStub {
   const runtime = {
     lastError: null as { message: string } | null,
     onInstalled: { addListener: vi.fn() },
-    onStartup: { addListener: vi.fn() },
     onMessage: {
       addListener: vi.fn((listener: (...args: unknown[]) => unknown) => {
         options.listeners?.push(listener);
       }),
     },
+    onStartup: { addListener: vi.fn() },
     sendMessage: vi.fn(
       (_message: unknown, callback?: (resp: unknown) => void) => {
         runtime.lastError = null;
@@ -75,46 +75,19 @@ export function createChromeStub(options: Options = {}): ChromeStub {
   };
 
   return {
-    runtime,
-    storage: {
-      local: {
-        get: vi.fn((_keys: unknown, callback?: (items: unknown) => void) => {
-          clearError();
-          callback?.({});
-        }),
-        set: vi.fn((_items: unknown, callback?: () => void) => {
-          clearError();
-          callback?.();
-        }),
-        remove: vi.fn((_keys: unknown, callback?: () => void) => {
-          clearError();
-          callback?.();
-        }),
-      },
-      sync: {
-        get: vi.fn((_keys: unknown, callback?: (items: unknown) => void) => {
-          clearError();
-          callback?.({});
-        }),
-        set: vi.fn((_items: unknown, callback?: () => void) => {
-          clearError();
-          callback?.();
-        }),
-      },
-      onChanged: {
-        addListener: vi.fn(),
-      },
-    },
     contextMenus: {
-      removeAll: vi.fn((callback?: () => void) => {
+      create: vi.fn((_createProperties: unknown, callback?: () => void) => {
         clearError();
         callback?.();
       }),
+      onClicked: {
+        addListener: vi.fn(),
+      },
       remove: vi.fn((_id: string | number, callback?: () => void) => {
         clearError();
         callback?.();
       }),
-      create: vi.fn((_createProperties: unknown, callback?: () => void) => {
+      removeAll: vi.fn((callback?: () => void) => {
         clearError();
         callback?.();
       }),
@@ -128,11 +101,50 @@ export function createChromeStub(options: Options = {}): ChromeStub {
           callback?.();
         }
       ),
-      onClicked: {
+    },
+    runtime,
+    scripting: {
+      executeScript: vi.fn(async () => []),
+      getRegisteredContentScripts: vi.fn(async () => []),
+      registerContentScripts: vi.fn(() => Promise.resolve()),
+      unregisterContentScripts: vi.fn(() => Promise.resolve()),
+    },
+    storage: {
+      local: {
+        get: vi.fn((_keys: unknown, callback?: (items: unknown) => void) => {
+          clearError();
+          callback?.({});
+        }),
+        remove: vi.fn((_keys: unknown, callback?: () => void) => {
+          clearError();
+          callback?.();
+        }),
+        set: vi.fn((_items: unknown, callback?: () => void) => {
+          clearError();
+          callback?.();
+        }),
+      },
+      onChanged: {
         addListener: vi.fn(),
+      },
+      sync: {
+        get: vi.fn((_keys: unknown, callback?: (items: unknown) => void) => {
+          clearError();
+          callback?.({});
+        }),
+        set: vi.fn((_items: unknown, callback?: () => void) => {
+          clearError();
+          callback?.();
+        }),
       },
     },
     tabs: {
+      reload: vi.fn(
+        (_tabId: number, _reloadProperties: unknown, callback?: () => void) => {
+          clearError();
+          callback?.();
+        }
+      ),
       sendMessage: vi.fn((...args: unknown[]) => {
         clearError();
         const last = args.at(-1);
@@ -140,18 +152,6 @@ export function createChromeStub(options: Options = {}): ChromeStub {
           (last as (resp: unknown) => void)(tabsSendMessageResponse);
         }
       }),
-      reload: vi.fn(
-        (_tabId: number, _reloadProperties: unknown, callback?: () => void) => {
-          clearError();
-          callback?.();
-        }
-      ),
-    },
-    scripting: {
-      getRegisteredContentScripts: vi.fn(async () => []),
-      registerContentScripts: vi.fn(() => Promise.resolve()),
-      unregisterContentScripts: vi.fn(() => Promise.resolve()),
-      executeScript: vi.fn(async () => []),
     },
   };
 }

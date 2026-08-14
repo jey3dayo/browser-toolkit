@@ -11,22 +11,22 @@ function ActionButtonsStory(
 }
 
 const meta = {
-  title: "Popup/Panes/Actions/ActionButtons",
   component: ActionButtonsStory,
   tags: ["test"],
+  title: "Popup/Panes/Actions/ActionButtons",
 } satisfies Meta<typeof ActionButtonsStory>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 const mockActions: ContextAction[] = [
-  { id: "action-1", title: "要約", kind: "text", prompt: "要約してください" },
-  { id: "action-2", title: "翻訳", kind: "text", prompt: "翻訳してください" },
+  { id: "action-1", kind: "text", prompt: "要約してください", title: "要約" },
+  { id: "action-2", kind: "text", prompt: "翻訳してください", title: "翻訳" },
   {
     id: "action-3",
-    title: "イベント抽出",
     kind: "event",
     prompt: "イベントを抽出",
+    title: "イベント抽出",
   },
 ];
 
@@ -91,11 +91,11 @@ export const MultipleActions: Story = {
       ...mockActions,
       {
         id: "action-4",
-        title: "コードレビュー",
         kind: "text",
         prompt: "レビュー",
+        title: "コードレビュー",
       },
-      { id: "action-5", title: "説明", kind: "text", prompt: "説明" },
+      { id: "action-5", kind: "text", prompt: "説明", title: "説明" },
     ],
     onRun: (actionId) => {
       console.log("Action run:", actionId);

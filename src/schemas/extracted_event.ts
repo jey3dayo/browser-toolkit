@@ -9,10 +9,10 @@ import {
 import type { ExtractedEvent } from "@/shared_types";
 
 export const ExtractedEventSchema = object({
-  title: string(),
-  start: string(),
-  end: optional(string()),
   allDay: optional(boolean()),
-  location: optional(string()),
   description: optional(string()),
+  end: optional(string()),
+  location: optional(string()),
+  start: string(),
+  title: string(),
 }) satisfies BaseSchema<unknown, ExtractedEvent, BaseIssue<unknown>>;

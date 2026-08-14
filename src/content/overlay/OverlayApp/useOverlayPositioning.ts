@@ -25,7 +25,7 @@ type Params = {
  */
 export function useOverlayPositioning(params: Params) {
   const { host, viewModel, panelRef } = params;
-  const panelSizeRef = useRef<PanelSize>({ width: 520, height: 300 });
+  const panelSizeRef = useRef<PanelSize>({ height: 300, width: 520 });
   const [pinned, setPinned] = useState(false);
   const [pinnedPos, setPinnedPos] = useState<Point | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -34,12 +34,12 @@ export function useOverlayPositioning(params: Params) {
 
   updateOverlayPositionRef.current = (): void => {
     positionOverlayHost({
-      open: viewModel.open,
+      anchorRect: viewModel.anchorRect,
       host,
-      size: panelSizeRef.current,
+      open: viewModel.open,
       pinned,
       pinnedPos,
-      anchorRect: viewModel.anchorRect,
+      size: panelSizeRef.current,
     });
     updateOverlayToastSurfaceInset({
       host,
@@ -71,18 +71,17 @@ export function useOverlayPositioning(params: Params) {
       }
       lastWidth = width;
       lastHeight = height;
-      panelSizeRef.current = { width, height };
+      panelSizeRef.current = { height, width };
       updateOverlayPositionRef.current();
     };
 
-    const observer = new ResizeObserver((entries) => {
-      const entry = entries[0];
+    const observer = new ResizeObserver(([entry]) => {
       if (!entry) {
         return;
       }
       commit({
-        width: entry.contentRect.width,
         height: entry.contentRect.height,
+        width: entry.contentRect.width,
       });
     });
 
@@ -115,9 +114,9 @@ export function useOverlayPositioning(params: Params) {
 
   const startDrag = (event: React.PointerEvent<HTMLDivElement>): void => {
     startOverlayDrag({
+      dragOffsetRef,
       event,
       host,
-      dragOffsetRef,
       setDragging,
       setPinnedPos,
     });
@@ -125,23 +124,23 @@ export function useOverlayPositioning(params: Params) {
 
   const moveDrag = (event: React.PointerEvent<HTMLDivElement>): void => {
     moveOverlayDrag({
-      event,
-      pinned,
-      panel: panelRef.current,
       dragging,
       dragOffsetRef,
+      event,
+      panel: panelRef.current,
+      pinned,
       setPinned,
       setPinnedPos,
     });
   };
 
   const endDrag = (event: React.PointerEvent<HTMLDivElement>): void => {
-    endOverlayDrag({ event, dragging, dragOffsetRef, setDragging });
+    endOverlayDrag({ dragging, dragOffsetRef, event, setDragging });
   };
 
   const togglePinned = (): void => {
     toggleOverlayPinned({ pinned, setPinned, setPinnedPos });
   };
 
-  return { pinned, dragging, startDrag, moveDrag, endDrag, togglePinned };
+  return { dragging, endDrag, moveDrag, pinned, startDrag, togglePinned };
 }

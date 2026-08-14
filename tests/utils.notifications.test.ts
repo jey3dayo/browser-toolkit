@@ -37,40 +37,40 @@ describe("utils/notifications", () => {
   describe("showNotification", () => {
     it("通知を正常に表示できる", async () => {
       await showNotification({
-        title: "テストタイトル",
         message: "テストメッセージ",
+        title: "テストタイトル",
       });
 
       expect(mockChromeNotifications.create).toHaveBeenCalledWith({
-        type: "basic",
         iconUrl: MOCK_ICON_URL,
-        title: "テストタイトル",
         message: "テストメッセージ",
         priority: 1,
+        title: "テストタイトル",
+        type: "basic",
       });
     });
 
     it("カスタムアイコンを指定できる", async () => {
       await showNotification({
-        title: "テスト",
-        message: "テスト",
         iconUrl: "/icons/custom.png",
+        message: "テスト",
+        title: "テスト",
       });
 
       expect(mockChromeNotifications.create).toHaveBeenCalledWith({
-        type: "basic",
         iconUrl: "/icons/custom.png",
-        title: "テスト",
         message: "テスト",
         priority: 1,
+        title: "テスト",
+        type: "basic",
       });
     });
 
     it("優先度を指定できる", async () => {
       await showNotification({
-        title: "テスト",
         message: "テスト",
         priority: 2,
+        title: "テスト",
       });
 
       expect(mockChromeNotifications.create).toHaveBeenCalledWith(
@@ -84,11 +84,11 @@ describe("utils/notifications", () => {
       const longTitle = "A".repeat(300);
 
       await showNotification({
-        title: longTitle,
         message: "テスト",
+        title: longTitle,
       });
 
-      const call = mockChromeNotifications.create.mock.calls[0][0];
+      const [[call]] = mockChromeNotifications.create.mock.calls;
       expect(call.title).toHaveLength(256);
       expect(call.title).toMatch(TRUNCATED_TITLE_PATTERN);
     });
@@ -97,25 +97,25 @@ describe("utils/notifications", () => {
       const longMessage = "B".repeat(600);
 
       await showNotification({
-        title: "テスト",
         message: longMessage,
+        title: "テスト",
       });
 
-      const call = mockChromeNotifications.create.mock.calls[0][0];
+      const [[call]] = mockChromeNotifications.create.mock.calls;
       expect(call.message).toHaveLength(512);
       expect(call.message).toMatch(TRUNCATED_MESSAGE_PATTERN);
     });
 
     it("null や undefined を安全に処理する", async () => {
       await showNotification({
-        title: null as any,
         message: undefined as any,
+        title: null as any,
       });
 
       expect(mockChromeNotifications.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          title: "",
           message: "",
+          title: "",
         })
       );
     });
@@ -132,8 +132,8 @@ describe("utils/notifications", () => {
 
       await expect(
         showNotification({
-          title: "テスト",
           message: "テスト",
+          title: "テスト",
         })
       ).resolves.not.toThrow();
 
@@ -152,29 +152,29 @@ describe("utils/notifications", () => {
   describe("showErrorNotification", () => {
     it("エラー通知を表示できる", async () => {
       await showErrorNotification({
-        title: "エラー",
         errorMessage: "問題が発生しました",
+        title: "エラー",
       });
 
       expect(mockChromeNotifications.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          title: "エラー",
           message: "問題が発生しました",
+          title: "エラー",
         })
       );
     });
 
     it("ヒントを含むエラー通知を表示できる", async () => {
       await showErrorNotification({
-        title: "エラー",
         errorMessage: "問題が発生しました",
         hint: "設定を確認してください",
+        title: "エラー",
       });
 
       expect(mockChromeNotifications.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          title: "エラー",
           message: "問題が発生しました\n\n設定を確認してください",
+          title: "エラー",
         })
       );
     });
@@ -184,12 +184,12 @@ describe("utils/notifications", () => {
       const longHint = "H".repeat(200);
 
       await showErrorNotification({
-        title: "エラー",
         errorMessage: longError,
         hint: longHint,
+        title: "エラー",
       });
 
-      const call = mockChromeNotifications.create.mock.calls[0][0];
+      const [[call]] = mockChromeNotifications.create.mock.calls;
       expect(call.message.length).toBeLessThanOrEqual(512);
     });
   });

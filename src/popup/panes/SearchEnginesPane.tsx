@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { SortableList } from "@/components/SortableList";
 import { Button } from "@/components/shared/Button";
 import { PaneCard, RowBetween, Stack } from "@/components/shared/Layout";
@@ -7,6 +8,7 @@ import { SearchEngineAddForm } from "@/popup/panes/search-engines/SearchEngineAd
 import { SearchEngineListItem } from "@/popup/panes/search-engines/SearchEngineListItem";
 import { useSearchEnginesController } from "@/popup/panes/search-engines/useSearchEnginesController";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
+import type { SearchEngine } from "@/search_engine_types";
 
 export type SearchEnginesPaneProps = PopupPaneBaseProps;
 
@@ -15,17 +17,28 @@ export function SearchEnginesPane(
 ): React.JSX.Element {
   const controller = useSearchEnginesController(props);
 
+  const handleReset = useCallback(() => {
+    controller.resetToDefaults().catch(() => {
+      // no-op
+    });
+  }, [controller.resetToDefaults]);
+
+  const handleReorder = useCallback(
+    (reordered: SearchEngine[]) => {
+      controller.handleReorder(reordered).catch(() => {
+        // no-op
+      });
+    },
+    [controller.handleReorder]
+  );
+
   return (
     <PaneCard>
       <RowBetween>
         <PaneTitle>{t("searchEngines.title")}</PaneTitle>
         <Button
           data-testid="reset-search-engines"
-          onClick={() => {
-            controller.resetToDefaults().catch(() => {
-              // no-op
-            });
-          }}
+          onClick={handleReset}
           size="small"
           type="button"
           variant="ghost"
@@ -51,14 +64,7 @@ export function SearchEnginesPane(
         />
 
         {controller.engines.length > 0 ? (
-          <SortableList
-            items={controller.engines}
-            onReorder={(reordered) => {
-              controller.handleReorder(reordered).catch(() => {
-                // no-op
-              });
-            }}
-          >
+          <SortableList items={controller.engines} onReorder={handleReorder}>
             {(engine) => (
               <SearchEngineListItem
                 engine={engine}

@@ -6,9 +6,9 @@ const toggleVariants = cva("", {
   variants: {
     variant: {
       default: "mbu-toggle",
-      inline: "mbu-toggle mbu-toggle-inline",
-      icon: "input-icon-toggle",
       groupItem: "mbu-toggle-group-item",
+      icon: "input-icon-toggle",
+      inline: "mbu-toggle mbu-toggle-inline",
     },
   },
 });

@@ -13,7 +13,6 @@ const dirname =
 const alias = { "@": path.join(dirname, "src") };
 
 const tomlAsText = (): Plugin => ({
-  name: "toml-as-text",
   enforce: "pre",
   load(id: string) {
     if (!id.endsWith(".toml")) {
@@ -25,6 +24,7 @@ const tomlAsText = (): Plugin => ({
       map: null,
     };
   },
+  name: "toml-as-text",
 });
 
 export default defineConfig({
@@ -35,39 +35,36 @@ export default defineConfig({
   test: {
     projects: [
       {
+        plugins: [tomlAsText()],
         resolve: {
           alias,
         },
-        plugins: [tomlAsText()],
         test: {
-          name: "node",
+          clearMocks: true,
           environment: "node",
-          include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],
           exclude: [
             "tests/**/*.dom.test.ts",
             "tests/**/*.dom.test.tsx",
             "src/**/*.stories.*",
           ],
-          clearMocks: true,
+          include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],
+          name: "node",
         },
       },
       {
+        plugins: [tomlAsText()],
         resolve: {
           alias,
         },
-        plugins: [tomlAsText()],
         test: {
-          name: "dom",
+          clearMocks: true,
           environment: "jsdom",
           include: ["tests/**/*.dom.test.ts", "tests/**/*.dom.test.tsx"],
+          name: "dom",
           setupFiles: ["tests/setup.ts"],
-          clearMocks: true,
         },
       },
       {
-        resolve: {
-          alias,
-        },
         plugins: [
           tomlAsText(),
           storybookTest({
@@ -75,14 +72,17 @@ export default defineConfig({
             storybookScript: "pnpm storybook --no-open --port 6006",
           }),
         ],
+        resolve: {
+          alias,
+        },
         test: {
-          name: "storybook",
           browser: {
             enabled: true,
-            provider: playwright({}),
             headless: true,
             instances: [{ browser: "chromium" }],
+            provider: playwright({}),
           },
+          name: "storybook",
         },
       },
     ],

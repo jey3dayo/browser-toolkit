@@ -15,14 +15,14 @@ const fieldsetVariants = cva("mbu-fieldset", {
 });
 
 const legendVariants = cva("", {
+  defaultVariants: {
+    variant: "default",
+  },
   variants: {
     variant: {
       default: "mbu-fieldset-legend",
       editor: "editor-title",
     },
-  },
-  defaultVariants: {
-    variant: "default",
   },
 });
 

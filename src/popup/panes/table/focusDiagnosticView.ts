@@ -40,8 +40,8 @@ export function buildFocusDiagnosticView(
   params: FocusDiagnosticViewParams
 ): FocusDiagnosticView {
   const labelMap: Record<FocusDiagnosticKind, string> = {
-    "not-configured": t("tablePane.diagnostic.labels.notConfigured"),
     active: t("tablePane.diagnostic.labels.active"),
+    "not-configured": t("tablePane.diagnostic.labels.notConfigured"),
     "reload-required": t("tablePane.diagnostic.labels.reloadRequired"),
     unavailable: t("tablePane.diagnostic.labels.unavailable"),
   };

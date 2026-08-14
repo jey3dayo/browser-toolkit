@@ -129,8 +129,8 @@ async function insertPromptIntoGemini(
     new KeyboardEvent("keydown", {
       bubbles: true,
       cancelable: true,
-      key: "Enter",
       code: "Enter",
+      key: "Enter",
     })
   );
   return true;
@@ -138,24 +138,28 @@ async function insertPromptIntoGemini(
 
 async function tryGeminiHandoff(
   tabId: number,
-  prompt: string
+  prompt: string,
+  attempt = 0
 ): Promise<boolean> {
-  for (let attempt = 0; attempt < GEMINI_HANDOFF_RETRY_COUNT; attempt += 1) {
-    try {
-      const results = await chrome.scripting.executeScript({
-        target: { tabId },
-        func: insertPromptIntoGemini,
-        args: [{ prompt }],
-      });
-      if (isHandoffSuccess(results)) {
-        return true;
-      }
-    } catch {
-      // Gemini may still be loading; retry until the handoff window expires.
-    }
-    await delay(GEMINI_HANDOFF_RETRY_INTERVAL_MS);
+  if (attempt >= GEMINI_HANDOFF_RETRY_COUNT) {
+    return false;
   }
-  return false;
+
+  try {
+    const results = await chrome.scripting.executeScript({
+      args: [{ prompt }],
+      func: insertPromptIntoGemini,
+      target: { tabId },
+    });
+    if (isHandoffSuccess(results)) {
+      return true;
+    }
+  } catch {
+    // Gemini may still be loading; retry until the handoff window expires.
+  }
+
+  await delay(GEMINI_HANDOFF_RETRY_INTERVAL_MS);
+  return tryGeminiHandoff(tabId, prompt, attempt + 1);
 }
 
 async function copyPromptFallback(
@@ -164,8 +168,8 @@ async function copyPromptFallback(
 ): Promise<void> {
   await chrome.tabs.sendMessage(sourceTabId, {
     action: "copyToClipboard",
-    text: prompt,
     successMessage: t("background.geminiResearch.copyFallbackSuccess"),
+    text: prompt,
   });
 }
 

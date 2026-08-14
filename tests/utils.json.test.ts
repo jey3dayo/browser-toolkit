@@ -11,8 +11,8 @@ describe("safeParseJsonObject", () => {
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.output).toEqual({
-        title: "会議",
         start: "2026-05-25T10:00:00+09:00",
+        title: "会議",
       });
     }
   });
@@ -25,9 +25,9 @@ describe("safeParseJsonObject", () => {
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.output).toEqual({
-        title: "出張",
-        start: "2026-05-26",
         allDay: true,
+        start: "2026-05-26",
+        title: "出張",
       });
     }
   });

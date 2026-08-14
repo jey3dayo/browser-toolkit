@@ -105,9 +105,9 @@ export function useFocusPatterns(
 
   const parseFocusPatternInput = (): string | null => {
     const raw = requireTrimmedString({
-      value: focusPatternInput,
       emptyMessage: t("tablePane.errors.patternRequired"),
       notify: props.notify,
+      value: focusPatternInput,
     });
     if (!raw) {
       return null;
@@ -147,16 +147,16 @@ export function useFocusPatterns(
         setFocusPatterns(next);
         setFocusPatternInput("");
       },
-      rollback: () => {
-        setFocusPatterns(focusPatterns);
+      onFailure: () => {
+        props.notify.error(t("tablePane.errors.addFailed"));
       },
-      persist: () =>
-        props.runtime.storageSyncSet({ focusOverridePatterns: next }),
       onSuccess: () => {
         props.notify.success(addSuccessMessage);
       },
-      onFailure: () => {
-        props.notify.error(t("tablePane.errors.addFailed"));
+      persist: () =>
+        props.runtime.storageSyncSet({ focusOverridePatterns: next }),
+      rollback: () => {
+        setFocusPatterns(focusPatterns);
       },
     });
 
@@ -171,16 +171,16 @@ export function useFocusPatterns(
       applyNext: () => {
         setFocusPatterns(next);
       },
-      rollback: () => {
-        setFocusPatterns(focusPatterns);
+      onFailure: () => {
+        props.notify.error(t("tablePane.errors.deleteFailed"));
       },
-      persist: () =>
-        props.runtime.storageSyncSet({ focusOverridePatterns: next }),
       onSuccess: () => {
         props.notify.success(t("tablePane.success.deleted"));
       },
-      onFailure: () => {
-        props.notify.error(t("tablePane.errors.deleteFailed"));
+      persist: () =>
+        props.runtime.storageSyncSet({ focusOverridePatterns: next }),
+      rollback: () => {
+        setFocusPatterns(focusPatterns);
       },
     });
 
@@ -190,9 +190,9 @@ export function useFocusPatterns(
   };
 
   return {
-    focusPatternInput,
-    setFocusPatternInput,
     addFocusPattern,
+    focusPatternInput,
     removeFocusPattern,
+    setFocusPatternInput,
   };
 }

@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { Button } from "@/components/shared/Button";
 import { PaneCard, RowBetween, Stack } from "@/components/shared/Layout";
 import { PatternAddForm } from "@/components/shared/PatternAddForm";
@@ -34,17 +35,23 @@ export function SearchGroupsPane(
     handleReorder,
   } = useSearchGroupsState(props);
 
+  const handleResetToDefaults = useCallback(() => {
+    resetToDefaults().catch(() => {
+      // no-op
+    });
+  }, [resetToDefaults]);
+
+  const handleSubmitError = useCallback(() => {
+    props.notify.error(t("common.unknownError"));
+  }, [props.notify]);
+
   return (
     <PaneCard>
       <RowBetween>
         <PaneTitle>{t("searchGroups.title")}</PaneTitle>
         <Button
           data-testid="reset-search-groups"
-          onClick={() => {
-            resetToDefaults().catch(() => {
-              // no-op
-            });
-          }}
+          onClick={handleResetToDefaults}
           size="small"
           type="button"
           variant="ghost"
@@ -62,9 +69,7 @@ export function SearchGroupsPane(
           disabled={engines.length === 0}
           inputTestId="new-group-name"
           onSubmit={addNewGroup}
-          onSubmitError={() => {
-            props.notify.error(t("common.unknownError"));
-          }}
+          onSubmitError={handleSubmitError}
           onValueChange={setNewGroupNameInput}
           placeholder={t("searchGroups.namePlaceholder")}
           value={newGroupNameInput}

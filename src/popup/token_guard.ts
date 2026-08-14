@@ -62,7 +62,6 @@ export async function ensureOpenAiTokenConfigured(
   if (Result.isFailure(tokenConfigured)) {
     deps.showNotification(
       {
-        message: t("popup.tokenGuard.missingToken"),
         action: {
           label: t("popup.tokenGuard.openSettings"),
           onClick: () => {
@@ -70,6 +69,7 @@ export async function ensureOpenAiTokenConfigured(
             deps.focusTokenInput();
           },
         },
+        message: t("popup.tokenGuard.missingToken"),
       },
       "error"
     );

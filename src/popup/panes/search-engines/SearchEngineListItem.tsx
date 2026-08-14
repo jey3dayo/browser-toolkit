@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { Badge } from "@/components/shared/Badge";
 import { Button } from "@/components/shared/Button";
 import { ListItemRow } from "@/components/shared/ListItemRow";
@@ -15,7 +16,22 @@ export type SearchEngineListItemProps = {
 export function SearchEngineListItem(
   props: SearchEngineListItemProps
 ): React.JSX.Element {
-  const { engine } = props;
+  const { engine, onToggleEnabled, onRemove } = props;
+
+  const handleToggleEnabled = useCallback(
+    (checked: boolean) => {
+      onToggleEnabled(engine.id, checked).catch(() => {
+        // no-op
+      });
+    },
+    [onToggleEnabled, engine.id]
+  );
+
+  const handleRemove = useCallback(() => {
+    onRemove(engine.id).catch(() => {
+      // no-op
+    });
+  }, [onRemove, engine.id]);
 
   return (
     <ListItemRow
@@ -25,20 +41,12 @@ export function SearchEngineListItem(
             aria-label={t("searchEngines.enableAria", { name: engine.name })}
             checked={engine.enabled}
             data-testid={`engine-enabled-${engine.id}`}
-            onCheckedChange={(checked) => {
-              props.onToggleEnabled(engine.id, checked).catch(() => {
-                // no-op
-              });
-            }}
+            onCheckedChange={handleToggleEnabled}
           />
           {!engine.id.startsWith(BUILTIN_SEARCH_ENGINE_ID_PREFIX) && (
             <Button
               data-testid={`remove-engine-${engine.id}`}
-              onClick={() => {
-                props.onRemove(engine.id).catch(() => {
-                  // no-op
-                });
-              }}
+              onClick={handleRemove}
               type="button"
               variant="danger"
             >

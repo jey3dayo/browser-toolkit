@@ -15,21 +15,21 @@ function createAdapter(
 ): ChatCompletionAdapter {
   return {
     buildRequest: (_token, body) => ({
-      url: "https://api.openai.com/v1/chat/completions",
       init: {
-        method: "POST",
+        body: JSON.stringify(body),
         headers: {
           Authorization: "Bearer token",
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(body),
+        method: "POST",
       },
+      url: "https://api.openai.com/v1/chat/completions",
     }),
+    extractError: (_json, status) => `adapter error: ${status}`,
     extractText: (json) => {
       const data = json as { value?: string };
       return data.value?.trim() ?? null;
     },
-    extractError: (_json, status) => `adapter error: ${status}`,
     ...overrides,
   };
 }
@@ -71,10 +71,10 @@ describe("fetchOpenAiChatCompletionText", () => {
   it("returns Success when response has content", async () => {
     const fetchFn = vi.fn(() =>
       Promise.resolve({
-        ok: true,
-        status: 200,
         json: () =>
           Promise.resolve({ choices: [{ message: { content: "ok" } }] }),
+        ok: true,
+        status: 200,
       } as unknown as Response)
     );
 
@@ -94,9 +94,9 @@ describe("fetchOpenAiChatCompletionText", () => {
   it("returns Failure when content is missing", async () => {
     const fetchFn = vi.fn(() =>
       Promise.resolve({
+        json: () => Promise.resolve({ choices: [{ message: {} }] }),
         ok: true,
         status: 200,
-        json: () => Promise.resolve({ choices: [{ message: {} }] }),
       } as unknown as Response)
     );
 
@@ -115,9 +115,9 @@ describe("fetchOpenAiChatCompletionText", () => {
   it("returns Failure with API message when response not ok", async () => {
     const fetchFn = vi.fn(() =>
       Promise.resolve({
+        json: () => Promise.resolve({ error: { message: "invalid token" } }),
         ok: false,
         status: 401,
-        json: () => Promise.resolve({ error: { message: "invalid token" } }),
       } as unknown as Response)
     );
 
@@ -136,9 +136,9 @@ describe("fetchOpenAiChatCompletionText", () => {
   it("returns Failure with status when response JSON is not available", async () => {
     const fetchFn = vi.fn(() =>
       Promise.resolve({
+        json: () => Promise.reject(new Error("boom")),
         ok: false,
         status: 503,
-        json: () => Promise.reject(new Error("boom")),
       } as unknown as Response)
     );
 
@@ -174,9 +174,9 @@ describe("fetchOpenAiChatCompletionOk", () => {
   it("returns Success on ok response", async () => {
     const fetchFn = vi.fn(() =>
       Promise.resolve({
+        json: () => Promise.resolve({}),
         ok: true,
         status: 200,
-        json: () => Promise.resolve({}),
       } as unknown as Response)
     );
 
@@ -191,9 +191,9 @@ describe("fetchOpenAiChatCompletionOk", () => {
   it("returns Failure on non-ok response", async () => {
     const fetchFn = vi.fn(() =>
       Promise.resolve({
+        json: () => Promise.resolve({ error: { message: "bad request" } }),
         ok: false,
         status: 400,
-        json: () => Promise.resolve({ error: { message: "bad request" } }),
       } as unknown as Response)
     );
 
@@ -213,9 +213,9 @@ describe("fetchChatCompletionText", () => {
   it("returns Success when adapter extracts content", async () => {
     const fetchFn = vi.fn(() =>
       Promise.resolve({
+        json: () => Promise.resolve({ value: " adapter ok " }),
         ok: true,
         status: 200,
-        json: () => Promise.resolve({ value: " adapter ok " }),
       } as unknown as Response)
     );
 
@@ -223,7 +223,7 @@ describe("fetchChatCompletionText", () => {
       fetchFn as unknown as typeof fetch,
       createAdapter(),
       "token",
-      { model: "x", messages: [] },
+      { messages: [], model: "x" },
       "empty"
     );
 
@@ -236,9 +236,9 @@ describe("fetchChatCompletionText", () => {
   it("returns adapter failure when response is not ok", async () => {
     const fetchFn = vi.fn(() =>
       Promise.resolve({
+        json: () => Promise.resolve({ error: "slow down" }),
         ok: false,
         status: 429,
-        json: () => Promise.resolve({ error: "slow down" }),
       } as unknown as Response)
     );
 
@@ -248,7 +248,7 @@ describe("fetchChatCompletionText", () => {
         extractError: (_json, status) => `failed: ${status}`,
       }),
       "token",
-      { model: "x", messages: [] },
+      { messages: [], model: "x" },
       "empty"
     );
 
@@ -263,9 +263,9 @@ describe("fetchChatCompletionOk", () => {
   it("returns Success on ok response", async () => {
     const fetchFn = vi.fn(() =>
       Promise.resolve({
+        json: () => Promise.resolve({}),
         ok: true,
         status: 200,
-        json: () => Promise.resolve({}),
       } as unknown as Response)
     );
 
@@ -273,7 +273,7 @@ describe("fetchChatCompletionOk", () => {
       fetchFn as unknown as typeof fetch,
       createAdapter(),
       "token",
-      { model: "x", messages: [] }
+      { messages: [], model: "x" }
     );
 
     expect(Result.isSuccess(result)).toBe(true);
@@ -282,9 +282,9 @@ describe("fetchChatCompletionOk", () => {
   it("returns adapter failure on non-ok response", async () => {
     const fetchFn = vi.fn(() =>
       Promise.resolve({
+        json: () => Promise.resolve({}),
         ok: false,
         status: 503,
-        json: () => Promise.resolve({}),
       } as unknown as Response)
     );
 
@@ -292,7 +292,7 @@ describe("fetchChatCompletionOk", () => {
       fetchFn as unknown as typeof fetch,
       createAdapter(),
       "token",
-      { model: "x", messages: [] }
+      { messages: [], model: "x" }
     );
 
     expect(Result.isFailure(result)).toBe(true);

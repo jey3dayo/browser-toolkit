@@ -51,26 +51,26 @@ export async function showNotification(
 
     if (params.iconUrl) {
       await chrome.notifications.create({
-        type: "basic",
         iconUrl: params.iconUrl,
-        title: formattedTitle,
         message: formattedMessage,
         priority: params.priority ?? 1,
+        title: formattedTitle,
+        type: "basic",
       });
     } else {
       await chrome.notifications.create({
-        type: "basic",
         iconUrl: chrome.runtime.getURL("images/icon128.png"),
-        title: formattedTitle,
         message: formattedMessage,
         priority: params.priority ?? 1,
+        title: formattedTitle,
+        type: "basic",
       });
     }
   } catch (error) {
     console.error("Failed to show notification:", error, {
+      messageLength: String(params.message).length,
       title: params.title,
-      titleLength: String(params.title ?? "").length,
-      messageLength: String(params.message ?? "").length,
+      titleLength: String(params.title).length,
     });
   }
 }
@@ -89,7 +89,7 @@ export async function showErrorNotification(params: {
   }
 
   await showNotification({
-    title: params.title,
     message: messageParts.join("\n"),
+    title: params.title,
   });
 }

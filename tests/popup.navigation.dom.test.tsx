@@ -62,8 +62,8 @@ describe("popup navigation (React + Base UI Tabs)", () => {
 
   it("keeps navigation metadata as translation keys for render-time resolution", () => {
     expect(navigationItems[0]).toMatchObject({
-      labelKey: "navigation.actions",
       ariaLabelKey: "navigation.actions",
+      labelKey: "navigation.actions",
     });
     expect(navigationItems[0]).not.toHaveProperty("label");
     expect(navigationItems[0]).not.toHaveProperty("ariaLabel");
@@ -145,8 +145,8 @@ describe("popup navigation (React + Base UI Tabs)", () => {
     await act(async () => {
       dom.window.document.dispatchEvent(
         new dom.window.KeyboardEvent("keydown", {
-          key: "Escape",
           bubbles: true,
+          key: "Escape",
         })
       );
       await flush(dom.window);

@@ -11,7 +11,7 @@
  */
 function simpleHash(str: string): string {
   let hash = 0;
-  for (let i = 0; i < str.length; i++) {
+  for (let i = 0; i < str.length; i += 1) {
     const char = str.charCodeAt(i);
     // biome-ignore lint/suspicious/noBitwiseOperators: Required for hash calculation
     hash = (hash << 5) - hash + char;

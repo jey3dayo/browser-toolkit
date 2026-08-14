@@ -34,5 +34,5 @@ export function ensureShadowMount(params: ShadowMountParams): ShadowMount {
     shadow.appendChild(rootEl);
   }
 
-  return { host, shadow, rootEl };
+  return { host, rootEl, shadow };
 }

@@ -270,13 +270,13 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
     enableTableSortWithNotification,
     startTableObserverWithNotification,
   } = setupTableAutoExec({
-    showNotification,
     onContextActionsChange: async () => {
       const module = await loadOverlayModule();
       if (module) {
         module.resetSummarizeOverlayTitleState();
       }
     },
+    showNotification,
   });
 
   window.addEventListener("pagehide", stopTableObserver);
@@ -287,12 +287,12 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
 
   const messageHandlerDeps: MessageHandlerDeps = {
     enableTableSortWithNotification,
-    startTableObserverWithNotification,
-    showNotification,
     getOrCreateToastMount,
     showActionOverlay,
-    showSummaryOverlay,
+    showNotification,
     showQrCodeOverlay,
+    showSummaryOverlay,
+    startTableObserverWithNotification,
   };
 
   chrome.runtime.onMessage.addListener(

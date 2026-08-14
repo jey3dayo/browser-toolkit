@@ -35,12 +35,12 @@ export function coerceCopyTitleLinkFailure(
   }
   const format = coerceLinkFormat(v.format);
   return Result.succeed({
+    error: v.error as string,
     occurredAt: v.occurredAt as number,
-    tabId: v.tabId as number,
     pageTitle: v.pageTitle as string,
     pageUrl: v.pageUrl as string,
+    tabId: v.tabId as number,
     text: v.text as string,
-    error: v.error as string,
     ...(format ? { format } : {}),
   });
 }
@@ -122,11 +122,11 @@ export async function handleCopyTitleLinkFailureOnPopupOpen(params: {
   }
 
   params.setCreateLinkInitial({
+    format: failure.format ?? "text",
     link: {
       title: failure.pageTitle,
       url: failure.pageUrl,
     },
-    format: failure.format ?? "text",
   });
   params.navigateToCreateLink();
 

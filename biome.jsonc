@@ -21,5 +21,17 @@
         "useFilenamingConvention": "off"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["src/constants/models.ts"],
+      "assist": {
+        "actions": {
+          "source": {
+            "useSortedKeys": "off"
+          }
+        }
+      }
+    }
+  ]
 }

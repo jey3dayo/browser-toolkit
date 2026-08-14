@@ -24,11 +24,11 @@ export const test = base.extend<{
   context: async ({}, use) => {
     const pathToExtension = resolveExtensionRoot();
     const context = await chromium.launchPersistentContext("", {
-      headless: false,
       args: [
         `--disable-extensions-except=${pathToExtension}`,
         `--load-extension=${pathToExtension}`,
       ],
+      headless: false,
     });
     await use(context);
     await context.close();
@@ -39,9 +39,9 @@ export const test = base.extend<{
       background = await context.waitForEvent("serviceworker");
     }
 
-    const extensionId = background.url().split("/")[2];
+    const [, , extensionId] = background.url().split("/");
     await use(extensionId);
   },
 });
 
-export const expect = test.expect;
+export const { expect } = test;

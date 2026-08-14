@@ -15,15 +15,15 @@ export const cssRawPlugin = {
     pluginBuild.onResolve({ filter: RAW_QUERY_REGEX }, async (args) => {
       const withoutQuery = args.path.replace(RAW_QUERY_REGEX, "");
       const resolved = await pluginBuild.resolve(withoutQuery, {
-        resolveDir: args.resolveDir,
         kind: args.kind,
+        resolveDir: args.resolveDir,
       });
       if (resolved.errors.length > 0) {
         return { errors: resolved.errors };
       }
       return {
-        path: resolved.path,
         namespace: "css-raw",
+        path: resolved.path,
       };
     });
 

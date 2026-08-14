@@ -20,19 +20,13 @@ function setupChromeMocks() {
       lastError: undefined,
     },
     storage: {
-      sync: {
+      local: {
         get: vi.fn((keys, callback) => {
           const result: Record<string, any> = {};
           if (keys === null || keys === undefined) {
             // Get all items
             for (const [key, value] of mockStorage.entries()) {
-              if (
-                !key.startsWith("backup_") &&
-                key !== "schemaVersion" &&
-                key !== "migrationLog"
-              ) {
-                result[key] = value;
-              }
+              result[key] = value;
             }
           } else if (Array.isArray(keys)) {
             for (const key of keys) {
@@ -56,13 +50,19 @@ function setupChromeMocks() {
           }
         }),
       },
-      local: {
+      sync: {
         get: vi.fn((keys, callback) => {
           const result: Record<string, any> = {};
           if (keys === null || keys === undefined) {
             // Get all items
             for (const [key, value] of mockStorage.entries()) {
-              result[key] = value;
+              if (
+                !key.startsWith("backup_") &&
+                key !== "schemaVersion" &&
+                key !== "migrationLog"
+              ) {
+                result[key] = value;
+              }
             }
           } else if (Array.isArray(keys)) {
             for (const key of keys) {
@@ -150,7 +150,7 @@ describe("Storage Migrations", () => {
       await backupBeforeMigration(3);
 
       const backups = await listBackups();
-      const backup = backups[0];
+      const [backup] = backups;
       expect(backup.localData.searchEngines).toEqual([
         { id: "builtin:amazon-jp" },
       ]);
@@ -162,12 +162,12 @@ describe("Storage Migrations", () => {
     it("should keep only last 3 backups", async () => {
       // Create 5 backups with different timestamps
       const baseTime = Date.now();
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 5; i += 1) {
         const backup: BackupData = {
+          localData: {},
+          syncData: {},
           timestamp: baseTime + i * 1000,
           version: i,
-          syncData: {},
-          localData: {},
         };
         mockStorage.set(`backup_${i}_${backup.timestamp}`, backup);
       }
@@ -182,16 +182,16 @@ describe("Storage Migrations", () => {
   describe("listBackups", () => {
     it("should list all backups sorted by timestamp", async () => {
       const backup1: BackupData = {
+        localData: {},
+        syncData: {},
         timestamp: 1000,
         version: 1,
-        syncData: {},
-        localData: {},
       };
       const backup2: BackupData = {
+        localData: {},
+        syncData: {},
         timestamp: 2000,
         version: 2,
-        syncData: {},
-        localData: {},
       };
 
       mockStorage.set("backup_1_1000", backup1);
@@ -207,10 +207,10 @@ describe("Storage Migrations", () => {
   describe("restoreFromBackup", () => {
     it("should restore data from backup", async () => {
       const backup: BackupData = {
+        localData: { localKey: "localValue" },
+        syncData: { syncKey: "syncValue" },
         timestamp: 1000,
         version: 1,
-        syncData: { syncKey: "syncValue" },
-        localData: { localKey: "localValue" },
       };
 
       mockStorage.set("backup_1_1000", backup);
@@ -233,10 +233,10 @@ describe("Storage Migrations", () => {
 
     it("should only remove keys added after the backup, not all data", async () => {
       const backup: BackupData = {
+        localData: { keptLocalKey: "kept" },
+        syncData: { keptSyncKey: "kept" },
         timestamp: 1000,
         version: 1,
-        syncData: { keptSyncKey: "kept" },
-        localData: { keptLocalKey: "kept" },
       };
       mockStorage.set("backup_1_1000", backup);
       mockStorage.set("keptSyncKey", "kept");
@@ -351,35 +351,35 @@ describe("Storage Migrations", () => {
       mockStorage.set("schemaVersion", 1);
       mockStorage.set("searchEngines", [
         {
+          enabled: true,
           id: "builtin:amazon-jp",
           name: "Amazon",
           urlTemplate: "https://www.amazon.co.jp/s?k={query}",
-          enabled: true,
         },
       ]);
       mockStorage.set("searchEngineGroups", [
         {
+          enabled: true,
+          engineIds: ["builtin:amazon-jp"],
           id: "group:shopping-e8c8a7d5",
           name: "お買い物",
-          engineIds: ["builtin:amazon-jp"],
-          enabled: true,
         },
       ]);
 
       await runMigrations();
 
       expect(mockStorage.get("searchEngines")).toContainEqual({
+        enabled: true,
         id: "builtin:soundhouse",
         name: "サウンドハウス",
         urlTemplate:
           "https://www.soundhouse.co.jp/search/index/?i_type=a&search_all={query}",
-        enabled: true,
       });
       expect(mockStorage.get("searchEngineGroups")).toContainEqual({
+        enabled: true,
+        engineIds: ["builtin:amazon-jp", "builtin:soundhouse"],
         id: "group:shopping-e8c8a7d5",
         name: "お買い物",
-        engineIds: ["builtin:amazon-jp", "builtin:soundhouse"],
-        enabled: true,
       });
       expect(mockStorage.get("schemaVersion")).toBe(3);
     });
@@ -388,19 +388,19 @@ describe("Storage Migrations", () => {
       mockStorage.set("schemaVersion", 1);
       mockStorage.set("searchEngines", [
         {
+          enabled: true,
           id: "builtin:soundhouse",
           name: "サウンドハウス",
           urlTemplate:
             "https://www.soundhouse.co.jp/search/index/?i_type=a&search_all={query}",
-          enabled: true,
         },
       ]);
       mockStorage.set("searchEngineGroups", [
         {
+          enabled: true,
+          engineIds: ["builtin:soundhouse"],
           id: "group:shopping-e8c8a7d5",
           name: "お買い物",
-          engineIds: ["builtin:soundhouse"],
-          enabled: true,
         },
       ]);
 
@@ -429,10 +429,10 @@ describe("Storage Migrations", () => {
       mockStorage.set("schemaVersion", 1);
       mockStorage.set("searchEngines", [
         {
+          enabled: true,
           id: "builtin:amazon-jp",
           name: "Amazon",
           urlTemplate: "https://www.amazon.co.jp/s?k={query}",
-          enabled: true,
         },
       ]);
       mockStorage.set("searchEngineGroups", []);
@@ -448,20 +448,20 @@ describe("Storage Migrations", () => {
       mockStorage.set("schemaVersion", 2);
       mockStorage.set("searchEngines", [
         {
+          enabled: true,
           id: "builtin:google",
           name: "Google",
           urlTemplate: "https://www.google.com/search?q={query}",
-          enabled: true,
         },
       ]);
 
       await runMigrations();
 
       expect(mockStorage.get("searchEngines")).toContainEqual({
+        enabled: true,
         id: "builtin:yandex",
         name: "Yandex",
         urlTemplate: "https://yandex.com/search/?text={query}",
-        enabled: true,
       });
       expect(mockStorage.get("schemaVersion")).toBe(3);
     });
@@ -470,10 +470,10 @@ describe("Storage Migrations", () => {
       mockStorage.set("schemaVersion", 2);
       mockStorage.set("searchEngines", [
         {
+          enabled: true,
           id: "builtin:yandex",
           name: "Yandex",
           urlTemplate: "https://yandex.com/search/?text={query}",
-          enabled: true,
         },
       ]);
 

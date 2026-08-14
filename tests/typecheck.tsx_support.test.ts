@@ -44,14 +44,14 @@ function typecheckFixture(fixturePath: string): TscResult {
   fs.writeFileSync(
     configFile,
     JSON.stringify({
-      extends: "./tsconfig.json",
       compilerOptions: {
         noEmit: true,
+        outDir: null,
         // The project config sets `rootDir: ./src`; widen it so the isolated
         // fixture path doesn't create unrelated diagnostics.
         rootDir: ".",
-        outDir: null,
       },
+      extends: "./tsconfig.json",
       files: [fixturePath],
       include: [],
     })
@@ -63,7 +63,7 @@ function typecheckFixture(fixturePath: string): TscResult {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
     });
-    return { status: 0, output };
+    return { output, status: 0 };
   } catch (error) {
     const spawnError = error as {
       status?: number | null;
@@ -71,8 +71,8 @@ function typecheckFixture(fixturePath: string): TscResult {
       stderr?: string;
     };
     return {
-      status: spawnError.status ?? null,
       output: `${spawnError.stdout ?? ""}${spawnError.stderr ?? ""}`,
+      status: spawnError.status ?? null,
     };
   } finally {
     fs.rmSync(configFile, { force: true });

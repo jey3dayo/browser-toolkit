@@ -25,8 +25,8 @@ function IconGallery(): React.JSX.Element {
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
         gap: 12,
+        gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
         padding: 16,
       }}
     >
@@ -34,13 +34,13 @@ function IconGallery(): React.JSX.Element {
         <div
           key={name}
           style={{
-            display: "flex",
             alignItems: "center",
+            background: "var(--color-surface)",
+            border: "1px solid var(--color-border-ui)",
+            borderRadius: 12,
+            display: "flex",
             gap: 10,
             padding: 12,
-            borderRadius: 12,
-            border: "1px solid var(--color-border-ui)",
-            background: "var(--color-surface)",
           }}
         >
           <Icon aria-hidden="true" data-testid={`icon-${name}`} name={name} />
@@ -52,9 +52,9 @@ function IconGallery(): React.JSX.Element {
 }
 
 const meta = {
-  title: "Shared/Components/Icon",
   component: IconGallery,
   tags: ["test"],
+  title: "Shared/Components/Icon",
 } satisfies Meta<typeof IconGallery>;
 
 export default meta;
@@ -76,20 +76,20 @@ function IconWithProps(): React.JSX.Element {
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
         gap: 16,
+        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
         padding: 16,
       }}
     >
       <div
         style={{
+          background: "var(--color-surface)",
+          border: "1px solid var(--color-border-ui)",
+          borderRadius: 12,
           display: "flex",
           flexDirection: "column",
           gap: 8,
           padding: 12,
-          borderRadius: 12,
-          border: "1px solid var(--color-border-ui)",
-          background: "var(--color-surface)",
         }}
       >
         <div style={{ fontSize: 12, fontWeight: 600 }}>Default Size</div>
@@ -97,13 +97,13 @@ function IconWithProps(): React.JSX.Element {
       </div>
       <div
         style={{
+          background: "var(--color-surface)",
+          border: "1px solid var(--color-border-ui)",
+          borderRadius: 12,
           display: "flex",
           flexDirection: "column",
           gap: 8,
           padding: 12,
-          borderRadius: 12,
-          border: "1px solid var(--color-border-ui)",
-          background: "var(--color-surface)",
         }}
       >
         <div style={{ fontSize: 12, fontWeight: 600 }}>Custom Size (24px)</div>
@@ -116,13 +116,13 @@ function IconWithProps(): React.JSX.Element {
       </div>
       <div
         style={{
+          background: "var(--color-surface)",
+          border: "1px solid var(--color-border-ui)",
+          borderRadius: 12,
           display: "flex",
           flexDirection: "column",
           gap: 8,
           padding: 12,
-          borderRadius: 12,
-          border: "1px solid var(--color-border-ui)",
-          background: "var(--color-surface)",
         }}
       >
         <div style={{ fontSize: 12, fontWeight: 600 }}>Custom Color</div>
@@ -138,7 +138,6 @@ function IconWithProps(): React.JSX.Element {
 }
 
 export const WithProps: Story = {
-  render: () => <IconWithProps />,
   play: ({ canvasElement }) => {
     const canvas = within(canvasElement);
 
@@ -153,6 +152,7 @@ export const WithProps: Story = {
     expect(size24Icon.getAttribute("width")).toBe("24");
     expect(size24Icon.getAttribute("height")).toBe("24");
   },
+  render: () => <IconWithProps />,
 };
 
 export const Accessibility: Story = {

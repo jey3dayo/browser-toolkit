@@ -8,8 +8,8 @@ describe("utils/debug_log", () => {
       storage: {
         local: {
           get: vi.fn((_keys, callback) => callback({ debugMode: false })),
-          set: vi.fn((_data, callback) => callback?.()),
           remove: vi.fn(),
+          set: vi.fn((_data, callback) => callback?.()),
         },
       },
     } as any;
@@ -64,8 +64,8 @@ describe("utils/debug_log", () => {
             }
             callback({ debugLogs: [] });
           }),
-          set: setMock,
           remove: vi.fn(),
+          set: setMock,
         },
       },
     } as any;

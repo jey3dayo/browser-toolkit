@@ -92,7 +92,8 @@ export function useSettingsState(
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+
+    const loadSettings = async (): Promise<void> => {
       const loaded = await runtime.storageLocalGet([
         "aiProvider",
         "aiModel",
@@ -131,16 +132,23 @@ export function useSettingsState(
       const resolvedTheme: Theme = isTheme(raw.theme) ? raw.theme : "auto";
       setTheme(resolvedTheme);
       applyTheme(resolvedTheme, document);
-    })().catch((error) => {
-      debugLog(
-        "SettingsPane.useEffect[props.runtime]",
-        "failed",
-        { error: formatErrorLog("", {}, error) },
-        "error"
-      ).catch(() => {
+    };
+
+    const reportLoadFailure = async (error: unknown): Promise<void> => {
+      try {
+        await debugLog(
+          "SettingsPane.useEffect[props.runtime]",
+          "failed",
+          { error: formatErrorLog("", {}, error) },
+          "error"
+        );
+      } catch {
         // no-op
-      });
-    });
+      }
+    };
+
+    loadSettings().catch(reportLoadFailure);
+
     return () => {
       cancelled = true;
     };
@@ -219,27 +227,27 @@ export function useSettingsState(
   };
 
   return {
-    provider,
-    setProvider,
-    token,
-    setToken,
-    showToken,
-    setShowToken,
-    customPrompt,
-    setCustomPrompt,
-    model,
-    setModel,
-    theme,
-    setTheme,
-    tokenInputId,
-    promptInputId,
-    saveToken,
-    clearToken,
-    testToken,
-    savePrompt,
     clearPrompt,
+    clearToken,
+    customPrompt,
+    model,
+    promptInputId,
+    provider,
     saveModel,
+    savePrompt,
     saveProvider,
     saveTheme,
+    saveToken,
+    setCustomPrompt,
+    setModel,
+    setProvider,
+    setShowToken,
+    setTheme,
+    setToken,
+    showToken,
+    testToken,
+    theme,
+    token,
+    tokenInputId,
   };
 }

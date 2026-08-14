@@ -9,9 +9,13 @@ import { createNotifications, ToastHost } from "@/ui/toast";
 ).IS_REACT_ACT_ENVIRONMENT = true;
 
 async function flushEffects(times = 3): Promise<void> {
-  for (let i = 0; i < times; i += 1) {
-    await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
-  }
+  await Array.from({ length: times }).reduce<Promise<void>>(
+    (previous) =>
+      previous.then(
+        () => new Promise<void>((resolve) => window.setTimeout(resolve, 0))
+      ),
+    Promise.resolve()
+  );
 }
 
 describe("ToastHost", () => {

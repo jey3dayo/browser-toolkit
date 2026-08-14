@@ -4,9 +4,9 @@ import { buildIcs } from "@/utils/ics";
 
 function baseEvent(overrides: Partial<ExtractedEvent> = {}): ExtractedEvent {
   return {
-    title: "予定",
-    start: "2025-12-16T10:00:00+09:00",
     end: "2025-12-16T11:00:00+09:00",
+    start: "2025-12-16T10:00:00+09:00",
+    title: "予定",
     ...overrides,
   };
 }
@@ -15,8 +15,8 @@ describe("src/utils/ics.ts", () => {
   it("escapes special characters and strips \\r", () => {
     const ics = buildIcs(
       baseEvent({
-        title: "A, B; C\\D\nE",
         description: "F, G; H\\I\nJ\r",
+        title: "A, B; C\\D\nE",
       })
     );
     expect(ics).not.toBeNull();
@@ -60,7 +60,7 @@ describe("src/utils/ics.ts", () => {
 
   it("formats an all-day event with exclusive end date", () => {
     const ics = buildIcs(
-      baseEvent({ allDay: true, start: "2025-12-16", end: undefined })
+      baseEvent({ allDay: true, end: undefined, start: "2025-12-16" })
     );
     expect(ics).not.toBeNull();
     expect(ics).toContain("DTSTART;VALUE=DATE:20251216\r\n");
@@ -70,8 +70,8 @@ describe("src/utils/ics.ts", () => {
   it("formats a timed event converted to UTC", () => {
     const ics = buildIcs(
       baseEvent({
-        start: "2025-12-16T10:00:00+09:00",
         end: "2025-12-16T11:00:00+09:00",
+        start: "2025-12-16T10:00:00+09:00",
       })
     );
     expect(ics).not.toBeNull();
@@ -84,7 +84,7 @@ describe("src/utils/ics.ts", () => {
   });
 
   it("omits LOCATION/DESCRIPTION lines when those fields are empty", () => {
-    const ics = buildIcs(baseEvent({ location: "", description: "" }));
+    const ics = buildIcs(baseEvent({ description: "", location: "" }));
     expect(ics).not.toBeNull();
     expect(ics).not.toContain("LOCATION:");
     expect(ics).not.toContain("DESCRIPTION:");

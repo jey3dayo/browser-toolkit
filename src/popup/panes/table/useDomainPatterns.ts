@@ -60,13 +60,13 @@ export function useDomainPatterns(
       applyNext: () => {
         setPatterns(next);
       },
-      rollback: () => {
-        setPatterns(patterns);
+      onFailure: () => {
+        props.notify.error(t("tablePane.errors.saveFailed"));
       },
       persist: () =>
         props.runtime.storageSyncSet({ domainPatternConfigs: next }),
-      onFailure: () => {
-        props.notify.error(t("tablePane.errors.saveFailed"));
+      rollback: () => {
+        setPatterns(patterns);
       },
     });
   };
@@ -86,7 +86,7 @@ export function useDomainPatterns(
       setPatternInput("");
       return null;
     }
-    return [...patterns, { pattern, enableRowFilter: false }];
+    return [...patterns, { enableRowFilter: false, pattern }];
   };
 
   const addPattern = async (): Promise<void> => {
@@ -103,16 +103,16 @@ export function useDomainPatterns(
         setPatterns(next);
         setPatternInput("");
       },
-      rollback: () => {
-        setPatterns(patterns);
+      onFailure: () => {
+        props.notify.error(t("tablePane.errors.addFailed"));
       },
-      persist: () =>
-        props.runtime.storageSyncSet({ domainPatternConfigs: next }),
       onSuccess: () => {
         props.notify.success(t("tablePane.success.added"));
       },
-      onFailure: () => {
-        props.notify.error(t("tablePane.errors.addFailed"));
+      persist: () =>
+        props.runtime.storageSyncSet({ domainPatternConfigs: next }),
+      rollback: () => {
+        setPatterns(patterns);
       },
     });
   };
@@ -123,28 +123,28 @@ export function useDomainPatterns(
       applyNext: () => {
         setPatterns(next);
       },
-      rollback: () => {
-        setPatterns(patterns);
+      onFailure: () => {
+        props.notify.error(t("tablePane.errors.deleteFailed"));
       },
-      persist: () =>
-        props.runtime.storageSyncSet({ domainPatternConfigs: next }),
       onSuccess: () => {
         props.notify.success(t("tablePane.success.deleted"));
       },
-      onFailure: () => {
-        props.notify.error(t("tablePane.errors.deleteFailed"));
+      persist: () =>
+        props.runtime.storageSyncSet({ domainPatternConfigs: next }),
+      rollback: () => {
+        setPatterns(patterns);
       },
     });
   };
 
   return {
-    patterns,
+    addPattern,
+    enableNow,
     patternInput,
+    patterns,
+    removePattern,
     setPatternInput,
     setPatterns,
-    enableNow,
     togglePatternRowFilter,
-    addPattern,
-    removePattern,
   };
 }

@@ -13,9 +13,9 @@ globalThis.document = dom.window.document;
 
 // navigator は read-only なので defineProperty を使用
 Object.defineProperty(globalThis, "navigator", {
+  configurable: true,
   value: dom.window.navigator,
   writable: true,
-  configurable: true,
 });
 
 // テスト環境フラグを設定（デバッグログ抑制用）

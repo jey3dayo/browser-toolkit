@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { useCallback, useId } from "react";
 import { Badge } from "@/components/shared/Badge";
 import { PaneCard, RowBetween, Stack } from "@/components/shared/Layout";
 import { Hint, PaneTitle } from "@/components/shared/Typography";
@@ -23,8 +23,8 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
   const icsId = useId();
 
   const { targets, hasGoogle, hasIcs, toggleTarget } = useCalendarTargets({
-    runtime,
     notify,
+    runtime,
   });
 
   const {
@@ -39,14 +39,34 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
     openCalendar,
     downloadIcs,
   } = useCalendarRun({
-    runtime,
-    notify,
-    navigateToPane,
     focusTokenInput,
-    targets,
     hasGoogle,
     hasIcs,
+    navigateToPane,
+    notify,
+    runtime,
+    targets,
   });
+
+  const handleCopy = useCallback(() => {
+    copyOutput().catch(() => {
+      // no-op
+    });
+  }, [copyOutput]);
+
+  const handleDownloadIcs = useCallback(() => {
+    downloadIcs();
+  }, [downloadIcs]);
+
+  const handleOpenCalendar = useCallback(() => {
+    openCalendar();
+  }, [openCalendar]);
+
+  const handleRun = useCallback(() => {
+    runCalendar().catch(() => {
+      // no-op
+    });
+  }, [runCalendar]);
 
   return (
     <PaneCard className="settings-surface calendar-settings-pane">
@@ -72,25 +92,13 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
         />
 
         <CalendarActionButtons
-          copyState={{ visible: true, enabled: canCopyOutput }}
-          googleState={{ visible: hasGoogle, enabled: canOpenCalendar }}
-          icsState={{ visible: hasIcs, enabled: canDownloadIcs }}
-          onCopy={() => {
-            copyOutput().catch(() => {
-              // no-op
-            });
-          }}
-          onDownloadIcs={() => {
-            downloadIcs();
-          }}
-          onOpenCalendar={() => {
-            openCalendar();
-          }}
-          onRun={() => {
-            runCalendar().catch(() => {
-              // no-op
-            });
-          }}
+          copyState={{ enabled: canCopyOutput, visible: true }}
+          googleState={{ enabled: canOpenCalendar, visible: hasGoogle }}
+          icsState={{ enabled: canDownloadIcs, visible: hasIcs }}
+          onCopy={handleCopy}
+          onDownloadIcs={handleDownloadIcs}
+          onOpenCalendar={handleOpenCalendar}
+          onRun={handleRun}
         />
       </section>
 

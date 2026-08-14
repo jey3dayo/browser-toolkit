@@ -21,7 +21,7 @@ export type StateSetter<T> = React.Dispatch<React.SetStateAction<T>>;
  */
 export function getPanelSize(panel: HTMLDivElement | null): PanelSize {
   const rect = panel?.getBoundingClientRect();
-  return { width: rect?.width || 520, height: rect?.height || 300 };
+  return { height: rect?.height || 300, width: rect?.width || 520 };
 }
 
 /**
@@ -31,8 +31,7 @@ export function updateOverlayToastSurfaceInset(params: {
   host: HTMLDivElement;
   panel: HTMLDivElement | null;
 }): void {
-  const panel = params.panel;
-  const host = params.host;
+  const { panel, host } = params;
   if (!panel) {
     host.style.setProperty(
       "--toast-surface-inset",
@@ -108,7 +107,7 @@ export function positionOverlayHost(params: {
     return;
   }
 
-  const size = params.size;
+  const { size } = params;
 
   if (params.pinned) {
     updateHostPosition(params.host, size, getPinnedCornerPoint(size));
@@ -204,8 +203,8 @@ export function startOverlayDrag(params: OverlayDragStartParams): void {
   params.setDragging(true);
   params.setPinnedPos(
     computePinnedPositionFromDrag({
-      event: params.event,
       dragOffset,
+      event: params.event,
       size: getPanelSize(params.host),
     })
   );
@@ -240,8 +239,8 @@ export function moveOverlayDrag(
   }
   params.setPinnedPos(
     computePinnedPositionFromDrag({
-      event: params.event,
       dragOffset: offset,
+      event: params.event,
       size: getPanelSize(params.panel),
     })
   );

@@ -36,9 +36,9 @@ describe("popup Actions pane: editor", () => {
             contextActions: [
               {
                 id: "custom:one",
-                title: "テスト",
                 kind: "text",
                 prompt: "{{text}}",
+                title: "テスト",
               },
             ],
           });
@@ -121,7 +121,7 @@ describe("popup Actions pane: editor", () => {
     expect(setCalls.at(-1)?.[0]).toEqual(
       expect.objectContaining({
         contextActions: expect.arrayContaining([
-          expect.objectContaining({ title: "カスタム", kind: "text" }),
+          expect.objectContaining({ kind: "text", title: "カスタム" }),
         ]),
       })
     );

@@ -24,7 +24,7 @@ export async function handleSearchEngineClick(
   info: chrome.contextMenus.OnClickData,
   tab?: chrome.tabs.Tab
 ): Promise<void> {
-  const selectionText = info.selectionText;
+  const { selectionText } = info;
   if (!selectionText) {
     return;
   }
@@ -44,21 +44,25 @@ export async function handleSearchEngineClick(
     },
     engine.encoding
   );
-  chrome.tabs.create({ url: searchUrl }).catch((error) => {
-    debugLog(
-      "handleSearchEngineClick",
-      "chrome.tabs.create failed",
-      {
-        engineId,
-        selectionText,
-        searchUrl,
-        error: formatErrorLog("", {}, error),
-      },
-      "error"
-    ).catch(() => {
+  try {
+    await chrome.tabs.create({ url: searchUrl });
+  } catch (error) {
+    try {
+      await debugLog(
+        "handleSearchEngineClick",
+        "chrome.tabs.create failed",
+        {
+          engineId,
+          error: formatErrorLog("", {}, error),
+          searchUrl,
+          selectionText,
+        },
+        "error"
+      );
+    } catch {
       // no-op
-    });
-  });
+    }
+  }
 }
 
 /**
@@ -73,7 +77,7 @@ export async function handleBatchSearchClick(
   info: chrome.contextMenus.OnClickData,
   tab?: chrome.tabs.Tab
 ): Promise<void> {
-  const selectionText = info.selectionText;
+  const { selectionText } = info;
   if (!selectionText) {
     return;
   }
@@ -122,10 +126,10 @@ export async function handleBatchSearchClick(
       "handleBatchSearchClick",
       "Some tabs failed to open",
       {
+        failures: failures.map((f) => formatErrorLog("", {}, f.reason)),
         groupId,
         selectionText,
         totalEngines: enabledEngines.length,
-        failures: failures.map((f) => formatErrorLog("", {}, f.reason)),
       },
       "error"
     ).catch(() => {
@@ -151,23 +155,25 @@ export async function handleTemplateClick(
     return;
   }
 
-  chrome.tabs
-    .sendMessage(tabId, {
+  try {
+    await chrome.tabs.sendMessage(tabId, {
       action: "pasteTemplate",
       content: template.content,
-    })
-    .catch((error) => {
-      debugLog(
+    });
+  } catch (error) {
+    try {
+      await debugLog(
         "handleTemplateClick",
         "Failed to paste template. Content script may not be loaded on this page.",
         {
+          error: formatErrorLog("sendMessage error", {}, error),
           tabId,
           templateId,
-          error: formatErrorLog("sendMessage error", {}, error),
         },
         "error"
-      ).catch(() => {
-        // no-op
-      });
-    });
+      );
+    } catch {
+      // no-op
+    }
+  }
 }

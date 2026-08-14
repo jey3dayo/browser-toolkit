@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Button } from "@/components/shared/Button";
 import { PaneCard } from "@/components/shared/Layout";
 import { PatternAddForm } from "@/components/shared/PatternAddForm";
@@ -29,6 +29,33 @@ import { useFocusPatterns } from "@/popup/panes/table/useFocusPatterns";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 
 export type TablePaneProps = PopupPaneBaseProps;
+
+type FocusPatternRowActionProps = {
+  pattern: string;
+  onRemove: (pattern: string) => Promise<void>;
+};
+
+function FocusPatternRowAction({
+  pattern,
+  onRemove,
+}: FocusPatternRowActionProps): React.JSX.Element {
+  const handleRemove = useCallback(() => {
+    onRemove(pattern).catch(() => {
+      // no-op
+    });
+  }, [onRemove, pattern]);
+
+  return (
+    <Button
+      data-focus-pattern-remove={pattern}
+      onClick={handleRemove}
+      type="button"
+      variant="danger"
+    >
+      {t("common.delete")}
+    </Button>
+  );
+}
 
 export function TablePane(props: TablePaneProps): React.JSX.Element {
   const rowFilterTooltip = t("tablePane.rowFilter.tooltip");
@@ -65,9 +92,9 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
     removeFocusPattern,
   } = useFocusPatterns(props, {
     focusPatternsState,
-    setPatterns,
-    runFocusDiagnostic,
     requestFocusDiagnostic,
+    runFocusDiagnostic,
+    setPatterns,
     syncFocusPatternsRef,
   });
 
@@ -87,6 +114,28 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
           count: focusPatterns.length,
         });
 
+  const handleEnableNow = useCallback(() => {
+    enableNow().catch(() => {
+      // no-op
+    });
+  }, [enableNow]);
+
+  const handlePatternSubmitError = useCallback(() => {
+    props.notify.error(t("common.unknownError"));
+  }, [props.notify]);
+
+  const handleRefreshFocusDiagnostic = useCallback(() => {
+    runFocusDiagnostic(true).catch(() => {
+      // no-op
+    });
+  }, [runFocusDiagnostic]);
+
+  const handleReloadCurrentTab = useCallback(() => {
+    reloadCurrentTab().catch(() => {
+      // no-op
+    });
+  }, [reloadCurrentTab]);
+
   return (
     <PaneCard className="table-pane">
       <TablePaneHeader>
@@ -94,11 +143,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
           <PaneTitle>{t("tablePane.title")}</PaneTitle>
           <Button
             data-testid="enable-table-sort"
-            onClick={() => {
-              enableNow().catch(() => {
-                // no-op
-              });
-            }}
+            onClick={handleEnableNow}
             type="button"
             variant="primary"
           >
@@ -124,9 +169,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
           buttonTestId="pattern-add"
           inputTestId="pattern-input"
           onSubmit={addPattern}
-          onSubmitError={() => {
-            props.notify.error(t("common.unknownError"));
-          }}
+          onSubmitError={handlePatternSubmitError}
           onValueChange={setPatternInput}
           placeholder="example.com/path*"
           value={patternInput}
@@ -162,16 +205,8 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
           focusDiagnosticBadgeVariant={focusDiagnosticBadgeVariant}
           focusDiagnosticRunning={focusDiagnosticRunning}
           focusDiagnosticSlow={focusDiagnosticSlow}
-          onRefresh={() => {
-            runFocusDiagnostic(true).catch(() => {
-              // no-op
-            });
-          }}
-          onReloadCurrentTab={() => {
-            reloadCurrentTab().catch(() => {
-              // no-op
-            });
-          }}
+          onRefresh={handleRefreshFocusDiagnostic}
+          onReloadCurrentTab={handleReloadCurrentTab}
         />
 
         <Hint as="div">{t("tablePane.focus.reloadHint")}</Hint>
@@ -179,9 +214,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
           buttonTestId="focus-pattern-add"
           inputTestId="focus-pattern-input"
           onSubmit={addFocusPattern}
-          onSubmitError={() => {
-            props.notify.error(t("common.unknownError"));
-          }}
+          onSubmitError={handlePatternSubmitError}
           onValueChange={setFocusPatternInput}
           placeholder="example.com/title/*"
           value={focusPatternInput}
@@ -193,18 +226,10 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
               {focusPatterns.map((pattern) => (
                 <PatternListItem
                   action={
-                    <Button
-                      data-focus-pattern-remove={pattern}
-                      onClick={() => {
-                        removeFocusPattern(pattern).catch(() => {
-                          // no-op
-                        });
-                      }}
-                      type="button"
-                      variant="danger"
-                    >
-                      {t("common.delete")}
-                    </Button>
+                    <FocusPatternRowAction
+                      onRemove={removeFocusPattern}
+                      pattern={pattern}
+                    />
                   }
                   key={pattern}
                   pattern={pattern}

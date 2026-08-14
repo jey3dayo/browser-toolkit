@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { overlayClassNames } from "@/content/overlay/overlayClassNames";
 
 type Props = {
@@ -59,27 +59,28 @@ export function AuxTextDisclosure(props: Props): React.JSX.Element | null {
     };
   }, [fallbackOpen, props.storageKey]);
 
-  const handleToggle = (
-    event: React.SyntheticEvent<HTMLDetailsElement>
-  ): void => {
-    const nextOpen = event.currentTarget.open;
-    setOpen(nextOpen);
+  const handleToggle = useCallback(
+    (event: React.SyntheticEvent<HTMLDetailsElement>): void => {
+      const nextOpen = event.currentTarget.open;
+      setOpen(nextOpen);
 
-    const storageKey = props.storageKey;
-    if (!storageKey) {
-      return;
-    }
-    if (typeof chrome === "undefined") {
-      return;
-    }
-    const storage = chrome.storage?.local;
-    if (!storage) {
-      return;
-    }
-    storage.set({ [storageKey]: nextOpen }, () => {
-      // no-op
-    });
-  };
+      const { storageKey } = props;
+      if (!storageKey) {
+        return;
+      }
+      if (typeof chrome === "undefined") {
+        return;
+      }
+      const storage = chrome.storage?.local;
+      if (!storage) {
+        return;
+      }
+      storage.set({ [storageKey]: nextOpen }, () => {
+        // no-op
+      });
+    },
+    [props.storageKey]
+  );
 
   if (!trimmed) {
     return null;

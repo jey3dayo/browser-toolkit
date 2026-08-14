@@ -1,4 +1,4 @@
-import { useId, useMemo, useRef, useState } from "react";
+import { useCallback, useId, useMemo, useRef, useState } from "react";
 import type { ExtractedEvent, SummarySource } from "@/shared_types";
 import { applyTheme } from "@/ui/theme";
 import { nextTheme } from "@/ui/themeCycle";
@@ -53,7 +53,7 @@ type Props = {
 
 export function OverlayApp(props: Props): React.JSX.Element | null {
   const { toastManager, notify } = useMemo(() => createNotifications(), []);
-  const viewModel = props.viewModel;
+  const { viewModel } = props;
   const [theme, setTheme] = useOverlayTheme(props.host, props.portalContainer);
   const [markdownView, setMarkdownView] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
@@ -63,42 +63,42 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
   const closePopoverId = useId();
 
   const { pinned, dragging, startDrag, moveDrag, endDrag, togglePinned } =
-    useOverlayPositioning({ host: props.host, viewModel, panelRef });
+    useOverlayPositioning({ host: props.host, panelRef, viewModel });
 
   const { chatMessages, isChatting, handleChatSend } = useOverlayChat(
     viewModel.primary
   );
 
-  if (!viewModel.open) {
-    return null;
-  }
-
-  const onCopyPrimary = (): void => {
+  const onCopyPrimary = useCallback((): void => {
     copyTextToClipboard(notify, viewModel.primary).catch(() => {
       // no-op
     });
-  };
+  }, [notify, viewModel.primary]);
 
-  const openCalendar = (): void => {
+  const openCalendar = useCallback((): void => {
     openUrlInNewTab(viewModel.calendarUrl ?? "");
-  };
+  }, [viewModel.calendarUrl]);
 
-  const downloadIcs = (): void => {
+  const downloadIcs = useCallback((): void => {
     downloadIcsFile(notify, viewModel.ics ?? "");
-  };
+  }, [notify, viewModel.ics]);
 
-  const toggleTheme = (): void => {
+  const toggleTheme = useCallback((): void => {
     const next = nextTheme(theme);
     setTheme(next);
     applyTheme(next, props.portalContainer);
     persistTheme(next).catch(() => {
       // no-op
     });
-  };
+  }, [theme, setTheme, props.portalContainer]);
 
-  const toggleMarkdownView = (): void => {
+  const toggleMarkdownView = useCallback((): void => {
     setMarkdownView((current) => !current);
-  };
+  }, []);
+
+  if (!viewModel.open) {
+    return null;
+  }
 
   const sourceLabel = sourceLabelFromSource(viewModel.source);
   const statusLabel = statusLabelFromStatus(viewModel.status);

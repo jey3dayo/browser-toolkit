@@ -5,8 +5,8 @@ import { themeButtonLabel } from "@/ui/themeCycle";
 
 const THEME_ICONS: Record<Theme, IconName> = {
   auto: "monitor",
-  light: "sun",
   dark: "moon",
+  light: "sun",
 };
 
 type Props = {

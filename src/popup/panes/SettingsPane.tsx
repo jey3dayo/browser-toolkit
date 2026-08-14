@@ -18,8 +18,8 @@ export type SettingsPaneProps = PopupPaneBaseProps & {
 
 export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
   const state = useSettingsState({
-    runtime: props.runtime,
     notify: props.notify,
+    runtime: props.runtime,
   });
 
   return (

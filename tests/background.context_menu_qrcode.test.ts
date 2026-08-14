@@ -36,9 +36,9 @@ describe("background: QR code context menu", () => {
     );
 
     await handleQrCodeContextMenuClick({
-      tabId: 12,
-      tab: {},
       pageUrl: "https://example.com/fallback",
+      tab: {},
+      tabId: 12,
     });
 
     expect(chromeStub.tabs.sendMessage).toHaveBeenCalledWith(
@@ -57,14 +57,14 @@ describe("background: QR code context menu", () => {
     );
 
     await handleQrCodeContextMenuClick({
-      tabId: 56,
       tab: {},
+      tabId: 56,
     });
 
     expect(showErrorNotificationMock).toHaveBeenCalledWith({
-      title: "QRコードを表示できません",
       errorMessage: "このページのURLを取得できませんでした",
       hint: "ページを再読み込みしてから、もう一度お試しください。",
+      title: "QRコードを表示できません",
     });
   });
 
@@ -97,13 +97,13 @@ describe("background: QR code context menu", () => {
     );
 
     await handleQrCodeContextMenuClick({
-      tabId: 34,
       tab: { url: "https://example.com/retry" },
+      tabId: 34,
     });
 
     expect(chromeStub.scripting.executeScript).toHaveBeenCalledWith({
-      target: { tabId: 34 },
       files: ["dist/content.js"],
+      target: { tabId: 34 },
     });
     expect(chromeStub.tabs.sendMessage).toHaveBeenCalledTimes(2);
     expect(showErrorNotificationMock).not.toHaveBeenCalled();

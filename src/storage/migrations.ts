@@ -29,11 +29,11 @@ interface Migration {
 }
 
 const SOUNDHOUSE_SEARCH_ENGINE_V2: SearchEngine = {
+  enabled: true,
   id: BUILTIN_SEARCH_ENGINE_IDS.SOUNDHOUSE,
   name: "サウンドハウス",
   urlTemplate:
     "https://www.soundhouse.co.jp/search/index/?i_type=a&search_all={query}",
-  enabled: true,
 };
 
 function appendSoundHouseSearchEngine(
@@ -84,7 +84,6 @@ function appendSoundHouseToShoppingGroup(
  */
 const migrations: Migration[] = [
   {
-    version: 1,
     description: "Migrate legacy OpenAI settings to unified AI settings",
     migrate: async () => {
       const data = (await storageLocalGet([
@@ -119,9 +118,9 @@ const migrations: Migration[] = [
         console.log("[migration v1] AI settings migrated:", updates);
       }
     },
+    version: 1,
   },
   {
-    version: 2,
     description: "Add SoundHouse to default search settings",
     migrate: async () => {
       const data = (await storageSyncGet([
@@ -165,9 +164,9 @@ const migrations: Migration[] = [
         console.log("[migration v2] SoundHouse search settings migrated");
       }
     },
+    version: 2,
   },
   {
-    version: 3,
     description: "Add Yandex to default search settings",
     migrate: async () => {
       const data = (await storageSyncGet(["searchEngines"])) as Record<
@@ -184,6 +183,7 @@ const migrations: Migration[] = [
         }
       }
     },
+    version: 3,
   },
 ];
 
@@ -230,7 +230,7 @@ export async function getCurrentSchemaVersion(): Promise<number> {
     string,
     unknown
   >;
-  return (data[SCHEMA_VERSION_KEY] as number) ?? 0;
+  return (data[SCHEMA_VERSION_KEY] as number | undefined) ?? 0;
 }
 
 /**
@@ -248,7 +248,8 @@ async function logMigration(entry: MigrationLogEntry): Promise<void> {
     string,
     unknown
   >;
-  const log = (data[MIGRATION_LOG_KEY] as MigrationLogEntry[]) ?? [];
+  const log =
+    (data[MIGRATION_LOG_KEY] as MigrationLogEntry[] | undefined) ?? [];
   log.push(entry);
   await storageLocalSet({ [MIGRATION_LOG_KEY]: log });
 }
@@ -261,7 +262,7 @@ export async function getMigrationLog(): Promise<MigrationLogEntry[]> {
     string,
     unknown
   >;
-  return (data[MIGRATION_LOG_KEY] as MigrationLogEntry[]) ?? [];
+  return (data[MIGRATION_LOG_KEY] as MigrationLogEntry[] | undefined) ?? [];
 }
 
 /**
@@ -274,10 +275,10 @@ export async function backupBeforeMigration(version: number): Promise<void> {
     const localData = await storageLocalGet(null);
 
     const backup: BackupData = {
+      localData: localData as Record<string, unknown>,
+      syncData: syncData as Record<string, unknown>,
       timestamp: Date.now(),
       version,
-      syncData: syncData as Record<string, unknown>,
-      localData: localData as Record<string, unknown>,
     };
 
     const backupKey = `${BACKUP_KEY_PREFIX}${version}_${backup.timestamp}`;
@@ -288,7 +289,8 @@ export async function backupBeforeMigration(version: number): Promise<void> {
   } catch (error) {
     console.error("[migrations] Backup failed:", error);
     throw new Error(
-      `Backup failed: ${error instanceof Error ? error.message : String(error)}`
+      `Backup failed: ${error instanceof Error ? error.message : String(error)}`,
+      { cause: error }
     );
   }
 }
@@ -399,7 +401,8 @@ export async function restoreFromBackup(timestamp: number): Promise<void> {
   } catch (error) {
     console.error("[migrations] Restore failed:", error);
     throw new Error(
-      `Restore failed: ${error instanceof Error ? error.message : String(error)}`
+      `Restore failed: ${error instanceof Error ? error.message : String(error)}`,
+      { cause: error }
     );
   }
 }
@@ -434,10 +437,10 @@ export async function runMigrations(): Promise<void> {
     );
 
     const entry: MigrationLogEntry = {
-      version: migration.version,
-      timestamp: Date.now(),
       description: migration.description,
       success: false,
+      timestamp: Date.now(),
+      version: migration.version,
     };
 
     try {
@@ -452,7 +455,12 @@ export async function runMigrations(): Promise<void> {
         error
       );
       await logMigration(entry);
-      throw new Error(`Migration v${migration.version} failed: ${entry.error}`);
+      throw new Error(
+        `Migration v${migration.version} failed: ${entry.error}`,
+        {
+          cause: error,
+        }
+      );
     }
 
     await logMigration(entry);

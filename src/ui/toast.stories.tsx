@@ -1,11 +1,39 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import { createNotifications, ToastHost } from "@/ui/toast";
 
 function ToastStory(): React.JSX.Element {
   const notifications = useMemo(() => createNotifications(), []);
+
+  const handleInfoClick = useCallback(() => {
+    notifications.notify.info("コピーしました");
+  }, [notifications]);
+
+  const handleSuccessClick = useCallback(() => {
+    notifications.notify.success("保存しました");
+  }, [notifications]);
+
+  const handleErrorClick = useCallback(() => {
+    notifications.toastManager.add({
+      description: "権限がありません。ページ設定を確認してください。",
+      priority: "high",
+      timeout: 5000,
+      title: "コピーに失敗しました",
+      type: "error",
+    });
+  }, [notifications]);
+
+  const handleLongClick = useCallback(() => {
+    notifications.toastManager.add({
+      priority: "low",
+      timeout: 6000,
+      title:
+        "長いメッセージでも太く見えず、適切に折り返されることを確認してください",
+      type: "info",
+    });
+  }, [notifications]);
 
   return (
     <>
@@ -15,19 +43,17 @@ function ToastStory(): React.JSX.Element {
       />
       <div style={{ display: "grid", gap: 12, maxWidth: 560 }}>
         <div>
-          <div style={{ fontWeight: 700, fontSize: 13 }}>Toast</div>
+          <div style={{ fontSize: 13, fontWeight: 700 }}>Toast</div>
           <div style={{ color: "var(--color-text-muted)", fontSize: 12 }}>
             トリガーを押して見た目（幅/余白/状態の見分けやすさ）を確認できます。
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           <button
             className="mbu-overlay-action"
             data-testid="toast-info"
-            onClick={() => {
-              notifications.notify.info("コピーしました");
-            }}
+            onClick={handleInfoClick}
             type="button"
           >
             Info
@@ -35,9 +61,7 @@ function ToastStory(): React.JSX.Element {
           <button
             className="mbu-overlay-action"
             data-testid="toast-success"
-            onClick={() => {
-              notifications.notify.success("保存しました");
-            }}
+            onClick={handleSuccessClick}
             type="button"
           >
             Success
@@ -45,15 +69,7 @@ function ToastStory(): React.JSX.Element {
           <button
             className="mbu-overlay-action"
             data-testid="toast-error"
-            onClick={() => {
-              notifications.toastManager.add({
-                title: "コピーに失敗しました",
-                description: "権限がありません。ページ設定を確認してください。",
-                type: "error",
-                timeout: 5000,
-                priority: "high",
-              });
-            }}
+            onClick={handleErrorClick}
             type="button"
           >
             Error
@@ -61,15 +77,7 @@ function ToastStory(): React.JSX.Element {
           <button
             className="mbu-overlay-action"
             data-testid="toast-long"
-            onClick={() => {
-              notifications.toastManager.add({
-                title:
-                  "長いメッセージでも太く見えず、適切に折り返されることを確認してください",
-                type: "info",
-                timeout: 6000,
-                priority: "low",
-              });
-            }}
+            onClick={handleLongClick}
             type="button"
           >
             Long
@@ -81,9 +89,9 @@ function ToastStory(): React.JSX.Element {
 }
 
 const meta = {
-  title: "Shared/UI/Toast",
   component: ToastStory,
   tags: ["test"],
+  title: "Shared/UI/Toast",
 } satisfies Meta<typeof ToastStory>;
 
 export default meta;
@@ -150,6 +158,10 @@ export const Basic: Story = {
 function ToastWithCloseButton(): React.JSX.Element {
   const notifications = useMemo(() => createNotifications(), []);
 
+  const handleShowClick = useCallback(() => {
+    notifications.notify.info("閉じるボタンで閉じられます");
+  }, [notifications]);
+
   return (
     <>
       <ToastHost
@@ -158,7 +170,7 @@ function ToastWithCloseButton(): React.JSX.Element {
       />
       <div style={{ display: "grid", gap: 12, maxWidth: 560 }}>
         <div>
-          <div style={{ fontWeight: 700, fontSize: 13 }}>Toast with Close</div>
+          <div style={{ fontSize: 13, fontWeight: 700 }}>Toast with Close</div>
           <div style={{ color: "var(--color-text-muted)", fontSize: 12 }}>
             トーストを表示して閉じるボタンで閉じることを確認します。
           </div>
@@ -167,9 +179,7 @@ function ToastWithCloseButton(): React.JSX.Element {
         <button
           className="mbu-overlay-action"
           data-testid="toast-close-test"
-          onClick={() => {
-            notifications.notify.info("閉じるボタンで閉じられます");
-          }}
+          onClick={handleShowClick}
           type="button"
         >
           Show Toast
@@ -180,7 +190,6 @@ function ToastWithCloseButton(): React.JSX.Element {
 }
 
 export const CloseButton: Story = {
-  render: () => <ToastWithCloseButton />,
   play: async ({ canvasElement }) => {
     const doc = canvasElement.ownerDocument;
     const canvas = within(canvasElement);
@@ -222,10 +231,21 @@ export const CloseButton: Story = {
       { timeout: 1000 }
     );
   },
+  render: () => <ToastWithCloseButton />,
 };
 
 function ToastStacking(): React.JSX.Element {
   const notifications = useMemo(() => createNotifications(), []);
+
+  const handleStackClick = useCallback(() => {
+    notifications.notify.info("1つ目のトースト");
+    setTimeout(() => {
+      notifications.notify.success("2つ目のトースト");
+    }, 100);
+    setTimeout(() => {
+      notifications.notify.error("3つ目のトースト");
+    }, 200);
+  }, [notifications]);
 
   return (
     <>
@@ -235,7 +255,7 @@ function ToastStacking(): React.JSX.Element {
       />
       <div style={{ display: "grid", gap: 12, maxWidth: 560 }}>
         <div>
-          <div style={{ fontWeight: 700, fontSize: 13 }}>Toast Stacking</div>
+          <div style={{ fontSize: 13, fontWeight: 700 }}>Toast Stacking</div>
           <div style={{ color: "var(--color-text-muted)", fontSize: 12 }}>
             複数のトーストが適切にスタッキングされることを確認します。
           </div>
@@ -244,15 +264,7 @@ function ToastStacking(): React.JSX.Element {
         <button
           className="mbu-overlay-action"
           data-testid="toast-stack-test"
-          onClick={() => {
-            notifications.notify.info("1つ目のトースト");
-            setTimeout(() => {
-              notifications.notify.success("2つ目のトースト");
-            }, 100);
-            setTimeout(() => {
-              notifications.notify.error("3つ目のトースト");
-            }, 200);
-          }}
+          onClick={handleStackClick}
           type="button"
         >
           Show Multiple Toasts
@@ -263,7 +275,6 @@ function ToastStacking(): React.JSX.Element {
 }
 
 export const Stacking: Story = {
-  render: () => <ToastStacking />,
   play: async ({ canvasElement }) => {
     const doc = canvasElement.ownerDocument;
     const canvas = within(canvasElement);
@@ -308,4 +319,5 @@ export const Stacking: Story = {
       });
     }
   },
+  render: () => <ToastStacking />,
 };

@@ -51,13 +51,13 @@ export function useActions(params: {
       }
 
       setActionsSafe(DEFAULT_CONTEXT_ACTIONS);
-      await params.runtime
-        .storageSyncSet({
+      try {
+        await params.runtime.storageSyncSet({
           contextActions: DEFAULT_CONTEXT_ACTIONS,
-        })
-        .catch(() => {
-          // no-op
         });
+      } catch {
+        // no-op
+      }
     })().catch(() => {
       // no-op
     });
@@ -77,18 +77,18 @@ export function useActions(params: {
         setActions(nextActions);
         params.onEditorReset?.();
       },
-      rollback: () => {
-        setActions(previous);
+      onFailure: () => {
+        params.notify.error(failureMessage);
+      },
+      onSuccess: () => {
+        params.notify.success(successMessage);
       },
       persist: () =>
         params.runtime.storageSyncSet({
           contextActions: nextActions,
         }),
-      onSuccess: () => {
-        params.notify.success(successMessage);
-      },
-      onFailure: () => {
-        params.notify.error(failureMessage);
+      rollback: () => {
+        setActions(previous);
       },
     });
   };
@@ -104,8 +104,8 @@ export function useActions(params: {
   return {
     actions,
     actionsById,
-    setActions,
     persistActionsUpdate,
     resetActions,
+    setActions,
   };
 }

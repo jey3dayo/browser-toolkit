@@ -5,13 +5,13 @@ import {
 } from "@/search_engine_types";
 
 const SEARCH_ENGINE_ENCODING_ALIASES: Record<string, SearchEngineEncoding> = {
-  "utf-8": "utf-8",
-  utf8: "utf-8",
-  utf_8: "utf-8",
-  sjis: "shift_jis",
+  shift_jis: "shift_jis",
   "shift-jis": "shift_jis",
   shiftjis: "shift_jis",
-  shift_jis: "shift_jis",
+  sjis: "shift_jis",
+  utf_8: "utf-8",
+  "utf-8": "utf-8",
+  utf8: "utf-8",
 };
 
 const SearchEngineEncodingSchema = pipe(

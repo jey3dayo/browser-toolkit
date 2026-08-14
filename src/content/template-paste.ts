@@ -79,8 +79,8 @@ export async function copyToClipboardFallback(
     sendResponse({ ok: true });
   } else {
     sendResponse({
-      ok: false,
       error: getClipboardErrorMessage(result.error),
+      ok: false,
     });
   }
 }

@@ -45,8 +45,7 @@ export const SEARCH_ENGINE_GROUP_IDS = {
 
 export const DEFAULT_SEARCH_ENGINE_GROUPS: SearchEngineGroup[] = [
   {
-    id: SEARCH_ENGINE_GROUP_IDS.SHOPPING,
-    name: "お買い物",
+    enabled: true,
     engineIds: [
       BUILTIN_SEARCH_ENGINE_IDS.AMAZON_JP,
       BUILTIN_SEARCH_ENGINE_IDS.RAKUTEN,
@@ -55,17 +54,18 @@ export const DEFAULT_SEARCH_ENGINE_GROUPS: SearchEngineGroup[] = [
       BUILTIN_SEARCH_ENGINE_IDS.SOUNDHOUSE,
       BUILTIN_SEARCH_ENGINE_IDS.MERCARI,
     ],
-    enabled: true,
+    id: SEARCH_ENGINE_GROUP_IDS.SHOPPING,
+    name: "お買い物",
   },
   {
-    id: SEARCH_ENGINE_GROUP_IDS.TREND,
-    name: "トレンド",
+    enabled: true,
     engineIds: [
       BUILTIN_SEARCH_ENGINE_IDS.X_TWITTER,
       BUILTIN_SEARCH_ENGINE_IDS.YOUTUBE,
       BUILTIN_SEARCH_ENGINE_IDS.GOOGLE,
     ],
-    enabled: true,
+    id: SEARCH_ENGINE_GROUP_IDS.TREND,
+    name: "トレンド",
   },
 ];
 
@@ -100,10 +100,10 @@ function buildSearchEngineGroup(
     return null;
   }
   return {
+    enabled: parts.enabled,
+    engineIds: parts.engineIds,
     id: parts.id,
     name: parts.name,
-    engineIds: parts.engineIds,
-    enabled: parts.enabled,
   };
 }
 
@@ -128,10 +128,10 @@ function coerceSearchEngineGroup(value: unknown): SearchEngineGroup | null {
   }
 
   return buildSearchEngineGroup({
+    enabled: raw.enabled !== false,
+    engineIds,
     id: normalizeOptionalText(raw.id),
     name: normalizeOptionalText(raw.name),
-    engineIds,
-    enabled: raw.enabled !== false,
   });
 }
 

@@ -39,7 +39,7 @@ export function ensureOverlayMount(currentTheme: Theme): OverlayMount {
   });
   const root = createRoot(mount.rootEl);
 
-  return { host: mount.host, shadow: mount.shadow, root };
+  return { host: mount.host, root, shadow: mount.shadow };
 }
 
 /**
@@ -74,10 +74,10 @@ export function getSelectionAnchorRect(): OverlayViewModel["anchorRect"] {
     return null;
   }
   return {
+    height: rect.height,
     left: rect.left,
     top: rect.top,
     width: rect.width,
-    height: rect.height,
   };
 }
 
@@ -92,9 +92,9 @@ export function renderOverlay(
   mount.root.render(
     createElement(OverlayApp, {
       host: mount.host,
+      onDismiss,
       portalContainer: mount.shadow,
       viewModel,
-      onDismiss,
     })
   );
 }
@@ -248,21 +248,21 @@ export function showActionOverlay(
   renderOverlay(
     mount,
     {
-      open: true,
-      status: request.status,
-      mode: request.mode,
-      source: request.source,
-      title: stripSourceSuffix(request.title),
-      primary: actionOverlayPrimaryText(request.status, primary),
-      secondary: actionOverlaySecondaryText(request.status, secondary),
+      anchorRect: anchorRectBySource(request.source),
+      calendarUrl: optionalTrimmed(request.calendarUrl),
       event: actionOverlayEventPayload(
         request.mode,
         request.status,
         request.event
       ),
-      calendarUrl: optionalTrimmed(request.calendarUrl),
       ics: optionalTrimmed(request.ics),
-      anchorRect: anchorRectBySource(request.source),
+      mode: request.mode,
+      open: true,
+      primary: actionOverlayPrimaryText(request.status, primary),
+      secondary: actionOverlaySecondaryText(request.status, secondary),
+      source: request.source,
+      status: request.status,
+      title: stripSourceSuffix(request.title),
     },
     onDismiss
   );
@@ -300,14 +300,14 @@ export function renderSummaryOverlayWithTitle(
   renderOverlay(
     mount,
     {
-      open: true,
-      status: request.status,
+      anchorRect,
       mode: "text",
-      source: request.source,
-      title,
+      open: true,
       primary: primaryText,
       secondary: secondaryText,
-      anchorRect,
+      source: request.source,
+      status: request.status,
+      title,
     },
     onDismiss
   );

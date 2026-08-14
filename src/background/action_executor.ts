@@ -59,7 +59,7 @@ export async function executeEventAction(
 ): Promise<ActionExecutionResult<EventActionResult>> {
   const { target, action } = params;
 
-  const extraInstruction = action.prompt?.trim()
+  const extraInstruction = action.prompt.trim()
     ? renderInstructionTemplate(action.prompt, target)
     : undefined;
 
@@ -101,7 +101,7 @@ export async function executePromptAction(
   }
 
   return Result.succeed({
-    text: result.value,
     source: target.source,
+    text: result.value,
   });
 }

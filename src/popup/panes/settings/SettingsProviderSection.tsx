@@ -1,4 +1,5 @@
 import { Result } from "@praha/byethrow";
+import { useCallback } from "react";
 import { getAiProviderTokenKey } from "@/ai/provider-token";
 import { RadioFieldset } from "@/components/shared/RadioFieldset";
 import { t } from "@/i18n";
@@ -30,37 +31,40 @@ export function SettingsProviderSection({
   saveProvider,
   saveModel,
 }: SettingsProviderSectionProps): React.JSX.Element {
-  const handleValueChange = async (value: string): Promise<void> => {
-    const newProvider = safeParseAiProvider(value);
-    if (!newProvider) {
-      return;
-    }
-    setProvider(newProvider);
-    // プロバイダー変更時にモデルをデフォルトにリセット
-    const defaultModel = PROVIDER_CONFIGS[newProvider].defaultModel;
-    setModel(defaultModel);
-
-    // プロバイダー別トークンをロード（完了を待つ）
-    const tokenKey = getAiProviderTokenKey(newProvider);
-    try {
-      const result = await runtime.storageLocalGet([tokenKey]);
-      if (Result.isSuccess(result)) {
-        const raw = result.value as Partial<LocalStorageData>;
-        const tokenValue = raw[tokenKey];
-        setToken(typeof tokenValue === "string" ? tokenValue : "");
+  const handleValueChange = useCallback(
+    async (value: string): Promise<void> => {
+      const newProvider = safeParseAiProvider(value);
+      if (!newProvider) {
+        return;
       }
-    } catch {
-      // no-op
-    }
+      setProvider(newProvider);
+      // プロバイダー変更時にモデルをデフォルトにリセット
+      const { defaultModel } = PROVIDER_CONFIGS[newProvider];
+      setModel(defaultModel);
 
-    // トークンロード完了後に保存
-    try {
-      await saveProvider(newProvider);
-      await saveModel(defaultModel, newProvider);
-    } catch {
-      // no-op
-    }
-  };
+      // プロバイダー別トークンをロード（完了を待つ）
+      const tokenKey = getAiProviderTokenKey(newProvider);
+      try {
+        const result = await runtime.storageLocalGet([tokenKey]);
+        if (Result.isSuccess(result)) {
+          const raw = result.value as Partial<LocalStorageData>;
+          const tokenValue = raw[tokenKey];
+          setToken(typeof tokenValue === "string" ? tokenValue : "");
+        }
+      } catch {
+        // no-op
+      }
+
+      // トークンロード完了後に保存
+      try {
+        await saveProvider(newProvider);
+        await saveModel(defaultModel, newProvider);
+      } catch {
+        // no-op
+      }
+    },
+    [runtime, setProvider, setModel, setToken, saveProvider, saveModel]
+  );
 
   return (
     <SettingsPaneCard section="provider">

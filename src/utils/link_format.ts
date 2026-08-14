@@ -34,12 +34,12 @@ export const LINK_FORMAT_OPTIONS: ReadonlyArray<{
   value: LinkFormat;
   label: string;
 }> = [
-  { value: "url", label: "URL" },
-  { value: "text", label: "テキスト（タイトル + URL）" },
-  { value: "markdown", label: "Markdown" },
-  { value: "html", label: "HTML <a>" },
-  { value: "org", label: "Org-mode" },
-  { value: "bbcode", label: "BBCode" },
+  { label: "URL", value: "url" },
+  { label: "テキスト（タイトル + URL）", value: "text" },
+  { label: "Markdown", value: "markdown" },
+  { label: "HTML <a>", value: "html" },
+  { label: "Org-mode", value: "org" },
+  { label: "BBCode", value: "bbcode" },
 ];
 
 function escapeHtmlText(value: string): string {

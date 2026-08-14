@@ -44,7 +44,33 @@ export function createPopupChromeStub(): PopupChromeStub {
 
   return {
     runtime,
+    scripting: {
+      executeScript: vi.fn(async () => [
+        {
+          result: {
+            hasFocus: true,
+            hidden: false,
+            markerPresent: false,
+            visibilityState: "visible",
+          },
+        },
+      ]),
+    },
     storage: {
+      local: {
+        get: vi.fn((_keys: unknown, callback?: (items: unknown) => void) => {
+          clearError();
+          callback?.({});
+        }),
+        remove: vi.fn((_keys: unknown, callback?: () => void) => {
+          clearError();
+          callback?.();
+        }),
+        set: vi.fn((_items: unknown, callback?: () => void) => {
+          clearError();
+          callback?.();
+        }),
+      },
       sync: {
         get: vi.fn((_keys: unknown, callback?: (items: unknown) => void) => {
           clearError();
@@ -55,26 +81,22 @@ export function createPopupChromeStub(): PopupChromeStub {
           callback?.();
         }),
       },
-      local: {
-        get: vi.fn((_keys: unknown, callback?: (items: unknown) => void) => {
-          clearError();
-          callback?.({});
-        }),
-        set: vi.fn((_items: unknown, callback?: () => void) => {
-          clearError();
-          callback?.();
-        }),
-        remove: vi.fn((_keys: unknown, callback?: () => void) => {
-          clearError();
-          callback?.();
-        }),
-      },
     },
     tabs: {
+      create: vi.fn((_createProperties: unknown, callback?: () => void) => {
+        clearError();
+        callback?.();
+      }),
       query: vi.fn(
         (_queryInfo: unknown, callback?: (tabs: unknown[]) => void) => {
           clearError();
           callback?.([]);
+        }
+      ),
+      reload: vi.fn(
+        (_tabId: number, _reloadProperties: unknown, callback?: () => void) => {
+          clearError();
+          callback?.();
         }
       ),
       sendMessage: vi.fn((...args: unknown[]) => {
@@ -88,8 +110,8 @@ export function createPopupChromeStub(): PopupChromeStub {
         const message = args[1] as { action?: unknown } | undefined;
         if (message?.action === "getSummaryTargetText") {
           callback({
-            text: "stub selection",
             source: "selection",
+            text: "stub selection",
             title: "stub title",
             url: "https://example.com",
           });
@@ -97,28 +119,6 @@ export function createPopupChromeStub(): PopupChromeStub {
         }
         callback({ ok: true });
       }),
-      create: vi.fn((_createProperties: unknown, callback?: () => void) => {
-        clearError();
-        callback?.();
-      }),
-      reload: vi.fn(
-        (_tabId: number, _reloadProperties: unknown, callback?: () => void) => {
-          clearError();
-          callback?.();
-        }
-      ),
-    },
-    scripting: {
-      executeScript: vi.fn(async () => [
-        {
-          result: {
-            markerPresent: false,
-            visibilityState: "visible",
-            hidden: false,
-            hasFocus: true,
-          },
-        },
-      ]),
     },
   };
 }

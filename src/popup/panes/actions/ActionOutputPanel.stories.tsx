@@ -10,9 +10,9 @@ function ActionOutputPanelStory(
 }
 
 const meta = {
-  title: "Popup/Panes/Actions/ActionOutputPanel",
   component: ActionOutputPanelStory,
   tags: ["test"],
+  title: "Popup/Panes/Actions/ActionOutputPanel",
 } satisfies Meta<typeof ActionOutputPanelStory>;
 
 export default meta;
@@ -20,12 +20,12 @@ type Story = StoryObj<typeof meta>;
 
 export const Basic: Story = {
   args: {
-    title: "出力結果",
-    value: "これは出力テキストです。",
     canCopy: true,
     onCopy: () => {
       console.log("Copy clicked");
     },
+    title: "出力結果",
+    value: "これは出力テキストです。",
   },
   play: ({ canvasElement }) => {
     const canvas = within(canvasElement);
@@ -48,12 +48,12 @@ export const Basic: Story = {
 
 export const LongText: Story = {
   args: {
-    title: "長い出力",
-    value: "あ".repeat(1000),
     canCopy: true,
     onCopy: () => {
       console.log("Copy clicked");
     },
+    title: "長い出力",
+    value: "あ".repeat(1000),
   },
   play: ({ canvasElement }) => {
     const textarea = canvasElement.querySelector<HTMLTextAreaElement>(
@@ -65,12 +65,12 @@ export const LongText: Story = {
 
 export const DisabledCopy: Story = {
   args: {
-    title: "出力結果",
-    value: "コピーできない状態",
     canCopy: false,
     onCopy: () => {
       console.log("Copy clicked");
     },
+    title: "出力結果",
+    value: "コピーできない状態",
   },
   play: ({ canvasElement }) => {
     const canvas = within(canvasElement);
@@ -81,12 +81,12 @@ export const DisabledCopy: Story = {
 
 export const EmptyValue: Story = {
   args: {
-    title: "空の出力",
-    value: "",
     canCopy: false,
     onCopy: () => {
       console.log("Copy clicked");
     },
+    title: "空の出力",
+    value: "",
   },
   play: ({ canvasElement }) => {
     const canvas = within(canvasElement);
@@ -100,8 +100,6 @@ export const EmptyValue: Story = {
 
 export const CopyAction: Story = {
   args: {
-    title: "出力結果",
-    value: "コピー可能なテキスト",
     canCopy: true,
     onCopy: () => {
       const button = document.querySelector(
@@ -111,6 +109,8 @@ export const CopyAction: Story = {
         button.setAttribute("data-copied", "true");
       }
     },
+    title: "出力結果",
+    value: "コピー可能なテキスト",
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);

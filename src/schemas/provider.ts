@@ -24,23 +24,23 @@ export const PROVIDER_CONFIGS: Record<
     baseUrl: string;
   }
 > = {
-  openai: {
-    label: "OpenAI",
-    defaultModel: OPENAI_MODELS.GPT_5_6_TERRA,
-    models: OPENAI_MODEL_LIST,
-    baseUrl: "https://api.openai.com/v1",
-  },
   anthropic: {
-    label: "Anthropic (Claude)",
-    defaultModel: ANTHROPIC_MODELS.CLAUDE_SONNET_5,
-    models: ANTHROPIC_MODEL_LIST,
     baseUrl: "https://api.anthropic.com/v1",
+    defaultModel: ANTHROPIC_MODELS.CLAUDE_SONNET_5,
+    label: "Anthropic (Claude)",
+    models: ANTHROPIC_MODEL_LIST,
+  },
+  openai: {
+    baseUrl: "https://api.openai.com/v1",
+    defaultModel: OPENAI_MODELS.GPT_5_6_TERRA,
+    label: "OpenAI",
+    models: OPENAI_MODEL_LIST,
   },
   zai: {
-    label: "z.ai",
-    defaultModel: ZAI_MODELS.GLM_4_7,
-    models: ZAI_MODEL_LIST,
     baseUrl: "https://api.z.ai/api/paas/v4",
+    defaultModel: ZAI_MODELS.GLM_4_7,
+    label: "z.ai",
+    models: ZAI_MODEL_LIST,
   },
 };
 

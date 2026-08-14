@@ -65,10 +65,10 @@ export function createSeparator(
   contexts: chrome.contextMenus.CreateProperties["contexts"]
 ): Promise<void> {
   return createMenuItem({
+    contexts,
     id,
     parentId,
     type: "separator",
-    contexts,
   });
 }
 

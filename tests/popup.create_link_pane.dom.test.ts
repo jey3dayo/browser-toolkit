@@ -134,28 +134,28 @@ describe("popup create link pane", () => {
       })
     );
     const runtime: PopupRuntime = {
-      isExtensionPage: true,
-      storageSyncGet: async () => Result.succeed({ linkFormat: "html" }),
-      storageSyncSet: async () => Result.succeed(),
-      storageLocalGet: async () => Result.succeed({}),
-      storageLocalSet: async () => Result.succeed(),
-      storageLocalRemove: async () => Result.succeed(),
-      getActiveTab,
-      getActiveTabId: async () => Result.succeed(2),
-      matchesFocusOverridePatterns: () => false,
       diagnoseFocusOverride: async () =>
         Result.succeed({
+          hasFocus: true,
+          hidden: false,
           markerPresent: false,
           visibilityState: "visible",
-          hidden: false,
-          hasFocus: true,
         }),
-      reloadTab: async () => Result.succeed(),
-      sendMessageToBackground: async () => Result.succeed({}),
-      sendMessageToTab: async () => Result.succeed({}),
+      getActiveTab,
+      getActiveTabId: async () => Result.succeed(2),
+      isExtensionPage: true,
+      matchesFocusOverridePatterns: () => false,
       openUrl: () => {
         // no-op
       },
+      reloadTab: async () => Result.succeed(),
+      sendMessageToBackground: async () => Result.succeed({}),
+      sendMessageToTab: async () => Result.succeed({}),
+      storageLocalGet: async () => Result.succeed({}),
+      storageLocalRemove: async () => Result.succeed(),
+      storageLocalSet: async () => Result.succeed(),
+      storageSyncGet: async () => Result.succeed({ linkFormat: "html" }),
+      storageSyncSet: async () => Result.succeed(),
     };
 
     await act(async () => {

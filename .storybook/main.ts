@@ -15,7 +15,6 @@ if (fs.existsSync(iconsDir)) {
   staticDirs.unshift({ from: "../icons", to: "/icons" });
 }
 const tomlAsText = (): Plugin => ({
-  name: "toml-as-text",
   enforce: "pre",
   load(id: string) {
     if (!id.endsWith(".toml")) {
@@ -27,9 +26,9 @@ const tomlAsText = (): Plugin => ({
       map: null,
     };
   },
+  name: "toml-as-text",
 });
 const config: StorybookConfig = {
-  stories: ["../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"],
   addons: [
     "@chromatic-com/storybook",
     "@storybook/addon-vitest",
@@ -38,6 +37,7 @@ const config: StorybookConfig = {
   ],
   framework: "@storybook/react-vite",
   staticDirs,
+  stories: ["../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"],
   viteFinal(viteConfig) {
     const plugins: Plugin[] = [];
     if (Array.isArray(viteConfig.plugins)) {
@@ -48,7 +48,7 @@ const config: StorybookConfig = {
     viteConfig.plugins = [...plugins, tomlAsText()];
 
     viteConfig.resolve ??= {};
-    const alias = viteConfig.resolve.alias;
+    const { alias } = viteConfig.resolve;
     if (Array.isArray(alias)) {
       const existing = alias.find((entry) => entry.find === "@");
       if (existing) {

@@ -10,13 +10,13 @@ function CreateLinkPaneStory(props: PopupPaneBaseProps): React.JSX.Element {
 }
 
 const meta = {
-  title: "Popup/Panes/CreateLink",
+  argTypes: {
+    notify: { control: false },
+    runtime: { control: false },
+  },
   component: CreateLinkPaneStory,
   tags: ["test"],
-  argTypes: {
-    runtime: { control: false },
-    notify: { control: false },
-  },
+  title: "Popup/Panes/CreateLink",
 } satisfies Meta<typeof CreateLinkPaneStory>;
 
 export default meta;
@@ -24,6 +24,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Basic: Story = {
   args: {
+    notify: { error: fn(), info: fn(), success: fn() },
     runtime: createStoryPopupRuntime({
       activeTab: {
         id: 1,
@@ -31,7 +32,6 @@ export const Basic: Story = {
         url: "https://example.com/path?q=1",
       },
     }),
-    notify: { info: fn(), success: fn(), error: fn() },
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);

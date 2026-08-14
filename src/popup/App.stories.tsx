@@ -6,12 +6,12 @@ function PopupAppStory(): React.JSX.Element {
 }
 
 const meta = {
-  title: "Popup/App",
   component: PopupAppStory,
-  tags: ["test"],
   parameters: {
     layout: "fullscreen",
   },
+  tags: ["test"],
+  title: "Popup/App",
 } satisfies Meta<typeof PopupAppStory>;
 
 export default meta;

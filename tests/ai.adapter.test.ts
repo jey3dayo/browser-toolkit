@@ -23,8 +23,8 @@ describe("ai/adapter", () => {
   describe("openaiAdapter", () => {
     it("builds request with correct URL and headers", () => {
       const { url, init } = openaiAdapter.buildRequest("test-token", {
+        messages: [{ content: "test", role: "user" }],
         model: OPENAI_MODELS.GPT_5_6_LUNA,
-        messages: [{ role: "user", content: "test" }],
       });
 
       expect(url).toBe("https://api.openai.com/v1/chat/completions");
@@ -37,9 +37,9 @@ describe("ai/adapter", () => {
 
     it("removes temperature for GPT-5 OpenAI models", () => {
       const { init } = openaiAdapter.buildRequest("test-token", {
+        messages: [{ content: "test", role: "user" }],
         model: OPENAI_MODELS.GPT_5_6_TERRA,
         temperature: 0.2,
-        messages: [{ role: "user", content: "test" }],
       });
 
       const body = JSON.parse(String(init.body)) as {
@@ -52,9 +52,9 @@ describe("ai/adapter", () => {
 
     it("keeps temperature for non GPT-5 OpenAI models", () => {
       const { init } = openaiAdapter.buildRequest("test-token", {
+        messages: [{ content: "test", role: "user" }],
         model: "gpt-4o-mini",
         temperature: 0.2,
-        messages: [{ role: "user", content: "test" }],
       });
 
       const body = JSON.parse(String(init.body)) as { temperature?: number };
@@ -94,38 +94,38 @@ describe("ai/adapter", () => {
   describe("anthropicAdapter", () => {
     it("builds request with correct URL and headers", () => {
       const { url, init } = anthropicAdapter.buildRequest("test-token", {
+        messages: [{ content: "test", role: "user" }],
         model: "ANTHROPIC_MODELS.CLAUDE_SONNET_4_5",
-        messages: [{ role: "user", content: "test" }],
       });
 
       expect(url).toBe("https://api.anthropic.com/v1/messages");
       expect(init.method).toBe("POST");
       expect(init.headers).toEqual({
-        "x-api-key": "test-token",
         "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
+        "x-api-key": "test-token",
       });
     });
 
     it("separates system messages in request body", () => {
       const { init } = anthropicAdapter.buildRequest("test-token", {
-        model: "ANTHROPIC_MODELS.CLAUDE_SONNET_4_5",
         messages: [
-          { role: "system", content: "You are helpful" },
-          { role: "user", content: "Hello" },
+          { content: "You are helpful", role: "system" },
+          { content: "Hello", role: "user" },
         ],
+        model: "ANTHROPIC_MODELS.CLAUDE_SONNET_4_5",
       });
 
       const body = JSON.parse(init.body as string);
       expect(body.system).toBe("You are helpful");
-      expect(body.messages).toEqual([{ role: "user", content: "Hello" }]);
+      expect(body.messages).toEqual([{ content: "Hello", role: "user" }]);
     });
 
     it("converts max_completion_tokens to max_tokens", () => {
       const { init } = anthropicAdapter.buildRequest("test-token", {
-        model: "ANTHROPIC_MODELS.CLAUDE_SONNET_4_5",
-        messages: [{ role: "user", content: "test" }],
         max_completion_tokens: 100,
+        messages: [{ content: "test", role: "user" }],
+        model: "ANTHROPIC_MODELS.CLAUDE_SONNET_4_5",
       });
 
       const body = JSON.parse(init.body as string);
@@ -137,8 +137,8 @@ describe("ai/adapter", () => {
       // 共通呼び出し元（src/background/openai.ts）は temperature を常に載せるため、
       // adapter 側で落とす必要がある。
       const { init } = anthropicAdapter.buildRequest("test-token", {
+        messages: [{ content: "test", role: "user" }],
         model: "claude-sonnet-5",
-        messages: [{ role: "user", content: "test" }],
         temperature: 0.2,
       });
 
@@ -183,8 +183,8 @@ describe("ai/adapter", () => {
   describe("zaiAdapter", () => {
     it("builds request with correct URL and headers", () => {
       const { url, init } = zaiAdapter.buildRequest("test-token", {
+        messages: [{ content: "test", role: "user" }],
         model: "ZAI_MODELS.GLM_4_7",
-        messages: [{ role: "user", content: "test" }],
       });
 
       expect(url).toBe("https://api.z.ai/api/paas/v4/chat/completions");

@@ -135,15 +135,17 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
       if (nextState.format !== undefined) {
         setFormat(nextState.format);
       }
-    })().catch((error) => {
-      debugLog(
-        "CreateLinkPane.useEffect[initial]",
-        "failed",
-        { error: formatErrorLog("", {}, error) },
-        "error"
-      ).catch(() => {
+    })().catch(async (error) => {
+      try {
+        await debugLog(
+          "CreateLinkPane.useEffect[initial]",
+          "failed",
+          { error: formatErrorLog("", {}, error) },
+          "error"
+        );
+      } catch {
         // no-op
-      });
+      }
     });
     return () => {
       cancelled = true;
@@ -161,7 +163,7 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
         ctx?.clearRect(0, 0, canvas.width, canvas.height);
         return;
       }
-      QRCode.toCanvas(canvas, trimmedUrl, { width: 200, margin: 2 }).catch(
+      QRCode.toCanvas(canvas, trimmedUrl, { margin: 2, width: 200 }).catch(
         () => {
           notify.error(t("createLink.errors.qrGeneration"));
         }
@@ -181,17 +183,21 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
         applyNext: () => {
           setFormat(next);
         },
-        rollback: () => {
-          setFormat(prev);
-        },
-        persist: () => runtime.storageSyncSet({ linkFormat: next }),
         onFailure: () => {
           notify.error(t("createLink.errors.formatSave"));
+        },
+        persist: () => runtime.storageSyncSet({ linkFormat: next }),
+        rollback: () => {
+          setFormat(prev);
         },
       });
     },
     [format, notify, runtime, t]
   );
+
+  const handleToggleQr = useCallback(() => {
+    setShowQr((prev) => !prev);
+  }, []);
 
   const copyOutput = async (): Promise<void> => {
     const text = output.trim();
@@ -216,6 +222,24 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
     }
   };
 
+  const handleCopyClick = useCallback(() => {
+    copyOutput().catch(() => {
+      // no-op
+    });
+  }, [copyOutput]);
+
+  const handleFormatValueChange = useCallback(
+    (value: string | null) => {
+      if (value === null) {
+        return;
+      }
+      handleFormatChange(value).catch(() => {
+        // no-op
+      });
+    },
+    [handleFormatChange]
+  );
+
   return (
     <PaneCard>
       <RowBetween>
@@ -224,9 +248,7 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
           <Button
             data-testid="create-link-qr"
             disabled={!url.trim()}
-            onClick={() => {
-              setShowQr((prev) => !prev);
-            }}
+            onClick={handleToggleQr}
             size="small"
             title={t("createLink.qrCode")}
             type="button"
@@ -237,11 +259,7 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
           <Button
             data-testid="create-link-copy"
             disabled={!canCopy}
-            onClick={() => {
-              copyOutput().catch(() => {
-                // no-op
-              });
-            }}
+            onClick={handleCopyClick}
             size="small"
             type="button"
             variant="primary"
@@ -281,14 +299,7 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
         >
           <Select
             ariaLabelledBy={formatLabelId}
-            onValueChange={(value) => {
-              if (value === null) {
-                return;
-              }
-              handleFormatChange(value).catch(() => {
-                // no-op
-              });
-            }}
+            onValueChange={handleFormatValueChange}
             options={LINK_FORMAT_OPTIONS.map((option) => ({
               label: t(LINK_FORMAT_LABEL_KEYS[option.value]),
               value: option.value,

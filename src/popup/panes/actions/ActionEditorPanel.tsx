@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { useCallback, useId } from "react";
 import { Button } from "@/components/shared/Button";
 import { Field } from "@/components/shared/Field";
 import { Fieldset } from "@/components/shared/Fieldset";
@@ -53,13 +53,33 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
     })),
   ];
 
+  const { onChangeKind, onChangePrompt, onSelectActionId } = props;
+
+  const handleSelectActionId = useCallback(
+    (value: string | null) => {
+      onSelectActionId(value ?? "");
+    },
+    [onSelectActionId]
+  );
+
+  const handleChangeKind = useCallback(
+    (groupValue: string[]) => {
+      const [next] = groupValue;
+      onChangeKind(next === "event" ? "event" : "text");
+    },
+    [onChangeKind]
+  );
+
+  const handleChangePrompt = useCallback(
+    (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+      onChangePrompt(event.currentTarget.value);
+    },
+    [onChangePrompt]
+  );
+
   return (
     <EditorPanel>
-      <Form
-        onFormSubmit={() => {
-          props.onSave();
-        }}
-      >
+      <Form onFormSubmit={props.onSave}>
         <Fieldset
           legend={t("actions.editor.title")}
           legendVariant="editor"
@@ -68,9 +88,7 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
           <Field label={t("actions.editor.target")} labelId={actionLabelId}>
             <Select
               ariaLabelledBy={actionLabelId}
-              onValueChange={(value) => {
-                props.onSelectActionId(value ?? "");
-              }}
+              onValueChange={handleSelectActionId}
               options={actions}
               triggerTestId="action-editor-select"
               value={props.editorId || null}
@@ -95,10 +113,7 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
           >
             <ToggleGroup
               data-testid="action-editor-kind"
-              onValueChange={(groupValue) => {
-                const next = groupValue[0];
-                props.onChangeKind(next === "event" ? "event" : "text");
-              }}
+              onValueChange={handleChangeKind}
               value={[props.editorKind]}
             >
               <Toggle value="text" variant="groupItem">
@@ -114,9 +129,7 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
             <Textarea
               data-testid="action-editor-prompt"
               id={promptInputId}
-              onChange={(event) => {
-                props.onChangePrompt(event.currentTarget.value);
-              }}
+              onChange={handleChangePrompt}
               rows={6}
               value={props.editorPrompt}
               variant="prompt"
@@ -126,9 +139,7 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
           <ButtonRow>
             <Button
               data-testid="action-editor-save"
-              onClick={() => {
-                props.onSave();
-              }}
+              onClick={props.onSave}
               size="small"
               type="button"
               variant="primary"
@@ -138,9 +149,7 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
             <Button
               data-testid="action-editor-delete"
               disabled={!props.editorId}
-              onClick={() => {
-                props.onDelete();
-              }}
+              onClick={props.onDelete}
               type="button"
               variant="danger"
             >
@@ -148,9 +157,7 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
             </Button>
             <Button
               data-testid="action-editor-clear"
-              onClick={() => {
-                props.onClear();
-              }}
+              onClick={props.onClear}
               size="small"
               type="button"
               variant="ghost"
@@ -159,9 +166,7 @@ export function ActionEditorPanel(props: Props): React.JSX.Element {
             </Button>
             <Button
               data-testid="action-editor-reset"
-              onClick={() => {
-                props.onReset();
-              }}
+              onClick={props.onReset}
               size="small"
               type="button"
               variant="ghost"

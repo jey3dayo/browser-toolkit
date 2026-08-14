@@ -7,108 +7,108 @@ import { normalizeOptionalText } from "@/utils/text";
 export const BUILTIN_SEARCH_ENGINE_ID_PREFIX = "builtin:";
 
 export const BUILTIN_SEARCH_ENGINE_IDS = {
-  GOOGLE: "builtin:google",
+  AMAZON_JP: "builtin:amazon-jp",
+  BICCAMERA: "builtin:biccamera",
   DUCKDUCKGO: "builtin:duckduckgo",
-  YANDEX: "builtin:yandex",
+  GOOGLE: "builtin:google",
+  MERCARI: "builtin:mercari",
+  RAKUTEN: "builtin:rakuten",
+  SOUNDHOUSE: "builtin:soundhouse",
   X_TWITTER: "builtin:x-twitter",
   X_TWITTER_EXACT: "builtin:x-twitter-exact",
-  YOUTUBE: "builtin:youtube",
-  AMAZON_JP: "builtin:amazon-jp",
-  RAKUTEN: "builtin:rakuten",
   YAHOO_SHOPPING: "builtin:yahoo-shopping",
+  YANDEX: "builtin:yandex",
   YODOBASHI: "builtin:yodobashi",
-  BICCAMERA: "builtin:biccamera",
-  SOUNDHOUSE: "builtin:soundhouse",
-  MERCARI: "builtin:mercari",
+  YOUTUBE: "builtin:youtube",
 } as const;
 
 export const SOUNDHOUSE_SEARCH_ENGINE: SearchEngine = {
+  enabled: true,
   id: BUILTIN_SEARCH_ENGINE_IDS.SOUNDHOUSE,
   name: "サウンドハウス",
   urlTemplate:
     "https://www.soundhouse.co.jp/search/index/?i_type=a&search_all={query}",
-  enabled: true,
 };
 
 export const YANDEX_SEARCH_ENGINE: SearchEngine = {
+  enabled: true,
   id: BUILTIN_SEARCH_ENGINE_IDS.YANDEX,
   name: "Yandex",
   urlTemplate: "https://yandex.com/search/?text={query}",
-  enabled: true,
 };
 
 export const DEFAULT_SEARCH_ENGINES: SearchEngine[] = [
   {
+    enabled: true,
     id: BUILTIN_SEARCH_ENGINE_IDS.GOOGLE,
     name: "Google",
     urlTemplate: "https://www.google.com/search?q={query}",
-    enabled: true,
   },
   {
+    enabled: true,
     id: BUILTIN_SEARCH_ENGINE_IDS.DUCKDUCKGO,
     name: "DuckDuckGo",
     urlTemplate: "https://duckduckgo.com/?q={query}",
-    enabled: true,
   },
   YANDEX_SEARCH_ENGINE,
   {
+    enabled: true,
     id: BUILTIN_SEARCH_ENGINE_IDS.X_TWITTER,
     name: "X（日本語）",
     urlTemplate:
       "https://x.com/search?q={query}%20lang%3Aja&f=live&src=typed_query",
-    enabled: true,
   },
   {
+    enabled: true,
     id: BUILTIN_SEARCH_ENGINE_IDS.X_TWITTER_EXACT,
     name: "X（完全一致・日本語）",
     urlTemplate:
       "https://x.com/search?q=%2522{query}%2522%20lang%3Aja&f=live&src=typed_query",
-    enabled: true,
   },
   {
+    enabled: true,
     id: BUILTIN_SEARCH_ENGINE_IDS.YOUTUBE,
     name: "YouTube",
     urlTemplate: "https://www.youtube.com/results?search_query={query}",
-    enabled: true,
   },
   {
+    enabled: true,
     id: BUILTIN_SEARCH_ENGINE_IDS.AMAZON_JP,
     name: "Amazon",
     urlTemplate: "https://www.amazon.co.jp/s?k={query}",
-    enabled: true,
   },
   {
+    enabled: true,
     id: BUILTIN_SEARCH_ENGINE_IDS.RAKUTEN,
     name: "楽天",
     urlTemplate:
       "https://search.rakuten.co.jp/search/mall/{query}/?filter=fs-fsl",
-    enabled: true,
   },
   {
+    enabled: true,
     id: BUILTIN_SEARCH_ENGINE_IDS.YAHOO_SHOPPING,
     name: "Yahoo!ショッピング",
     urlTemplate: "https://shopping.yahoo.co.jp/search?p={query}",
-    enabled: true,
   },
   {
+    enabled: true,
     id: BUILTIN_SEARCH_ENGINE_IDS.YODOBASHI,
     name: "ヨドバシ",
     urlTemplate: "https://www.yodobashi.com/?word={query}",
-    enabled: true,
   },
   {
+    enabled: true,
+    encoding: "shift_jis",
     id: BUILTIN_SEARCH_ENGINE_IDS.BICCAMERA,
     name: "ビックカメラ",
     urlTemplate: "https://www.biccamera.com/bc/category/?q={query}&sg=",
-    enabled: true,
-    encoding: "shift_jis",
   },
   SOUNDHOUSE_SEARCH_ENGINE,
   {
+    enabled: true,
     id: BUILTIN_SEARCH_ENGINE_IDS.MERCARI,
     name: "メルカリ",
     urlTemplate: "https://jp.mercari.com/search?keyword={query}",
-    enabled: true,
   },
 ];
 
@@ -170,10 +170,10 @@ function buildSearchEngine(parts: SearchEngineParts): SearchEngine | null {
     return null;
   }
   const engine: SearchEngine = {
+    enabled: parts.enabled,
     id: parts.id,
     name: parts.name,
     urlTemplate: parts.urlTemplate,
-    enabled: parts.enabled,
   };
   if (parts.encoding) {
     engine.encoding = parts.encoding;
@@ -190,11 +190,11 @@ function coerceSearchEngine(value: unknown): SearchEngine | null {
   }
   const raw = value as Partial<SearchEngine>;
   return buildSearchEngine({
+    enabled: raw.enabled !== false,
+    encoding: normalizeSearchEngineEncoding(raw.encoding),
     id: normalizeOptionalText(raw.id),
     name: normalizeOptionalText(raw.name),
     urlTemplate: coerceUrlTemplate(raw.urlTemplate),
-    enabled: raw.enabled !== false,
-    encoding: normalizeSearchEngineEncoding(raw.encoding),
   });
 }
 

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import { ThemeCycleButton } from "@/components/ThemeCycleButton";
 import type { Theme } from "@/ui/theme";
@@ -7,13 +7,14 @@ import { nextTheme } from "@/ui/themeCycle";
 
 function ThemeCycleButtonStory(): React.JSX.Element {
   const [theme, setTheme] = useState<Theme>("auto");
+  const handleToggle = useCallback(() => {
+    setTheme((prev) => nextTheme(prev));
+  }, []);
 
   return (
     <ThemeCycleButton
       className="mbu-overlay-action mbu-overlay-icon-button"
-      onToggle={() => {
-        setTheme((prev) => nextTheme(prev));
-      }}
+      onToggle={handleToggle}
       testId="theme-cycle"
       theme={theme}
     />
@@ -21,9 +22,9 @@ function ThemeCycleButtonStory(): React.JSX.Element {
 }
 
 const meta = {
-  title: "Shared/Components/ThemeCycleButton",
   component: ThemeCycleButtonStory,
   tags: ["test"],
+  title: "Shared/Components/ThemeCycleButton",
 } satisfies Meta<typeof ThemeCycleButtonStory>;
 
 export default meta;
@@ -55,24 +56,23 @@ export const Cycle: Story = {
 
 function ThemeCycleButtonWithActive(): React.JSX.Element {
   const [theme, setTheme] = useState<Theme>("light");
+  const handleToggle = useCallback(() => {
+    setTheme((prev) => nextTheme(prev));
+  }, []);
 
   return (
-    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+    <div style={{ alignItems: "center", display: "flex", gap: 8 }}>
       <ThemeCycleButton
         active={false}
         className="mbu-overlay-action mbu-overlay-icon-button"
-        onToggle={() => {
-          setTheme((prev) => nextTheme(prev));
-        }}
+        onToggle={handleToggle}
         testId="theme-cycle-inactive"
         theme={theme}
       />
       <ThemeCycleButton
         active={true}
         className="mbu-overlay-action mbu-overlay-icon-button"
-        onToggle={() => {
-          setTheme((prev) => nextTheme(prev));
-        }}
+        onToggle={handleToggle}
         testId="theme-cycle-active"
         theme={theme}
       />
@@ -81,7 +81,6 @@ function ThemeCycleButtonWithActive(): React.JSX.Element {
 }
 
 export const ActiveState: Story = {
-  render: () => <ThemeCycleButtonWithActive />,
   play: ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const inactiveButton = canvas.getByTestId("theme-cycle-inactive");
@@ -90,25 +89,27 @@ export const ActiveState: Story = {
     expect(inactiveButton.getAttribute("data-active")).toBeNull();
     expect(activeButton.getAttribute("data-active")).toBe("true");
   },
+  render: () => <ThemeCycleButtonWithActive />,
 };
 
 function ThemeCycleButtonWithDescribedBy(): React.JSX.Element {
   const [theme, setTheme] = useState<Theme>("auto");
+  const handleToggle = useCallback(() => {
+    setTheme((prev) => nextTheme(prev));
+  }, []);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <ThemeCycleButton
         className="mbu-overlay-action mbu-overlay-icon-button"
         describedById="theme-description"
-        onToggle={() => {
-          setTheme((prev) => nextTheme(prev));
-        }}
+        onToggle={handleToggle}
         testId="theme-cycle-described"
         theme={theme}
       />
       <div
         id="theme-description"
-        style={{ fontSize: 12, color: "var(--color-text-muted)" }}
+        style={{ color: "var(--color-text-muted)", fontSize: 12 }}
       >
         テーマを切り替えます
       </div>
@@ -117,7 +118,6 @@ function ThemeCycleButtonWithDescribedBy(): React.JSX.Element {
 }
 
 export const WithDescription: Story = {
-  render: () => <ThemeCycleButtonWithDescribedBy />,
   play: ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const button = canvas.getByTestId("theme-cycle-described");
@@ -126,6 +126,7 @@ export const WithDescription: Story = {
     expect(button.getAttribute("aria-describedby")).toBe("theme-description");
     expect(description.id).toBe("theme-description");
   },
+  render: () => <ThemeCycleButtonWithDescribedBy />,
 };
 
 export const KeyboardNavigation: Story = {

@@ -107,7 +107,7 @@ function createDialog(url: string, onClose: () => void): HTMLDivElement {
   card.appendChild(closeBtn);
   backdrop.appendChild(card);
 
-  QRCode.toCanvas(canvas, url, { width: 200, margin: 2 }).catch(() => {
+  QRCode.toCanvas(canvas, url, { margin: 2, width: 200 }).catch(() => {
     const errorMsg = document.createElement("p");
     errorMsg.textContent = t("qrCodeOverlay.errors.generation");
     errorMsg.style.cssText = "margin: 0; color: var(--color-error, #e53935);";

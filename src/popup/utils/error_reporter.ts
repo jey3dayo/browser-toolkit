@@ -30,7 +30,6 @@ function reportError(message: string, options: ErrorReporterOptions): void {
 
   if (isTokenRelatedError(message) && navigateToPane && focusTokenInput) {
     notify.error({
-      title: message,
       description: React.createElement(
         Button,
         {
@@ -43,6 +42,7 @@ function reportError(message: string, options: ErrorReporterOptions): void {
         },
         t("popup.tokenGuard.openSettings")
       ),
+      title: message,
     });
   } else {
     notify.error(message);

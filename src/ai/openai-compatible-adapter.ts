@@ -21,13 +21,13 @@ export function extractOpenAiCompatibleChoiceText(
     return null;
   }
 
-  const choices = (json as { choices?: unknown }).choices;
+  const { choices } = json as { choices?: unknown };
   if (!Array.isArray(choices) || choices.length === 0) {
     return null;
   }
 
   const first = choices[0] as { message?: { content?: unknown } };
-  const content = first?.message?.content;
+  const content = first.message?.content;
   if (typeof content !== "string") {
     return null;
   }
@@ -44,19 +44,15 @@ export function createOpenAiCompatibleAdapter(
       const requestBody =
         provider === "openai" ? buildOpenAiRequestBody(body) : body;
       const init: RequestInit = {
-        method: "POST",
+        body: JSON.stringify(requestBody),
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(requestBody),
+        method: "POST",
       };
 
-      return { url, init };
-    },
-
-    extractText(json: unknown): string | null {
-      return extractOpenAiCompatibleChoiceText(json);
+      return { init, url };
     },
 
     extractError(json: unknown, status: number): string {
@@ -64,6 +60,10 @@ export function createOpenAiCompatibleAdapter(
         extractApiErrorMessage(json) ??
         `${PROVIDER_CONFIGS[provider].label} APIエラー: ${status}`
       );
+    },
+
+    extractText(json: unknown): string | null {
+      return extractOpenAiCompatibleChoiceText(json);
     },
   };
 }

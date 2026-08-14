@@ -19,13 +19,13 @@ function SettingsPaneStory(props: PopupPaneBaseProps): React.JSX.Element {
 }
 
 const meta = {
-  title: "Popup/Panes/Settings",
+  argTypes: {
+    notify: { control: false },
+    runtime: { control: false },
+  },
   component: SettingsPaneStory,
   tags: ["test"],
-  argTypes: {
-    runtime: { control: false },
-    notify: { control: false },
-  },
+  title: "Popup/Panes/Settings",
 } satisfies Meta<typeof SettingsPaneStory>;
 
 export default meta;
@@ -33,8 +33,8 @@ type Story = StoryObj<typeof meta>;
 
 export const Basic: Story = {
   args: {
+    notify: { error: fn(), info: fn(), success: fn() },
     runtime: createStoryPopupRuntime(),
-    notify: { info: fn(), success: fn(), error: fn() },
   },
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);
@@ -55,16 +55,16 @@ export const Basic: Story = {
 
 export const Populated: Story = {
   args: {
+    notify: { error: fn(), info: fn(), success: fn() },
     runtime: createStoryPopupRuntime({
       local: {
+        aiCustomPrompt: "日本語で要点を整理してください",
+        aiModel: PROVIDER_CONFIGS.anthropic.defaultModel,
         aiProvider: "anthropic",
         anthropicApiToken: "sk-ant-story",
-        aiModel: PROVIDER_CONFIGS.anthropic.defaultModel,
-        aiCustomPrompt: "日本語で要点を整理してください",
         theme: "dark",
       },
     }),
-    notify: { info: fn(), success: fn(), error: fn() },
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);

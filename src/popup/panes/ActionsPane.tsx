@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 import { SortableList } from "@/components/SortableList";
 import { Badge } from "@/components/shared/Badge";
 import {
@@ -46,11 +46,11 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
     persistActionsUpdate,
     resetActions,
   } = useActions({
-    runtime: props.runtime,
     notify: props.notify,
     onEditorReset: () => {
       resetEditorStateRef.current();
     },
+    runtime: props.runtime,
   });
 
   const {
@@ -64,10 +64,10 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
     targetSourceLabel,
   } = useActionRunner({
     actionsById,
-    runtime: props.runtime,
-    notify: props.notify,
-    navigateToPane: props.navigateToPane,
     focusTokenInput: props.focusTokenInput,
+    navigateToPane: props.navigateToPane,
+    notify: props.notify,
+    runtime: props.runtime,
   });
 
   const {
@@ -85,10 +85,10 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
   } = useActionEditor({
     actions,
     actionsById,
-    setActions,
+    notify: props.notify,
     persistActionsUpdate,
     runtime: props.runtime,
-    notify: props.notify,
+    setActions,
   });
   resetEditorStateRef.current = resetEditorState;
 
@@ -101,6 +101,80 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
       t("actions.reorder.saveFailed")
     );
   };
+
+  const handleRunAction = useCallback(
+    (actionId: string) => {
+      runAction(actionId).catch(() => {
+        // no-op
+      });
+    },
+    [runAction]
+  );
+
+  const handleCopyOutput = useCallback(() => {
+    copyOutput().catch(() => {
+      // no-op
+    });
+  }, [copyOutput]);
+
+  const handleChangeKind = useCallback(
+    (next: Parameters<typeof setEditorKind>[0]) => {
+      setEditorKind(next);
+    },
+    [setEditorKind]
+  );
+
+  const handleChangePrompt = useCallback(
+    (next: string) => {
+      setEditorPrompt(next);
+    },
+    [setEditorPrompt]
+  );
+
+  const handleChangeTitle = useCallback(
+    (next: string) => {
+      setEditorTitle(next);
+    },
+    [setEditorTitle]
+  );
+
+  const handleClearEditor = useCallback(() => {
+    selectActionForEdit("");
+  }, [selectActionForEdit]);
+
+  const handleDeleteEditor = useCallback(() => {
+    deleteEditor().catch(() => {
+      // no-op
+    });
+  }, [deleteEditor]);
+
+  const handleResetActions = useCallback(() => {
+    resetActions().catch(() => {
+      // no-op
+    });
+  }, [resetActions]);
+
+  const handleSaveEditor = useCallback(() => {
+    saveEditor().catch(() => {
+      // no-op
+    });
+  }, [saveEditor]);
+
+  const handleSelectActionId = useCallback(
+    (nextId: string) => {
+      selectActionForEdit(nextId);
+    },
+    [selectActionForEdit]
+  );
+
+  const handleReorderList = useCallback(
+    (reordered: ContextAction[]) => {
+      handleReorder(reordered).catch(() => {
+        // no-op
+      });
+    },
+    [handleReorder]
+  );
 
   return (
     <PaneCard className="actions-page">
@@ -117,14 +191,7 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
         <code>{"{{source}}"}</code>
       </Hint>
 
-      <ActionButtons
-        actions={actions}
-        onRun={(actionId) => {
-          runAction(actionId).catch(() => {
-            // no-op
-          });
-        }}
-      />
+      <ActionButtons actions={actions} onRun={handleRunAction} />
 
       {target ? (
         <ActionTargetAccordion
@@ -135,11 +202,7 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
 
       <ActionOutputPanel
         canCopy={canCopyOutput}
-        onCopy={() => {
-          copyOutput().catch(() => {
-            // no-op
-          });
-        }}
+        onCopy={handleCopyOutput}
         title={outputTitle}
         value={outputValue}
       />
@@ -150,50 +213,21 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
         editorKind={editorKind}
         editorPrompt={editorPrompt}
         editorTitle={editorTitle}
-        onChangeKind={(next) => {
-          setEditorKind(next);
-        }}
-        onChangePrompt={(next) => {
-          setEditorPrompt(next);
-        }}
-        onChangeTitle={(next) => {
-          setEditorTitle(next);
-        }}
-        onClear={() => {
-          selectActionForEdit("");
-        }}
-        onDelete={() => {
-          deleteEditor().catch(() => {
-            // no-op
-          });
-        }}
-        onReset={() => {
-          resetActions().catch(() => {
-            // no-op
-          });
-        }}
-        onSave={() => {
-          saveEditor().catch(() => {
-            // no-op
-          });
-        }}
-        onSelectActionId={(nextId) => {
-          selectActionForEdit(nextId);
-        }}
+        onChangeKind={handleChangeKind}
+        onChangePrompt={handleChangePrompt}
+        onChangeTitle={handleChangeTitle}
+        onClear={handleClearEditor}
+        onDelete={handleDeleteEditor}
+        onReset={handleResetActions}
+        onSave={handleSaveEditor}
+        onSelectActionId={handleSelectActionId}
       />
 
       <EditorPanel>
         <EditorTitle>{t("actions.reorder.title")}</EditorTitle>
         <Hint as="div">{t("actions.reorder.description")}</Hint>
         {actions.length > 0 ? (
-          <SortableList
-            items={actions}
-            onReorder={(reordered) => {
-              handleReorder(reordered).catch(() => {
-                // no-op
-              });
-            }}
-          >
+          <SortableList items={actions} onReorder={handleReorderList}>
             {(action) => (
               <ActionListItem>
                 <ActionTitle>{action.title}</ActionTitle>

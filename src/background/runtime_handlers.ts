@@ -66,32 +66,32 @@ async function handleEventActionInMessage(
   source?: "popup" | "contextMenu"
 ): Promise<void> {
   await handleRunContextActionResult({
-    execute: () => executeEventAction({ target, action }),
+    execute: () => executeEventAction({ action, target }),
     mapSuccess: (value) => ({
-      resultType: "event",
       eventText: value.eventText,
+      resultType: "event",
       source: value.source,
     }),
     onFailure: async (error) => {
       // コンテキストメニューからの実行の場合はOS通知を表示
       if (source === "contextMenu") {
         await showErrorNotification({
+          errorMessage: error,
+          hint: t("background.runtime.tokenHint"),
           title: t("background.runtime.actionFailedTitle", {
             title: action.title,
           }),
-          errorMessage: error,
-          hint: t("background.runtime.tokenHint"),
         });
 
         const tokenHintBase = t("background.runtime.tokenHint");
         await sendMessageToTab(tabId, {
           action: "showActionOverlay",
-          status: "error",
           mode: "event",
-          source: target.source,
-          title: action.title,
           primary: error,
           secondary: tokenHintBase,
+          source: target.source,
+          status: "error",
+          title: action.title,
         }).catch(() => {
           // no-op
         });
@@ -109,11 +109,11 @@ async function handlePromptActionInMessage(
   _source?: "popup" | "contextMenu"
 ): Promise<void> {
   await handleRunContextActionResult({
-    execute: () => executePromptAction({ target, action }),
+    execute: () => executePromptAction({ action, target }),
     mapSuccess: (value) => ({
       resultType: "text",
-      text: value.text,
       source: value.source,
+      text: value.text,
     }),
     sendResponse,
   });
@@ -136,10 +136,10 @@ async function handleSummarizeEventInMessage(
     : buildGoogleCalendarUrlFailureMessage(result.value);
   sendResponse(
     Result.succeed({
+      calendarError,
+      calendarUrl,
       event: result.value,
       eventText,
-      calendarUrl,
-      calendarError,
     })
   );
 }
@@ -168,11 +168,11 @@ function handleSummarizeTabRequest(
         "error"
       );
       sendResponse({
-        ok: false,
         error:
           error instanceof Error
             ? error.message
             : t("background.runtime.summarizeFailed"),
+        ok: false,
       });
     }
   })();
@@ -195,11 +195,11 @@ function handleSummarizeTextRequest(
         "error"
       );
       sendResponse({
-        ok: false,
         error:
           error instanceof Error
             ? error.message
             : t("background.runtime.summarizeFailed"),
+        ok: false,
       });
     }
   })();
@@ -278,8 +278,8 @@ function handleTestAiTokenRequest(
         "handleTestAiTokenRequest",
         "Failed to test AI token",
         {
-          error,
           action: request.action,
+          error,
           hasToken: typeof request.token === "string",
         },
         "error"
@@ -309,11 +309,11 @@ function handleSummarizeEventRequest(
         "error"
       );
       sendResponse({
-        ok: false,
         error:
           error instanceof Error
             ? error.message
             : t("background.runtime.eventSummaryFailed"),
+        ok: false,
       });
     }
   );
@@ -333,8 +333,8 @@ function handleOpenPopupSettingsRequest(
     })
     .catch(() => {
       sendResponse({
-        ok: false,
         error: t("background.runtime.openSettingsFailed"),
+        ok: false,
       });
     });
   return true;
@@ -375,13 +375,13 @@ function handleChatFollowUpRequest(
 }
 
 export const runtimeHandlers = {
+  chatFollowUp: handleChatFollowUpRequest,
+  openPopupSettings: handleOpenPopupSettingsRequest,
+  runContextAction: handleRunContextActionRequest,
+  summarizeEvent: handleSummarizeEventRequest,
   summarizeTab: handleSummarizeTabRequest,
   summarizeText: handleSummarizeTextRequest,
-  runContextAction: handleRunContextActionRequest,
-  testOpenAiToken: handleTestAiTokenRequest,
   testAiToken: handleTestAiTokenRequest,
-  summarizeEvent: handleSummarizeEventRequest,
-  openPopupSettings: handleOpenPopupSettingsRequest,
-  chatFollowUp: handleChatFollowUpRequest,
+  testOpenAiToken: handleTestAiTokenRequest,
   ...debugRuntimeHandlers,
 } as const;

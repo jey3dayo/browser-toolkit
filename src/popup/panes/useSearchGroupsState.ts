@@ -59,7 +59,8 @@ export function useSearchGroupsState(
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+
+    const loadGroups = async (): Promise<void> => {
       const data = await props.runtime.storageSyncGet([
         "searchEngineGroups",
         "searchEngines",
@@ -88,16 +89,23 @@ export function useSearchGroupsState(
       const enginesResult =
         existingEngines.length > 0 ? existingEngines : DEFAULT_SEARCH_ENGINES;
       setEngines(enginesResult);
-    })().catch((error) => {
-      debugLog(
-        "SearchGroupsPane.useEffect[props.runtime]",
-        "failed",
-        { error: formatErrorLog("", {}, error) },
-        "error"
-      ).catch(() => {
+    };
+
+    const reportLoadFailure = async (error: unknown): Promise<void> => {
+      try {
+        await debugLog(
+          "SearchGroupsPane.useEffect[props.runtime]",
+          "failed",
+          { error: formatErrorLog("", {}, error) },
+          "error"
+        );
+      } catch {
         // no-op
-      });
-    });
+      }
+    };
+
+    loadGroups().catch(reportLoadFailure);
+
     return () => {
       cancelled = true;
     };
@@ -128,12 +136,12 @@ export function useSearchGroupsState(
       applyNext: () => {
         setGroups(next);
       },
-      rollback: () => {
-        setGroups(groups);
-      },
-      persist: () => saveGroups(next),
       onFailure: () => {
         props.notify.error(t("searchGroups.errors.saveFailed"));
+      },
+      persist: () => saveGroups(next),
+      rollback: () => {
+        setGroups(groups);
       },
     });
   };
@@ -154,9 +162,9 @@ export function useSearchGroupsState(
 
   const saveGroupName = async (groupId: string): Promise<void> => {
     const name = requireTrimmedString({
-      value: editingNameValue,
       emptyMessage: t("searchGroups.errors.nameRequired"),
       notify: props.notify,
+      value: editingNameValue,
     });
     if (!name) {
       return;
@@ -173,12 +181,12 @@ export function useSearchGroupsState(
         setGroups(next);
         cancelEditingGroupName();
       },
-      rollback: () => {
-        setGroups(groups);
-      },
-      persist: () => saveGroups(next),
       onFailure: () => {
         props.notify.error(t("searchGroups.errors.updateFailed"));
+      },
+      persist: () => saveGroups(next),
+      rollback: () => {
+        setGroups(groups);
       },
     });
   };
@@ -215,21 +223,21 @@ export function useSearchGroupsState(
       applyNext: () => {
         setGroups(next);
       },
-      rollback: () => {
-        setGroups(groups);
-      },
-      persist: () => saveGroups(next),
       onFailure: () => {
         props.notify.error(t("searchGroups.errors.saveFailed"));
+      },
+      persist: () => saveGroups(next),
+      rollback: () => {
+        setGroups(groups);
       },
     });
   };
 
   const addNewGroup = async (): Promise<void> => {
     const name = requireTrimmedString({
-      value: newGroupNameInput,
       emptyMessage: t("searchGroups.errors.nameRequired"),
       notify: props.notify,
+      value: newGroupNameInput,
     });
     if (!name) {
       return;
@@ -254,10 +262,10 @@ export function useSearchGroupsState(
 
     // デフォルトで最初のエンジンのみON
     const newGroup: SearchEngineGroup = {
+      enabled: true,
+      engineIds: [engines[0].id],
       id: generateGroupId(name),
       name,
-      engineIds: [engines[0].id],
-      enabled: true,
     };
 
     const next = [...groups, newGroup];
@@ -267,15 +275,15 @@ export function useSearchGroupsState(
         setNewGroupNameInput("");
         setExpandedGroupId(newGroup.id);
       },
-      rollback: () => {
-        setGroups(groups);
+      onFailure: () => {
+        props.notify.error(t("searchGroups.errors.addFailed"));
       },
-      persist: () => saveGroups(next),
       onSuccess: () => {
         props.notify.success(t("searchGroups.success.added"));
       },
-      onFailure: () => {
-        props.notify.error(t("searchGroups.errors.addFailed"));
+      persist: () => saveGroups(next),
+      rollback: () => {
+        setGroups(groups);
       },
     });
   };
@@ -289,15 +297,15 @@ export function useSearchGroupsState(
           setExpandedGroupId(null);
         }
       },
-      rollback: () => {
-        setGroups(groups);
+      onFailure: () => {
+        props.notify.error(t("searchGroups.errors.deleteFailed"));
       },
-      persist: () => saveGroups(next),
       onSuccess: () => {
         props.notify.success(t("searchGroups.success.deleted"));
       },
-      onFailure: () => {
-        props.notify.error(t("searchGroups.errors.deleteFailed"));
+      persist: () => saveGroups(next),
+      rollback: () => {
+        setGroups(groups);
       },
     });
   };
@@ -309,15 +317,15 @@ export function useSearchGroupsState(
         setExpandedGroupId(null);
         cancelEditingGroupName();
       },
-      rollback: () => {
-        setGroups(groups);
+      onFailure: () => {
+        props.notify.error(t("searchGroups.errors.resetFailed"));
       },
-      persist: () => saveGroups(DEFAULT_SEARCH_ENGINE_GROUPS),
       onSuccess: () => {
         props.notify.success(t("searchGroups.success.reset"));
       },
-      onFailure: () => {
-        props.notify.error(t("searchGroups.errors.resetFailed"));
+      persist: () => saveGroups(DEFAULT_SEARCH_ENGINE_GROUPS),
+      rollback: () => {
+        setGroups(groups);
       },
     });
   };
@@ -329,38 +337,38 @@ export function useSearchGroupsState(
       applyNext: () => {
         setGroups(reorderedGroups);
       },
-      rollback: () => {
-        setGroups(groups);
+      onFailure: () => {
+        props.notify.error(t("searchGroups.errors.reorderFailed"));
       },
-      persist: () => saveGroups(reorderedGroups),
       onSuccess: () => {
         props.notify.success(t("searchGroups.success.reordered"));
       },
-      onFailure: () => {
-        props.notify.error(t("searchGroups.errors.reorderFailed"));
+      persist: () => saveGroups(reorderedGroups),
+      rollback: () => {
+        setGroups(groups);
       },
     });
   };
 
   return {
-    groups,
+    addNewGroup,
+    cancelEditingGroupName,
+    editingNameGroupId,
+    editingNameValue,
     engines,
     enginesById,
     expandedGroupId,
-    editingNameGroupId,
-    editingNameValue,
+    groups,
+    handleReorder,
     newGroupNameInput,
-    setEditingNameValue,
-    setNewGroupNameInput,
-    toggleGroupEnabled,
-    toggleGroupExpand,
-    startEditingGroupName,
-    cancelEditingGroupName,
-    saveGroupName,
-    toggleEngineInGroup,
-    addNewGroup,
     removeGroup,
     resetToDefaults,
-    handleReorder,
+    saveGroupName,
+    setEditingNameValue,
+    setNewGroupNameInput,
+    startEditingGroupName,
+    toggleEngineInGroup,
+    toggleGroupEnabled,
+    toggleGroupExpand,
   };
 }

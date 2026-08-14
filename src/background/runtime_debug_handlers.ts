@@ -61,11 +61,11 @@ function handleGetDebugLogStatsRequest(
     })
     .catch((error) => {
       sendResponse({
-        ok: false,
         error:
           error instanceof Error
             ? error.message
             : t("background.debug.statsFailed"),
+        ok: false,
       });
     });
   return true;
@@ -77,23 +77,23 @@ function handleGetDebugLogsRequest(
 ): boolean {
   getDebugLogs()
     .then((logs) => {
-      sendResponse({ ok: true, logs });
+      sendResponse({ logs, ok: true });
     })
     .catch((error) => {
       sendResponse({
-        ok: false,
         error:
           error instanceof Error
             ? error.message
             : t("background.debug.getLogsFailed"),
+        ok: false,
       });
     });
   return true;
 }
 
 export const debugRuntimeHandlers = {
-  downloadDebugLogs: handleDownloadDebugLogsRequest,
   clearDebugLogs: handleClearDebugLogsRequest,
+  downloadDebugLogs: handleDownloadDebugLogsRequest,
   getDebugLogStats: handleGetDebugLogStatsRequest,
   getDebugLogs: handleGetDebugLogsRequest,
 } as const;

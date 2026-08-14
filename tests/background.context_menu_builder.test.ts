@@ -30,17 +30,17 @@ describe("background: context menu builder", () => {
 
     await expect(
       createMenuItem({
+        contexts: ["selection"],
         id: "mbu-search-parent",
         title: "Search",
-        contexts: ["selection"],
       })
     ).resolves.toBeUndefined();
 
     expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
       "mbu-search-parent",
       {
-        title: "Search",
         contexts: ["selection"],
+        title: "Search",
       },
       expect.any(Function)
     );
@@ -63,9 +63,9 @@ describe("background: context menu builder", () => {
 
     await expect(
       createMenuItem({
+        contexts: ["selection"],
         id: "mbu-search-parent",
         title: "Search",
-        contexts: ["selection"],
       })
     ).rejects.toThrow("Parent item not found");
   });

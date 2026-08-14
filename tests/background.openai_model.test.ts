@@ -46,15 +46,15 @@ describe("background: OpenAI model selection", () => {
 
       const fetchSpy = vi.fn((_url: string, options?: unknown) => {
         const body =
-          typeof (options as { body?: unknown })?.body === "string"
+          typeof (options as { body?: unknown }).body === "string"
             ? (options as { body: string }).body
             : "";
         capturedModel = (JSON.parse(body) as { model?: string }).model ?? null;
         return Promise.resolve({
-          ok: true,
-          status: 200,
           json: () =>
             Promise.resolve({ choices: [{ message: { content: "ok" } }] }),
+          ok: true,
+          status: 200,
         } as unknown);
       });
 
@@ -71,7 +71,7 @@ describe("background: OpenAI model selection", () => {
       listener(
         {
           action: "summarizeText",
-          target: { text: "hello", source: "page", title: "t", url: "u" },
+          target: { source: "page", text: "hello", title: "t", url: "u" },
         },
         {},
         sendResponse

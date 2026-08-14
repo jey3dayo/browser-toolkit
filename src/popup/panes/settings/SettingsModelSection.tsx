@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { Fieldset } from "@/components/shared/Fieldset";
 import { Select } from "@/components/shared/Select";
 import { t } from "@/i18n";
@@ -23,6 +24,20 @@ export function SettingsModelSection({
   setModel,
   saveModel,
 }: SettingsModelSectionProps): React.JSX.Element {
+  const handleValueChange = useCallback(
+    (value: string | null) => {
+      if (value === null) {
+        return;
+      }
+      const normalized = normalizeAiModel(provider, value);
+      setModel(normalized);
+      saveModel(normalized).catch(() => {
+        // no-op
+      });
+    },
+    [provider, setModel, saveModel]
+  );
+
   return (
     <SettingsPaneCard section="model">
       {/* legend がこのカード唯一の可視ラベル。以前は同じ t("settings.model") を
@@ -34,16 +49,7 @@ export function SettingsModelSection({
         <Select
           ariaLabel={t("settings.model")}
           name="aiModel"
-          onValueChange={(value) => {
-            if (value === null) {
-              return;
-            }
-            const normalized = normalizeAiModel(provider, value);
-            setModel(normalized);
-            saveModel(normalized).catch(() => {
-              // no-op
-            });
-          }}
+          onValueChange={handleValueChange}
           options={providerConfigs[provider].models.map((option) => ({
             label: option,
             value: option,

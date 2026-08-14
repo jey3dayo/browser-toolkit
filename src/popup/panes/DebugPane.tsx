@@ -62,15 +62,17 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
       if (nextDebugMode) {
         await loadLogStats();
       }
-    })().catch((error) => {
-      debugLog(
-        "DebugPane.useEffect[props.runtime]",
-        "failed",
-        { error: formatErrorLog("", {}, error) },
-        "error"
-      ).catch(() => {
+    })().catch(async (error) => {
+      try {
+        await debugLog(
+          "DebugPane.useEffect[props.runtime]",
+          "failed",
+          { error: formatErrorLog("", {}, error) },
+          "error"
+        );
+      } catch {
         // no-op
-      });
+      }
     });
     return () => {
       cancelled = true;
@@ -133,9 +135,9 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
     action: "downloadDebugLogs" | "clearDebugLogs"
   ): Promise<boolean> => {
     const result = await sendBackgroundResult({
-      runtime: props.runtime,
       message: { action },
       onError: props.notify.error,
+      runtime: props.runtime,
       // downloadDebugLogs はユーザーのファイル保存ダイアログを待つため
       // タイムアウトを無効化
       timeoutMs: action === "downloadDebugLogs" ? null : undefined,
@@ -161,6 +163,47 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
     props.notify.success(t("debug.success.cleared"));
   };
 
+  const handleToggleDebugMode = useCallback(
+    (checked: boolean) => {
+      toggleDebugMode(checked).catch(() => {
+        // no-op
+      });
+    },
+    [toggleDebugMode]
+  );
+
+  const handleShowLogsClick = useCallback(() => {
+    loadAndShowLogs().catch(async (error) => {
+      try {
+        await debugLog(
+          "DebugPane.loadAndShowLogs",
+          "failed",
+          { error: formatErrorLog("", {}, error) },
+          "error"
+        );
+      } catch {
+        // no-op
+      }
+      props.notify.error(t("debug.errors.loadFailed"));
+    });
+  }, [loadAndShowLogs, props.notify]);
+
+  const handleDownloadLogsClick = useCallback(() => {
+    downloadLogs().catch(() => {
+      // no-op
+    });
+  }, [downloadLogs]);
+
+  const handleClearLogsClick = useCallback(() => {
+    clearLogs().catch(() => {
+      // no-op
+    });
+  }, [clearLogs]);
+
+  const handleHideLogsClick = useCallback(() => {
+    setShowLogs(false);
+  }, []);
+
   return (
     <PaneCard className="settings-surface debug-settings-pane">
       <section className="settings-pane-overview">
@@ -178,11 +221,7 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
             data-testid="debug-mode-switch"
             id="debug-mode-switch"
             label={t("debug.modeToggle")}
-            onCheckedChange={(checked) => {
-              toggleDebugMode(checked).catch(() => {
-                // no-op
-              });
-            }}
+            onCheckedChange={handleToggleDebugMode}
           />
           <Hint>
             {t("debug.enabledDescription")} {t("debug.disabledDescription")}
@@ -207,19 +246,7 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
               <ButtonRow>
                 <Button
                   data-testid="show-debug-logs"
-                  onClick={() => {
-                    loadAndShowLogs().catch((error) => {
-                      debugLog(
-                        "DebugPane.loadAndShowLogs",
-                        "failed",
-                        { error: formatErrorLog("", {}, error) },
-                        "error"
-                      ).catch(() => {
-                        // no-op
-                      });
-                      props.notify.error(t("debug.errors.loadFailed"));
-                    });
-                  }}
+                  onClick={handleShowLogsClick}
                   size="small"
                   type="button"
                   variant="ghost"
@@ -228,11 +255,7 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
                 </Button>
                 <Button
                   data-testid="download-debug-logs"
-                  onClick={() => {
-                    downloadLogs().catch(() => {
-                      // no-op
-                    });
-                  }}
+                  onClick={handleDownloadLogsClick}
                   size="small"
                   type="button"
                   variant="ghost"
@@ -241,11 +264,7 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
                 </Button>
                 <Button
                   data-testid="clear-debug-logs"
-                  onClick={() => {
-                    clearLogs().catch(() => {
-                      // no-op
-                    });
-                  }}
+                  onClick={handleClearLogsClick}
                   type="button"
                   variant="danger"
                 >
@@ -260,9 +279,7 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
                   <strong>{t("debug.logContent")}</strong>
                   <Button
                     data-testid="hide-debug-logs"
-                    onClick={() => {
-                      setShowLogs(false);
-                    }}
+                    onClick={handleHideLogsClick}
                     type="button"
                     variant="danger"
                   >

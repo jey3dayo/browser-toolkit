@@ -13,7 +13,6 @@ function readString(value: unknown): string | undefined {
   if (typeof value === "string" && value) {
     return value;
   }
-  return;
 }
 
 function extractCause(cause: unknown): string | undefined {
@@ -26,10 +25,10 @@ function extractCause(cause: unknown): string | undefined {
 function serializeError(error: unknown): SerializedError {
   if (error instanceof Error) {
     return {
-      name: error.name,
-      message: error.message || "Unknown error",
-      stack: error.stack,
       cause: extractCause(error.cause),
+      message: error.message || "Unknown error",
+      name: error.name,
+      stack: error.stack,
     };
   }
   if (typeof error === "string") {
@@ -43,10 +42,10 @@ function serializeError(error: unknown): SerializedError {
       cause?: unknown;
     };
     return {
-      name: readString(record.name),
-      message: readString(record.message) ?? "Unknown error",
-      stack: readString(record.stack),
       cause: extractCause(record.cause),
+      message: readString(record.message) ?? "Unknown error",
+      name: readString(record.name),
+      stack: readString(record.stack),
     };
   }
   return { message: "Unknown error" };

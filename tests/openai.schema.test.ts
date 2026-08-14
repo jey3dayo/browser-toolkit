@@ -22,14 +22,14 @@ describe("schemas/openai", () => {
 
   it("migrates deprecated models", () => {
     const legacyModels = [
-      { input: "default", expected: OPENAI_MODELS.GPT_5_6_TERRA },
-      { input: "gpt-5.5", expected: OPENAI_MODELS.GPT_5_6_TERRA },
-      { input: "gpt-5.4-2026-03-05", expected: OPENAI_MODELS.GPT_5_6_TERRA },
-      { input: "gpt-5.4", expected: OPENAI_MODELS.GPT_5_6_TERRA },
-      { input: "gpt-5.2", expected: OPENAI_MODELS.GPT_5_6_TERRA },
-      { input: "gpt-5.2-chat-latest", expected: OPENAI_MODELS.GPT_5_6_TERRA },
-      { input: "gpt-5.1", expected: OPENAI_MODELS.GPT_5_6_TERRA },
-      { input: "gpt-4o", expected: OPENAI_MODELS.GPT_5_6_TERRA },
+      { expected: OPENAI_MODELS.GPT_5_6_TERRA, input: "default" },
+      { expected: OPENAI_MODELS.GPT_5_6_TERRA, input: "gpt-5.5" },
+      { expected: OPENAI_MODELS.GPT_5_6_TERRA, input: "gpt-5.4-2026-03-05" },
+      { expected: OPENAI_MODELS.GPT_5_6_TERRA, input: "gpt-5.4" },
+      { expected: OPENAI_MODELS.GPT_5_6_TERRA, input: "gpt-5.2" },
+      { expected: OPENAI_MODELS.GPT_5_6_TERRA, input: "gpt-5.2-chat-latest" },
+      { expected: OPENAI_MODELS.GPT_5_6_TERRA, input: "gpt-5.1" },
+      { expected: OPENAI_MODELS.GPT_5_6_TERRA, input: "gpt-4o" },
     ];
 
     for (const { input, expected } of legacyModels) {

@@ -9,6 +9,10 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+function noop(): void {
+  // no-op
+}
+
 describe("PatternAddForm", () => {
   it("reports submit failures to the caller", async () => {
     const dom = createPopupDom();
@@ -26,9 +30,7 @@ describe("PatternAddForm", () => {
         inputTestId="pattern-input"
         onSubmit={onSubmit}
         onSubmitError={onError}
-        onValueChange={() => {
-          // no-op
-        }}
+        onValueChange={noop}
         placeholder="example.com/*"
         value="example.com/*"
       />

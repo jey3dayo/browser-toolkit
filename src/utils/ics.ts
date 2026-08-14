@@ -8,7 +8,7 @@ export function sanitizeFileName(name: string): string {
 }
 
 export function buildIcs(event: ExtractedEvent): string | null {
-  const title = event.title?.trim() || "予定";
+  const title = event.title.trim() || "予定";
   const description = event.description?.trim() || "";
   const location = event.location?.trim() || "";
 
@@ -33,9 +33,9 @@ export function buildIcs(event: ExtractedEvent): string | null {
   };
 
   const range = computeEventDateRange({
-    start: event.start ?? "",
-    end: event.end,
     allDay: event.allDay,
+    end: event.end,
+    start: event.start,
   });
   if (!range) {
     return null;

@@ -26,7 +26,7 @@ function notifyClients(type) {
     if (client.readyState === 1) {
       // WebSocket.OPEN
       client.send(JSON.stringify({ type }));
-      successCount++;
+      successCount += 1;
     }
   }
   if (successCount > 0) {
@@ -35,26 +35,26 @@ function notifyClients(type) {
 }
 
 const buildOptions = {
-  entryPoints: ["src/background.ts", "src/content.ts", "src/popup.ts"],
-  bundle: true,
-  format: "iife",
-  platform: "browser",
-  target: "es2020",
-  jsx: "automatic",
-  charset: "utf8",
   alias: {
     "@": "./src",
   },
+  bundle: true,
+  charset: "utf8",
   define: {
     "process.env.NODE_ENV": '"development"',
   },
+  entryPoints: ["src/background.ts", "src/content.ts", "src/popup.ts"],
+  format: "iife",
+  jsx: "automatic",
   loader: {
-    ".toml": "text",
     ".css": "css",
+    ".toml": "text",
   },
   outdir: "dist",
-  sourcemap: "inline",
+  platform: "browser",
   plugins: [cssRawPlugin],
+  sourcemap: "inline",
+  target: "es2020",
 };
 
 let isBuilding = false;
@@ -93,8 +93,8 @@ watchStyles();
 
 const watcher = chokidarWatch("src/**/*.{ts,tsx,toml}", {
   ignored: /(^|[/\\])\../,
-  persistent: true,
   ignoreInitial: true,
+  persistent: true,
 });
 
 watcher.on("change", (filePath) => {

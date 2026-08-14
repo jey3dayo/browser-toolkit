@@ -63,7 +63,7 @@ function normalizeEventRange(
   end: string | undefined,
   allDay: true | undefined
 ): NormalizeEventRangeResult {
-  const baseRange: NormalizedEventRange = { start, end, allDay };
+  const baseRange: NormalizedEventRange = { allDay, end, start };
 
   // モデルが `start: "2025-12-16 14:00〜15:00"` のようにレンジを一つの文字列に詰めるケースがあるため補正する。
   if (end || !start) {
@@ -80,7 +80,7 @@ function normalizeEventRange(
 
   // date-only range: "2025-12-16〜2025-12-17"
   if (parseDateOnlyToYyyyMmDd(left) && parseDateOnlyToYyyyMmDd(right)) {
-    return Result.succeed({ start: left, end: right, allDay: allDay ?? true });
+    return Result.succeed({ allDay: allDay ?? true, end: right, start: left });
   }
 
   // datetime range with time-only end: "2025-12-16 14:00〜15:00"
@@ -89,16 +89,16 @@ function normalizeEventRange(
 
   if (leftDatePrefix && rightTimeOnly) {
     return Result.succeed({
-      start: left,
-      end: `${leftDatePrefix} ${rightTimeOnly}`,
       allDay,
+      end: `${leftDatePrefix} ${rightTimeOnly}`,
+      start: left,
     });
   }
   if (parseDateTimeLoose(right)) {
-    return Result.succeed({ start: left, end: right, allDay });
+    return Result.succeed({ allDay, end: right, start: left });
   }
 
-  return Result.succeed({ start: left, end, allDay });
+  return Result.succeed({ allDay, end, start: left });
 }
 
 export function normalizeEvent(event: ExtractedEvent): ExtractedEvent {
@@ -113,7 +113,7 @@ export function normalizeEvent(event: ExtractedEvent): ExtractedEvent {
   const { start, end, allDay } = Result.isFailure(rangeResult)
     ? rangeResult.error
     : rangeResult.value;
-  return { title, start, end, allDay, location, description };
+  return { allDay, description, end, location, start, title };
 }
 
 export function formatEventText(event: ExtractedEvent): string {
@@ -166,7 +166,7 @@ export function buildCalendarArtifacts(
     }
   }
 
-  return { eventText, calendarUrl, ics, errors };
+  return { calendarUrl, errors, eventText, ics };
 }
 
 type GoogleCalendarRange = NonNullable<
@@ -186,8 +186,8 @@ function buildGoogleCalendarParams(
 ): URLSearchParams {
   const params = new URLSearchParams({
     action: "TEMPLATE",
-    text: event.title?.trim() || "予定",
     dates,
+    text: event.title.trim() || "予定",
   });
   const details = event.description?.trim();
   if (details) {
@@ -202,9 +202,9 @@ function buildGoogleCalendarParams(
 
 export function buildGoogleCalendarUrl(event: ExtractedEvent): string | null {
   const range = computeEventDateRange({
-    start: event.start,
-    end: event.end,
     allDay: event.allDay,
+    end: event.end,
+    start: event.start,
   });
   if (!range) {
     return null;

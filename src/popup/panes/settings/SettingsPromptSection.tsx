@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { Button } from "@/components/shared/Button";
 import { Field } from "@/components/shared/Field";
 import { Fieldset } from "@/components/shared/Fieldset";
@@ -22,23 +23,34 @@ export function SettingsPromptSection({
   savePrompt,
   clearPrompt,
 }: SettingsPromptSectionProps): React.JSX.Element {
+  const handleFormSubmit = useCallback(() => {
+    savePrompt().catch(() => {
+      // no-op
+    });
+  }, [savePrompt]);
+
+  const handlePromptChange = useCallback(
+    (event: React.ChangeEvent<HTMLTextAreaElement>) =>
+      setCustomPrompt(event.currentTarget.value),
+    [setCustomPrompt]
+  );
+
+  const handleClearPrompt = useCallback(() => {
+    clearPrompt().catch(() => {
+      // no-op
+    });
+  }, [clearPrompt]);
+
   return (
     <SettingsPaneCard section="prompt">
-      <Form
-        onFormSubmit={() => {
-          savePrompt().catch(() => {
-            // no-op
-          });
-        }}
-        variant="stack"
-      >
+      <Form onFormSubmit={handleFormSubmit} variant="stack">
         <Fieldset legend={t("settings.customPromptLegend")} spacing="stack">
           <Field htmlFor={promptInputId} label={t("settings.customPrompt")}>
             <Textarea
               data-testid="custom-prompt"
               id={promptInputId}
               name="aiCustomPrompt"
-              onChange={(event) => setCustomPrompt(event.currentTarget.value)}
+              onChange={handlePromptChange}
               rows={3}
               value={customPrompt}
               variant="prompt"
@@ -49,11 +61,7 @@ export function SettingsPromptSection({
         <ButtonRow>
           <Button
             data-testid="prompt-save"
-            onClick={() => {
-              savePrompt().catch(() => {
-                // no-op
-              });
-            }}
+            onClick={handleFormSubmit}
             size="small"
             type="button"
             variant="primary"
@@ -62,11 +70,7 @@ export function SettingsPromptSection({
           </Button>
           <Button
             data-testid="prompt-clear"
-            onClick={() => {
-              clearPrompt().catch(() => {
-                // no-op
-              });
-            }}
+            onClick={handleClearPrompt}
             type="button"
             variant="danger"
           >

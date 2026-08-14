@@ -20,8 +20,8 @@ function normalizeText(text: string): string {
  */
 function buildSelectionTarget(text: string): SummaryTarget {
   return {
-    text,
     source: "selection",
+    text,
     title: document.title ?? "",
     url: window.location.href,
   };
@@ -32,8 +32,8 @@ function buildSelectionTarget(text: string): SummaryTarget {
  */
 function buildPageTarget(text: string): SummaryTarget {
   return {
-    text,
     source: "page",
+    text,
     title: document.title ?? "",
     url: window.location.href,
   };

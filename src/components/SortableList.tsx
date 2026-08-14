@@ -16,6 +16,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type React from "react";
+import { useCallback } from "react";
 import { Button } from "@/components/shared/Button";
 import { t } from "@/i18n";
 
@@ -48,20 +49,23 @@ export function SortableList<T extends { id: string }>({
     })
   );
 
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
 
-    if (!over || active.id === over.id) {
-      return;
-    }
+      if (!over || active.id === over.id) {
+        return;
+      }
 
-    const oldIndex = items.findIndex((item) => item.id === active.id);
-    const newIndex = items.findIndex((item) => item.id === over.id);
+      const oldIndex = items.findIndex((item) => item.id === active.id);
+      const newIndex = items.findIndex((item) => item.id === over.id);
 
-    if (oldIndex !== -1 && newIndex !== -1) {
-      onReorder(arrayMove(items, oldIndex, newIndex));
-    }
-  }
+      if (oldIndex !== -1 && newIndex !== -1) {
+        onReorder(arrayMove(items, oldIndex, newIndex));
+      }
+    },
+    [items, onReorder]
+  );
 
   return (
     <DndContext
@@ -117,9 +121,9 @@ function SortableItem({ id, children }: SortableItemProps) {
   } = useSortable({ id });
 
   const style: React.CSSProperties = {
+    opacity: isDragging ? 0.5 : 1,
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
   };
 
   return (

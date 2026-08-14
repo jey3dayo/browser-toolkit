@@ -2,46 +2,46 @@ import { ScrollArea as BaseScrollArea } from "@base-ui/react/scroll-area";
 import { cva, type VariantProps } from "class-variance-authority";
 
 const scrollAreaRootVariants = cva("", {
+  defaultVariants: {
+    variant: "pattern",
+  },
   variants: {
     variant: {
       pattern: "pattern-scrollarea",
     },
   },
-  defaultVariants: {
-    variant: "pattern",
-  },
 });
 
 const scrollAreaViewportVariants = cva("", {
+  defaultVariants: {
+    variant: "pattern",
+  },
   variants: {
     variant: {
       pattern: "pattern-list",
     },
   },
-  defaultVariants: {
-    variant: "pattern",
-  },
 });
 
 const scrollAreaScrollbarVariants = cva("", {
+  defaultVariants: {
+    variant: "pattern",
+  },
   variants: {
     variant: {
       pattern: "pattern-scrollbar",
     },
   },
-  defaultVariants: {
-    variant: "pattern",
-  },
 });
 
 const scrollAreaThumbVariants = cva("", {
+  defaultVariants: {
+    variant: "pattern",
+  },
   variants: {
     variant: {
       pattern: "pattern-thumb",
     },
-  },
-  defaultVariants: {
-    variant: "pattern",
   },
 });
 

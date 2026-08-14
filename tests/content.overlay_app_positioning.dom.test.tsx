@@ -13,9 +13,17 @@ import type { Size } from "@/shared_types";
 ).IS_REACT_ACT_ENVIRONMENT = true;
 
 async function flushEffects(times = 3): Promise<void> {
-  for (let i = 0; i < times; i += 1) {
-    await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
-  }
+  await Array.from({ length: times }).reduce<Promise<void>>(
+    (previous) =>
+      previous.then(
+        () => new Promise<void>((resolve) => window.setTimeout(resolve, 0))
+      ),
+    Promise.resolve()
+  );
+}
+
+function noop(): void {
+  // no-op
 }
 
 function setWindowSize(size: Size): void {
@@ -32,14 +40,14 @@ function setWindowSize(size: Size): void {
 describe("OverlayApp positioning", () => {
   it("repositions when window is resized without panel size changes", async () => {
     const viewModel: OverlayViewModel = {
-      open: true,
-      status: "ready",
+      anchorRect: null,
       mode: "text",
-      source: "selection",
-      title: "要約",
+      open: true,
       primary: "結果",
       secondary: "",
-      anchorRect: null,
+      source: "selection",
+      status: "ready",
+      title: "要約",
     };
 
     const host = document.createElement("div");
@@ -54,13 +62,13 @@ describe("OverlayApp positioning", () => {
 
     const root = createRoot(container);
 
-    setWindowSize({ width: 900, height: 700 });
+    setWindowSize({ height: 700, width: 900 });
 
     await act(async () => {
       root.render(
         <OverlayApp
           host={host}
-          onDismiss={() => undefined}
+          onDismiss={noop}
           portalContainer={portalShadow}
           viewModel={viewModel}
         />
@@ -71,7 +79,7 @@ describe("OverlayApp positioning", () => {
     expect(host.style.left).toBe("340px");
     expect(host.style.top).toBe("16px");
 
-    setWindowSize({ width: 850, height: 700 });
+    setWindowSize({ height: 700, width: 850 });
     window.dispatchEvent(new Event("resize"));
 
     expect(host.style.left).toBe("290px");
