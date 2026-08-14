@@ -43,19 +43,19 @@ export function parseRunContextActionResponseToOutput(params: {
 
   if (payload.resultType === "event") {
     return Result.succeed({
-      status: "ready",
-      title: params.actionTitle,
-      text: payload.eventText,
       sourceLabel,
+      status: "ready",
+      text: payload.eventText,
+      title: params.actionTitle,
     });
   }
 
   if (payload.resultType === "text") {
     return Result.succeed({
-      status: "ready",
-      title: params.actionTitle,
-      text: payload.text,
       sourceLabel,
+      status: "ready",
+      text: payload.text,
+      title: params.actionTitle,
     });
   }
 

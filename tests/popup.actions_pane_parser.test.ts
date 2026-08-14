@@ -32,18 +32,18 @@ describe("parseRunContextActionResponseToOutput", () => {
       actionTitle: "要約",
       responseUnknown: Result.succeed({
         resultType: "text",
-        text: "テキスト結果",
         source: "selection",
+        text: "テキスト結果",
       }),
     });
 
     expect(Result.isSuccess(result)).toBe(true);
     if (Result.isSuccess(result)) {
       expect(result.value).toEqual({
-        status: "ready",
-        title: "要約",
-        text: "テキスト結果",
         sourceLabel: "選択範囲",
+        status: "ready",
+        text: "テキスト結果",
+        title: "要約",
       });
     }
   });
@@ -52,8 +52,8 @@ describe("parseRunContextActionResponseToOutput", () => {
     const result = parseRunContextActionResponseToOutput({
       actionTitle: "予定抽出",
       responseUnknown: Result.succeed({
-        resultType: "event",
         eventText: "2024-12-25 14:00 クリスマスパーティー",
+        resultType: "event",
         source: "page",
       }),
     });
@@ -61,10 +61,10 @@ describe("parseRunContextActionResponseToOutput", () => {
     expect(Result.isSuccess(result)).toBe(true);
     if (Result.isSuccess(result)) {
       expect(result.value).toEqual({
-        status: "ready",
-        title: "予定抽出",
-        text: "2024-12-25 14:00 クリスマスパーティー",
         sourceLabel: "ページ本文",
+        status: "ready",
+        text: "2024-12-25 14:00 クリスマスパーティー",
+        title: "予定抽出",
       });
     }
   });
@@ -76,8 +76,8 @@ describe("parseRunContextActionResponseToOutput", () => {
     // @ts-expect-error: Testing runtime behavior with invalid type
     const invalidResult = Result.succeed({
       resultType: "invalid",
-      text: "テキスト結果",
       source: "selection",
+      text: "テキスト結果",
     });
 
     const result = parseRunContextActionResponseToOutput({
@@ -113,8 +113,8 @@ describe("parseRunContextActionResponseToOutput", () => {
     // @ts-expect-error: Testing runtime behavior with invalid source value
     const resultWithUnknownSource = Result.succeed({
       resultType: "text",
-      text: "テキスト結果",
       source: "unknown-source",
+      text: "テキスト結果",
     });
 
     const result = parseRunContextActionResponseToOutput({

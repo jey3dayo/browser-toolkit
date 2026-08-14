@@ -11,9 +11,9 @@ function ActionTargetAccordionStory(
 }
 
 const meta = {
-  title: "Popup/Panes/Actions/ActionTargetAccordion",
   component: ActionTargetAccordionStory,
   tags: ["test"],
+  title: "Popup/Panes/Actions/ActionTargetAccordion",
 } satisfies Meta<typeof ActionTargetAccordionStory>;
 
 export default meta;

@@ -76,8 +76,8 @@ function handleCopyToClipboard(
         sendResponse({ ok: true });
       } else {
         sendResponse({
-          ok: false,
           error: getClipboardErrorMessage(result.error),
+          ok: false,
         });
       }
       return;
@@ -89,11 +89,11 @@ function handleCopyToClipboard(
       return;
     }
     sendResponse({
-      ok: false,
       error: getClipboardErrorMessage(result.error),
+      ok: false,
     });
   })().catch(() => {
-    sendResponse({ ok: false, error: t("content.messageHandlers.copyFailed") });
+    sendResponse({ error: t("content.messageHandlers.copyFailed"), ok: false });
   });
   return true;
 }
@@ -119,13 +119,13 @@ function handlePasteTemplate(
       return;
     }
     sendResponse({
-      ok: false,
       error: getClipboardErrorMessage(result.error),
+      ok: false,
     });
   };
 
   (async () => {
-    const activeElement = document.activeElement;
+    const { activeElement } = document;
 
     // input/textarea要素への挿入
     if (
@@ -159,8 +159,8 @@ function handlePasteTemplate(
     await copyFallback();
   })().catch(() => {
     sendResponse({
-      ok: false,
       error: t("content.messageHandlers.pasteTemplateFailed"),
+      ok: false,
     });
   });
   return true;
@@ -179,8 +179,8 @@ function handleGetSummaryTargetText(
       sendResponse(target);
     } catch {
       sendResponse({
-        text: "",
         source: "page",
+        text: "",
         title: document.title ?? "",
         url: window.location.href,
       } satisfies SummaryTarget);

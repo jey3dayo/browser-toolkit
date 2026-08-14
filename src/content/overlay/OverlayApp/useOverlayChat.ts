@@ -30,8 +30,9 @@ export function useOverlayChat(primary: string) {
     if (!text.trim() || isChatting) {
       return;
     }
-    const requestId = ++chatRequestIdRef.current;
-    const userMessage: ChatMessage = { role: "user", content: text.trim() };
+    chatRequestIdRef.current += 1;
+    const requestId = chatRequestIdRef.current;
+    const userMessage: ChatMessage = { content: text.trim(), role: "user" };
     const nextMessages = [...chatMessages, userMessage];
     setChatMessages(nextMessages);
     setIsChatting(true);
@@ -39,8 +40,8 @@ export function useOverlayChat(primary: string) {
     chrome.runtime
       .sendMessage({
         action: "chatFollowUp",
-        messages: nextMessages,
         context: primary,
+        messages: nextMessages,
       })
       .then((response: unknown) => {
         if (requestId !== chatRequestIdRef.current) {
@@ -50,7 +51,7 @@ export function useOverlayChat(primary: string) {
         if (res && Result.isSuccess(res) && res.value.text) {
           setChatMessages((prev) => [
             ...prev,
-            { role: "assistant", content: res.value.text },
+            { content: res.value.text, role: "assistant" },
           ]);
         } else {
           const errorMsg =
@@ -60,8 +61,8 @@ export function useOverlayChat(primary: string) {
           setChatMessages((prev) => [
             ...prev,
             {
-              role: "assistant",
               content: t("content.overlay.errorPrefix", { message: errorMsg }),
+              role: "assistant",
             },
           ]);
         }
@@ -73,10 +74,10 @@ export function useOverlayChat(primary: string) {
         setChatMessages((prev) => [
           ...prev,
           {
-            role: "assistant",
             content: t("content.overlay.errorPrefix", {
               message: t("content.overlay.chatFailed"),
             }),
+            role: "assistant",
           },
         ]);
       })
@@ -88,5 +89,5 @@ export function useOverlayChat(primary: string) {
       });
   };
 
-  return { chatMessages, isChatting, handleChatSend };
+  return { chatMessages, handleChatSend, isChatting };
 }

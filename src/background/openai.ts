@@ -35,9 +35,9 @@ async function requestAiText(
   params: AiTextRequest
 ): Promise<Result.Result<string, string>> {
   const preparedResult = await prepareAiInput({
-    target: params.target,
-    missingTextMessage: params.missingTextMessage,
     includeMissingMeta: params.includeMissingMeta,
+    missingTextMessage: params.missingTextMessage,
+    target: params.target,
   });
   if (Result.isFailure(preparedResult)) {
     return Result.fail(preparedResult.error);
@@ -45,9 +45,9 @@ async function requestAiText(
 
   const { settings, clippedText, meta } = preparedResult.value;
   const { body, emptyContentMessage } = params.buildBody({
-    settings,
     clippedText,
     meta,
+    settings,
   });
 
   const adapter = getAdapter(settings.provider);
@@ -65,23 +65,17 @@ export async function summarizeWithOpenAI(
   target: SummaryTarget
 ): Promise<BackgroundResponse> {
   const summaryResult = await requestAiText({
-    target,
-    missingTextMessage: "要約対象のテキストが見つかりませんでした",
-    includeMissingMeta: true,
     buildBody: ({ settings, clippedText, meta }) => ({
       body: {
-        model: settings.model,
-        temperature: 0.2,
         messages: [
           {
-            role: "system",
             content: buildSystemMessage(
               "あなたは日本語の要約アシスタントです。入力テキストを読み、要点を短く整理して出力してください。",
               settings.customPrompt
             ),
+            role: "system",
           },
           {
-            role: "user",
             content: [
               "次のテキストを日本語で要約してください。",
               "",
@@ -92,19 +86,25 @@ export async function summarizeWithOpenAI(
               "",
               clippedText + meta,
             ].join("\n"),
+            role: "user",
           },
         ],
+        model: settings.model,
+        temperature: 0.2,
       },
       emptyContentMessage: "要約結果の取得に失敗しました",
     }),
+    includeMissingMeta: true,
+    missingTextMessage: "要約対象のテキストが見つかりませんでした",
+    target,
   });
   if (Result.isFailure(summaryResult)) {
     return Result.fail(summaryResult.error);
   }
 
   return Result.succeed({
-    summary: summaryResult.value,
     source: target.source,
+    summary: summaryResult.value,
   });
 }
 
@@ -113,8 +113,6 @@ export async function runPromptActionWithOpenAI(
   promptTemplate: string
 ): Promise<Result.Result<string, string>> {
   return await requestAiText({
-    target,
-    missingTextMessage: "対象のテキストが見つかりませんでした",
     buildBody: ({ settings, clippedText, meta }) => {
       const variables = buildTemplateVariables(target, clippedText);
       const rendered = applyTemplateVariables(promptTemplate, variables);
@@ -134,22 +132,24 @@ export async function runPromptActionWithOpenAI(
 
       return {
         body: {
-          model: settings.model,
-          temperature: 0.2,
           messages: [
             {
-              role: "system",
               content: buildSystemMessage(
                 "あなたはユーザーの「Context Action」を実行するアシスタントです。指示に従い、必要な結果だけを簡潔に出力してください。",
                 settings.customPrompt
               ),
+              role: "system",
             },
-            { role: "user", content: userContent },
+            { content: userContent, role: "user" },
           ],
+          model: settings.model,
+          temperature: 0.2,
         },
         emptyContentMessage: "結果の取得に失敗しました",
       };
     },
+    missingTextMessage: "対象のテキストが見つかりませんでした",
+    target,
   });
 }
 
@@ -203,13 +203,13 @@ export async function testAiToken(
     adapter,
     settings.token,
     {
-      model: settings.model,
       max_completion_tokens: 1024,
-      temperature: 0,
       messages: [
-        { role: "system", content: "You are a health check bot." },
-        { role: "user", content: "Reply with OK." },
+        { content: "You are a health check bot.", role: "system" },
+        { content: "Reply with OK.", role: "user" },
       ],
+      model: settings.model,
+      temperature: 0,
     }
   );
 
@@ -225,9 +225,6 @@ export async function extractEventWithOpenAI(
   extraInstruction?: string
 ): Promise<Result.Result<ExtractedEvent, string>> {
   const contentResult = await requestAiText({
-    target,
-    missingTextMessage: "要約対象のテキストが見つかりませんでした",
-    includeMissingMeta: true,
     buildBody: ({ settings, clippedText, meta }) => {
       const baseSystemContent = [
         "あなたはイベント抽出アシスタントです。入力テキストから、カレンダー登録に必要な情報を抽出してください。",
@@ -241,26 +238,26 @@ export async function extractEventWithOpenAI(
 
       // Anthropicでは response_format が非対応なので、プロバイダーに応じて分岐
       const body: ChatRequestBody = {
-        model: settings.model,
-        temperature: 0.2,
         messages: [
           {
-            role: "system",
             content: buildSystemMessage(
               baseSystemContent,
               settings.customPrompt,
               extraInstruction
             ),
+            role: "system",
           },
           {
-            role: "user",
             content: [
               "次のテキストからイベント情報を抽出し、JSONで返してください。",
               "",
               clippedText + meta,
             ].join("\n"),
+            role: "user",
           },
         ],
+        model: settings.model,
+        temperature: 0.2,
       };
 
       // OpenAIとz.aiのみ response_format をサポート
@@ -273,6 +270,9 @@ export async function extractEventWithOpenAI(
         emptyContentMessage: "イベント要約結果の取得に失敗しました",
       };
     },
+    includeMissingMeta: true,
+    missingTextMessage: "要約対象のテキストが見つかりませんでした",
+    target,
   });
   if (Result.isFailure(contentResult)) {
     return Result.fail(contentResult.error);
@@ -316,24 +316,24 @@ export async function chatFollowUpWithOpenAI(
 
   const MAX_CHAT_TURNS = 20;
   const body: ChatRequestBody = {
-    model: settings.model,
-    temperature: 0.2,
     messages: [
-      { role: "system", content: systemContent },
+      { content: systemContent, role: "system" },
       ...(context.trim()
         ? [
             {
-              role: "user" as const,
               content: `以下がページのコンテキストです:\n\n${clipInputText(context)}`,
+              role: "user" as const,
             },
             {
-              role: "assistant" as const,
               content: "了解しました。質問があればどうぞ。",
+              role: "assistant" as const,
             },
           ]
         : []),
       ...messages.slice(-MAX_CHAT_TURNS),
     ],
+    model: settings.model,
+    temperature: 0.2,
   };
 
   const adapter = getAdapter(settings.provider);

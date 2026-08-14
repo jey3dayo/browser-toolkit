@@ -36,9 +36,9 @@ describe("popup Actions pane: event output", () => {
             contextActions: [
               {
                 id: "custom:event",
-                title: "イベント抽出",
                 kind: "event",
                 prompt: "",
+                title: "イベント抽出",
               },
             ],
           });
@@ -70,12 +70,12 @@ describe("popup Actions pane: event output", () => {
     chromeStub.runtime.sendMessage.mockImplementation(
       (message: unknown, callback: (resp: unknown) => void) => {
         chromeStub.runtime.lastError = null;
-        const action = (message as { action?: unknown }).action;
+        const { action } = message as { action?: unknown };
         if (action === "runContextAction") {
           callback(
             Result.succeed({
-              resultType: "event",
               eventText: "予定: ミーティング",
+              resultType: "event",
               source: "selection",
             })
           );

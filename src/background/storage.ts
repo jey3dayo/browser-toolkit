@@ -40,7 +40,7 @@ export function checkStorageQuota(
     const sizeBytes = new Blob([jsonStr]).size;
 
     if (sizeBytes > QUOTA_BYTES_PER_ITEM) {
-      return { ok: false, sizeBytes, key };
+      return { key, ok: false, sizeBytes };
     }
   }
   return { ok: true };
@@ -101,10 +101,10 @@ function createStorageWrapper<TArgs extends unknown[], TResult>(
  * Storage reserved keys (internal use only)
  */
 export const STORAGE_RESERVED_KEYS = {
-  SCHEMA_VERSION: "schemaVersion",
-  MIGRATION_LOG: "migrationLog",
-  FALLBACK_KEYS_MARKER: "__storage_fallback_keys__",
   BACKUP_PREFIX: "backup_",
+  FALLBACK_KEYS_MARKER: "__storage_fallback_keys__",
+  MIGRATION_LOG: "migrationLog",
+  SCHEMA_VERSION: "schemaVersion",
 } as const;
 
 type ReservedKey =
@@ -215,7 +215,7 @@ function withFallbackKeys(
       return;
     }
 
-    const fallbackKeys = (markerData[markerKey] as string[]) ?? [];
+    const fallbackKeys = (markerData[markerKey] as string[] | undefined) ?? [];
     onSuccess(fallbackKeys, markerKey);
   });
 }
@@ -243,7 +243,8 @@ export const storageSyncGet = createStorageWrapper<[string[] | null], unknown>(
           return;
         }
 
-        const fallbackKeys = (markerData[markerKey] as string[]) ?? [];
+        const fallbackKeys =
+          (markerData[markerKey] as string[] | undefined) ?? [];
         const fallbackKeySet = new Set(fallbackKeys);
         const keysInLocal =
           keys === null
@@ -287,14 +288,14 @@ export const storageSyncSet = createStorageWrapper<
     // ユーザーに通知
     chrome.notifications
       .create({
-        type: "basic",
         iconUrl: chrome.runtime.getURL("images/icon48.png"),
-        title: t("background.storage.quotaTitle"),
         message: t("background.storage.quotaMessage", {
           key: quotaCheck.key,
           sizeKB: Math.round(quotaCheck.sizeBytes / 1024),
         }),
         priority: 2,
+        title: t("background.storage.quotaTitle"),
+        type: "basic",
       })
       .catch((err) => {
         console.error("Failed to create notification:", err);
@@ -316,11 +317,11 @@ export const storageSyncSet = createStorageWrapper<
 
         chrome.notifications
           .create({
-            type: "basic",
             iconUrl: chrome.runtime.getURL("images/icon48.png"),
-            title: t("background.storage.quotaTitle"),
             message: t("background.storage.quotaFallbackMessage"),
             priority: 2,
+            title: t("background.storage.quotaTitle"),
+            type: "basic",
           })
           .catch((notifErr) => {
             console.error("Failed to create notification:", notifErr);

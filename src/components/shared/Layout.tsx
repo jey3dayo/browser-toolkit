@@ -2,14 +2,14 @@ import { cva, type VariantProps } from "class-variance-authority";
 import type { ComponentPropsWithoutRef } from "react";
 
 const stackVariants = cva("", {
+  defaultVariants: {
+    spacing: "default",
+  },
   variants: {
     spacing: {
       default: "stack",
       small: "stack-sm",
     },
-  },
-  defaultVariants: {
-    spacing: "default",
   },
 });
 

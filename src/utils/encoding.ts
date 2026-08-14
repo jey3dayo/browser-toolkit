@@ -27,8 +27,8 @@ function normalizeShiftJisBytes(value: unknown): number[] {
 
 export function encodeShiftJisQuery(query: string): string {
   const converted = Encoding.convert(Encoding.stringToCode(query), {
-    to: "SJIS",
     from: "UNICODE",
+    to: "SJIS",
   });
   const sjisBytes = normalizeShiftJisBytes(converted);
   if (sjisBytes.length === 0) {

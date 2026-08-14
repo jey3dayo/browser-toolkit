@@ -1,4 +1,8 @@
-import type { HTMLInputTypeAttribute, ReactNode } from "react";
+import {
+  type HTMLInputTypeAttribute,
+  type ReactNode,
+  useCallback,
+} from "react";
 import { Button } from "@/components/shared/Button";
 import { Form } from "@/components/shared/Form";
 import { Input } from "@/components/shared/Input";
@@ -29,7 +33,7 @@ export function PatternAddForm({
   placeholder,
   value,
 }: PatternAddFormProps): React.JSX.Element {
-  const handleSubmit = (): void => {
+  const handleSubmit = useCallback((): void => {
     if (disabled) {
       return;
     }
@@ -40,7 +44,7 @@ export function PatternAddForm({
     } catch (error) {
       onSubmitError(error);
     }
-  };
+  }, [disabled, onSubmit, onSubmitError]);
 
   return (
     <Form onFormSubmit={handleSubmit} variant="patternGroup">

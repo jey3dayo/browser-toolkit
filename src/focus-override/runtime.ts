@@ -7,11 +7,11 @@ type FocusOverrideWindow = Window &
   };
 
 type EventTargetWithAddListener = {
-  addEventListener(
+  addEventListener: (
     type: string,
     listener: EventListenerOrEventListenerObject,
     options?: boolean | AddEventListenerOptions
-  ): void;
+  ) => void;
 };
 
 function defineGetter(
@@ -33,8 +33,8 @@ function defineValue(target: object, property: string, value: unknown): void {
   try {
     Object.defineProperty(target, property, {
       configurable: true,
-      writable: true,
       value,
+      writable: true,
     });
   } catch {
     // no-op

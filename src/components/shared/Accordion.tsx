@@ -3,13 +3,13 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Textarea, type TextareaProps } from "@/components/shared/Textarea";
 
 const accordionVariants = cva("mbu-accordion", {
+  defaultVariants: {
+    variant: "default",
+  },
   variants: {
     variant: {
       default: null,
     },
-  },
-  defaultVariants: {
-    variant: "default",
   },
 });
 const accordionMetaVariants = cva("mbu-accordion-meta");

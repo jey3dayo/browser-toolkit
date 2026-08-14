@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { Button } from "@/components/shared/Button";
 import { PaneCard, RowBetween, Stack } from "@/components/shared/Layout";
 import { Hint, PaneTitle } from "@/components/shared/Typography";
@@ -6,6 +7,7 @@ import { TemplateEditForm } from "@/popup/panes/templates/TemplateEditForm";
 import { TemplateList } from "@/popup/panes/templates/TemplateList";
 import { useTemplatesState } from "@/popup/panes/templates/useTemplatesState";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
+import type { TextTemplate } from "@/text_templates";
 
 export type TemplatesPaneProps = PopupPaneBaseProps;
 
@@ -25,7 +27,46 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
     removeTemplate,
     resetToDefaults,
     handleReorder,
-  } = useTemplatesState({ runtime: props.runtime, notify: props.notify });
+  } = useTemplatesState({ notify: props.notify, runtime: props.runtime });
+
+  const handleResetToDefaults = useCallback(() => {
+    resetToDefaults().catch(() => {
+      // no-op
+    });
+  }, [resetToDefaults]);
+
+  const handleSaveEdit = useCallback(() => {
+    saveEdit().catch(() => {
+      // no-op
+    });
+  }, [saveEdit]);
+
+  const handleRemoveTemplate = useCallback(
+    (templateId: string) => {
+      removeTemplate(templateId).catch(() => {
+        // no-op
+      });
+    },
+    [removeTemplate]
+  );
+
+  const handleReorderTemplates = useCallback(
+    (reordered: TextTemplate[]) => {
+      handleReorder(reordered).catch(() => {
+        // no-op
+      });
+    },
+    [handleReorder]
+  );
+
+  const handleToggleTemplateHidden = useCallback(
+    (templateId: string, hidden: boolean) => {
+      toggleTemplateHidden(templateId, hidden).catch(() => {
+        // no-op
+      });
+    },
+    [toggleTemplateHidden]
+  );
 
   return (
     <PaneCard className="settings-surface templates-settings-pane">
@@ -37,11 +78,7 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
           </Stack>
           <Button
             data-testid="reset-templates"
-            onClick={() => {
-              resetToDefaults().catch(() => {
-                // no-op
-              });
-            }}
+            onClick={handleResetToDefaults}
             size="small"
             type="button"
             variant="ghost"
@@ -59,11 +96,7 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
             contentInput={contentInput}
             onCancel={cancelEdit}
             onContentInputChange={setContentInput}
-            onSave={() => {
-              saveEdit().catch(() => {
-                // no-op
-              });
-            }}
+            onSave={handleSaveEdit}
             onTitleInputChange={setTitleInput}
             titleInput={titleInput}
           />
@@ -86,21 +119,9 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
 
         <TemplateList
           onEdit={startEdit}
-          onRemove={(templateId) => {
-            removeTemplate(templateId).catch(() => {
-              // no-op
-            });
-          }}
-          onReorder={(reordered) => {
-            handleReorder(reordered).catch(() => {
-              // no-op
-            });
-          }}
-          onToggleHidden={(templateId, hidden) => {
-            toggleTemplateHidden(templateId, hidden).catch(() => {
-              // no-op
-            });
-          }}
+          onRemove={handleRemoveTemplate}
+          onReorder={handleReorderTemplates}
+          onToggleHidden={handleToggleTemplateHidden}
           templates={templates}
         />
       </section>

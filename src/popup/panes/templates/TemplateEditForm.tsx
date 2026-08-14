@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { Button } from "@/components/shared/Button";
 import { Form } from "@/components/shared/Form";
 import { Input } from "@/components/shared/Input";
@@ -13,6 +14,14 @@ export function TemplateEditForm(props: {
   onSave: () => void;
   onCancel: () => void;
 }): React.JSX.Element {
+  const { onContentInputChange } = props;
+
+  const handleContentChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) =>
+      onContentInputChange(e.target.value),
+    [onContentInputChange]
+  );
+
   return (
     <Form onFormSubmit={props.onSave} variant="stack">
       <Input
@@ -25,7 +34,7 @@ export function TemplateEditForm(props: {
       />
       <Textarea
         data-testid="template-content-input"
-        onChange={(e) => props.onContentInputChange(e.target.value)}
+        onChange={handleContentChange}
         placeholder={t("templatesPane.contentPlaceholder")}
         rows={4}
         value={props.contentInput}

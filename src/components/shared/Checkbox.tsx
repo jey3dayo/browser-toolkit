@@ -1,13 +1,13 @@
 import { cva, type VariantProps } from "class-variance-authority";
 
 const checkboxLabelVariants = cva("", {
+  defaultVariants: {
+    variant: "inline",
+  },
   variants: {
     variant: {
       inline: "checkbox-inline",
     },
-  },
-  defaultVariants: {
-    variant: "inline",
   },
 });
 

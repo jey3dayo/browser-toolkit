@@ -104,7 +104,7 @@ function sortRows(
 ): void {
   const keyed = rows.map((row) => {
     const text = row.cells[columnIndex]?.textContent?.trim() ?? "";
-    return { row, text, num: parseNumericValue(text) };
+    return { num: parseNumericValue(text), row, text };
   });
 
   keyed.sort((a, b) => {
@@ -170,7 +170,7 @@ function sortTable(
   }
 
   // Step 3: 現在のURLのパターンの行フィルタリング設定を取得
-  applyRowFilterIfEnabled({ rows, columnIndex, getRowFilterSetting });
+  applyRowFilterIfEnabled({ columnIndex, getRowFilterSetting, rows });
 
   return isAscending;
 }

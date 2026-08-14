@@ -1,6 +1,7 @@
 import { cva } from "class-variance-authority";
+import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { Icon } from "@/components/icon";
+import { Icon, type IconName } from "@/components/icon";
 import { Button } from "@/components/shared/Button";
 import { DrawerDialog } from "@/components/shared/Dialog";
 import { TabsList, TabsTab } from "@/components/shared/Tabs";
@@ -11,8 +12,8 @@ import type { PaneId } from "@/popup/panes";
 const menuItemVariants = cva("menu-item", {
   variants: {
     active: {
-      true: "active",
       false: null,
+      true: "active",
     },
   },
 });
@@ -24,6 +25,40 @@ type SidebarProps = {
   onNavigate: (paneId: PaneId) => void;
 };
 
+type SidebarMenuItemProps = {
+  active: boolean;
+  icon: IconName;
+  id: PaneId;
+  label: string;
+  onNavigate: (paneId: PaneId) => void;
+};
+
+function SidebarMenuItem({
+  active,
+  icon,
+  id,
+  label,
+  onNavigate,
+}: SidebarMenuItemProps): React.JSX.Element {
+  const handleClick = useCallback(() => {
+    onNavigate(id);
+  }, [id, onNavigate]);
+
+  return (
+    <Button
+      aria-current={active ? "page" : undefined}
+      className={menuItemVariants({ active })}
+      onClick={handleClick}
+      type="button"
+    >
+      <span aria-hidden="true" className="menu-icon">
+        <Icon aria-hidden="true" name={icon} />
+      </span>
+      {label}
+    </Button>
+  );
+}
+
 export function Sidebar({
   currentPane,
   menuOpen,
@@ -33,6 +68,10 @@ export function Sidebar({
   const { t } = useTranslation(undefined, { i18n });
   const menuLabel = t("sidebar.menu");
   const closeLabel = t("common.close");
+
+  const handleCloseClick = useCallback(() => {
+    onMenuOpenChange(false);
+  }, [onMenuOpenChange]);
 
   return (
     <aside aria-label={menuLabel} className="sidebar">
@@ -51,7 +90,7 @@ export function Sidebar({
           <Button
             aria-label={closeLabel}
             className="menu-close"
-            onClick={() => onMenuOpenChange(false)}
+            onClick={handleCloseClick}
             type="button"
           >
             <Icon aria-hidden="true" name="close" />
@@ -62,20 +101,14 @@ export function Sidebar({
             const label = t(item.labelKey);
 
             return (
-              <Button
-                aria-current={currentPane === item.id ? "page" : undefined}
-                className={menuItemVariants({
-                  active: currentPane === item.id,
-                })}
+              <SidebarMenuItem
+                active={currentPane === item.id}
+                icon={item.icon}
+                id={item.id}
                 key={item.id}
-                onClick={() => onNavigate(item.id)}
-                type="button"
-              >
-                <span aria-hidden="true" className="menu-icon">
-                  <Icon aria-hidden="true" name={item.icon} />
-                </span>
-                {label}
-              </Button>
+                label={label}
+                onNavigate={onNavigate}
+              />
             );
           })}
         </nav>

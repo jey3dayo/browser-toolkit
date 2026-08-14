@@ -10,9 +10,9 @@ function AuxTextDisclosureStory(props: Props): React.JSX.Element | null {
 }
 
 const meta = {
-  title: "Shared/Components/AuxTextDisclosure",
   component: AuxTextDisclosureStory,
   tags: ["test"],
+  title: "Shared/Components/AuxTextDisclosure",
 } satisfies Meta<typeof AuxTextDisclosureStory>;
 
 export default meta;
@@ -55,9 +55,9 @@ export const ClosedByDefault: Story = {
 
 export const OpenByDefault: Story = {
   args: {
+    defaultOpen: true,
     summary: "選択範囲",
     text: "引用テキスト",
-    defaultOpen: true,
   },
   play: ({ canvasElement }) => {
     const details = canvasElement.querySelector<HTMLDetailsElement>(

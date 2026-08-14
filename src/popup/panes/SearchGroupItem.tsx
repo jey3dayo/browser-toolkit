@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { Icon } from "@/components/icon";
 import { Button } from "@/components/shared/Button";
 import { Input } from "@/components/shared/Input";
@@ -44,11 +44,24 @@ function InlineEditRow({
   onSave,
   onCancel,
 }: InlineEditRowProps): React.JSX.Element {
-  const save = () => {
+  const save = useCallback(() => {
     onSave(groupId).catch(() => {
       // no-op
     });
-  };
+  }, [groupId, onSave]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        save();
+      }
+      if (e.key === "Escape") {
+        onCancel();
+      }
+    },
+    [onCancel, save]
+  );
 
   return (
     <div className="inline-edit-row">
@@ -56,15 +69,7 @@ function InlineEditRow({
         autoFocus
         className="inline-edit-input"
         data-testid="edit-group-name-input"
-        onKeyDown={(e: React.KeyboardEvent) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            save();
-          }
-          if (e.key === "Escape") {
-            onCancel();
-          }
-        }}
+        onKeyDown={handleKeyDown}
         onValueChange={onValueChange}
         type="text"
         value={value}
@@ -103,21 +108,26 @@ function GroupEngineMembershipRow({
   checked,
   onCheckedChange,
 }: GroupEngineMembershipRowProps): React.JSX.Element {
+  const handleCheckedChange = useCallback(
+    (nextChecked: boolean) => {
+      onCheckedChange(group.id, engine.id, nextChecked).catch(() => {
+        // no-op
+      });
+    },
+    [onCheckedChange, group.id, engine.id]
+  );
+
   return (
     <div className="group-engine-item">
       <span className="group-engine-name">{engine.name}</span>
       <Switch
         aria-label={t("searchGroups.includeEngineAria", {
-          group: group.name,
           engine: engine.name,
+          group: group.name,
         })}
         checked={checked}
         data-testid={`group-engine-${group.id}-${engine.id}`}
-        onCheckedChange={(nextChecked) => {
-          onCheckedChange(group.id, engine.id, nextChecked).catch(() => {
-            // no-op
-          });
-        }}
+        onCheckedChange={handleCheckedChange}
       />
     </div>
   );
@@ -177,6 +187,31 @@ export function SearchGroupItem(
   const groupEngines = group.engineIds
     .map((id) => enginesById.get(id))
     .filter((engine): engine is SearchEngine => engine !== undefined);
+
+  const handleToggleGroupEnabled = useCallback(
+    (checked: boolean) => {
+      toggleGroupEnabled(group.id, checked).catch(() => {
+        // no-op
+      });
+    },
+    [toggleGroupEnabled, group.id]
+  );
+  const handleStartEditing = useCallback(
+    (event: React.MouseEvent) => {
+      event.stopPropagation();
+      startEditingGroupName(group);
+    },
+    [startEditingGroupName, group]
+  );
+  const handleRemoveGroup = useCallback(() => {
+    removeGroup(group.id).catch(() => {
+      // no-op
+    });
+  }, [removeGroup, group.id]);
+  const handleToggleGroupExpand = useCallback(() => {
+    toggleGroupExpand(group.id);
+  }, [toggleGroupExpand, group.id]);
+
   const listItemActions = useMemo(
     () => (
       <>
@@ -184,19 +219,12 @@ export function SearchGroupItem(
           aria-label={t("searchGroups.enableAria", { name: group.name })}
           checked={group.enabled}
           data-testid={`group-enabled-${group.id}`}
-          onCheckedChange={(checked) => {
-            toggleGroupEnabled(group.id, checked).catch(() => {
-              // no-op
-            });
-          }}
+          onCheckedChange={handleToggleGroupEnabled}
         />
         <Button
           aria-label={t("searchGroups.editAria", { name: group.name })}
           data-testid={`edit-group-${group.id}`}
-          onClick={(event) => {
-            event.stopPropagation();
-            startEditingGroupName(group);
-          }}
+          onClick={handleStartEditing}
           type="button"
           variant="edit"
         >
@@ -204,11 +232,7 @@ export function SearchGroupItem(
         </Button>
         <Button
           data-testid={`remove-group-${group.id}`}
-          onClick={() => {
-            removeGroup(group.id).catch(() => {
-              // no-op
-            });
-          }}
+          onClick={handleRemoveGroup}
           type="button"
           variant="danger"
         >
@@ -216,7 +240,7 @@ export function SearchGroupItem(
         </Button>
       </>
     ),
-    [group, removeGroup, startEditingGroupName, toggleGroupEnabled]
+    [group, handleToggleGroupEnabled, handleStartEditing, handleRemoveGroup]
   );
   const listItemLeading = useMemo(
     () => (
@@ -226,9 +250,7 @@ export function SearchGroupItem(
           { name: group.name }
         )}
         data-testid={`expand-group-${group.id}`}
-        onClick={() => {
-          toggleGroupExpand(group.id);
-        }}
+        onClick={handleToggleGroupExpand}
         type="button"
         variant="expandIndicator"
       >
@@ -239,7 +261,7 @@ export function SearchGroupItem(
         />
       </Button>
     ),
-    [group.id, group.name, isExpanded, toggleGroupExpand]
+    [group.id, group.name, isExpanded, handleToggleGroupExpand]
   );
 
   return (
@@ -255,9 +277,7 @@ export function SearchGroupItem(
           />
         ) : (
           <Button
-            onClick={() => {
-              toggleGroupExpand(group.id);
-            }}
+            onClick={handleToggleGroupExpand}
             type="button"
             variant="groupExpand"
           >

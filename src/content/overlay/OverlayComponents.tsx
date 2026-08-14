@@ -1,5 +1,5 @@
 import { MessageScroller } from "@shadcn/react/message-scroller";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useCallback, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ChatMessage } from "@/background/runtime_types";
@@ -462,21 +462,31 @@ export function OverlayChatInput(
   const [input, setInput] = useState("");
   const keyedChatMessages = createKeyedChatMessages(props.chatMessages);
 
-  const handleSend = (): void => {
+  const handleSend = useCallback((): void => {
     const text = input.trim();
     if (!text || props.isChatting) {
       return;
     }
     props.onSend(text);
     setInput("");
-  };
+  }, [input, props.isChatting, props.onSend]);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>): void => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>): void => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleSend();
+      }
+    },
+    [handleSend]
+  );
+
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>): void => {
+      setInput(e.target.value);
+    },
+    []
+  );
 
   return (
     <div className={overlayClassNames.chat}>
@@ -549,9 +559,7 @@ export function OverlayChatInput(
       <div className={overlayClassNames.chatInputRow}>
         <Textarea
           disabled={props.isChatting}
-          onChange={(e) => {
-            setInput(e.target.value);
-          }}
+          onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           placeholder={t("overlay.chat.placeholder")}
           rows={2}

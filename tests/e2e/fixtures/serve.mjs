@@ -16,9 +16,9 @@ const ROOT = __dirname;
 const PORT = Number(process.env.E2E_FIXTURES_PORT ?? 4173);
 
 const MIME_TYPES = {
+  ".css": "text/css; charset=utf-8",
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
-  ".css": "text/css; charset=utf-8",
   ".json": "application/json; charset=utf-8",
 };
 

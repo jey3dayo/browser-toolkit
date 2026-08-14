@@ -87,11 +87,11 @@ export async function debugLog(
 
   const timestamp = new Date().toISOString();
   const logEntry: DebugLogEntry = {
-    timestamp,
-    level,
     context,
-    message,
     data: redactSensitiveData(data),
+    level,
+    message,
+    timestamp,
   };
 
   // コンソール出力（常に実行）
@@ -228,8 +228,8 @@ export async function downloadDebugLogs(): Promise<void> {
   const filename = `browser-toolkit-debug-${new Date().toISOString().replace(/[:.]/g, "-")}.log`;
 
   await chrome.downloads.download({
-    url: dataUrl,
     filename,
     saveAs: true,
+    url: dataUrl,
   });
 }

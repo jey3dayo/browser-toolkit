@@ -32,7 +32,7 @@ function validateDomainPatternConfigs(
     }
     const pattern = item.pattern.trim();
     if (pattern) {
-      configs.push({ pattern, enableRowFilter: item.enableRowFilter });
+      configs.push({ enableRowFilter: item.enableRowFilter, pattern });
     }
   }
   return Result.succeed(configs);
@@ -52,7 +52,7 @@ function validateLegacyDomainPatterns(
     }
     const pattern = patternRaw.trim();
     if (pattern) {
-      configs.push({ pattern, enableRowFilter: false });
+      configs.push({ enableRowFilter: false, pattern });
     }
   }
   return Result.succeed(configs);

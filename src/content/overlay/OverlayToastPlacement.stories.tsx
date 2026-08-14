@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { expect, userEvent, waitFor } from "storybook/test";
 import { ensureShadowUiBaseStyles } from "@/ui/styles";
@@ -15,9 +15,13 @@ function OverlayToastPlacementStory(): React.JSX.Element {
   const docTheme = document.documentElement.getAttribute("data-theme");
   const resolvedTheme: Theme = isTheme(docTheme) ? docTheme : "auto";
 
+  const handleCopyClick = useCallback(() => {
+    notifications.notify.success("コピーしました");
+  }, [notifications]);
+
   useLayoutEffect(() => {
     const host = hostRef.current;
-    if (!host) {
+    if (host === null) {
       return;
     }
 
@@ -52,9 +56,7 @@ function OverlayToastPlacementStory(): React.JSX.Element {
                     <button
                       className="mbu-overlay-action"
                       data-testid="toast-trigger"
-                      onClick={() => {
-                        notifications.notify.success("コピーしました");
-                      }}
+                      onClick={handleCopyClick}
                       type="button"
                     >
                       Copy
@@ -76,9 +78,9 @@ function OverlayToastPlacementStory(): React.JSX.Element {
 }
 
 const meta = {
-  title: "Content/Overlay/Toast/Placement",
   component: OverlayToastPlacementStory,
   tags: ["test"],
+  title: "Content/Overlay/Toast/Placement",
 } satisfies Meta<typeof OverlayToastPlacementStory>;
 
 export default meta;

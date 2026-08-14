@@ -86,16 +86,18 @@ describe("content overlay (React + Shadow DOM)", () => {
 
     const request: ContentRequest = {
       action: "showActionOverlay",
-      status: "ready",
       mode: "text",
-      source: "page",
-      title: "Test",
       primary: "hello",
+      source: "page",
+      status: "ready",
+      title: "Test",
     };
 
-    for (const listener of listeners) {
-      await dispatchMessage(listener, request, dom.window);
-    }
+    await listeners.reduce<Promise<void>>(
+      (previous, listener) =>
+        previous.then(() => dispatchMessage(listener, request, dom.window)),
+      Promise.resolve()
+    );
 
     expect(
       dom.window.document.querySelectorAll("#browser-toolkit-overlay").length
@@ -104,9 +106,11 @@ describe("content overlay (React + Shadow DOM)", () => {
     vi.resetModules();
     await import("@/content.ts");
 
-    for (const listener of listeners) {
-      await dispatchMessage(listener, request, dom.window);
-    }
+    await listeners.reduce<Promise<void>>(
+      (previous, listener) =>
+        previous.then(() => dispatchMessage(listener, request, dom.window)),
+      Promise.resolve()
+    );
 
     expect(
       dom.window.document.querySelectorAll("#browser-toolkit-overlay").length
@@ -129,11 +133,11 @@ describe("content overlay (React + Shadow DOM)", () => {
       listener,
       {
         action: "showActionOverlay",
-        status: "ready",
         mode: "text",
-        source: "page",
-        title: "Test",
         primary: "hello",
+        source: "page",
+        status: "ready",
+        title: "Test",
       },
       dom.window
     );
@@ -172,9 +176,9 @@ describe("content overlay (React + Shadow DOM)", () => {
       listener,
       {
         action: "showActionOverlay",
-        status: "loading",
         mode: "text",
         source: "page",
+        status: "loading",
         title: "Test",
       },
       dom.window
@@ -201,11 +205,11 @@ describe("content overlay (React + Shadow DOM)", () => {
       listener,
       {
         action: "showActionOverlay",
-        status: "ready",
         mode: "text",
-        source: "page",
-        title: "Test",
         primary: "hello",
+        source: "page",
+        status: "ready",
+        title: "Test",
       },
       dom.window
     );
@@ -244,8 +248,8 @@ describe("content overlay (React + Shadow DOM)", () => {
       listener,
       {
         action: "showSummaryOverlay",
-        status: "ready",
         source: "page",
+        status: "ready",
         summary: "hello",
       },
       dom.window
@@ -274,21 +278,21 @@ describe("content overlay (React + Shadow DOM)", () => {
       listener,
       {
         action: "showActionOverlay",
-        status: "ready",
-        mode: "event",
-        source: "selection",
-        title: "カレンダー登録する（選択範囲）",
-        primary: "タイトル: test",
-        secondary: "選択範囲:\n引用テキスト",
         calendarUrl: "https://calendar.google.com/",
-        ics: "BEGIN:VCALENDAR\nEND:VCALENDAR",
         event: {
-          title: "ゆず コンサート",
-          start: "2026-05-04T16:00:00+09:00",
+          description: "概要テキスト",
           end: "2026-05-04T19:00:00+09:00",
           location: "宮城・セキスイハイムスーパーアリーナ",
-          description: "概要テキスト",
+          start: "2026-05-04T16:00:00+09:00",
+          title: "ゆず コンサート",
         },
+        ics: "BEGIN:VCALENDAR\nEND:VCALENDAR",
+        mode: "event",
+        primary: "タイトル: test",
+        secondary: "選択範囲:\n引用テキスト",
+        source: "selection",
+        status: "ready",
+        title: "カレンダー登録する（選択範囲）",
       },
       dom.window
     );
@@ -368,12 +372,12 @@ describe("content overlay (React + Shadow DOM)", () => {
       listener,
       {
         action: "showActionOverlay",
-        status: "ready",
         mode: "text",
-        source: "selection",
-        title: "要約（選択範囲）",
         primary: "結果テキスト",
         secondary: "選択範囲:\n引用テキスト",
+        source: "selection",
+        status: "ready",
+        title: "要約（選択範囲）",
       },
       dom.window
     );
@@ -426,11 +430,11 @@ describe("content overlay (React + Shadow DOM)", () => {
       listener,
       {
         action: "showActionOverlay",
-        status: "ready",
         mode: "text",
-        source: "page",
-        title: "Test",
         primary: "最初の回答",
+        source: "page",
+        status: "ready",
+        title: "Test",
       },
       dom.window
     );

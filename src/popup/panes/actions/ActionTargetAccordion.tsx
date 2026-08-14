@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Icon } from "@/components/icon";
 import {
   Accordion,
@@ -83,7 +83,7 @@ export function ActionTargetAccordion(props: Props): React.JSX.Element | null {
     ? `${trimmed.slice(0, MAX_PREVIEW_CHARS)}\n\n${t("actions.target.omitted")}`
     : trimmed;
 
-  const handleCopy = async (): Promise<void> => {
+  const handleCopy = useCallback(async (): Promise<void> => {
     const text = previewText.trim();
     if (!text) {
       return;
@@ -103,7 +103,7 @@ export function ActionTargetAccordion(props: Props): React.JSX.Element | null {
     } catch (error) {
       console.error("Failed to copy text:", error);
     }
-  };
+  }, [previewText]);
 
   return (
     <Accordion itemValue="target" title={label}>

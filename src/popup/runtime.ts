@@ -186,11 +186,11 @@ async function wrapChromeApi<T>(
   errorMessage: string
 ): Promise<Result.Result<T, string>> {
   return await Result.try({
+    catch: (error) => toErrorMessage(error, errorMessage),
     try: () =>
       new Promise<T>((resolve, reject) => {
         operation(resolve, reject);
       }),
-    catch: (error) => toErrorMessage(error, errorMessage),
   });
 }
 
@@ -270,36 +270,36 @@ export function createPopupRuntime(): PopupRuntime {
   const storageSyncGet: PopupRuntime["storageSyncGet"] =
     createStorageGetter<SyncStorageData>({
       area: "sync",
-      isExtensionPage,
       errorMessage: "同期ストレージの読み込みに失敗しました",
+      isExtensionPage,
     });
 
   const storageSyncSet: PopupRuntime["storageSyncSet"] =
     createStorageSetter<SyncStorageData>({
       area: "sync",
-      isExtensionPage,
       errorMessage: "同期ストレージの保存に失敗しました",
+      isExtensionPage,
     });
 
   const storageLocalGet: PopupRuntime["storageLocalGet"] =
     createStorageGetter<LocalStorageData>({
       area: "local",
-      isExtensionPage,
       errorMessage: "ローカルストレージの読み込みに失敗しました",
+      isExtensionPage,
     });
 
   const storageLocalSet: PopupRuntime["storageLocalSet"] =
     createStorageSetter<LocalStorageData>({
       area: "local",
-      isExtensionPage,
       errorMessage: "ローカルストレージの保存に失敗しました",
+      isExtensionPage,
     });
 
   const storageLocalRemove: PopupRuntime["storageLocalRemove"] =
     createStorageRemover({
       area: "local",
-      isExtensionPage,
       errorMessage: "ローカルストレージの削除に失敗しました",
+      isExtensionPage,
     });
 
   const getActiveTab: PopupRuntime["getActiveTab"] = async () => {
@@ -356,22 +356,24 @@ export function createPopupRuntime(): PopupRuntime {
     }
 
     return await Result.try({
+      catch: (error) =>
+        toErrorMessage(error, "フォーカス維持の診断に失敗しました"),
       try: async () => {
         const injected = await chrome.scripting.executeScript<
           [],
           FocusOverrideDiagnosticSnapshot
         >({
-          target: { tabId },
-          world: "MAIN",
           func: () => ({
+            hasFocus: document.hasFocus(),
+            hidden: document.hidden,
             markerPresent:
               document.documentElement?.getAttribute(
                 "data-mbu-focus-override-applied"
               ) === "true",
             visibilityState: document.visibilityState,
-            hidden: document.hidden,
-            hasFocus: document.hasFocus(),
           }),
+          target: { tabId },
+          world: "MAIN",
         });
 
         const snapshot = injected.at(0)?.result;
@@ -380,8 +382,6 @@ export function createPopupRuntime(): PopupRuntime {
         }
         return snapshot;
       },
-      catch: (error) =>
-        toErrorMessage(error, "フォーカス維持の診断に失敗しました"),
     });
   };
 
@@ -462,19 +462,19 @@ export function createPopupRuntime(): PopupRuntime {
   };
 
   return {
-    isExtensionPage,
-    storageSyncGet,
-    storageSyncSet,
-    storageLocalGet,
-    storageLocalSet,
-    storageLocalRemove,
+    diagnoseFocusOverride,
     getActiveTab,
     getActiveTabId,
+    isExtensionPage,
     matchesFocusOverridePatterns,
-    diagnoseFocusOverride,
+    openUrl,
     reloadTab,
     sendMessageToBackground,
     sendMessageToTab,
-    openUrl,
+    storageLocalGet,
+    storageLocalRemove,
+    storageLocalSet,
+    storageSyncGet,
+    storageSyncSet,
   };
 }

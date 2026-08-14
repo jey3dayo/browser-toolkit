@@ -9,50 +9,50 @@ import type { CopyTitleLinkFailure } from "@/storage/types";
 describe("coerceCopyTitleLinkFailure", () => {
   it("parses valid CopyTitleLinkFailure data", () => {
     const validData = {
-      occurredAt: Date.now(),
-      tabId: 123,
-      pageTitle: "Test Page",
-      pageUrl: "https://example.com",
-      text: "Test Page\nhttps://example.com",
       error: "Clipboard write failed",
       format: "text",
+      occurredAt: Date.now(),
+      pageTitle: "Test Page",
+      pageUrl: "https://example.com",
+      tabId: 123,
+      text: "Test Page\nhttps://example.com",
     };
 
     const result = coerceCopyTitleLinkFailure(validData);
     expect(Result.isSuccess(result)).toBe(true);
     if (Result.isSuccess(result)) {
       expect(result.value).toEqual({
-        occurredAt: validData.occurredAt,
-        tabId: validData.tabId,
-        pageTitle: validData.pageTitle,
-        pageUrl: validData.pageUrl,
-        text: validData.text,
         error: validData.error,
         format: "text",
+        occurredAt: validData.occurredAt,
+        pageTitle: validData.pageTitle,
+        pageUrl: validData.pageUrl,
+        tabId: validData.tabId,
+        text: validData.text,
       });
     }
   });
 
   it("parses valid data without format field", () => {
     const validData = {
+      error: "Permission denied",
       occurredAt: Date.now(),
-      tabId: 456,
       pageTitle: "Another Page",
       pageUrl: "https://example.org",
+      tabId: 456,
       text: "[Another Page](https://example.org)",
-      error: "Permission denied",
     };
 
     const result = coerceCopyTitleLinkFailure(validData);
     expect(Result.isSuccess(result)).toBe(true);
     if (Result.isSuccess(result)) {
       expect(result.value).toEqual({
+        error: validData.error,
         occurredAt: validData.occurredAt,
-        tabId: validData.tabId,
         pageTitle: validData.pageTitle,
         pageUrl: validData.pageUrl,
+        tabId: validData.tabId,
         text: validData.text,
-        error: validData.error,
       });
       expect(result.value.format).toBeUndefined();
     }
@@ -60,13 +60,13 @@ describe("coerceCopyTitleLinkFailure", () => {
 
   it("parses valid data with invalid format (coerced to null, omitted)", () => {
     const validData = {
-      occurredAt: Date.now(),
-      tabId: 789,
-      pageTitle: "Test",
-      pageUrl: "https://test.com",
-      text: "Test\nhttps://test.com",
       error: "Error",
       format: "invalid-format",
+      occurredAt: Date.now(),
+      pageTitle: "Test",
+      pageUrl: "https://test.com",
+      tabId: 789,
+      text: "Test\nhttps://test.com",
     };
 
     const result = coerceCopyTitleLinkFailure(validData);
@@ -94,11 +94,11 @@ describe("coerceCopyTitleLinkFailure", () => {
 
   it("fails when occurredAt is missing", () => {
     const invalidData = {
-      tabId: 123,
+      error: "Error",
       pageTitle: "Test",
       pageUrl: "https://example.com",
+      tabId: 123,
       text: "Test",
-      error: "Error",
     };
 
     const result = coerceCopyTitleLinkFailure(invalidData);
@@ -110,12 +110,12 @@ describe("coerceCopyTitleLinkFailure", () => {
 
   it("fails when occurredAt is not a number", () => {
     const invalidData = {
+      error: "Error",
       occurredAt: "not-a-number",
-      tabId: 123,
       pageTitle: "Test",
       pageUrl: "https://example.com",
+      tabId: 123,
       text: "Test",
-      error: "Error",
     };
 
     const result = coerceCopyTitleLinkFailure(invalidData);
@@ -127,11 +127,11 @@ describe("coerceCopyTitleLinkFailure", () => {
 
   it("fails when tabId is missing", () => {
     const invalidData = {
+      error: "Error",
       occurredAt: Date.now(),
       pageTitle: "Test",
       pageUrl: "https://example.com",
       text: "Test",
-      error: "Error",
     };
 
     const result = coerceCopyTitleLinkFailure(invalidData);
@@ -143,12 +143,12 @@ describe("coerceCopyTitleLinkFailure", () => {
 
   it("fails when tabId is not a number", () => {
     const invalidData = {
+      error: "Error",
       occurredAt: Date.now(),
-      tabId: "not-a-number",
       pageTitle: "Test",
       pageUrl: "https://example.com",
+      tabId: "not-a-number",
       text: "Test",
-      error: "Error",
     };
 
     const result = coerceCopyTitleLinkFailure(invalidData);
@@ -160,11 +160,11 @@ describe("coerceCopyTitleLinkFailure", () => {
 
   it("fails when pageTitle is missing", () => {
     const invalidData = {
-      occurredAt: Date.now(),
-      tabId: 123,
-      pageUrl: "https://example.com",
-      text: "Test",
       error: "Error",
+      occurredAt: Date.now(),
+      pageUrl: "https://example.com",
+      tabId: 123,
+      text: "Test",
     };
 
     const result = coerceCopyTitleLinkFailure(invalidData);
@@ -176,12 +176,12 @@ describe("coerceCopyTitleLinkFailure", () => {
 
   it("fails when pageTitle is not a string", () => {
     const invalidData = {
+      error: "Error",
       occurredAt: Date.now(),
-      tabId: 123,
       pageTitle: 123,
       pageUrl: "https://example.com",
+      tabId: 123,
       text: "Test",
-      error: "Error",
     };
 
     const result = coerceCopyTitleLinkFailure(invalidData);
@@ -193,11 +193,11 @@ describe("coerceCopyTitleLinkFailure", () => {
 
   it("fails when pageUrl is missing", () => {
     const invalidData = {
-      occurredAt: Date.now(),
-      tabId: 123,
-      pageTitle: "Test",
-      text: "Test",
       error: "Error",
+      occurredAt: Date.now(),
+      pageTitle: "Test",
+      tabId: 123,
+      text: "Test",
     };
 
     const result = coerceCopyTitleLinkFailure(invalidData);
@@ -209,12 +209,12 @@ describe("coerceCopyTitleLinkFailure", () => {
 
   it("fails when pageUrl is not a string", () => {
     const invalidData = {
+      error: "Error",
       occurredAt: Date.now(),
-      tabId: 123,
       pageTitle: "Test",
       pageUrl: 123,
+      tabId: 123,
       text: "Test",
-      error: "Error",
     };
 
     const result = coerceCopyTitleLinkFailure(invalidData);
@@ -226,11 +226,11 @@ describe("coerceCopyTitleLinkFailure", () => {
 
   it("fails when text is missing", () => {
     const invalidData = {
+      error: "Error",
       occurredAt: Date.now(),
-      tabId: 123,
       pageTitle: "Test",
       pageUrl: "https://example.com",
-      error: "Error",
+      tabId: 123,
     };
 
     const result = coerceCopyTitleLinkFailure(invalidData);
@@ -242,12 +242,12 @@ describe("coerceCopyTitleLinkFailure", () => {
 
   it("fails when text is not a string", () => {
     const invalidData = {
+      error: "Error",
       occurredAt: Date.now(),
-      tabId: 123,
       pageTitle: "Test",
       pageUrl: "https://example.com",
+      tabId: 123,
       text: 123,
-      error: "Error",
     };
 
     const result = coerceCopyTitleLinkFailure(invalidData);
@@ -260,9 +260,9 @@ describe("coerceCopyTitleLinkFailure", () => {
   it("fails when error is missing", () => {
     const invalidData = {
       occurredAt: Date.now(),
-      tabId: 123,
       pageTitle: "Test",
       pageUrl: "https://example.com",
+      tabId: 123,
       text: "Test",
     };
 
@@ -275,12 +275,12 @@ describe("coerceCopyTitleLinkFailure", () => {
 
   it("fails when error is not a string", () => {
     const invalidData = {
+      error: 123,
       occurredAt: Date.now(),
-      tabId: 123,
       pageTitle: "Test",
       pageUrl: "https://example.com",
+      tabId: 123,
       text: "Test",
-      error: 123,
     };
 
     const result = coerceCopyTitleLinkFailure(invalidData);
@@ -321,12 +321,12 @@ describe("loadCopyTitleLinkFailure", () => {
   it("returns 'invalid' when stored data format is invalid", async () => {
     const invalidData = {
       lastCopyTitleLinkFailure: {
+        error: "Error",
         occurredAt: "not-a-number",
-        tabId: 123,
         pageTitle: "Test",
         pageUrl: "https://example.com",
+        tabId: 123,
         text: "Test",
-        error: "Error",
       },
     };
     const storageLocalGet = vi.fn(async () => Result.succeed(invalidData));
@@ -342,13 +342,13 @@ describe("loadCopyTitleLinkFailure", () => {
 
   it("returns valid CopyTitleLinkFailure when data is correct", async () => {
     const validData: CopyTitleLinkFailure = {
-      occurredAt: Date.now(),
-      tabId: 123,
-      pageTitle: "Test Page",
-      pageUrl: "https://example.com",
-      text: "Test Page\nhttps://example.com",
       error: "Clipboard write failed",
       format: "text",
+      occurredAt: Date.now(),
+      pageTitle: "Test Page",
+      pageUrl: "https://example.com",
+      tabId: 123,
+      text: "Test Page\nhttps://example.com",
     };
     const storageLocalGet = vi.fn(async () =>
       Result.succeed({ lastCopyTitleLinkFailure: validData })
@@ -365,12 +365,12 @@ describe("loadCopyTitleLinkFailure", () => {
 
   it("returns valid CopyTitleLinkFailure without format field", async () => {
     const validData = {
+      error: "Permission denied",
       occurredAt: Date.now(),
-      tabId: 456,
       pageTitle: "Another Page",
       pageUrl: "https://example.org",
+      tabId: 456,
       text: "[Another Page](https://example.org)",
-      error: "Permission denied",
     };
     const storageLocalGet = vi.fn(async () =>
       Result.succeed({ lastCopyTitleLinkFailure: validData })

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import type { ContextAction, ContextActionKind } from "@/context_actions";
 import { ActionEditorPanel } from "./ActionEditorPanel";
@@ -11,22 +11,22 @@ function ActionEditorPanelStory(
 }
 
 const meta = {
-  title: "Popup/Panes/Actions/ActionEditorPanel",
   component: ActionEditorPanelStory,
   tags: ["test"],
+  title: "Popup/Panes/Actions/ActionEditorPanel",
 } satisfies Meta<typeof ActionEditorPanelStory>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 const mockActions: ContextAction[] = [
-  { id: "action-1", title: "要約", kind: "text", prompt: "要約してください" },
-  { id: "action-2", title: "翻訳", kind: "text", prompt: "翻訳してください" },
+  { id: "action-1", kind: "text", prompt: "要約してください", title: "要約" },
+  { id: "action-2", kind: "text", prompt: "翻訳してください", title: "翻訳" },
   {
     id: "action-3",
-    title: "イベント抽出",
     kind: "event",
     prompt: "イベントを抽出",
+    title: "イベント抽出",
   },
 ];
 
@@ -35,6 +35,49 @@ function ActionEditorPanelInteractive(): React.JSX.Element {
   const [editorTitle, setEditorTitle] = useState<string>("");
   const [editorKind, setEditorKind] = useState<ContextActionKind>("text");
   const [editorPrompt, setEditorPrompt] = useState<string>("");
+
+  const handleClear = useCallback(() => {
+    setEditorTitle("");
+    setEditorPrompt("");
+  }, []);
+
+  const handleDelete = useCallback(() => {
+    setEditorId("");
+    setEditorTitle("");
+    setEditorPrompt("");
+    setEditorKind("text");
+  }, []);
+
+  const handleReset = useCallback(() => {
+    setEditorTitle("");
+    setEditorPrompt("");
+    setEditorKind("text");
+  }, []);
+
+  const handleSave = useCallback(() => {
+    console.log("Save:", {
+      editorId,
+      editorKind,
+      editorPrompt,
+      editorTitle,
+    });
+  }, [editorId, editorTitle, editorKind, editorPrompt]);
+
+  const handleSelectActionId = useCallback((id: string) => {
+    setEditorId(id);
+    if (id) {
+      const action = mockActions.find((a) => a.id === id);
+      if (action) {
+        setEditorTitle(action.title);
+        setEditorPrompt(action.prompt);
+        setEditorKind(action.kind);
+      }
+    } else {
+      setEditorTitle("");
+      setEditorPrompt("");
+      setEditorKind("text");
+    }
+  }, []);
 
   return (
     <ActionEditorPanel
@@ -46,50 +89,16 @@ function ActionEditorPanelInteractive(): React.JSX.Element {
       onChangeKind={setEditorKind}
       onChangePrompt={setEditorPrompt}
       onChangeTitle={setEditorTitle}
-      onClear={() => {
-        setEditorTitle("");
-        setEditorPrompt("");
-      }}
-      onDelete={() => {
-        setEditorId("");
-        setEditorTitle("");
-        setEditorPrompt("");
-        setEditorKind("text");
-      }}
-      onReset={() => {
-        setEditorTitle("");
-        setEditorPrompt("");
-        setEditorKind("text");
-      }}
-      onSave={() => {
-        console.log("Save:", {
-          editorId,
-          editorTitle,
-          editorKind,
-          editorPrompt,
-        });
-      }}
-      onSelectActionId={(id) => {
-        setEditorId(id);
-        if (id) {
-          const action = mockActions.find((a) => a.id === id);
-          if (action) {
-            setEditorTitle(action.title);
-            setEditorPrompt(action.prompt);
-            setEditorKind(action.kind);
-          }
-        } else {
-          setEditorTitle("");
-          setEditorPrompt("");
-          setEditorKind("text");
-        }
-      }}
+      onClear={handleClear}
+      onDelete={handleDelete}
+      onReset={handleReset}
+      onSave={handleSave}
+      onSelectActionId={handleSelectActionId}
     />
   );
 }
 
 export const NewAction = {
-  render: () => <ActionEditorPanelInteractive />,
   play: ({ canvasElement }: { canvasElement: HTMLElement }) => {
     const canvas = within(canvasElement);
 
@@ -105,6 +114,7 @@ export const NewAction = {
     const deleteButton = canvas.getByTestId("action-editor-delete");
     expect(deleteButton).toBeDisabled();
   },
+  render: () => <ActionEditorPanelInteractive />,
 } as unknown as Story;
 
 export const EditExistingAction: Story = {
@@ -114,12 +124,6 @@ export const EditExistingAction: Story = {
     editorKind: "text",
     editorPrompt: "要約してください",
     editorTitle: "要約",
-    onClear: () => {
-      // noop for story
-    },
-    onDelete: () => {
-      // noop for story
-    },
     onChangeKind: () => {
       // noop for story
     },
@@ -127,6 +131,12 @@ export const EditExistingAction: Story = {
       // noop for story
     },
     onChangeTitle: () => {
+      // noop for story
+    },
+    onClear: () => {
+      // noop for story
+    },
+    onDelete: () => {
       // noop for story
     },
     onReset: () => {
@@ -162,12 +172,6 @@ export const TextKind: Story = {
     editorKind: "text",
     editorPrompt: "テキストプロンプト",
     editorTitle: "テキストアクション",
-    onClear: () => {
-      // noop for story
-    },
-    onDelete: () => {
-      // noop for story
-    },
     onChangeKind: () => {
       // noop for story
     },
@@ -175,6 +179,12 @@ export const TextKind: Story = {
       // noop for story
     },
     onChangeTitle: () => {
+      // noop for story
+    },
+    onClear: () => {
+      // noop for story
+    },
+    onDelete: () => {
       // noop for story
     },
     onReset: () => {
@@ -210,12 +220,6 @@ export const EventKind: Story = {
     editorKind: "event",
     editorPrompt: "イベントプロンプト",
     editorTitle: "イベントアクション",
-    onClear: () => {
-      // noop for story
-    },
-    onDelete: () => {
-      // noop for story
-    },
     onChangeKind: () => {
       // noop for story
     },
@@ -223,6 +227,12 @@ export const EventKind: Story = {
       // noop for story
     },
     onChangeTitle: () => {
+      // noop for story
+    },
+    onClear: () => {
+      // noop for story
+    },
+    onDelete: () => {
       // noop for story
     },
     onReset: () => {
@@ -252,7 +262,6 @@ export const EventKind: Story = {
 };
 
 export const FormInteraction = {
-  render: () => <ActionEditorPanelInteractive />,
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     const canvas = within(canvasElement);
 
@@ -270,10 +279,10 @@ export const FormInteraction = {
       );
     });
   },
+  render: () => <ActionEditorPanelInteractive />,
 } as unknown as Story;
 
 export const SelectAction = {
-  render: () => <ActionEditorPanelInteractive />,
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     const canvas = within(canvasElement);
     const doc = canvasElement.ownerDocument;
@@ -294,10 +303,10 @@ export const SelectAction = {
       expect((titleInput as HTMLInputElement).value).toBe("要約");
     });
   },
+  render: () => <ActionEditorPanelInteractive />,
 } as unknown as Story;
 
 export const ClearButton = {
-  render: () => <ActionEditorPanelInteractive />,
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     const canvas = within(canvasElement);
 
@@ -315,4 +324,5 @@ export const ClearButton = {
       expect((promptTextarea as HTMLTextAreaElement).value).toBe("");
     });
   },
+  render: () => <ActionEditorPanelInteractive />,
 } as unknown as Story;

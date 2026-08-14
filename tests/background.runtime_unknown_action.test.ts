@@ -24,7 +24,7 @@ describe("background: runtime unknown action handling", () => {
 
     registerRuntimeMessageHandlers();
     expect(listeners).toHaveLength(1);
-    const listener = listeners[0];
+    const [listener] = listeners;
 
     const sendResponse = vi.fn();
     const returnValue = listener(
@@ -46,7 +46,7 @@ describe("background: runtime unknown action handling", () => {
     const { runtimeHandlers } = await import("@/background/runtime_handlers");
 
     registerRuntimeMessageHandlers();
-    const listener = listeners[0];
+    const [listener] = listeners;
 
     const knownAction = Object.keys(
       runtimeHandlers

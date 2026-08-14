@@ -52,9 +52,9 @@ const componentsCss = [
 
 function resolveStyleHref(path: string): string {
   try {
-    const runtime = (
-      chrome as unknown as { runtime?: { getURL?: (input: string) => string } }
-    ).runtime;
+    const { runtime } = chrome as unknown as {
+      runtime?: { getURL?: (input: string) => string };
+    };
     if (runtime?.getURL) {
       return runtime.getURL(path);
     }
@@ -99,7 +99,7 @@ function createConstructableSheets(): ConstructableSheets | null {
     semantic.replaceSync(semanticCss);
     const components = new CSSStyleSheet();
     components.replaceSync(componentsCss);
-    return { primitives, semantic, components };
+    return { components, primitives, semantic };
   } catch {
     return null;
   }
@@ -145,25 +145,25 @@ function ensureShadowStyleText(
 }
 
 const FALLBACK_MBU_TOKENS: Record<string, string> = {
-  "--mbu-bg": "var(--color-bg, #0f1724)",
-  "--mbu-surface": "var(--color-surface, #1b2334)",
-  "--mbu-surface-2": "var(--color-surface-2, #232d42)",
-  "--mbu-border": "var(--color-border-ui, rgba(255, 255, 255, 0.12))",
-  "--mbu-text": "var(--color-text, #f6f7fb)",
-  "--mbu-text-muted": "var(--color-text-muted, #c8d0e5)",
   "--mbu-accent": "var(--color-primary, #3ecf8e)",
+  "--mbu-bg": "var(--color-bg, #0f1724)",
+  "--mbu-border": "var(--color-border-ui, rgba(255, 255, 255, 0.12))",
   "--mbu-danger": "var(--color-danger, #e57373)",
-  "--mbu-radius": "var(--radius-lg, 14px)",
-  "--mbu-shadow": "var(--shadow-elevation, 0 12px 40px rgba(0, 0, 0, 0.35))",
   "--mbu-focus-ring": "var(--focus-ring, 2px solid rgba(123, 220, 247, 0.55))",
   "--mbu-focus-ring-offset": "var(--focus-ring-offset, 2px)",
+  "--mbu-radius": "var(--radius-lg, 14px)",
+  "--mbu-shadow": "var(--shadow-elevation, 0 12px 40px rgba(0, 0, 0, 0.35))",
+  "--mbu-surface": "var(--color-surface, #1b2334)",
+  "--mbu-surface-2": "var(--color-surface-2, #232d42)",
+  "--mbu-text": "var(--color-text, #f6f7fb)",
+  "--mbu-text-muted": "var(--color-text-muted, #c8d0e5)",
   "--mbu-toast-screen-inset": "var(--toast-screen-inset, 12px 12px auto auto)",
   "--mbu-toast-surface-inset":
     "var(--toast-surface-inset, 12px 12px auto auto)",
 };
 
 function ensureShadowFallbackTokens(shadowRoot: ShadowRoot): void {
-  const host = shadowRoot.host;
+  const { host } = shadowRoot;
   if (!(host instanceof HTMLElement)) {
     return;
   }
@@ -197,7 +197,7 @@ export function ensureShadowUiBaseStyles(shadowRoot: ShadowRoot): void {
     if (typeof getComputedStyle !== "function") {
       return true;
     }
-    const host = shadowRoot.host;
+    const { host } = shadowRoot;
     if (!(host instanceof HTMLElement)) {
       return true;
     }

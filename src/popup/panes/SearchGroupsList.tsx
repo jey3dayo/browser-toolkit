@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { SortableList } from "@/components/SortableList";
 import { EmptyMessage } from "@/components/shared/Typography";
 import { t } from "@/i18n";
@@ -48,19 +49,21 @@ export function SearchGroupsList(
     handleReorder,
   } = props;
 
+  const handleSortableReorder = useCallback(
+    (reordered: SearchEngineGroup[]) => {
+      handleReorder(reordered).catch(() => {
+        // no-op
+      });
+    },
+    [handleReorder]
+  );
+
   if (groups.length === 0) {
     return <EmptyMessage>{t("searchGroups.empty")}</EmptyMessage>;
   }
 
   return (
-    <SortableList
-      items={groups}
-      onReorder={(reordered) => {
-        handleReorder(reordered).catch(() => {
-          // no-op
-        });
-      }}
-    >
+    <SortableList items={groups} onReorder={handleSortableReorder}>
       {(group) => (
         <SearchGroupItem
           cancelEditingGroupName={cancelEditingGroupName}

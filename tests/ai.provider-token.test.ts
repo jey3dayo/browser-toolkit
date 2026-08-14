@@ -14,8 +14,8 @@ describe("ai/provider-token", () => {
     expect(
       getAiProviderToken(
         {
-          openaiApiToken: "sk-openai",
           anthropicApiToken: "sk-anthropic",
+          openaiApiToken: "sk-openai",
           zaiApiToken: "sk-zai",
         },
         "anthropic"

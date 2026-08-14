@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { CheckboxInline } from "@/components/shared/Checkbox";
 import { Field } from "@/components/shared/Field";
 import { ActionRow } from "@/components/shared/Layout";
@@ -13,24 +14,30 @@ type Props = {
 };
 
 export function CalendarTargetsField(props: Props): React.JSX.Element {
+  const { onToggle } = props;
+
+  const handleToggleGoogle = useCallback(() => {
+    onToggle("google");
+  }, [onToggle]);
+
+  const handleToggleIcs = useCallback(() => {
+    onToggle("ics");
+  }, [onToggle]);
+
   return (
     <Field label={t("calendarPane.target")}>
       <ActionRow>
         <CheckboxInline
           checked={props.hasGoogle}
           id={props.googleId}
-          onChange={() => {
-            props.onToggle("google");
-          }}
+          onChange={handleToggleGoogle}
         >
           {t("calendarPane.googleCalendar")}
         </CheckboxInline>
         <CheckboxInline
           checked={props.hasIcs}
           id={props.icsId}
-          onChange={() => {
-            props.onToggle("ics");
-          }}
+          onChange={handleToggleIcs}
         >
           iCal (.ics)
         </CheckboxInline>

@@ -3,16 +3,15 @@
  */
 
 export function extractApiErrorMessage(json: unknown): string | null {
-  if (
-    typeof json === "object" &&
-    json !== null &&
-    "error" in json &&
-    typeof (json as { error?: unknown }).error === "object" &&
-    (json as { error: { message?: unknown } }).error !== null &&
-    typeof (json as { error: { message?: unknown } }).error.message === "string"
-  ) {
-    return (json as { error: { message: string } }).error.message;
+  if (typeof json !== "object" || json === null || !("error" in json)) {
+    return null;
   }
 
-  return null;
+  const { error } = json as { error?: unknown };
+  if (typeof error !== "object" || error === null) {
+    return null;
+  }
+
+  const { message } = error as { message?: unknown };
+  return typeof message === "string" ? message : null;
 }

@@ -20,9 +20,7 @@ export function ActionOutputPanel(props: Props): React.JSX.Element {
           <Button
             data-testid="copy-output"
             disabled={!props.canCopy}
-            onClick={() => {
-              props.onCopy();
-            }}
+            onClick={props.onCopy}
             size="small"
             type="button"
             variant="ghost"

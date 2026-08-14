@@ -47,8 +47,8 @@ describe("background: context menu", () => {
     ).toBe(true);
     expect(created).toContainEqual(
       expect.objectContaining({
-        id: "mbu-root",
         contexts: ["page", "selection", "editable", "link"],
+        id: "mbu-root",
       })
     );
   });
@@ -116,10 +116,10 @@ describe("background: context menu", () => {
     );
     expect(created).toContainEqual(
       expect.objectContaining({
+        contexts: ["page", "selection", "link"],
         id: "mbu-gemini-research",
         parentId: "mbu-root",
         title: "Geminiで要約",
-        contexts: ["page", "selection", "link"],
       })
     );
   });

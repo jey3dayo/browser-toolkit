@@ -32,8 +32,8 @@ function isMissingContentScriptError(error: unknown): boolean {
 
 async function injectContentScript(tabId: number): Promise<void> {
   await chrome.scripting.executeScript({
-    target: { tabId },
     files: ["dist/content.js"],
+    target: { tabId },
   });
 }
 
@@ -45,13 +45,13 @@ export async function handleQrCodeContextMenuClick(
     await debugLog(
       "handleQrCodeContextMenuClick",
       "no url available",
-      { tabId: params.tabId, pageUrl: params.pageUrl },
+      { pageUrl: params.pageUrl, tabId: params.tabId },
       "error"
     );
     await showErrorNotification({
-      title: t("background.qrCode.unavailableTitle"),
       errorMessage: t("background.qrCode.missingUrl"),
       hint: t("background.qrCode.reloadAndRetry"),
+      title: t("background.qrCode.unavailableTitle"),
     });
     return;
   }
@@ -65,7 +65,7 @@ export async function handleQrCodeContextMenuClick(
       await debugLog(
         "handleQrCodeContextMenuClick",
         "content script missing, reinjecting and retrying",
-        { tabId: params.tabId, url, error: formatErrorLog("", {}, error) },
+        { error: formatErrorLog("", {}, error), tabId: params.tabId, url },
         "info"
       );
 
@@ -78,19 +78,19 @@ export async function handleQrCodeContextMenuClick(
           "handleQrCodeContextMenuClick",
           "retry after content script injection failed",
           {
+            error: formatErrorLog("", {}, retryError),
             tabId: params.tabId,
             url,
-            error: formatErrorLog("", {}, retryError),
           },
           "error"
         );
         await showErrorNotification({
-          title: t("background.qrCode.unavailableTitle"),
           errorMessage: toErrorMessage(
             retryError,
             t("background.qrCode.pageUnavailable")
           ),
           hint: t("background.qrCode.reloadAndRetry"),
+          title: t("background.qrCode.unavailableTitle"),
         });
         return;
       }
@@ -99,15 +99,15 @@ export async function handleQrCodeContextMenuClick(
     debugLog(
       "handleQrCodeContextMenuClick",
       "sendMessageToTab failed",
-      { tabId: params.tabId, error: formatErrorLog("", {}, error) },
+      { error: formatErrorLog("", {}, error), tabId: params.tabId },
       "error"
     ).catch(() => {
       // no-op
     });
     await showErrorNotification({
-      title: t("background.qrCode.unavailableTitle"),
       errorMessage: toErrorMessage(error, t("background.qrCode.displayFailed")),
       hint: t("background.qrCode.reloadAndRetry"),
+      title: t("background.qrCode.unavailableTitle"),
     });
   }
 }

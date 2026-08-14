@@ -4,38 +4,38 @@ import { copyStyles, cssRawPlugin, watchStyles } from "./build-shared.mjs";
 const isWatch = process.argv.includes("--watch");
 
 const buildOptions = {
+  alias: {
+    "@": "./src",
+  },
+  bundle: true,
+  charset: "utf8",
+  define: {
+    "process.env.GA4_API_SECRET": JSON.stringify(
+      process.env.GA4_API_SECRET || ""
+    ),
+    "process.env.GA4_MEASUREMENT_ID": JSON.stringify(
+      process.env.GA4_MEASUREMENT_ID || ""
+    ),
+    "process.env.NODE_ENV": '"production"',
+  },
   entryPoints: [
     "src/background.ts",
     "src/content.ts",
     "src/popup.ts",
     "src/focus-override.ts",
   ],
-  bundle: true,
   format: "iife",
-  platform: "browser",
-  target: "es2020",
   jsx: "automatic",
-  charset: "utf8",
-  alias: {
-    "@": "./src",
-  },
-  define: {
-    "process.env.NODE_ENV": '"production"',
-    "process.env.GA4_MEASUREMENT_ID": JSON.stringify(
-      process.env.GA4_MEASUREMENT_ID || ""
-    ),
-    "process.env.GA4_API_SECRET": JSON.stringify(
-      process.env.GA4_API_SECRET || ""
-    ),
-  },
   loader: {
-    ".toml": "text",
     ".css": "css",
+    ".toml": "text",
   },
-  outdir: "dist",
-  sourcemap: isWatch,
   minify: !isWatch,
+  outdir: "dist",
+  platform: "browser",
   plugins: [cssRawPlugin],
+  sourcemap: isWatch,
+  target: "es2020",
 };
 
 try {

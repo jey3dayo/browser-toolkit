@@ -20,17 +20,17 @@ function createChromeStub(): unknown {
       ),
     },
     storage: {
-      sync: {
-        get: vi.fn((_keys: string[], callback: (items: unknown) => void) =>
-          callback({})
-        ),
-      },
       local: {
         get: vi.fn((_keys: string[], callback: (items: unknown) => void) =>
           callback({})
         ),
         set: vi.fn((_items: Record<string, unknown>, callback: () => void) =>
           callback()
+        ),
+      },
+      sync: {
+        get: vi.fn((_keys: string[], callback: (items: unknown) => void) =>
+          callback({})
         ),
       },
     },
@@ -53,7 +53,7 @@ describe("patternToRegex (src/content.ts)", () => {
       throw new Error("patternToRegex was not exposed via __MBU_TEST_HOOKS__");
     }
 
-    patternToRegex = hooks.patternToRegex;
+    ({ patternToRegex } = hooks);
   });
 
   afterAll(() => {

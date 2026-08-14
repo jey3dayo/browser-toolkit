@@ -40,7 +40,8 @@ export function useSearchEnginesController(
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+
+    const loadEngines = async (): Promise<void> => {
       const data = await props.runtime.storageSyncGet(["searchEngines"]);
       if (cancelled) {
         return;
@@ -56,16 +57,23 @@ export function useSearchEnginesController(
       const enginesResult =
         existing.length > 0 ? existing : DEFAULT_SEARCH_ENGINES;
       setEngines(enginesResult);
-    })().catch((error) => {
-      debugLog(
-        "SearchEnginesPane.useEffect[props.runtime]",
-        "failed",
-        { error: formatErrorLog("", {}, error) },
-        "error"
-      ).catch(() => {
+    };
+
+    const reportLoadFailure = async (error: unknown): Promise<void> => {
+      try {
+        await debugLog(
+          "SearchEnginesPane.useEffect[props.runtime]",
+          "failed",
+          { error: formatErrorLog("", {}, error) },
+          "error"
+        );
+      } catch {
         // no-op
-      });
-    });
+      }
+    };
+
+    loadEngines().catch(reportLoadFailure);
+
     return () => {
       cancelled = true;
     };
@@ -91,30 +99,30 @@ export function useSearchEnginesController(
       applyNext: () => {
         setEngines(next);
       },
-      rollback: () => {
-        setEngines(engines);
-      },
-      persist: () => saveEngines(next),
       onFailure: () => {
         props.notify.error(t("searchEngines.errors.saveFailed"));
+      },
+      persist: () => saveEngines(next),
+      rollback: () => {
+        setEngines(engines);
       },
     });
   };
 
   const addEngine = async (): Promise<void> => {
     const name = requireTrimmedString({
-      value: nameInput,
       emptyMessage: t("searchEngines.errors.nameRequired"),
       notify: props.notify,
+      value: nameInput,
     });
     if (!name) {
       return;
     }
 
     const urlTemplate = requireTrimmedString({
-      value: urlInput,
       emptyMessage: t("searchEngines.errors.urlTemplateRequired"),
       notify: props.notify,
+      value: urlInput,
     });
     if (!urlTemplate) {
       return;
@@ -138,10 +146,10 @@ export function useSearchEnginesController(
     }
 
     const newEngine: SearchEngine = {
+      enabled: true,
       id: `custom:${Date.now()}`,
       name,
       urlTemplate,
-      enabled: true,
       ...(encodingInput === "shift_jis"
         ? { encoding: "shift_jis" as const }
         : {}),
@@ -155,15 +163,15 @@ export function useSearchEnginesController(
         setUrlInput("");
         setEncodingInput("utf-8");
       },
-      rollback: () => {
-        setEngines(engines);
+      onFailure: () => {
+        props.notify.error(t("searchEngines.errors.addFailed"));
       },
-      persist: () => saveEngines(next),
       onSuccess: () => {
         props.notify.success(t("searchEngines.success.added"));
       },
-      onFailure: () => {
-        props.notify.error(t("searchEngines.errors.addFailed"));
+      persist: () => saveEngines(next),
+      rollback: () => {
+        setEngines(engines);
       },
     });
   };
@@ -174,15 +182,15 @@ export function useSearchEnginesController(
       applyNext: () => {
         setEngines(next);
       },
-      rollback: () => {
-        setEngines(engines);
+      onFailure: () => {
+        props.notify.error(t("searchEngines.errors.deleteFailed"));
       },
-      persist: () => saveEngines(next),
       onSuccess: () => {
         props.notify.success(t("searchEngines.success.deleted"));
       },
-      onFailure: () => {
-        props.notify.error(t("searchEngines.errors.deleteFailed"));
+      persist: () => saveEngines(next),
+      rollback: () => {
+        setEngines(engines);
       },
     });
   };
@@ -192,15 +200,15 @@ export function useSearchEnginesController(
       applyNext: () => {
         setEngines(DEFAULT_SEARCH_ENGINES);
       },
-      rollback: () => {
-        setEngines(engines);
+      onFailure: () => {
+        props.notify.error(t("searchEngines.errors.resetFailed"));
       },
-      persist: () => saveEngines(DEFAULT_SEARCH_ENGINES),
       onSuccess: () => {
         props.notify.success(t("searchEngines.success.reset"));
       },
-      onFailure: () => {
-        props.notify.error(t("searchEngines.errors.resetFailed"));
+      persist: () => saveEngines(DEFAULT_SEARCH_ENGINES),
+      rollback: () => {
+        setEngines(engines);
       },
     });
   };
@@ -212,31 +220,31 @@ export function useSearchEnginesController(
       applyNext: () => {
         setEngines(reorderedEngines);
       },
-      rollback: () => {
-        setEngines(engines);
+      onFailure: () => {
+        props.notify.error(t("searchEngines.errors.reorderFailed"));
       },
-      persist: () => saveEngines(reorderedEngines),
       onSuccess: () => {
         props.notify.success(t("searchEngines.success.reordered"));
       },
-      onFailure: () => {
-        props.notify.error(t("searchEngines.errors.reorderFailed"));
+      persist: () => saveEngines(reorderedEngines),
+      rollback: () => {
+        setEngines(engines);
       },
     });
   };
 
   return {
-    engines,
-    nameInput,
-    setNameInput,
-    urlInput,
-    setUrlInput,
-    encodingInput,
-    setEncodingInput,
-    toggleEngineEnabled,
     addEngine,
+    encodingInput,
+    engines,
+    handleReorder,
+    nameInput,
     removeEngine,
     resetToDefaults,
-    handleReorder,
+    setEncodingInput,
+    setNameInput,
+    setUrlInput,
+    toggleEngineEnabled,
+    urlInput,
   };
 }

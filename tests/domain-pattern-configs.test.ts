@@ -10,15 +10,15 @@ describe("domain-pattern-configs", () => {
     it("normalizes current domainPatternConfigs and trims empty patterns", () => {
       const result = normalizeDomainPatternConfigs({
         domainPatternConfigs: [
-          { pattern: " example.com/* ", enableRowFilter: true },
-          { pattern: "   ", enableRowFilter: false },
+          { enableRowFilter: true, pattern: " example.com/* " },
+          { enableRowFilter: false, pattern: "   " },
         ],
       });
 
       expect(Result.isSuccess(result)).toBe(true);
       if (Result.isSuccess(result)) {
         expect(result.value).toEqual([
-          { pattern: "example.com/*", enableRowFilter: true },
+          { enableRowFilter: true, pattern: "example.com/*" },
         ]);
       }
     });
@@ -31,7 +31,7 @@ describe("domain-pattern-configs", () => {
       expect(Result.isSuccess(result)).toBe(true);
       if (Result.isSuccess(result)) {
         expect(result.value).toEqual([
-          { pattern: "legacy.example/*", enableRowFilter: false },
+          { enableRowFilter: false, pattern: "legacy.example/*" },
         ]);
       }
     });
@@ -51,7 +51,7 @@ describe("domain-pattern-configs", () => {
   describe("getCurrentPatternRowFilterSetting", () => {
     it("matches URL patterns regardless of protocol", () => {
       const result = getCurrentPatternRowFilterSetting(
-        [{ pattern: "example.com/path*", enableRowFilter: true }],
+        [{ enableRowFilter: true, pattern: "example.com/path*" }],
         "https://example.com/path/to/page"
       );
 

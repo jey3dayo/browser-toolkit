@@ -8,11 +8,11 @@ const CONTEXT_SELECTION_TEXT =
   "来週の定例ミーティングは2/12(木)10:00-11:00、Google Meetで実施します。";
 const CONTEXT_SELECTION_SECONDARY = `選択範囲:\n${CONTEXT_SELECTION_TEXT}`;
 const CALENDAR_EVENT: ExtractedEvent = {
-  title: "プロジェクト定例ミーティング",
-  start: "2026-02-12T10:00:00+09:00",
+  description: "進捗共有と課題確認",
   end: "2026-02-12T11:00:00+09:00",
   location: "Google Meet",
-  description: "進捗共有と課題確認",
+  start: "2026-02-12T10:00:00+09:00",
+  title: "プロジェクト定例ミーティング",
 };
 const CALENDAR_PRIMARY_TEXT = [
   `タイトル: ${CALENDAR_EVENT.title}`,
@@ -33,24 +33,24 @@ const CALENDAR_ICS = [
 ].join("\n");
 
 const meta = {
-  title: "Content/Overlay/App/カレンダー",
-  component: OverlayAppStory,
-  tags: ["test"],
   argTypes: {
-    status: { control: false },
-    mode: { control: false },
-    source: { control: false },
-    title: { control: false },
-    event: { control: false },
     calendarUrl: { control: false },
+    event: { control: false },
     ics: { control: false },
+    mode: { control: false },
     primary: {
       control: "text",
     },
     secondary: {
       control: "text",
     },
+    source: { control: false },
+    status: { control: false },
+    title: { control: false },
   },
+  component: OverlayAppStory,
+  tags: ["test"],
+  title: "Content/Overlay/App/カレンダー",
 } satisfies Meta<typeof OverlayAppStory>;
 
 export default meta;
@@ -58,15 +58,15 @@ type Story = StoryObj<typeof meta>;
 
 export const CalendarReady: Story = {
   args: {
-    status: "ready",
+    calendarUrl: CALENDAR_URL,
+    event: CALENDAR_EVENT,
+    ics: CALENDAR_ICS,
     mode: "event",
-    source: "selection",
-    title: "カレンダー登録",
     primary: CALENDAR_PRIMARY_TEXT,
     secondary: CONTEXT_SELECTION_SECONDARY,
-    event: CALENDAR_EVENT,
-    calendarUrl: CALENDAR_URL,
-    ics: CALENDAR_ICS,
+    source: "selection",
+    status: "ready",
+    title: "カレンダー登録",
   },
   play: async ({ canvasElement }) => {
     await waitFor(() => {

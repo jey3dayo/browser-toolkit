@@ -4,37 +4,37 @@ import { computeEventDateRange } from "@/utils/event_date_range";
 describe("src/utils/event_date_range.ts", () => {
   it("computes an all-day range with default +1 day end when no end is given", () => {
     const range = computeEventDateRange({
-      start: "2025-12-16",
       allDay: true,
+      start: "2025-12-16",
     });
     expect(range).toEqual({
+      endYyyyMmDdExclusive: "20251217",
       kind: "allDay",
       startYyyyMmDd: "20251216",
-      endYyyyMmDdExclusive: "20251217",
     });
   });
 
   it("corrects an all-day end that is equal to or before start", () => {
     const equalEnd = computeEventDateRange({
-      start: "2025-12-16",
-      end: "2025-12-16",
       allDay: true,
+      end: "2025-12-16",
+      start: "2025-12-16",
     });
     expect(equalEnd).toEqual({
+      endYyyyMmDdExclusive: "20251217",
       kind: "allDay",
       startYyyyMmDd: "20251216",
-      endYyyyMmDdExclusive: "20251217",
     });
 
     const earlierEnd = computeEventDateRange({
-      start: "2025-12-16",
-      end: "2025-12-10",
       allDay: true,
+      end: "2025-12-10",
+      start: "2025-12-16",
     });
     expect(earlierEnd).toEqual({
+      endYyyyMmDdExclusive: "20251217",
       kind: "allDay",
       startYyyyMmDd: "20251216",
-      endYyyyMmDdExclusive: "20251217",
     });
   });
 
@@ -45,26 +45,26 @@ describe("src/utils/event_date_range.ts", () => {
 
   it("passes through a valid multi-day all-day end unchanged", () => {
     const range = computeEventDateRange({
-      start: "2025-12-16",
-      end: "2025-12-20",
       allDay: true,
+      end: "2025-12-20",
+      start: "2025-12-16",
     });
     expect(range).toEqual({
+      endYyyyMmDdExclusive: "20251220",
       kind: "allDay",
       startYyyyMmDd: "20251216",
-      endYyyyMmDdExclusive: "20251220",
     });
   });
 
   it("computes a datetime range with UTC conversion for an explicit end", () => {
     const range = computeEventDateRange({
-      start: "2025-12-16T10:00:00+09:00",
       end: "2025-12-16T12:00:00+09:00",
+      start: "2025-12-16T10:00:00+09:00",
     });
     expect(range).toEqual({
+      endUtc: "20251216T030000Z",
       kind: "dateTime",
       startUtc: "20251216T010000Z",
-      endUtc: "20251216T030000Z",
     });
   });
 
@@ -73,21 +73,21 @@ describe("src/utils/event_date_range.ts", () => {
       start: "2025-12-16T10:00:00+09:00",
     });
     expect(range).toEqual({
+      endUtc: "20251216T020000Z",
       kind: "dateTime",
       startUtc: "20251216T010000Z",
-      endUtc: "20251216T020000Z",
     });
   });
 
   it("corrects a datetime end that is at or before start to +1 hour", () => {
     const range = computeEventDateRange({
-      start: "2025-12-16T10:00:00+09:00",
       end: "2025-12-16T09:00:00+09:00",
+      start: "2025-12-16T10:00:00+09:00",
     });
     expect(range).toEqual({
+      endUtc: "20251216T020000Z",
       kind: "dateTime",
       startUtc: "20251216T010000Z",
-      endUtc: "20251216T020000Z",
     });
   });
 

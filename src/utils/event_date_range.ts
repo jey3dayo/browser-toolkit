@@ -45,9 +45,9 @@ function computeAllDayDateRange(params: {
   }
 
   return {
+    endYyyyMmDdExclusive: endDate,
     kind: "allDay",
     startYyyyMmDd: startDate,
-    endYyyyMmDdExclusive: endDate,
   };
 }
 
@@ -71,7 +71,7 @@ function computeDateTimeRange(params: {
     return null;
   }
 
-  return { kind: "dateTime", startUtc, endUtc };
+  return { endUtc, kind: "dateTime", startUtc };
 }
 
 export function computeEventDateRange(params: {
@@ -91,13 +91,13 @@ export function computeEventDateRange(params: {
   const shouldTreatAsAllDay = params.allDay === true || Boolean(startDateOnly);
   if (shouldTreatAsAllDay) {
     return computeAllDayDateRange({
-      startRaw,
+      allDay: params.allDay === true,
+      endDateOnly,
       endRaw,
       startDateOnly,
-      endDateOnly,
-      allDay: params.allDay === true,
+      startRaw,
     });
   }
 
-  return computeDateTimeRange({ startRaw, endRaw });
+  return computeDateTimeRange({ endRaw, startRaw });
 }

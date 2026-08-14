@@ -11,15 +11,15 @@ function ActionsPaneStory(props: ActionsPaneProps): React.JSX.Element {
 }
 
 const meta = {
-  title: "Popup/Panes/Actions",
+  argTypes: {
+    focusTokenInput: { control: false },
+    navigateToPane: { control: false },
+    notify: { control: false },
+    runtime: { control: false },
+  },
   component: ActionsPaneStory,
   tags: ["test"],
-  argTypes: {
-    runtime: { control: false },
-    notify: { control: false },
-    navigateToPane: { control: false },
-    focusTokenInput: { control: false },
-  },
+  title: "Popup/Panes/Actions",
 } satisfies Meta<typeof ActionsPaneStory>;
 
 export default meta;
@@ -27,24 +27,24 @@ type Story = StoryObj<typeof meta>;
 
 export const Basic: Story = {
   args: {
+    focusTokenInput: fn(),
+    navigateToPane: fn(),
+    notify: { error: fn(), info: fn(), success: fn() },
     runtime: createStoryPopupRuntime({
-      local: { openaiApiToken: "sk-storybook" },
       background: {
         runContextAction: (message: RunContextActionRequest) => {
           if (message.actionId === "builtin:summarize") {
             return Result.succeed({
               resultType: "text" as const,
-              text: "要約結果（storybook）",
               source: "selection" as const,
+              text: "要約結果（storybook）",
             });
           }
           return Result.fail("storybook: unknown action");
         },
       },
+      local: { openaiApiToken: "sk-storybook" },
     }),
-    notify: { info: fn(), success: fn(), error: fn() },
-    navigateToPane: fn(),
-    focusTokenInput: fn(),
   },
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);

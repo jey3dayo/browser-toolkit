@@ -25,9 +25,9 @@ describe("themeCycle", () => {
   it("defines theme translation resources", () => {
     expect(resources.ja.translation.theme).toEqual({
       auto: "自動",
-      light: "ライト",
-      dark: "ダーク",
       buttonLabel: "テーマ: {{current}}（クリックで{{next}}へ）",
+      dark: "ダーク",
+      light: "ライト",
     });
   });
 });

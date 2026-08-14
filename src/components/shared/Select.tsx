@@ -47,9 +47,7 @@ export function Select({
   return (
     <BaseSelect.Root
       items={options}
-      onValueChange={(nextValue) => {
-        onValueChange(nextValue);
-      }}
+      onValueChange={onValueChange}
       value={value}
       {...rootProps}
     >

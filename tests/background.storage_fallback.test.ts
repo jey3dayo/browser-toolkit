@@ -11,7 +11,11 @@ function readStorage(
 ): Record<string, unknown> {
   const result: Record<string, unknown> = {};
 
-  if (keys == null || (Array.isArray(keys) && keys.length === 0)) {
+  if (
+    keys === null ||
+    keys === undefined ||
+    (Array.isArray(keys) && keys.length === 0)
+  ) {
     for (const [key, value] of storage.entries()) {
       result[key] = value;
     }
@@ -52,14 +56,30 @@ function removeStorageKeys(
 
 function setupChromeMocks() {
   global.chrome = {
-    runtime: {
-      lastError: undefined,
-      getURL: vi.fn((path: string) => path),
-    },
     notifications: {
       create: vi.fn().mockResolvedValue("mock-notification-id"),
     },
+    runtime: {
+      getURL: vi.fn((path: string) => path),
+      lastError: undefined,
+    },
     storage: {
+      local: {
+        get: vi.fn((keys, callback) => {
+          chrome.runtime.lastError = undefined;
+          callback(readStorage(localStorage, keys));
+        }),
+        remove: vi.fn((keys, callback) => {
+          chrome.runtime.lastError = undefined;
+          removeStorageKeys(localStorage, keys);
+          callback?.();
+        }),
+        set: vi.fn((items, callback) => {
+          chrome.runtime.lastError = undefined;
+          writeStorage(localStorage, items);
+          callback?.();
+        }),
+      },
       sync: {
         get: vi.fn((keys, callback) => {
           chrome.runtime.lastError = undefined;
@@ -68,22 +88,6 @@ function setupChromeMocks() {
         set: vi.fn((items, callback) => {
           chrome.runtime.lastError = undefined;
           writeStorage(syncStorage, items);
-          callback?.();
-        }),
-      },
-      local: {
-        get: vi.fn((keys, callback) => {
-          chrome.runtime.lastError = undefined;
-          callback(readStorage(localStorage, keys));
-        }),
-        set: vi.fn((items, callback) => {
-          chrome.runtime.lastError = undefined;
-          writeStorage(localStorage, items);
-          callback?.();
-        }),
-        remove: vi.fn((keys, callback) => {
-          chrome.runtime.lastError = undefined;
-          removeStorageKeys(localStorage, keys);
           callback?.();
         }),
       },

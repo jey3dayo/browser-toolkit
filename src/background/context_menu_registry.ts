@@ -73,28 +73,28 @@ const ROOT_MENU_CONTEXTS: ContextMenuContexts = [
 function createBuiltinRootMenuItems(): chrome.contextMenus.CreateProperties[] {
   return [
     {
+      contexts: ROOT_MENU_CONTEXTS,
       id: CONTEXT_MENU_QR_CODE_ID,
       parentId: CONTEXT_MENU_ROOT_ID,
       title: t("contextMenu.qrCode"),
-      contexts: ROOT_MENU_CONTEXTS,
     },
     {
+      contexts: ROOT_MENU_CONTEXTS,
       id: CONTEXT_MENU_CALENDAR_ID,
       parentId: CONTEXT_MENU_ROOT_ID,
       title: t("contextMenu.calendar"),
-      contexts: ROOT_MENU_CONTEXTS,
     },
     {
+      contexts: ["page", "selection", "link"],
       id: CONTEXT_MENU_GEMINI_RESEARCH_ID,
       parentId: CONTEXT_MENU_ROOT_ID,
       title: t("contextMenu.geminiResearch"),
-      contexts: ["page", "selection", "link"],
     },
     {
+      contexts: ROOT_MENU_CONTEXTS,
       id: CONTEXT_MENU_BUILTIN_SEPARATOR_ID,
       parentId: CONTEXT_MENU_ROOT_ID,
       type: "separator",
-      contexts: ROOT_MENU_CONTEXTS,
     },
   ];
 }
@@ -120,22 +120,22 @@ function handleExactMenuItemClick(
 ): boolean {
   if (menuItemId === CONTEXT_MENU_QR_CODE_ID) {
     handleQrCodeContextMenuClick({
-      tabId,
-      tab,
       pageUrl: info.pageUrl,
+      tab,
+      tabId,
     }).catch(() => {
       // no-op
     });
     return true;
   }
   if (menuItemId === CONTEXT_MENU_CALENDAR_ID) {
-    handleCalendarContextMenuClick({ tabId, info, tab }).catch(() => {
+    handleCalendarContextMenuClick({ info, tab, tabId }).catch(() => {
       // no-op
     });
     return true;
   }
   if (menuItemId === CONTEXT_MENU_GEMINI_RESEARCH_ID) {
-    handleGeminiResearchContextMenuClick({ info, tabId, tab }).catch(() => {
+    handleGeminiResearchContextMenuClick({ info, tab, tabId }).catch(() => {
       // no-op
     });
     return true;
@@ -169,12 +169,12 @@ export function registerContextMenuHandlers(): void {
         return;
       }
 
-      const menuItemId = info.menuItemId;
+      const { menuItemId } = info;
 
       if (menuItemId.startsWith(CONTEXT_MENU_COPY_LINK_PREFIX)) {
         const formatId = menuItemId.slice(CONTEXT_MENU_COPY_LINK_PREFIX.length);
         const format = coerceLinkFormat(formatId) ?? undefined;
-        handleCopyTitleLinkContextMenuClick({ tabId, tab }, format).catch(
+        handleCopyTitleLinkContextMenuClick({ tab, tabId }, format).catch(
           () => {
             // no-op
           }
@@ -220,19 +220,22 @@ export function registerContextMenuHandlers(): void {
 
       const selectionContext = buildContextMenuSelectionContext(info);
       const actionId = menuItemId.slice(CONTEXT_MENU_ACTION_PREFIX.length);
-      ensureContextActionsInitialized()
-        .then((actions) =>
-          handleContextMenuClick({ tabId, actionId, info, tab }, actions)
-        )
-        .catch((error) => {
-          showContextMenuUnexpectedErrorOverlay(
-            tabId,
-            selectionContext.initialSource,
-            error
-          ).catch(() => {
+      (async () => {
+        try {
+          const actions = await ensureContextActionsInitialized();
+          await handleContextMenuClick({ actionId, info, tab, tabId }, actions);
+        } catch (error) {
+          try {
+            await showContextMenuUnexpectedErrorOverlay(
+              tabId,
+              selectionContext.initialSource,
+              error
+            );
+          } catch {
             // no-op
-          });
-        });
+          }
+        }
+      })();
     }
   );
 }
@@ -246,9 +249,9 @@ export async function refreshContextMenus(): Promise<boolean> {
     await removeAllMenus();
 
     await createMenuItem({
+      contexts: ROOT_MENU_CONTEXTS,
       id: CONTEXT_MENU_ROOT_ID,
       title: APP_NAME,
-      contexts: ROOT_MENU_CONTEXTS,
     });
 
     const [searchEngines, templates, actions] = await Promise.all([
@@ -278,10 +281,10 @@ export async function refreshContextMenus(): Promise<boolean> {
         }
       );
       await createMenuItem({
+        contexts: ["selection"],
         id: CONTEXT_MENU_SEARCH_PARENT_ID,
         parentId: CONTEXT_MENU_ROOT_ID,
         title: t("contextMenu.search"),
-        contexts: ["selection"],
       });
 
       await runSequentially(enabledEngines, (engine) => {
@@ -291,10 +294,10 @@ export async function refreshContextMenus(): Promise<boolean> {
           // no-op
         });
         return createMenuItem({
+          contexts: ["selection"],
           id: `${CONTEXT_MENU_SEARCH_PREFIX}${engine.id}`,
           parentId: CONTEXT_MENU_SEARCH_PARENT_ID,
           title: engine.name,
-          contexts: ["selection"],
         });
       });
 
@@ -310,10 +313,10 @@ export async function refreshContextMenus(): Promise<boolean> {
           // no-op
         });
         await createMenuItem({
+          contexts: ["selection"],
           id: CONTEXT_MENU_BATCH_SEARCH_PARENT_ID,
           parentId: CONTEXT_MENU_ROOT_ID,
           title: t("contextMenu.batchSearch"),
-          contexts: ["selection"],
         });
 
         await runSequentially(enabledGroups, (group) => {
@@ -323,10 +326,10 @@ export async function refreshContextMenus(): Promise<boolean> {
             // no-op
           });
           return createMenuItem({
+            contexts: ["selection"],
             id: `${CONTEXT_MENU_BATCH_SEARCH_PREFIX}${group.id}`,
             parentId: CONTEXT_MENU_BATCH_SEARCH_PARENT_ID,
             title: group.name,
-            contexts: ["selection"],
           });
         });
       }
@@ -343,37 +346,37 @@ export async function refreshContextMenus(): Promise<boolean> {
 
     if (visibleTemplates.length > 0) {
       await createMenuItem({
+        contexts: ROOT_MENU_CONTEXTS,
         id: CONTEXT_MENU_TEMPLATE_ROOT_ID,
         parentId: CONTEXT_MENU_ROOT_ID,
         title: t("contextMenu.templates"),
-        contexts: ROOT_MENU_CONTEXTS,
       });
 
       await runSequentially(visibleTemplates, (template) =>
         createMenuItem({
+          contexts: ROOT_MENU_CONTEXTS,
           id: `${CONTEXT_MENU_TEMPLATE_PREFIX}${template.id}`,
           parentId: CONTEXT_MENU_TEMPLATE_ROOT_ID,
           title: template.title,
-          contexts: ROOT_MENU_CONTEXTS,
         })
       );
     }
 
     // Built-in actions
     await createMenuItem({
+      contexts: ROOT_MENU_CONTEXTS,
       id: CONTEXT_MENU_COPY_TITLE_LINK_ID,
       parentId: CONTEXT_MENU_ROOT_ID,
       title: t("contextMenu.copyTitleLink"),
-      contexts: ROOT_MENU_CONTEXTS,
     });
 
     await runSequentially(CONTEXT_MENU_LINK_FORMATS, (format) => {
       const label = LINK_FORMAT_LABELS.get(format) ?? format;
       return createMenuItem({
+        contexts: ROOT_MENU_CONTEXTS,
         id: `${CONTEXT_MENU_COPY_LINK_PREFIX}${format}`,
         parentId: CONTEXT_MENU_COPY_TITLE_LINK_ID,
         title: label,
-        contexts: ROOT_MENU_CONTEXTS,
       });
     });
 
@@ -382,10 +385,10 @@ export async function refreshContextMenus(): Promise<boolean> {
     // Custom context actions
     await runSequentially(actions, (action) =>
       createMenuItem({
+        contexts: ROOT_MENU_CONTEXTS,
         id: `${CONTEXT_MENU_ACTION_PREFIX}${action.id}`,
         parentId: CONTEXT_MENU_ROOT_ID,
         title: action.title,
-        contexts: ROOT_MENU_CONTEXTS,
       })
     );
 
@@ -397,10 +400,10 @@ export async function refreshContextMenus(): Promise<boolean> {
 
     // Settings menu
     await createMenuItem({
+      contexts: ROOT_MENU_CONTEXTS,
       id: CONTEXT_MENU_SETTINGS_ID,
       parentId: CONTEXT_MENU_ROOT_ID,
       title: t("contextMenu.settings"),
-      contexts: ROOT_MENU_CONTEXTS,
     });
     return true;
   } catch (error) {

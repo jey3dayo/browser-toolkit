@@ -45,7 +45,7 @@ export function OverlayAppStory(args: OverlayStoryArgs): React.JSX.Element {
 
   useLayoutEffect(() => {
     const host = hostRef.current;
-    if (!host) {
+    if (host === null) {
       return;
     }
 
@@ -67,7 +67,7 @@ export function OverlayAppStory(args: OverlayStoryArgs): React.JSX.Element {
       shadow.appendChild(rootEl);
     }
 
-    setMount({ shadow, root: rootEl });
+    setMount({ root: rootEl, shadow });
 
     return () => {
       setMount(null);
@@ -94,17 +94,17 @@ export function OverlayAppStory(args: OverlayStoryArgs): React.JSX.Element {
               onDismiss={fn()}
               portalContainer={mount.shadow}
               viewModel={{
-                open: true,
-                status: args.status,
+                anchorRect: null,
+                calendarUrl: args.calendarUrl,
+                event: args.event,
+                ics: args.ics,
                 mode: args.mode,
-                source: args.source,
-                title: args.title,
+                open: true,
                 primary,
                 secondary: args.secondary,
-                event: args.event,
-                calendarUrl: args.calendarUrl,
-                ics: args.ics,
-                anchorRect: null,
+                source: args.source,
+                status: args.status,
+                title: args.title,
               }}
             />,
             mount.root
@@ -150,7 +150,7 @@ export function OverlayAppFallbackStory(
     }
 
     const host = hostRef.current;
-    if (!host) {
+    if (host === null) {
       return;
     }
 
@@ -172,7 +172,7 @@ export function OverlayAppFallbackStory(
       shadow.appendChild(rootEl);
     }
 
-    setMount({ shadow, root: rootEl });
+    setMount({ root: rootEl, shadow });
 
     return () => {
       for (const link of removedLinksRef.current) {
@@ -203,17 +203,17 @@ export function OverlayAppFallbackStory(
               onDismiss={fn()}
               portalContainer={mount.shadow}
               viewModel={{
-                open: true,
-                status: args.status,
+                anchorRect: null,
+                calendarUrl: args.calendarUrl,
+                event: args.event,
+                ics: args.ics,
                 mode: args.mode,
-                source: args.source,
-                title: args.title,
+                open: true,
                 primary: args.primary,
                 secondary: args.secondary,
-                event: args.event,
-                calendarUrl: args.calendarUrl,
-                ics: args.ics,
-                anchorRect: null,
+                source: args.source,
+                status: args.status,
+                title: args.title,
               }}
             />,
             mount.root

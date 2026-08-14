@@ -9,8 +9,8 @@ import type { ExtractedEvent } from "@/shared_types";
 
 function baseEvent(overrides: Partial<ExtractedEvent> = {}): ExtractedEvent {
   return {
-    title: "MTG",
     start: "2025-12-16",
+    title: "MTG",
     ...overrides,
   };
 }
@@ -19,7 +19,7 @@ describe("src/background/calendar.ts", () => {
   describe("normalizeEvent", () => {
     it("splits a wave-separated datetime + time-only end", () => {
       const result = normalizeEvent(
-        baseEvent({ title: "MTG", start: "2025-12-16 14:00〜15:00" })
+        baseEvent({ start: "2025-12-16 14:00〜15:00", title: "MTG" })
       );
       expect(result.start).toBe("2025-12-16 14:00");
       expect(result.end).toBe("2025-12-16 15:00");
@@ -27,7 +27,7 @@ describe("src/background/calendar.ts", () => {
 
     it("splits an ASCII-tilde-separated date-only range as all-day", () => {
       const result = normalizeEvent(
-        baseEvent({ title: "旅行", start: "2025-12-16~2025-12-18" })
+        baseEvent({ start: "2025-12-16~2025-12-18", title: "旅行" })
       );
       expect(result.start).toBe("2025-12-16");
       expect(result.end).toBe("2025-12-18");
@@ -37,8 +37,8 @@ describe("src/background/calendar.ts", () => {
     it("splits a ' - '-separated datetime range where the right side is a full datetime", () => {
       const result = normalizeEvent(
         baseEvent({
-          title: "Call",
           start: "2025-12-16 14:00 - 2025-12-16 16:00",
+          title: "Call",
         })
       );
       expect(result.start).toBe("2025-12-16 14:00");
@@ -47,7 +47,7 @@ describe("src/background/calendar.ts", () => {
 
     it("passes start through unchanged when no separator pattern matches", () => {
       const result = normalizeEvent(
-        baseEvent({ title: "Solo", start: "2025-12-16 14:00" })
+        baseEvent({ start: "2025-12-16 14:00", title: "Solo" })
       );
       expect(result.start).toBe("2025-12-16 14:00");
       expect(result.end).toBeUndefined();
@@ -56,9 +56,9 @@ describe("src/background/calendar.ts", () => {
     it("skips normalization entirely when end is already present", () => {
       const result = normalizeEvent(
         baseEvent({
-          title: "X",
-          start: "2025-12-16 14:00〜15:00",
           end: "2025-12-16 15:30",
+          start: "2025-12-16 14:00〜15:00",
+          title: "X",
         })
       );
       expect(result.start).toBe("2025-12-16 14:00〜15:00");
@@ -67,7 +67,7 @@ describe("src/background/calendar.ts", () => {
 
     it("defaults a blank/missing title to 予定", () => {
       const result = normalizeEvent(
-        baseEvent({ title: "", start: "2025-12-16" })
+        baseEvent({ start: "2025-12-16", title: "" })
       );
       expect(result.title).toBe("予定");
     });
@@ -76,7 +76,7 @@ describe("src/background/calendar.ts", () => {
   describe("buildGoogleCalendarUrl", () => {
     it("builds an all-day dates param and trimmed text param", () => {
       const url = buildGoogleCalendarUrl(
-        baseEvent({ title: "  旅行  ", start: "2025-12-16", allDay: true })
+        baseEvent({ allDay: true, start: "2025-12-16", title: "  旅行  " })
       );
       expect(url).not.toBeNull();
       const parsed = new URL(url ?? "");
@@ -87,10 +87,10 @@ describe("src/background/calendar.ts", () => {
     it("includes trimmed location and details params for a datetime event", () => {
       const url = buildGoogleCalendarUrl(
         baseEvent({
-          start: "2025-12-16T10:00:00+09:00",
+          description: "  詳細  ",
           end: "2025-12-16T11:00:00+09:00",
           location: "  会議室A  ",
-          description: "  詳細  ",
+          start: "2025-12-16T10:00:00+09:00",
         })
       );
       expect(url).not.toBeNull();

@@ -66,10 +66,10 @@ export function buildTemplateVariables(
   text: string
 ): Record<string, string> {
   return {
+    source: target.source,
     text,
     title: target.title ?? "",
     url: target.url ?? "",
-    source: target.source,
   };
 }
 
@@ -115,7 +115,7 @@ export async function prepareAiInput(params: {
     includeMissing: params.includeMissingMeta,
   });
 
-  return Result.succeed({ settings, clippedText, meta });
+  return Result.succeed({ clippedText, meta, settings });
 }
 
 /**

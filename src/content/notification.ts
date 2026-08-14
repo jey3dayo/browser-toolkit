@@ -36,18 +36,18 @@ export function ensureToastMount(currentTheme: Theme): ToastMount {
   const root = createRoot(mount.rootEl);
   root.render(
     createElement(ToastHost, {
-      toastManager: notifications.toastManager,
       placement: "screen",
       portalContainer: mount.shadow,
+      toastManager: notifications.toastManager,
     })
   );
 
   return {
     host: mount.host,
-    shadow: mount.shadow,
-    root,
-    toastManager: notifications.toastManager,
     notify: notifications.notify,
+    root,
+    shadow: mount.shadow,
+    toastManager: notifications.toastManager,
   };
 }
 

@@ -60,7 +60,7 @@ async function setupTablePane(
       const items: Record<string, unknown> = {};
       if (keyList.includes("domainPatternConfigs")) {
         items.domainPatternConfigs = options.domainPatternConfigs ?? [
-          { pattern: "example.com/foo*", enableRowFilter: false },
+          { enableRowFilter: false, pattern: "example.com/foo*" },
         ];
       }
       if (keyList.includes("focusOverridePatterns")) {
@@ -73,7 +73,7 @@ async function setupTablePane(
   chromeStub.tabs.query.mockImplementation(
     (_queryInfo: unknown, callback: (tabs: unknown[]) => void) => {
       chromeStub.runtime.lastError = null;
-      callback(activeTab ? [activeTab] : []);
+      callback([activeTab]);
     }
   );
 
@@ -92,10 +92,10 @@ async function setupTablePane(
     return Promise.resolve([
       {
         result: options.focusDiagnosisResult ?? {
+          hasFocus: true,
+          hidden: false,
           markerPresent: false,
           visibilityState: "visible",
-          hidden: false,
-          hasFocus: true,
         },
       },
     ]);
@@ -112,14 +112,12 @@ async function setupTablePane(
     await flush(dom.window, 8);
   });
 
-  return { dom, chromeStub };
+  return { chromeStub, dom };
 }
 
 afterEach(async () => {
   const currentWindow =
-    globalThis.window && "setTimeout" in globalThis.window
-      ? globalThis.window
-      : null;
+    "setTimeout" in globalThis.window ? globalThis.window : null;
 
   await act(async () => {
     cleanupPopupTestHooks();
@@ -212,8 +210,8 @@ describe("popup Table Sort pane", { timeout: 15_000 }, () => {
     expect(chromeStub.storage.sync.set).toHaveBeenCalledWith(
       expect.objectContaining({
         domainPatternConfigs: expect.arrayContaining([
-          { pattern: "example.com/foo*", enableRowFilter: false },
-          { pattern: "foo.com/*", enableRowFilter: false },
+          { enableRowFilter: false, pattern: "example.com/foo*" },
+          { enableRowFilter: false, pattern: "foo.com/*" },
         ]),
       }),
       expect.any(Function)
@@ -238,7 +236,7 @@ describe("popup Table Sort pane", { timeout: 15_000 }, () => {
         }
       | undefined;
     expect(lastCall?.domainPatternConfigs).toEqual([
-      { pattern: "foo.com/*", enableRowFilter: false },
+      { enableRowFilter: false, pattern: "foo.com/*" },
     ]);
   });
 
@@ -258,7 +256,7 @@ describe("popup Table Sort pane", { timeout: 15_000 }, () => {
     expect(chromeStub.storage.sync.set).toHaveBeenCalledWith(
       expect.objectContaining({
         domainPatternConfigs: expect.arrayContaining([
-          { pattern: "example.com/foo*", enableRowFilter: true },
+          { enableRowFilter: true, pattern: "example.com/foo*" },
         ]),
       }),
       expect.any(Function)
@@ -267,8 +265,8 @@ describe("popup Table Sort pane", { timeout: 15_000 }, () => {
 
   it("limits loaded URL patterns to 200 entries", async () => {
     const domainPatternConfigs = Array.from({ length: 205 }, (_, index) => ({
-      pattern: `example-${index}.com/*`,
       enableRowFilter: false,
+      pattern: `example-${index}.com/*`,
     }));
     const { dom } = await setupTablePane({ domainPatternConfigs });
 
@@ -312,10 +310,10 @@ describe("popup Table Sort pane", { timeout: 15_000 }, () => {
   it("shows reload-required when the URL matches but override is not applied", async () => {
     const { dom } = await setupTablePane({
       focusDiagnosisResult: {
+        hasFocus: true,
+        hidden: false,
         markerPresent: false,
         visibilityState: "visible",
-        hidden: false,
-        hasFocus: true,
       },
     });
 
@@ -337,10 +335,10 @@ describe("popup Table Sort pane", { timeout: 15_000 }, () => {
   it("shows active when the override marker and values are present", async () => {
     const { dom } = await setupTablePane({
       focusDiagnosisResult: {
+        hasFocus: true,
+        hidden: false,
         markerPresent: true,
         visibilityState: "visible",
-        hidden: false,
-        hasFocus: true,
       },
     });
 
@@ -482,10 +480,10 @@ describe("popup Table Sort pane", { timeout: 15_000 }, () => {
   it("reloads the current tab from the diagnostic card", async () => {
     const { dom, chromeStub } = await setupTablePane({
       focusDiagnosisResult: {
+        hasFocus: true,
+        hidden: false,
         markerPresent: false,
         visibilityState: "visible",
-        hidden: false,
-        hasFocus: true,
       },
     });
 

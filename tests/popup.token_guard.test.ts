@@ -12,10 +12,10 @@ describe("ensureOpenAiTokenConfigured", () => {
     const focusTokenInput = vi.fn();
 
     const result = await ensureOpenAiTokenConfigured({
-      storageLocalGet,
-      showNotification,
-      navigateToPane,
       focusTokenInput,
+      navigateToPane,
+      showNotification,
+      storageLocalGet,
     });
     expect(Result.isSuccess(result)).toBe(true);
 
@@ -28,8 +28,8 @@ describe("ensureOpenAiTokenConfigured", () => {
     const storageLocalGet = vi.fn(async () =>
       Result.succeed({
         aiProvider: "anthropic",
-        openaiApiToken: "",
         anthropicApiToken: "sk-anthropic",
+        openaiApiToken: "",
       })
     );
     const showNotification = vi.fn();
@@ -37,10 +37,10 @@ describe("ensureOpenAiTokenConfigured", () => {
     const focusTokenInput = vi.fn();
 
     const result = await ensureOpenAiTokenConfigured({
-      storageLocalGet,
-      showNotification,
-      navigateToPane,
       focusTokenInput,
+      navigateToPane,
+      showNotification,
+      storageLocalGet,
     });
     expect(Result.isSuccess(result)).toBe(true);
 
@@ -58,10 +58,10 @@ describe("ensureOpenAiTokenConfigured", () => {
     const focusTokenInput = vi.fn();
 
     const result = await ensureOpenAiTokenConfigured({
-      storageLocalGet,
-      showNotification,
-      navigateToPane,
       focusTokenInput,
+      navigateToPane,
+      showNotification,
+      storageLocalGet,
     });
     expect(Result.isFailure(result)).toBe(true);
     if (Result.isFailure(result)) {
@@ -70,11 +70,11 @@ describe("ensureOpenAiTokenConfigured", () => {
 
     expect(showNotification).toHaveBeenCalledWith(
       {
-        message: "API Tokenが未設定です",
         action: {
           label: "→ 設定を開く",
           onClick: expect.any(Function),
         },
+        message: "API Tokenが未設定です",
       },
       "error"
     );
@@ -84,7 +84,7 @@ describe("ensureOpenAiTokenConfigured", () => {
     expect(focusTokenInput).not.toHaveBeenCalled();
 
     // onClick を実行すると、navigateToPane と focusTokenInput が呼ばれる
-    const callArgs = showNotification.mock.calls[0][0];
+    const [[callArgs]] = showNotification.mock.calls;
     if (typeof callArgs !== "string" && callArgs.action) {
       callArgs.action.onClick();
     }
@@ -99,10 +99,10 @@ describe("ensureOpenAiTokenConfigured", () => {
     const focusTokenInput = vi.fn();
 
     const result = await ensureOpenAiTokenConfigured({
-      storageLocalGet,
-      showNotification,
-      navigateToPane,
       focusTokenInput,
+      navigateToPane,
+      showNotification,
+      storageLocalGet,
     });
     expect(Result.isFailure(result)).toBe(true);
     if (Result.isFailure(result)) {

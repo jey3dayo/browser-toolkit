@@ -14,15 +14,15 @@ function CalendarPaneStory(props: CalendarPaneProps): React.JSX.Element {
 }
 
 const meta = {
-  title: "Popup/Panes/Calendar",
+  argTypes: {
+    focusTokenInput: { control: false },
+    navigateToPane: { control: false },
+    notify: { control: false },
+    runtime: { control: false },
+  },
   component: CalendarPaneStory,
   tags: ["test"],
-  argTypes: {
-    runtime: { control: false },
-    notify: { control: false },
-    navigateToPane: { control: false },
-    focusTokenInput: { control: false },
-  },
+  title: "Popup/Panes/Calendar",
 } satisfies Meta<typeof CalendarPaneStory>;
 
 export default meta;
@@ -30,34 +30,34 @@ type Story = StoryObj<typeof meta>;
 
 export const Basic: Story = {
   args: {
+    focusTokenInput: fn(),
+    navigateToPane: fn(),
+    notify: { error: fn(), info: fn(), success: fn() },
     runtime: createStoryPopupRuntime({
-      local: { openaiApiToken: "sk-storybook" },
-      sync: { calendarTargets: ["google", "ics"] },
-      summaryTarget: {
-        text: "storybook summary target",
-        source: "selection",
-        title: "storybook title",
-        url: "https://example.com",
-      },
       background: {
         summarizeEvent: (_message: SummarizeEventRequest) =>
           Result.succeed({
-            eventText: "イベント要約（storybook）",
             calendarUrl:
               "https://calendar.google.com/calendar/render?action=TEMPLATE",
             event: {
-              title: "storybook event",
-              start: "2025-01-01T10:00:00+09:00",
+              description: "storybook description",
               end: "2025-01-01T11:00:00+09:00",
               location: "オンライン",
-              description: "storybook description",
+              start: "2025-01-01T10:00:00+09:00",
+              title: "storybook event",
             },
+            eventText: "イベント要約（storybook）",
           }),
       },
+      local: { openaiApiToken: "sk-storybook" },
+      summaryTarget: {
+        source: "selection",
+        text: "storybook summary target",
+        title: "storybook title",
+        url: "https://example.com",
+      },
+      sync: { calendarTargets: ["google", "ics"] },
     }),
-    notify: { info: fn(), success: fn(), error: fn() },
-    navigateToPane: fn(),
-    focusTokenInput: fn(),
   },
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);

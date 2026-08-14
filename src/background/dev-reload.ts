@@ -57,7 +57,7 @@ function scheduleReconnect() {
     clearTimeout(reconnectTimeout);
   }
 
-  reconnectAttempts++;
+  reconnectAttempts += 1;
 
   if (reconnectAttempts > MAX_RECONNECT_ATTEMPTS) {
     console.log(

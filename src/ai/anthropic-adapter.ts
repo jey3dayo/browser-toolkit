@@ -23,9 +23,9 @@ export const anthropicAdapter: ChatCompletionAdapter = {
 
     // Anthropic APIのボディ形式に変換
     const anthropicBody: Record<string, unknown> = {
-      model: body.model,
-      messages: otherMessages,
       max_tokens: body.max_completion_tokens ?? 4096,
+      messages: otherMessages,
+      model: body.model,
     };
 
     // systemメッセージがあれば追加
@@ -34,23 +34,27 @@ export const anthropicAdapter: ChatCompletionAdapter = {
     }
 
     const init: RequestInit = {
-      method: "POST",
+      body: JSON.stringify(anthropicBody),
       headers: {
-        "x-api-key": token,
         "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
+        "x-api-key": token,
       },
-      body: JSON.stringify(anthropicBody),
+      method: "POST",
     };
 
-    return { url, init };
+    return { init, url };
+  },
+
+  extractError(json: unknown, status: number): string {
+    return extractApiErrorMessage(json) ?? `Anthropic APIエラー: ${status}`;
   },
 
   extractText(json: unknown): string | null {
     if (typeof json !== "object" || json === null) {
       return null;
     }
-    const content = (json as { content?: unknown }).content;
+    const { content } = json as { content?: unknown };
     if (!Array.isArray(content) || content.length === 0) {
       return null;
     }
@@ -59,9 +63,5 @@ export const anthropicAdapter: ChatCompletionAdapter = {
       return null;
     }
     return first.text.trim();
-  },
-
-  extractError(json: unknown, status: number): string {
-    return extractApiErrorMessage(json) ?? `Anthropic APIエラー: ${status}`;
   },
 };

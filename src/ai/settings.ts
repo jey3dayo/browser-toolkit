@@ -48,14 +48,14 @@ export function loadAiSettings(
   const model = normalizeAiModel(provider, modelValue);
 
   // ベースURL
-  const baseUrl = PROVIDER_CONFIGS[provider].baseUrl;
+  const { baseUrl } = PROVIDER_CONFIGS[provider];
 
   return Result.succeed({
-    provider,
-    token,
+    baseUrl,
     customPrompt,
     model,
-    baseUrl,
+    provider,
+    token,
   });
 }
 

@@ -24,22 +24,6 @@ export function createNotifications(): {
   const toastManager = Toast.createToastManager();
 
   const notify: Notifier = {
-    info: (message) => {
-      toastManager.add({
-        title: message,
-        type: "info",
-        timeout: 2500,
-        priority: "low",
-      });
-    },
-    success: (message) => {
-      toastManager.add({
-        title: message,
-        type: "success",
-        timeout: 2200,
-        priority: "low",
-      });
-    },
     error: (messageOrOptions) => {
       const options =
         typeof messageOrOptions === "string"
@@ -47,16 +31,32 @@ export function createNotifications(): {
           : messageOrOptions;
 
       toastManager.add({
-        title: options.title,
         description: options.description,
-        type: "error",
-        timeout: 3500,
         priority: "high",
+        timeout: 3500,
+        title: options.title,
+        type: "error",
+      });
+    },
+    info: (message) => {
+      toastManager.add({
+        priority: "low",
+        timeout: 2500,
+        title: message,
+        type: "info",
+      });
+    },
+    success: (message) => {
+      toastManager.add({
+        priority: "low",
+        timeout: 2200,
+        title: message,
+        type: "success",
       });
     },
   };
 
-  return { toastManager, notify };
+  return { notify, toastManager };
 }
 
 export type ToastHostProps = {
@@ -68,17 +68,17 @@ export type ToastHostProps = {
 export function ToastHost(props: ToastHostProps): React.JSX.Element {
   const placement = props.placement ?? "screen";
   const viewportStyle: React.CSSProperties = {
-    position: placement === "surface" ? "absolute" : "fixed",
+    alignItems: "flex-end",
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
     inset:
       placement === "surface"
         ? "var(--toast-surface-inset, 12px 12px auto auto)"
         : "var(--toast-screen-inset, 12px 12px auto auto)",
-    zIndex: 2_147_483_647,
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-    alignItems: "flex-end",
     pointerEvents: "none",
+    position: placement === "surface" ? "absolute" : "fixed",
+    zIndex: 2_147_483_647,
   };
   return (
     <Toast.Provider toastManager={props.toastManager}>

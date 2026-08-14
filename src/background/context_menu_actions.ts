@@ -68,7 +68,7 @@ export function buildContextMenuSelectionContext(
   const selection = info.selectionText?.trim() ?? "";
   const initialSource: SummarySource = selection ? "selection" : "page";
   const selectionSecondary = buildSelectionSecondary(selection);
-  return { selection, initialSource, selectionSecondary };
+  return { initialSource, selection, selectionSecondary };
 }
 
 function titleSuffixBySource(source: SummarySource): string {
@@ -83,11 +83,11 @@ async function showContextActionNotFoundOverlay(
 ): Promise<void> {
   await sendMessageToTab(tabId, {
     action: "showActionOverlay",
-    status: "error",
     mode: "text",
-    source,
-    title: APP_NAME,
     primary: t("background.contextActions.actionMissing"),
+    source,
+    status: "error",
+    title: APP_NAME,
   });
 }
 
@@ -99,11 +99,11 @@ async function showContextActionLoadingOverlay(
   const titleSuffix = titleSuffixBySource(context.initialSource);
   await sendMessageToTab(tabId, {
     action: "showActionOverlay",
-    status: "loading",
     mode: action.kind === "event" ? "event" : "text",
-    source: context.initialSource,
-    title: `${action.title}（${titleSuffix}）`,
     secondary: context.selectionSecondary,
+    source: context.initialSource,
+    status: "loading",
+    title: `${action.title}（${titleSuffix}）`,
   });
 }
 
@@ -112,8 +112,8 @@ async function resolveTargetFromContextMenuClick(
 ): Promise<SummaryTarget> {
   if (params.selection) {
     return {
-      text: params.selection,
       source: "selection",
+      text: params.selection,
       title: params.tab?.title,
       url: params.tab?.url,
     };
@@ -147,15 +147,15 @@ async function sendActionOverlayMessage(params: {
 }): Promise<void> {
   await sendMessageToTab(params.tabId, {
     action: "showActionOverlay",
-    status: params.status,
+    calendarUrl: params.calendarUrl,
+    event: params.event,
+    ics: params.ics,
     mode: params.mode,
-    source: params.source,
-    title: params.title,
     primary: params.primary,
     secondary: params.secondary,
-    event: params.event,
-    calendarUrl: params.calendarUrl,
-    ics: params.ics,
+    source: params.source,
+    status: params.status,
+    title: params.title,
   });
 }
 
@@ -168,20 +168,20 @@ async function reportPromptActionFailure(params: {
   selectionSecondary: string | undefined;
 }): Promise<void> {
   await showErrorNotification({
+    errorMessage: params.errorMessage,
     title: t("background.contextActions.actionFailedTitle", {
       title: params.actionTitle,
     }),
-    errorMessage: params.errorMessage,
   });
 
   await sendActionOverlayMessage({
-    tabId: params.tabId,
-    status: "error",
     mode: "text",
-    source: params.source,
-    title: params.resolvedTitle,
     primary: params.errorMessage,
     secondary: params.selectionSecondary,
+    source: params.source,
+    status: "error",
+    tabId: params.tabId,
+    title: params.resolvedTitle,
   }).catch(() => {
     // no-op
   });
@@ -198,11 +198,11 @@ export async function showContextMenuUnexpectedErrorOverlay(
       : t("background.contextActions.summarizeFailed");
   await sendMessageToTab(tabId, {
     action: "showActionOverlay",
-    status: "error",
     mode: "text",
-    source,
-    title: APP_NAME,
     primary: message,
+    source,
+    status: "error",
+    title: APP_NAME,
   }).catch(() => {
     // コンテンツスクリプトに送れないページでは、黙って諦める
   });
@@ -219,17 +219,17 @@ export async function handleCalendarContextMenuClick(
 
   await sendMessageToTab(params.tabId, {
     action: "showActionOverlay",
-    status: "loading",
     mode: "event",
-    source: context.initialSource,
-    title: initialTitle,
     secondary: context.selectionSecondary,
+    source: context.initialSource,
+    status: "loading",
+    title: initialTitle,
   } satisfies ContentScriptMessage);
 
   const target = await resolveTargetFromContextMenuClick({
-    tabId: params.tabId,
     selection: context.selection,
     tab: params.tab,
+    tabId: params.tabId,
   });
   const resolvedTitle = t("background.contextActions.calendarInitialTitle", {
     source: titleSuffixBySource(target.source),
@@ -238,18 +238,18 @@ export async function handleCalendarContextMenuClick(
   const result = await extractEventWithOpenAI(target);
   if (Result.isFailure(result)) {
     await showErrorNotification({
-      title: t("background.contextActions.calendarFailedTitle"),
       errorMessage: result.error,
+      title: t("background.contextActions.calendarFailedTitle"),
     });
 
     await sendMessageToTab(params.tabId, {
       action: "showActionOverlay",
-      status: "error",
       mode: "event",
-      source: target.source,
-      title: resolvedTitle,
       primary: result.error,
       secondary: context.selectionSecondary,
+      source: target.source,
+      status: "error",
+      title: resolvedTitle,
     } satisfies ContentScriptMessage).catch(() => {
       // no-op
     });
@@ -278,15 +278,15 @@ export async function handleCalendarContextMenuClick(
 
   await sendMessageToTab(params.tabId, {
     action: "showActionOverlay",
-    status: "ready",
+    calendarUrl: artifacts.calendarUrl,
+    event: result.value,
+    ics: artifacts.ics,
     mode: "event",
-    source: target.source,
-    title: resolvedTitle,
     primary: artifacts.eventText,
     secondary: context.selectionSecondary,
-    calendarUrl: artifacts.calendarUrl,
-    ics: artifacts.ics,
-    event: result.value,
+    source: target.source,
+    status: "ready",
+    title: resolvedTitle,
   } satisfies ContentScriptMessage);
 }
 
@@ -304,18 +304,18 @@ export async function handleContextMenuClick(
   await showContextActionLoadingOverlay(params.tabId, action, context);
 
   const target = await resolveTargetFromContextMenuClick({
-    tabId: params.tabId,
     selection: context.selection,
     tab: params.tab,
+    tabId: params.tabId,
   });
   const resolvedTitle = buildResolvedTitle(action, target.source);
 
   const overlayContext: OverlayContext = {
-    tabId: params.tabId,
     action,
-    target,
     resolvedTitle,
     selectionSecondary: context.selectionSecondary,
+    tabId: params.tabId,
+    target,
   };
 
   if (action.kind === "event") {
@@ -328,24 +328,24 @@ export async function handleContextMenuClick(
 async function handleEventAction(context: OverlayContext): Promise<void> {
   const { tabId, action, target, resolvedTitle, selectionSecondary } = context;
 
-  const result = await executeEventAction({ target, action });
+  const result = await executeEventAction({ action, target });
 
   if (Result.isFailure(result)) {
     await showErrorNotification({
+      errorMessage: result.error,
       title: t("background.contextActions.actionFailedTitle", {
         title: action.title,
       }),
-      errorMessage: result.error,
     });
 
     await sendMessageToTab(tabId, {
       action: "showActionOverlay",
-      status: "error",
       mode: "event",
-      source: target.source,
-      title: resolvedTitle,
       primary: result.error,
       secondary: selectionSecondary,
+      source: target.source,
+      status: "error",
+      title: resolvedTitle,
     }).catch(() => {
       // no-op
     });
@@ -354,41 +354,41 @@ async function handleEventAction(context: OverlayContext): Promise<void> {
 
   await sendMessageToTab(tabId, {
     action: "showActionOverlay",
-    status: "ready",
+    event: result.value.event,
     mode: "event",
-    source: target.source,
-    title: resolvedTitle,
     primary: result.value.eventText,
     secondary: selectionSecondary,
-    event: result.value.event,
+    source: target.source,
+    status: "ready",
+    title: resolvedTitle,
   });
 }
 
 async function handlePromptAction(context: OverlayContext): Promise<void> {
   const { tabId, action, target, resolvedTitle, selectionSecondary } = context;
 
-  const result = await executePromptAction({ target, action });
+  const result = await executePromptAction({ action, target });
 
   if (Result.isFailure(result)) {
     await reportPromptActionFailure({
-      tabId,
       actionTitle: action.title,
-      source: target.source,
-      resolvedTitle,
       errorMessage: result.error,
+      resolvedTitle,
       selectionSecondary,
+      source: target.source,
+      tabId,
     });
     return;
   }
 
   await sendActionOverlayMessage({
-    tabId,
-    status: "ready",
     mode: "text",
-    source: target.source,
-    title: resolvedTitle,
     primary: result.value.text,
     secondary: selectionSecondary,
+    source: target.source,
+    status: "ready",
+    tabId,
+    title: resolvedTitle,
   });
 }
 

@@ -1,5 +1,5 @@
 import { Result } from "@praha/byethrow";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/shared/Badge";
 import { Button } from "@/components/shared/Button";
@@ -23,11 +23,55 @@ import type { ActionHistoryEntry } from "@/storage/types";
 function formatDate(timestamp: number): string {
   const date = new Date(timestamp);
   return date.toLocaleString("ja-JP", {
-    month: "2-digit",
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
+    month: "2-digit",
   });
+}
+
+type HistoryEntryRowProps = {
+  entry: ActionHistoryEntry;
+  onCopy: (text: string) => void;
+  copyLabel: string;
+};
+
+function HistoryEntryRow({
+  entry,
+  onCopy,
+  copyLabel,
+}: HistoryEntryRowProps): React.JSX.Element {
+  const handleCopyClick = useCallback(() => {
+    onCopy(entry.text);
+  }, [entry.text, onCopy]);
+
+  return (
+    <EditorPanel>
+      <RowBetween>
+        <div>
+          <Badge variant="chipSoft">{entry.actionTitle}</Badge>
+          <HintText style={{ marginLeft: "8px" }}>
+            {formatDate(entry.createdAt)}
+          </HintText>
+        </div>
+        <Button
+          onClick={handleCopyClick}
+          size="small"
+          type="button"
+          variant="ghost"
+        >
+          {copyLabel}
+        </Button>
+      </RowBetween>
+      <TextOutput
+        size="small"
+        style={{ marginTop: "8px", whiteSpace: "pre-wrap" }}
+        variant="summary"
+      >
+        {entry.text.length > 200 ? `${entry.text.slice(0, 200)}…` : entry.text}
+      </TextOutput>
+    </EditorPanel>
+  );
 }
 
 export function HistoryPane(props: PopupPaneBaseProps): React.JSX.Element {
@@ -71,17 +115,28 @@ export function HistoryPane(props: PopupPaneBaseProps): React.JSX.Element {
     }
   };
 
+  const handleClearHistoryClick = useCallback(() => {
+    clearHistory().catch(() => {
+      // no-op
+    });
+  }, [clearHistory]);
+
+  const handleCopyEntry = useCallback(
+    (text: string) => {
+      copyEntry(text).catch(() => {
+        // no-op
+      });
+    },
+    [copyEntry]
+  );
+
   return (
     <PaneCard>
       <RowBetween>
         <PaneTitle>{t("history.title")}</PaneTitle>
         {history.length > 0 ? (
           <Button
-            onClick={() => {
-              clearHistory().catch(() => {
-                // no-op
-              });
-            }}
+            onClick={handleClearHistoryClick}
             size="small"
             type="button"
             variant="ghost"
@@ -97,37 +152,12 @@ export function HistoryPane(props: PopupPaneBaseProps): React.JSX.Element {
       ) : (
         <Stack>
           {history.map((entry) => (
-            <EditorPanel key={entry.id}>
-              <RowBetween>
-                <div>
-                  <Badge variant="chipSoft">{entry.actionTitle}</Badge>
-                  <HintText style={{ marginLeft: "8px" }}>
-                    {formatDate(entry.createdAt)}
-                  </HintText>
-                </div>
-                <Button
-                  onClick={() => {
-                    copyEntry(entry.text).catch(() => {
-                      // no-op
-                    });
-                  }}
-                  size="small"
-                  type="button"
-                  variant="ghost"
-                >
-                  {t("common.copy")}
-                </Button>
-              </RowBetween>
-              <TextOutput
-                size="small"
-                style={{ marginTop: "8px", whiteSpace: "pre-wrap" }}
-                variant="summary"
-              >
-                {entry.text.length > 200
-                  ? `${entry.text.slice(0, 200)}…`
-                  : entry.text}
-              </TextOutput>
-            </EditorPanel>
+            <HistoryEntryRow
+              copyLabel={t("common.copy")}
+              entry={entry}
+              key={entry.id}
+              onCopy={handleCopyEntry}
+            />
           ))}
         </Stack>
       )}

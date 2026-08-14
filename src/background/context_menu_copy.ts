@@ -43,12 +43,12 @@ async function showCopyTitleLinkOverlay(params: {
 }): Promise<void> {
   await sendMessageToTab(params.tabId, {
     action: "showActionOverlay",
-    status: "ready",
     mode: "text",
-    source: "page",
-    title: buildCopyTitleLinkOverlayTitle(),
     primary: params.text,
     secondary: params.secondary,
+    source: "page",
+    status: "ready",
+    title: buildCopyTitleLinkOverlayTitle(),
   } satisfies ContentScriptMessage);
 }
 
@@ -94,8 +94,8 @@ export async function handleCopyTitleLinkContextMenuClick(
     const result: { ok: true } | { ok: false; error: string } =
       await sendMessageToTab(params.tabId, {
         action: "copyToClipboard",
-        text,
         successMessage: t("background.copyTitleLink.copied"),
+        text,
       } satisfies ContentScriptMessage);
 
     if (result.ok) {
@@ -103,9 +103,9 @@ export async function handleCopyTitleLinkContextMenuClick(
     }
 
     await showCopyTitleLinkOverlay({
+      secondary: buildCopyTitleLinkFallbackSecondary(result.error),
       tabId: params.tabId,
       text,
-      secondary: buildCopyTitleLinkFallbackSecondary(result.error),
     });
   } catch (error) {
     const errorMessage = toErrorMessage(
@@ -116,47 +116,47 @@ export async function handleCopyTitleLinkContextMenuClick(
       "handleCopyTitleLinkContextMenuClick",
       "failed",
       {
+        error: formatErrorLog("", {}, error),
+        errorMessage,
+        format,
         tabId: params.tabId,
         title,
         url,
-        format,
-        errorMessage,
-        error: formatErrorLog("", {}, error),
       },
       "error"
     );
     console.error(
       formatErrorLog(
         "copy title/link failed",
-        { tabId: params.tabId, title, url, format, errorMessage },
+        { errorMessage, format, tabId: params.tabId, title, url },
         error
       )
     );
 
     // Chrome通知の文字数制限を考慮してシンプルなメッセージにする
     await showErrorNotification({
-      title: t("background.copyTitleLink.copyFailed"),
       errorMessage,
       hint: t("background.copyTitleLink.fallbackHint"),
+      title: t("background.copyTitleLink.copyFailed"),
     });
 
     const overlayShown = await showCopyTitleLinkOverlay({
+      secondary: errorMessage,
       tabId: params.tabId,
       text,
-      secondary: errorMessage,
     })
       .then(() => true)
       .catch(() => false);
 
     if (!overlayShown) {
       await showCopyTitleLinkFailureIndicator(params.tabId, {
-        occurredAt: Date.now(),
-        tabId: params.tabId,
-        pageTitle: title,
-        pageUrl: url,
-        text,
         error: errorMessage,
         format,
+        occurredAt: Date.now(),
+        pageTitle: title,
+        pageUrl: url,
+        tabId: params.tabId,
+        text,
       });
     }
   }
@@ -166,38 +166,40 @@ async function showCopyTitleLinkFailureIndicator(
   tabId: number,
   failure: CopyTitleLinkFailure
 ): Promise<void> {
-  await storageLocalSet({ lastCopyTitleLinkFailure: failure }).catch(
-    (error) => {
-      debugLog(
+  try {
+    await storageLocalSet({ lastCopyTitleLinkFailure: failure });
+  } catch (error) {
+    try {
+      await debugLog(
         "showCopyTitleLinkFailureIndicator",
         "storageLocalSet failed",
-        { tabId, error: formatErrorLog("", {}, error) },
+        { error: formatErrorLog("", {}, error), tabId },
         "error"
-      ).catch(() => {
-        // no-op
-      });
+      );
+    } catch {
+      // no-op
     }
-  );
+  }
 
   const pageLabel =
     failure.pageUrl ||
     failure.pageTitle ||
     t("background.copyTitleLink.fallbackPage");
   try {
-    chrome.action.setBadgeText({ text: "!", tabId });
+    chrome.action.setBadgeText({ tabId, text: "!" });
     chrome.action.setBadgeBackgroundColor({ color: "#e5484d", tabId });
     chrome.action.setTitle({
+      tabId,
       title: t("background.copyTitleLink.badgeTitle", {
         appName: APP_NAME,
         pageLabel,
       }),
-      tabId,
     });
   } catch (error) {
     await debugLog(
       "showCopyTitleLinkFailureIndicator",
       "chrome.action API failed",
-      { tabId, error: formatErrorLog("", {}, error) },
+      { error: formatErrorLog("", {}, error), tabId },
       "error"
     );
   }
@@ -229,8 +231,8 @@ async function clearCopyTitleLinkFailureIndicator(
   }
 
   try {
-    chrome.action.setBadgeText({ text: "", tabId });
-    chrome.action.setTitle({ title: APP_NAME, tabId });
+    chrome.action.setBadgeText({ tabId, text: "" });
+    chrome.action.setTitle({ tabId, title: APP_NAME });
   } catch {
     // no-op
   }

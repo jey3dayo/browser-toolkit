@@ -8,10 +8,10 @@ describe("ai/settings", () => {
   describe("loadAiSettings", () => {
     it("loads settings from new keys", () => {
       const storage: LocalStorageData = {
+        aiCustomPrompt: "test prompt",
+        aiModel: ANTHROPIC_MODELS.CLAUDE_SONNET_5,
         aiProvider: "anthropic",
         anthropicApiToken: "sk-test-token",
-        aiModel: ANTHROPIC_MODELS.CLAUDE_SONNET_5,
-        aiCustomPrompt: "test prompt",
       };
 
       const result = loadAiSettings(storage);
@@ -29,8 +29,8 @@ describe("ai/settings", () => {
     it("falls back to old keys when new keys are missing", () => {
       const storage: LocalStorageData = {
         openaiApiToken: "sk-old-token",
-        openaiModel: "gpt-4o-mini",
         openaiCustomPrompt: "old prompt",
+        openaiModel: "gpt-4o-mini",
       };
 
       const result = loadAiSettings(storage);
@@ -48,8 +48,8 @@ describe("ai/settings", () => {
     it("uses provider-specific token key", () => {
       const storage: LocalStorageData = {
         aiProvider: "openai",
-        openaiApiToken: "sk-openai-token",
         anthropicApiToken: "sk-anthropic-token",
+        openaiApiToken: "sk-openai-token",
       };
 
       const result = loadAiSettings(storage);
@@ -115,9 +115,9 @@ describe("ai/settings", () => {
 
     it("normalizes invalid model to provider default", () => {
       const storage: LocalStorageData = {
+        aiModel: "invalid-model",
         aiProvider: "anthropic",
         anthropicApiToken: "sk-test-token",
-        aiModel: "invalid-model",
       };
 
       const result = loadAiSettings(storage);
@@ -134,8 +134,8 @@ describe("ai/settings", () => {
       const mockStorage = {
         get: async (_keys: string[]) => ({
           openaiApiToken: "sk-old-token",
-          openaiModel: "gpt-4o-mini",
           openaiCustomPrompt: "old prompt",
+          openaiModel: "gpt-4o-mini",
         }),
         set: (items: Record<string, unknown>) => {
           expect(items.aiProvider).toBe("openai");

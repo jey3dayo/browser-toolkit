@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { Button } from "@/components/shared/Button";
 import { PatternListItem } from "@/components/shared/PatternListItem";
 import { Switch } from "@/components/shared/Switch";
@@ -19,22 +19,33 @@ export function PatternConfigListItem({
   onRemove,
   onToggleRowFilter,
 }: PatternConfigListItemProps): React.JSX.Element {
+  const handleRemove = useCallback(() => {
+    onRemove(config.pattern).catch(() => {
+      // no-op
+    });
+  }, [config.pattern, onRemove]);
+
+  const handleToggleRowFilter = useCallback(
+    (checked: boolean) => {
+      onToggleRowFilter(config.pattern, checked).catch(() => {
+        // no-op
+      });
+    },
+    [config.pattern, onToggleRowFilter]
+  );
+
   const action = useMemo(
     () => (
       <Button
         data-pattern-remove={config.pattern}
-        onClick={() => {
-          onRemove(config.pattern).catch(() => {
-            // no-op
-          });
-        }}
+        onClick={handleRemove}
         type="button"
         variant="danger"
       >
         {t("common.delete")}
       </Button>
     ),
-    [config.pattern, onRemove]
+    [config.pattern, handleRemove]
   );
   const toggle = useMemo(
     () => (
@@ -45,18 +56,14 @@ export function PatternConfigListItem({
           })}
           checked={config.enableRowFilter}
           data-testid={`row-filter-${config.pattern}`}
-          onCheckedChange={(checked) => {
-            onToggleRowFilter(config.pattern, checked).catch(() => {
-              // no-op
-            });
-          }}
+          onCheckedChange={handleToggleRowFilter}
         />
       </Tooltip>
     ),
     [
       config.enableRowFilter,
       config.pattern,
-      onToggleRowFilter,
+      handleToggleRowFilter,
       rowFilterTooltip,
     ]
   );

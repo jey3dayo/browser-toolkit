@@ -1,5 +1,5 @@
 import { Result } from "@praha/byethrow";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { SummarizeEventSuccessPayload } from "@/background/types";
 import { Button } from "@/components/shared/Button";
 import { t } from "@/i18n";
@@ -75,7 +75,10 @@ export function useCalendarRun(params: {
 
   const ensureTokenReady = async (): Promise<boolean> => {
     const tokenConfigured = await ensureOpenAiTokenConfigured({
-      storageLocalGet: (keys) => runtime.storageLocalGet(keys),
+      focusTokenInput,
+      navigateToPane: (paneId) => {
+        navigateToPane(paneId as PaneId);
+      },
       showNotification: (messageOrOptions, type) => {
         if (typeof messageOrOptions === "string") {
           const message: string = messageOrOptions;
@@ -91,7 +94,6 @@ export function useCalendarRun(params: {
         const options: NotificationOptions = messageOrOptions;
         if (type === "error") {
           notify.error({
-            title: options.message,
             description: options.action ? (
               <Button
                 onClick={options.action.onClick}
@@ -101,19 +103,22 @@ export function useCalendarRun(params: {
                 {options.action.label}
               </Button>
             ) : undefined,
+            title: options.message,
           });
           return;
         }
         notify.info(options.message);
       },
-      navigateToPane: (paneId) => {
-        navigateToPane(paneId as PaneId);
-      },
-      focusTokenInput,
+      storageLocalGet: (keys) => runtime.storageLocalGet(keys),
     });
 
     return !Result.isFailure(tokenConfigured);
   };
+
+  const handleOpenSettingsClick = useCallback(() => {
+    navigateToPane("pane-settings");
+    focusTokenInput();
+  }, [navigateToPane, focusTokenInput]);
 
   const reportError = (message: string): void => {
     // トークン関連エラーの場合は「→ 設定を開く」リンク付きで表示
@@ -124,19 +129,16 @@ export function useCalendarRun(params: {
       message.includes("API Key")
     ) {
       notify.error({
-        title: message,
         description: (
           <Button
-            onClick={() => {
-              navigateToPane("pane-settings");
-              focusTokenInput();
-            }}
+            onClick={handleOpenSettingsClick}
             type="button"
             variant="toastActionLink"
           >
             {t("calendarPane.openSettings")}
           </Button>
         ),
+        title: message,
       });
     } else {
       notify.error(message);
@@ -156,9 +158,9 @@ export function useCalendarRun(params: {
     target: SummaryTarget
   ): Promise<SummarizeEventSuccessPayload | null> =>
     await sendBackgroundResult({
-      runtime,
       message: { action: "summarizeEvent", target },
       onError: reportError,
+      runtime,
     });
 
   const runCalendar = async (): Promise<void> => {
@@ -175,8 +177,8 @@ export function useCalendarRun(params: {
     setOutput({ status: "running" });
 
     const target = await fetchSummaryTargetForActiveTab({
-      runtime,
       onError: reportError,
+      runtime,
     });
     if (!target) {
       return;
@@ -198,11 +200,11 @@ export function useCalendarRun(params: {
     }
 
     setOutput({
-      status: "ready",
-      text: payload.eventText,
-      sourceLabel: coerceSummarySourceLabel(target.source),
       calendarUrl,
       event: payload.event,
+      sourceLabel: coerceSummarySourceLabel(target.source),
+      status: "ready",
+      text: payload.eventText,
     });
     notify.success(t("calendarPane.success.completed"));
   };
@@ -244,7 +246,7 @@ export function useCalendarRun(params: {
     if (output.status !== "ready") {
       return;
     }
-    const event = output.event;
+    const { event } = output;
     const ics = buildIcs(event);
     if (!ics) {
       notify.error(t("calendarPane.errors.icsGenerationFailed"));
@@ -268,15 +270,15 @@ export function useCalendarRun(params: {
   };
 
   return {
+    canCopyOutput,
+    canDownloadIcs,
+    canOpenCalendar,
+    copyOutput,
+    downloadIcs,
+    openCalendar,
     output,
     outputTitle,
     outputValue,
-    canCopyOutput,
-    canOpenCalendar,
-    canDownloadIcs,
     runCalendar,
-    copyOutput,
-    openCalendar,
-    downloadIcs,
   };
 }

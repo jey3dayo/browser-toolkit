@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { Button } from "@/components/shared/Button";
 import { Form } from "@/components/shared/Form";
 import { Input } from "@/components/shared/Input";
@@ -24,11 +25,22 @@ export type SearchEngineAddFormProps = {
 export function SearchEngineAddForm(
   props: SearchEngineAddFormProps
 ): React.JSX.Element {
-  const submitAddEngine = (): void => {
-    props.onAddEngine().catch(() => {
+  const { onAddEngine, onEncodingInputChange } = props;
+
+  const submitAddEngine = useCallback((): void => {
+    onAddEngine().catch(() => {
       // no-op
     });
-  };
+  }, [onAddEngine]);
+
+  const handleEncodingChange = useCallback(
+    (value: string | null) => {
+      if (isSearchEngineEncoding(value)) {
+        onEncodingInputChange(value);
+      }
+    },
+    [onEncodingInputChange]
+  );
 
   return (
     <Form onFormSubmit={submitAddEngine} variant="patternGroupWrap">
@@ -43,11 +55,7 @@ export function SearchEngineAddForm(
         />
         <Select
           ariaLabel={t("searchEngines.encoding")}
-          onValueChange={(value) => {
-            if (isSearchEngineEncoding(value)) {
-              props.onEncodingInputChange(value);
-            }
-          }}
+          onValueChange={handleEncodingChange}
           options={SEARCH_ENGINE_ENCODINGS.map((enc) => ({
             label: ENCODING_LABELS[enc],
             value: enc,

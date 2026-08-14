@@ -23,10 +23,10 @@ export type ChatCompletionAdapter = {
   /**
    * fetch用のURL・headers・bodyを構築
    */
-  buildRequest(
+  buildRequest: (
     token: string,
     body: ChatRequestBody
-  ): {
+  ) => {
     url: string;
     init: RequestInit;
   };
@@ -34,10 +34,10 @@ export type ChatCompletionAdapter = {
   /**
    * レスポンスJSONからテキストを抽出
    */
-  extractText(json: unknown): string | null;
+  extractText: (json: unknown) => string | null;
 
   /**
    * エラーレスポンスからメッセージを抽出
    */
-  extractError(json: unknown, status: number): string;
+  extractError: (json: unknown, status: number) => string;
 };

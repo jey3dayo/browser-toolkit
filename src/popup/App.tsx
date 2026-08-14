@@ -64,6 +64,11 @@ export function PopupApp(): React.JSX.Element {
     setMenuOpen(false);
   }, []);
 
+  const handleTabValueChange = useCallback((value: string) => {
+    setTabValue(coercePaneId(value));
+    setMenuOpen(false);
+  }, []);
+
   const syncFromHashRef = useRef<() => void>(() => {
     // no-op until the first render assigns the current handler
   });
@@ -103,23 +108,17 @@ export function PopupApp(): React.JSX.Element {
 
   useEffect(() => {
     handleCopyTitleLinkFailureOnPopupOpen({
-      runtime,
-      notify: notifications.notify,
-      setCreateLinkInitial: (value) => setCreateLinkInitial(value),
       navigateToCreateLink: () => setTabValue("pane-create-link"),
+      notify: notifications.notify,
+      runtime,
+      setCreateLinkInitial: (value) => setCreateLinkInitial(value),
     }).catch(() => {
       // no-op
     });
   }, [notifications.notify, runtime]);
 
   return (
-    <TabsRoot
-      onValueChange={(value) => {
-        setTabValue(coercePaneId(value));
-        setMenuOpen(false);
-      }}
-      value={tabValue}
-    >
+    <TabsRoot onValueChange={handleTabValueChange} value={tabValue}>
       <PopupShell>
         <ToastHost
           placement="surface"

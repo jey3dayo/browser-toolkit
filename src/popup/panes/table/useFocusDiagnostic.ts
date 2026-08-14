@@ -53,20 +53,20 @@ export function useFocusDiagnostic(
     const activeTab = await props.runtime.getActiveTab();
     if (Result.isFailure(activeTab)) {
       return buildFocusDiagnosticView({
-        kind: "unavailable",
-        tabId: null,
         currentUrl: null,
         description: activeTab.error,
+        kind: "unavailable",
+        tabId: null,
       });
     }
 
     const tab = activeTab.value;
     if (!(tab?.id && tab.url)) {
       return buildFocusDiagnosticView({
-        kind: "unavailable",
-        tabId: tab?.id ?? null,
         currentUrl: summarizeUrl(tab?.url),
         description: t("tablePane.diagnostic.descriptions.urlUnavailable"),
+        kind: "unavailable",
+        tabId: tab?.id ?? null,
       });
     }
 
@@ -78,43 +78,43 @@ export function useFocusDiagnostic(
 
     if (!matchedPattern) {
       return buildFocusDiagnosticView({
-        kind: "not-configured",
-        tabId: tab.id,
         currentUrl,
         description:
           focusPatternsRef.current.length === 0
             ? t("tablePane.diagnostic.descriptions.noPatterns")
             : t("tablePane.diagnostic.descriptions.noMatch"),
+        kind: "not-configured",
+        tabId: tab.id,
       });
     }
 
     const diagnosis = await props.runtime.diagnoseFocusOverride(tab.id);
     if (Result.isFailure(diagnosis)) {
       return buildFocusDiagnosticView({
-        kind: "unavailable",
-        tabId: tab.id,
         currentUrl,
-        matchedPattern,
         description: diagnosis.error,
+        kind: "unavailable",
+        matchedPattern,
+        tabId: tab.id,
       });
     }
 
     if (isFocusOverrideApplied(diagnosis.value)) {
       return buildFocusDiagnosticView({
-        kind: "active",
-        tabId: tab.id,
         currentUrl,
-        matchedPattern,
         description: t("tablePane.diagnostic.descriptions.active"),
+        kind: "active",
+        matchedPattern,
+        tabId: tab.id,
       });
     }
 
     return buildFocusDiagnosticView({
-      kind: "reload-required",
-      tabId: tab.id,
       currentUrl,
-      matchedPattern,
       description: t("tablePane.diagnostic.descriptions.reloadRequired"),
+      kind: "reload-required",
+      matchedPattern,
+      tabId: tab.id,
     });
   }
 
@@ -166,10 +166,10 @@ export function useFocusDiagnostic(
       nextView = await resolveFocusDiagnostic();
     } catch {
       nextView = buildFocusDiagnosticView({
-        kind: "unavailable",
-        tabId: null,
         currentUrl: null,
         description: t("tablePane.diagnostic.descriptions.failed"),
+        kind: "unavailable",
+        tabId: null,
       });
     }
 
@@ -222,12 +222,12 @@ export function useFocusDiagnostic(
 
   return {
     focusDiagnostic,
+    focusDiagnosticBadgeVariant,
     focusDiagnosticRunning,
     focusDiagnosticSlow,
-    focusDiagnosticBadgeVariant,
-    runFocusDiagnostic,
-    requestFocusDiagnostic,
     reloadCurrentTab,
+    requestFocusDiagnostic,
+    runFocusDiagnostic,
     syncFocusPatternsRef,
   };
 }

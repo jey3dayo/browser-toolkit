@@ -60,15 +60,15 @@ export async function fetchSummaryTargetForActiveTab(params: {
   onError: ErrorHandler;
 }): Promise<SummaryTarget | null> {
   const tabId = await resolveActiveTabId({
-    runtime: params.runtime,
     onError: params.onError,
+    runtime: params.runtime,
   });
   if (tabId === null) {
     return null;
   }
   return await fetchSummaryTargetForTab({
+    onError: params.onError,
     runtime: params.runtime,
     tabId,
-    onError: params.onError,
   });
 }

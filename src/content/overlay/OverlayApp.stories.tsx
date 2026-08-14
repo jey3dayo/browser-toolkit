@@ -41,24 +41,24 @@ const MARKDOWN_PRIMARY_TEXT = [
 ].join("\n");
 
 const meta = {
-  title: "Content/Overlay/App/要約・プロンプト",
-  component: OverlayAppStory,
-  tags: ["test"],
   argTypes: {
-    status: { control: false },
-    mode: { control: false },
-    source: { control: false },
-    title: { control: false },
-    event: { control: false },
     calendarUrl: { control: false },
+    event: { control: false },
     ics: { control: false },
+    mode: { control: false },
     primary: {
       control: "text",
     },
     secondary: {
       control: "text",
     },
+    source: { control: false },
+    status: { control: false },
+    title: { control: false },
   },
+  component: OverlayAppStory,
+  tags: ["test"],
+  title: "Content/Overlay/App/要約・プロンプト",
 } satisfies Meta<typeof OverlayAppStory>;
 
 export default meta;
@@ -66,12 +66,12 @@ type Story = StoryObj<typeof meta>;
 
 export const Loading: Story = {
   args: {
-    status: "loading",
     mode: "text",
-    source: "selection",
-    title: "要約",
     primary: "",
     secondary: "処理に数秒かかることがあります。",
+    source: "selection",
+    status: "loading",
+    title: "要約",
   },
   play: async ({ canvasElement }) => {
     await waitFor(() => {
@@ -94,12 +94,12 @@ export const Loading: Story = {
 
 export const Ready: Story = {
   args: {
-    status: "ready",
     mode: "text",
-    source: "selection",
-    title: "要約",
     primary: "要約結果（storybook）",
     secondary: "選択範囲:\n引用テキスト",
+    source: "selection",
+    status: "ready",
+    title: "要約",
   },
   play: async ({ canvasElement }) => {
     await waitFor(() => {
@@ -163,12 +163,12 @@ export const Ready: Story = {
 
 export const PromptReady: Story = {
   args: {
-    status: "ready",
     mode: "text",
-    source: "selection",
-    title: "プロンプト",
     primary: PROMPT_PRIMARY_TEXT,
     secondary: CONTEXT_SELECTION_SECONDARY,
+    source: "selection",
+    status: "ready",
+    title: "プロンプト",
   },
   play: async ({ canvasElement }) => {
     await waitFor(() => {
@@ -200,12 +200,12 @@ export const PromptReady: Story = {
 
 export const ThemeToggle: Story = {
   args: {
-    status: "ready",
     mode: "text",
-    source: "selection",
-    title: "要約",
     primary: "要約結果（storybook）",
     secondary: "選択範囲:\n引用テキスト",
+    source: "selection",
+    status: "ready",
+    title: "要約",
   },
   play: async ({ canvasElement }) => {
     await waitFor(() => {
@@ -250,12 +250,12 @@ export const ThemeToggle: Story = {
 
 export const MarkdownToggle: Story = {
   args: {
-    status: "ready",
     mode: "text",
-    source: "selection",
-    title: "要約",
     primary: MARKDOWN_PRIMARY_TEXT,
     secondary: CONTEXT_SELECTION_SECONDARY,
+    source: "selection",
+    status: "ready",
+    title: "要約",
   },
   play: async ({ canvasElement }) => {
     await waitFor(() => {
@@ -303,12 +303,12 @@ export const MarkdownToggle: Story = {
 
 export const ReadyLongText: Story = {
   args: {
-    status: "ready",
     mode: "text",
-    source: "selection",
-    title: "要約",
     primary: LONG_PRIMARY_TEXT,
     secondary: "選択範囲:\n引用テキスト",
+    source: "selection",
+    status: "ready",
+    title: "要約",
   },
   play: async ({ canvasElement }) => {
     await waitFor(() => {
@@ -353,12 +353,12 @@ export const ReadyLongText: Story = {
 
 export const ReadyStylesApplied: Story = {
   args: {
-    status: "ready",
     mode: "text",
-    source: "selection",
-    title: "要約",
     primary: "要約結果（storybook）",
     secondary: "選択範囲:\n引用テキスト",
+    source: "selection",
+    status: "ready",
+    title: "要約",
   },
   play: async ({ canvasElement }) => {
     await waitFor(() => {
@@ -406,14 +406,13 @@ export const ReadyStylesApplied: Story = {
 
 export const ReadyStylesFallbackApplied: Story = {
   args: {
-    status: "ready",
     mode: "text",
-    source: "selection",
-    title: "要約",
     primary: "要約結果（storybook）",
     secondary: "選択範囲:\n引用テキスト",
+    source: "selection",
+    status: "ready",
+    title: "要約",
   },
-  render: (args) => <OverlayAppFallbackStory {...args} />,
   play: async ({ canvasElement }) => {
     await waitFor(() => {
       const host = canvasElement.querySelector<HTMLDivElement>(
@@ -454,4 +453,5 @@ export const ReadyStylesFallbackApplied: Story = {
       expect(styles.backgroundColor).not.toBe("rgba(0, 0, 0, 0)");
     });
   },
+  render: (args) => <OverlayAppFallbackStory {...args} />,
 };

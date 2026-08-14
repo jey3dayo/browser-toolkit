@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { RadioFieldset } from "@/components/shared/RadioFieldset";
 import { t } from "@/i18n";
 import {
@@ -17,6 +18,20 @@ export function SettingsThemeSection({
   setTheme,
   saveTheme,
 }: SettingsThemeSectionProps): React.JSX.Element {
+  const handleValueChange = useCallback(
+    (value: string) => {
+      if (!isTheme(value)) {
+        return;
+      }
+      setTheme(value);
+      applyTheme(value, document);
+      saveTheme(value).catch(() => {
+        // no-op
+      });
+    },
+    [setTheme, saveTheme]
+  );
+
   return (
     <SettingsPaneCard section="theme">
       <RadioFieldset
@@ -41,16 +56,7 @@ export function SettingsThemeSection({
         ]}
         legend={t("settings.theme")}
         name="theme"
-        onValueChange={(value) => {
-          if (!isTheme(value)) {
-            return;
-          }
-          setTheme(value);
-          applyTheme(value, document);
-          saveTheme(value).catch(() => {
-            // no-op
-          });
-        }}
+        onValueChange={handleValueChange}
         value={theme}
       />
     </SettingsPaneCard>

@@ -59,8 +59,8 @@ async function initializeOnEmptyPattern<T>(
 
   if (logDetails) {
     await debugLog(functionName, "normalized existing", {
-      existing,
       count: existing.length,
+      existing,
     });
   }
 
@@ -168,12 +168,12 @@ async function ensureStorageInitialized<T>({
  */
 export function ensureContextActionsInitialized(): Promise<ContextAction[]> {
   return ensureStorageInitialized({
-    storageKey: "contextActions",
-    normalize: normalizeContextActions,
     defaults: DEFAULT_CONTEXT_ACTIONS,
     functionName: "ensureContextActionsInitialized",
     initializeOnEmpty: true,
     logDetails: false,
+    normalize: normalizeContextActions,
+    storageKey: "contextActions",
   });
 }
 
@@ -185,12 +185,12 @@ export function ensureContextActionsInitialized(): Promise<ContextAction[]> {
  */
 export function ensureSearchEnginesInitialized(): Promise<SearchEngine[]> {
   return ensureStorageInitialized({
-    storageKey: "searchEngines",
-    normalize: normalizeSearchEngines,
     defaults: DEFAULT_SEARCH_ENGINES,
     functionName: "ensureSearchEnginesInitialized",
     initializeOnEmpty: true,
     logDetails: true,
+    normalize: normalizeSearchEngines,
+    storageKey: "searchEngines",
   });
 }
 
@@ -204,12 +204,12 @@ export function ensureSearchEngineGroupsInitialized(): Promise<
   SearchEngineGroup[]
 > {
   return ensureStorageInitialized({
-    storageKey: "searchEngineGroups",
-    normalize: normalizeSearchEngineGroups,
     defaults: DEFAULT_SEARCH_ENGINE_GROUPS,
     functionName: "ensureSearchEngineGroupsInitialized",
     initializeOnEmpty: true,
     logDetails: true,
+    normalize: normalizeSearchEngineGroups,
+    storageKey: "searchEngineGroups",
   });
 }
 
@@ -222,11 +222,11 @@ export function ensureSearchEngineGroupsInitialized(): Promise<
  */
 export function ensureTextTemplatesInitialized(): Promise<TextTemplate[]> {
   return ensureStorageInitialized({
-    storageKey: "textTemplates",
     defaults: DEFAULT_TEXT_TEMPLATES,
     functionName: "ensureTextTemplatesInitialized",
     initializeOnEmpty: false,
     logDetails: false,
+    storageKey: "textTemplates",
   });
 }
 

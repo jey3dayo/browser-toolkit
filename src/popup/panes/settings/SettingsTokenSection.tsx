@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { Icon } from "@/components/icon";
 import { Button } from "@/components/shared/Button";
 import { Field } from "@/components/shared/Field";
@@ -40,16 +41,27 @@ export function SettingsTokenSection({
   clearToken,
   testToken,
 }: SettingsTokenSectionProps): React.JSX.Element {
+  const handleSaveToken = useCallback(() => {
+    saveToken().catch(() => {
+      // no-op
+    });
+  }, [saveToken]);
+
+  const handleTestToken = useCallback(() => {
+    testToken().catch(() => {
+      // no-op
+    });
+  }, [testToken]);
+
+  const handleClearToken = useCallback(() => {
+    clearToken().catch(() => {
+      // no-op
+    });
+  }, [clearToken]);
+
   return (
     <SettingsPaneCard section="token">
-      <Form
-        onFormSubmit={() => {
-          saveToken().catch(() => {
-            // no-op
-          });
-        }}
-        variant="stack"
-      >
+      <Form onFormSubmit={handleSaveToken} variant="stack">
         <Fieldset
           legend={t("settings.apiToken", {
             provider: providerConfigs[provider].label,
@@ -99,11 +111,7 @@ export function SettingsTokenSection({
           >
             <Button
               data-testid="token-save"
-              onClick={() => {
-                saveToken().catch(() => {
-                  // no-op
-                });
-              }}
+              onClick={handleSaveToken}
               size="small"
               type="button"
               variant="primary"
@@ -112,11 +120,7 @@ export function SettingsTokenSection({
             </Button>
             <Button
               data-testid="token-test"
-              onClick={() => {
-                testToken().catch(() => {
-                  // no-op
-                });
-              }}
+              onClick={handleTestToken}
               size="small"
               type="button"
               variant="ghost"
@@ -130,11 +134,7 @@ export function SettingsTokenSection({
           >
             <Button
               data-testid="token-clear"
-              onClick={() => {
-                clearToken().catch(() => {
-                  // no-op
-                });
-              }}
+              onClick={handleClearToken}
               type="button"
               variant="danger"
             >

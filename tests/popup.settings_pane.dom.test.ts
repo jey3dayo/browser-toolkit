@@ -51,7 +51,7 @@ describe("popup Settings pane", () => {
     chromeStub.runtime.sendMessage.mockImplementation(
       (message: unknown, callback: (resp: unknown) => void) => {
         chromeStub.runtime.lastError = null;
-        const action = (message as { action?: unknown }).action;
+        const { action } = message as { action?: unknown };
         if (action === "testAiToken" || action === "testOpenAiToken") {
           callback({ ok: true });
           return;

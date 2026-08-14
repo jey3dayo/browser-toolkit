@@ -113,7 +113,7 @@ function findFilesMatching(pattern: RegExp): string[] {
         pattern.test(fs.readFileSync(filePath, "utf8"))
     )
     .map(toProjectPath)
-    .sort();
+    .sort((a, b) => a.localeCompare(b));
 }
 
 function findFilesWithBaseUiImports(): string[] {
@@ -231,7 +231,7 @@ describe("shared UI primitive boundaries", () => {
       ...findFilesMatching(badgeOwnedFocusDiagnosticStatusClassPattern),
     ]
       .filter((filePath) => filePath !== "src/components/shared/Badge.tsx")
-      .sort();
+      .sort((a, b) => a.localeCompare(b));
 
     expect(offenders).toEqual([]);
   });

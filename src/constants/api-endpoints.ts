@@ -27,7 +27,7 @@ type AllowedApiOrigin = (typeof ALLOWED_API_ORIGINS)[number];
  */
 export function isAllowedApiOrigin(url: string): boolean {
   try {
-    const origin = new URL(url).origin;
+    const { origin } = new URL(url);
     return ALLOWED_API_ORIGINS.includes(origin as AllowedApiOrigin);
   } catch {
     // 無効なURL

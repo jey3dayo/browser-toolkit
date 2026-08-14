@@ -9,7 +9,37 @@ describe("background: text templates initialization", () => {
     mockStorage = {};
     mockLocalStorage = { debugMode: false };
     vi.stubGlobal("chrome", {
+      contextMenus: {
+        create: vi.fn((_, callback) => callback?.()),
+        removeAll: vi.fn((callback) => callback?.()),
+      },
+      runtime: {
+        lastError: undefined,
+      },
       storage: {
+        local: {
+          get: vi.fn((keys, callback) => {
+            const keyList = Array.isArray(keys) ? keys : [String(keys)];
+            const result: Record<string, unknown> = {};
+            for (const key of keyList) {
+              if (key in mockLocalStorage) {
+                result[key] = mockLocalStorage[key];
+              }
+            }
+            callback(result);
+          }),
+          remove: vi.fn((keys, callback) => {
+            const keyList = Array.isArray(keys) ? keys : [String(keys)];
+            for (const key of keyList) {
+              delete mockLocalStorage[key];
+            }
+            callback?.();
+          }),
+          set: vi.fn((items, callback) => {
+            Object.assign(mockLocalStorage, items);
+            callback?.();
+          }),
+        },
         sync: {
           get: vi.fn((keys, callback) => {
             const result: Partial<SyncStorageData> = {};
@@ -25,36 +55,6 @@ describe("background: text templates initialization", () => {
             callback?.();
           }),
         },
-        local: {
-          get: vi.fn((keys, callback) => {
-            const keyList = Array.isArray(keys) ? keys : [String(keys)];
-            const result: Record<string, unknown> = {};
-            for (const key of keyList) {
-              if (key in mockLocalStorage) {
-                result[key] = mockLocalStorage[key];
-              }
-            }
-            callback(result);
-          }),
-          set: vi.fn((items, callback) => {
-            Object.assign(mockLocalStorage, items);
-            callback?.();
-          }),
-          remove: vi.fn((keys, callback) => {
-            const keyList = Array.isArray(keys) ? keys : [String(keys)];
-            for (const key of keyList) {
-              delete mockLocalStorage[key];
-            }
-            callback?.();
-          }),
-        },
-      },
-      contextMenus: {
-        removeAll: vi.fn((callback) => callback?.()),
-        create: vi.fn((_, callback) => callback?.()),
-      },
-      runtime: {
-        lastError: undefined,
       },
     });
   });
@@ -122,10 +122,10 @@ describe("background: text templates initialization", () => {
     // Arrange: textTemplates has existing items
     const existingTemplates = [
       {
-        id: "template:custom",
-        title: "Custom Template",
         content: "Custom content",
         hidden: false,
+        id: "template:custom",
+        title: "Custom Template",
       },
     ];
     mockStorage = { textTemplates: existingTemplates };

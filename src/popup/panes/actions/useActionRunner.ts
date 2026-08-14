@@ -67,7 +67,10 @@ export function useActionRunner(params: {
 
   const ensureTokenReady = async (): Promise<boolean> => {
     const tokenConfigured = await ensureOpenAiTokenConfigured({
-      storageLocalGet: (keys) => params.runtime.storageLocalGet(keys),
+      focusTokenInput: params.focusTokenInput,
+      navigateToPane: (paneId) => {
+        params.navigateToPane(paneId as PaneId);
+      },
       showNotification: (messageOrOptions, type) => {
         if (typeof messageOrOptions === "string") {
           const message: string = messageOrOptions;
@@ -82,7 +85,6 @@ export function useActionRunner(params: {
         const options: NotificationOptions = messageOrOptions;
         if (type === "error") {
           params.notify.error({
-            title: options.message,
             description: options.action
               ? React.createElement(
                   Button,
@@ -94,24 +96,22 @@ export function useActionRunner(params: {
                   options.action.label
                 )
               : undefined,
+            title: options.message,
           });
           return;
         }
         params.notify.info(options.message);
       },
-      navigateToPane: (paneId) => {
-        params.navigateToPane(paneId as PaneId);
-      },
-      focusTokenInput: params.focusTokenInput,
+      storageLocalGet: (keys) => params.runtime.storageLocalGet(keys),
     });
 
     return !Result.isFailure(tokenConfigured);
   };
 
   const baseReportError = createErrorReporter({
-    notify: params.notify,
-    navigateToPane: params.navigateToPane,
     focusTokenInput: params.focusTokenInput,
+    navigateToPane: params.navigateToPane,
+    notify: params.notify,
   });
 
   const reportError = (message: string): void => {
@@ -137,17 +137,17 @@ export function useActionRunner(params: {
     setTarget(null);
 
     const tabId = await resolveActiveTabId({
-      runtime: params.runtime,
       onError: reportError,
+      runtime: params.runtime,
     });
     if (tabId === null) {
       return;
     }
 
     const summaryTarget = await fetchSummaryTargetForTab({
+      onError: reportError,
       runtime: params.runtime,
       tabId,
-      onError: reportError,
     });
     if (!summaryTarget) {
       return;
@@ -159,10 +159,10 @@ export function useActionRunner(params: {
       unknown
     >({
       action: "runContextAction",
-      tabId,
       actionId,
-      target: summaryTarget,
       source: "popup",
+      tabId,
+      target: summaryTarget,
     });
     if (Result.isFailure(responseUnknown)) {
       reportError(responseUnknown.error);
@@ -183,10 +183,10 @@ export function useActionRunner(params: {
 
     if (parsed.value.status === "ready") {
       const newEntry = {
-        id: crypto.randomUUID(),
         actionTitle: action.title,
-        text: parsed.value.text,
         createdAt: Date.now(),
+        id: crypto.randomUUID(),
+        text: parsed.value.text,
       };
       params.runtime
         .storageLocalGet(["actionHistory"])
@@ -197,15 +197,17 @@ export function useActionRunner(params: {
           const updated = [newEntry, ...existing].slice(0, 20);
           return params.runtime.storageLocalSet({ actionHistory: updated });
         })
-        .catch((error) => {
-          debugLog(
-            "useActionRunner.runAction",
-            "Failed to save action history",
-            { error },
-            "error"
-          ).catch(() => {
+        .catch(async (error) => {
+          try {
+            await debugLog(
+              "useActionRunner.runAction",
+              "Failed to save action history",
+              { error },
+              "error"
+            );
+          } catch {
             // no-op
-          });
+          }
         });
     }
   };
@@ -232,13 +234,13 @@ export function useActionRunner(params: {
   };
 
   return {
-    output,
-    target,
-    runAction,
+    canCopyOutput,
     copyOutput,
+    output,
     outputTitle,
     outputValue,
-    canCopyOutput,
+    runAction,
+    target,
     targetSourceLabel,
   };
 }

@@ -41,15 +41,17 @@ export function useCalendarTargets(params: {
       }
       const next = resolveCalendarTargets(data.value.calendarTargets);
       setTargets(next);
-    })().catch((error) => {
-      debugLog(
-        "CalendarPane.useEffect[runtime]",
-        "failed",
-        { error: formatErrorLog("", {}, error) },
-        "error"
-      ).catch(() => {
+    })().catch(async (error) => {
+      try {
+        await debugLog(
+          "CalendarPane.useEffect[runtime]",
+          "failed",
+          { error: formatErrorLog("", {}, error) },
+          "error"
+        );
+      } catch {
         // no-op
-      });
+      }
     });
     return () => {
       cancelled = true;
@@ -62,18 +64,18 @@ export function useCalendarTargets(params: {
         applyNext: () => {
           setTargets(next);
         },
-        rollback: () => {
-          setTargets(targets);
+        onFailure: () => {
+          notify.error(t("calendarPane.errors.saveFailed"));
+        },
+        onSuccess: () => {
+          notify.success(t("calendarPane.success.saved"));
         },
         persist: () =>
           runtime.storageSyncSet({
             calendarTargets: next,
           }),
-        onSuccess: () => {
-          notify.success(t("calendarPane.success.saved"));
-        },
-        onFailure: () => {
-          notify.error(t("calendarPane.errors.saveFailed"));
+        rollback: () => {
+          setTargets(targets);
         },
       });
     },
@@ -89,5 +91,5 @@ export function useCalendarTargets(params: {
     });
   };
 
-  return { targets, hasGoogle, hasIcs, toggleTarget };
+  return { hasGoogle, hasIcs, targets, toggleTarget };
 }

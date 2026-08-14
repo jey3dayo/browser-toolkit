@@ -125,7 +125,7 @@ export function setupTableAutoExec(
 
   let lastHref = window.location.href;
   window.setInterval(() => {
-    const href = window.location.href;
+    const { href } = window.location;
     if (href === lastHref) {
       return;
     }

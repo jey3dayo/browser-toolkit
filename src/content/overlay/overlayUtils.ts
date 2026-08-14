@@ -57,11 +57,11 @@ export function deriveSecondaryText(secondary: string): {
   secondaryText: string;
 } {
   const selectionSplit = splitSelectionSecondary(secondary);
-  const selectionText = selectionSplit.selectionText;
+  const { selectionText } = selectionSplit;
   const secondaryText = selectionText
     ? selectionSplit.remainder
     : secondary.trim();
-  return { selectionText, secondaryText };
+  return { secondaryText, selectionText };
 }
 
 /**
@@ -122,21 +122,21 @@ function splitSelectionSecondary(secondary: string): {
   const raw = secondary.trim();
   const match = raw.match(SELECTION_SECONDARY_REGEX);
   if (!match) {
-    return { selectionText: "", remainder: raw };
+    return { remainder: raw, selectionText: "" };
   }
 
   const afterPrefix = (match[1] ?? "").trim();
   if (!afterPrefix) {
-    return { selectionText: "", remainder: "" };
+    return { remainder: "", selectionText: "" };
   }
 
   const tokenHintMarker = "\n\nOpenAI API Token未設定の場合は、";
   const markerIndex = afterPrefix.indexOf(tokenHintMarker);
   if (markerIndex < 0) {
-    return { selectionText: afterPrefix, remainder: "" };
+    return { remainder: "", selectionText: afterPrefix };
   }
 
   const selectionText = afterPrefix.slice(0, markerIndex).trim();
   const remainder = afterPrefix.slice(markerIndex + 2).trim();
-  return { selectionText, remainder };
+  return { remainder, selectionText };
 }

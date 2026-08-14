@@ -4,7 +4,6 @@ export const overlayClassNames = {
   auxSummary: "mbu-overlay-aux-summary",
   body: "mbu-overlay-body",
   bodyActions: "mbu-overlay-body-actions",
-  chip: "mbu-overlay-chip",
   chat: "mbu-overlay-chat",
   chatInputRow: "mbu-overlay-chat-input-row",
   chatMessage: (role: "assistant" | "user") =>
@@ -16,6 +15,7 @@ export const overlayClassNames = {
   chatScrollerRoot: "mbu-overlay-chat-scroller",
   chatScrollerSpacer: "mbu-overlay-chat-scroller-spacer",
   chatScrollerViewport: "mbu-overlay-chat-scroller-viewport",
+  chip: "mbu-overlay-chip",
   eventTable: "mbu-overlay-event-table",
   header: "mbu-overlay-header",
   headerLeft: "mbu-overlay-header-left",

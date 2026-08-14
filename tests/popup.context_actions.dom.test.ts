@@ -36,9 +36,9 @@ describe("popup context actions (React UI)", () => {
             contextActions: [
               {
                 id: "builtin:summarize",
-                title: "要約",
                 kind: "text",
                 prompt: "{{text}}",
+                title: "要約",
               },
             ],
           });
@@ -70,13 +70,13 @@ describe("popup context actions (React UI)", () => {
     chromeStub.runtime.sendMessage.mockImplementation(
       (message: unknown, callback: (resp: unknown) => void) => {
         chromeStub.runtime.lastError = null;
-        const action = (message as { action?: unknown }).action;
+        const { action } = message as { action?: unknown };
         if (action === "runContextAction") {
           callback(
             Result.succeed({
               resultType: "text",
-              text: "summary",
               source: "selection",
+              text: "summary",
             })
           );
           return;

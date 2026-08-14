@@ -40,7 +40,8 @@ export function useTemplatesState(params: {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+
+    const loadTemplates = async (): Promise<void> => {
       const data = await runtime.storageSyncGet(["textTemplates"]);
       if (cancelled) {
         return;
@@ -55,16 +56,23 @@ export function useTemplatesState(params: {
       const templatesResult =
         existing.length > 0 ? existing : DEFAULT_TEXT_TEMPLATES;
       setTemplates(templatesResult);
-    })().catch((error) => {
-      debugLog(
-        "TemplatesPane.useEffect[props.runtime]",
-        "failed",
-        { error: formatErrorLog("", {}, error) },
-        "error"
-      ).catch(() => {
+    };
+
+    const reportLoadFailure = async (error: unknown): Promise<void> => {
+      try {
+        await debugLog(
+          "TemplatesPane.useEffect[props.runtime]",
+          "failed",
+          { error: formatErrorLog("", {}, error) },
+          "error"
+        );
+      } catch {
         // no-op
-      });
-    });
+      }
+    };
+
+    loadTemplates().catch(reportLoadFailure);
+
     return () => {
       cancelled = true;
     };
@@ -88,12 +96,12 @@ export function useTemplatesState(params: {
       applyNext: () => {
         setTemplates(next);
       },
-      rollback: () => {
-        setTemplates(templates);
-      },
-      persist: () => saveTemplates(next),
       onFailure: () => {
         notify.error(t("templatesPane.errors.saveFailed"));
+      },
+      persist: () => saveTemplates(next),
+      rollback: () => {
+        setTemplates(templates);
       },
     });
   };
@@ -118,22 +126,22 @@ export function useTemplatesState(params: {
 
   const parseTemplateInput = (): { title: string; content: string } | null => {
     const title = requireTrimmedString({
-      value: titleInput,
       emptyMessage: t("templatesPane.errors.titleRequired"),
       notify,
+      value: titleInput,
     });
     if (!title) {
       return null;
     }
     const content = requireTrimmedString({
-      value: contentInput,
       emptyMessage: t("templatesPane.errors.contentRequired"),
       notify,
+      value: contentInput,
     });
     if (!content) {
       return null;
     }
-    return { title, content };
+    return { content, title };
   };
 
   const buildNextTemplates = (params2: {
@@ -153,10 +161,10 @@ export function useTemplatesState(params: {
         return Result.fail(t("templatesPane.errors.duplicateTitle"));
       }
       const newTemplate: TextTemplate = {
-        id,
-        title: params2.title,
         content: params2.content,
         hidden: false,
+        id,
+        title: params2.title,
       };
       return Result.succeed({
         next: [...templates, newTemplate],
@@ -167,7 +175,7 @@ export function useTemplatesState(params: {
     return Result.succeed({
       next: templates.map((template) =>
         template.id === editingId
-          ? { ...template, title: params2.title, content: params2.content }
+          ? { ...template, content: params2.content, title: params2.title }
           : template
       ),
       successMessage: t("templatesPane.success.updated"),
@@ -183,15 +191,15 @@ export function useTemplatesState(params: {
         setTemplates(next);
         cancelEdit();
       },
-      rollback: () => {
-        setTemplates(templates);
+      onFailure: () => {
+        notify.error(t("templatesPane.errors.saveFailed"));
       },
-      persist: () => saveTemplates(next),
       onSuccess: () => {
         notify.success(successMessage);
       },
-      onFailure: () => {
-        notify.error(t("templatesPane.errors.saveFailed"));
+      persist: () => saveTemplates(next),
+      rollback: () => {
+        setTemplates(templates);
       },
     });
   };
@@ -223,15 +231,15 @@ export function useTemplatesState(params: {
           cancelEdit();
         }
       },
-      rollback: () => {
-        setTemplates(templates);
+      onFailure: () => {
+        notify.error(t("templatesPane.errors.deleteFailed"));
       },
-      persist: () => saveTemplates(next),
       onSuccess: () => {
         notify.success(t("templatesPane.success.deleted"));
       },
-      onFailure: () => {
-        notify.error(t("templatesPane.errors.deleteFailed"));
+      persist: () => saveTemplates(next),
+      rollback: () => {
+        setTemplates(templates);
       },
     });
   };
@@ -242,15 +250,15 @@ export function useTemplatesState(params: {
         setTemplates(DEFAULT_TEXT_TEMPLATES);
         cancelEdit();
       },
-      rollback: () => {
-        setTemplates(templates);
+      onFailure: () => {
+        notify.error(t("templatesPane.errors.resetFailed"));
       },
-      persist: () => saveTemplates(DEFAULT_TEXT_TEMPLATES),
       onSuccess: () => {
         notify.success(t("templatesPane.success.reset"));
       },
-      onFailure: () => {
-        notify.error(t("templatesPane.errors.resetFailed"));
+      persist: () => saveTemplates(DEFAULT_TEXT_TEMPLATES),
+      rollback: () => {
+        setTemplates(templates);
       },
     });
   };
@@ -262,33 +270,33 @@ export function useTemplatesState(params: {
       applyNext: () => {
         setTemplates(reorderedTemplates);
       },
-      rollback: () => {
-        setTemplates(templates);
+      onFailure: () => {
+        notify.error(t("templatesPane.errors.reorderFailed"));
       },
-      persist: () => saveTemplates(reorderedTemplates),
       onSuccess: () => {
         notify.success(t("templatesPane.success.reordered"));
       },
-      onFailure: () => {
-        notify.error(t("templatesPane.errors.reorderFailed"));
+      persist: () => saveTemplates(reorderedTemplates),
+      rollback: () => {
+        setTemplates(templates);
       },
     });
   };
 
   return {
-    templates,
-    editingId,
-    titleInput,
-    contentInput,
-    setTitleInput,
-    setContentInput,
-    toggleTemplateHidden,
-    startEdit,
-    startNew,
     cancelEdit,
-    saveEdit,
+    contentInput,
+    editingId,
+    handleReorder,
     removeTemplate,
     resetToDefaults,
-    handleReorder,
+    saveEdit,
+    setContentInput,
+    setTitleInput,
+    startEdit,
+    startNew,
+    templates,
+    titleInput,
+    toggleTemplateHidden,
   };
 }

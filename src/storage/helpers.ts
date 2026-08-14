@@ -25,8 +25,8 @@ export function storageSyncGet<T = unknown>(
       if (err) {
         resolve(
           Result.fail({
-            type: "runtime-error",
             message: err.message ?? "Unknown error",
+            type: "runtime-error",
           })
         );
         return;
@@ -55,8 +55,8 @@ export function storageLocalGet<T = unknown>(
       if (err) {
         resolve(
           Result.fail({
-            type: "runtime-error",
             message: err.message ?? "Unknown error",
+            type: "runtime-error",
           })
         );
         return;
@@ -85,8 +85,8 @@ export function storageLocalSet(
       if (err) {
         resolve(
           Result.fail({
-            type: "runtime-error",
             message: err.message ?? "Unknown error",
+            type: "runtime-error",
           })
         );
         return;

@@ -18,21 +18,21 @@ export type ContextAction = {
 export const DEFAULT_CONTEXT_ACTIONS: ContextAction[] = [
   {
     id: "builtin:summarize",
-    title: "要約",
     kind: "text",
     prompt: SUMMARIZE_PROMPT,
+    title: "要約",
   },
   {
     id: "builtin:translate-ja",
-    title: "日本語に翻訳",
     kind: "text",
     prompt: TRANSLATE_JA_PROMPT,
+    title: "日本語に翻訳",
   },
   {
     id: "builtin:code-review",
-    title: "コードレビュー",
     kind: "text",
     prompt: CODE_REVIEW_PROMPT,
+    title: "コードレビュー",
   },
 ];
 
@@ -50,7 +50,7 @@ function coerceContextAction(value: unknown): ContextAction | null {
   switch (raw.kind) {
     case "event":
     case "text":
-      return { id, title, kind: raw.kind, prompt };
+      return { id, kind: raw.kind, prompt, title };
     default:
       return null;
   }

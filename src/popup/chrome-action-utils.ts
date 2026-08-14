@@ -12,10 +12,10 @@ export function canUseChromeAction(runtime: {
 
 export function clearActionBadgeForTab(tabId: number): void {
   try {
-    chrome.action.setBadgeText({ text: "", tabId });
+    chrome.action.setBadgeText({ tabId, text: "" });
     chrome.action.setTitle({
-      title: APP_NAME,
       tabId,
+      title: APP_NAME,
     });
   } catch {
     // no-op

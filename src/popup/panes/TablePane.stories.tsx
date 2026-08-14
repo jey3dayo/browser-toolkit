@@ -10,13 +10,13 @@ function TablePaneStory(props: PopupPaneBaseProps): React.JSX.Element {
 }
 
 const meta = {
-  title: "Popup/Panes/Table",
+  argTypes: {
+    notify: { control: false },
+    runtime: { control: false },
+  },
   component: TablePaneStory,
   tags: ["test"],
-  argTypes: {
-    runtime: { control: false },
-    notify: { control: false },
-  },
+  title: "Popup/Panes/Table",
 } satisfies Meta<typeof TablePaneStory>;
 
 export default meta;
@@ -24,11 +24,11 @@ type Story = StoryObj<typeof meta>;
 
 export const Basic: Story = {
   args: {
+    notify: { error: fn(), info: fn(), success: fn() },
     runtime: createStoryPopupRuntime({
-      sync: { domainPatternConfigs: [] },
       activeTabId: 1,
+      sync: { domainPatternConfigs: [] },
     }),
-    notify: { info: fn(), success: fn(), error: fn() },
   },
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);
@@ -53,26 +53,26 @@ export const Basic: Story = {
 
 export const Populated: Story = {
   args: {
+    notify: { error: fn(), info: fn(), success: fn() },
     runtime: createStoryPopupRuntime({
-      sync: {
-        domainPatternConfigs: [
-          { pattern: "example.com/foo*", enableRowFilter: true },
-          { pattern: "example.com/bar*", enableRowFilter: false },
-        ],
-        focusOverridePatterns: ["example.com/reader/*", "example.com/book/*"],
-      },
       activeTab: {
         id: 7,
         title: "Reader",
         url: "https://example.com/reader/42",
       },
       focusOverrideDiagnostic: {
+        hasFocus: true,
+        hidden: false,
         markerPresent: true,
         visibilityState: "visible",
-        hidden: false,
-        hasFocus: true,
+      },
+      sync: {
+        domainPatternConfigs: [
+          { enableRowFilter: true, pattern: "example.com/foo*" },
+          { enableRowFilter: false, pattern: "example.com/bar*" },
+        ],
+        focusOverridePatterns: ["example.com/reader/*", "example.com/book/*"],
       },
     }),
-    notify: { info: fn(), success: fn(), error: fn() },
   },
 };

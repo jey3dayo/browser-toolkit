@@ -4,8 +4,8 @@ import type { Theme } from "@/ui/theme";
 const THEME_SEQUENCE: Theme[] = ["auto", "light", "dark"];
 const THEME_LABEL_KEYS: Record<Theme, TranslationKey> = {
   auto: "theme.auto",
-  light: "theme.light",
   dark: "theme.dark",
+  light: "theme.light",
 };
 
 export function themeLabel(theme: Theme): string {

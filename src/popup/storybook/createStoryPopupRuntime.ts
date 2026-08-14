@@ -55,19 +55,19 @@ function createInMemoryStorageArea<T extends Record<string, unknown>>(
       }
       return Promise.resolve(result);
     },
+    remove: (keys) => {
+      const list = Array.isArray(keys) ? keys : [keys];
+      for (const key of list) {
+        data.delete(String(key));
+      }
+      return Promise.resolve();
+    },
     set: (items) => {
       for (const [key, value] of Object.entries(items)) {
         if (typeof value === "undefined") {
           continue;
         }
         data.set(key, value);
-      }
-      return Promise.resolve();
-    },
-    remove: (keys) => {
-      const list = Array.isArray(keys) ? keys : [keys];
-      for (const key of list) {
-        data.delete(String(key));
       }
       return Promise.resolve();
     },
@@ -84,7 +84,7 @@ function getMessageAction(message: unknown): unknown {
 export function createStoryPopupRuntime(options: Options = {}): PopupRuntime {
   let activeTab: ActiveTabInfo | null;
   if (typeof options.activeTab !== "undefined") {
-    activeTab = options.activeTab;
+    ({ activeTab } = options);
   } else if (options.activeTabId === null) {
     activeTab = null;
   } else {
@@ -98,34 +98,31 @@ export function createStoryPopupRuntime(options: Options = {}): PopupRuntime {
   const local = createInMemoryStorageArea<LocalStorageData>(options.local);
 
   return {
-    isExtensionPage: false,
-    storageSyncGet: async (keys) => Result.succeed(await sync.get(keys)),
-    storageSyncSet: async (items) => {
-      await sync.set(items);
-      return Result.succeed();
-    },
-    storageLocalGet: async (keys) => Result.succeed(await local.get(keys)),
-    storageLocalSet: async (items) => {
-      await local.set(items);
-      return Result.succeed();
-    },
-    storageLocalRemove: async (keys) => {
-      await local.remove(keys);
-      return Result.succeed();
-    },
-    getActiveTab: async () => Result.succeed(activeTab),
-    getActiveTabId: async () => Result.succeed(activeTab?.id ?? null),
-    matchesFocusOverridePatterns: (patterns, url) =>
-      matchesAnyPattern(patterns, url),
     diagnoseFocusOverride: async () =>
       Result.succeed(
         options.focusOverrideDiagnostic ?? {
+          hasFocus: true,
+          hidden: false,
           markerPresent: false,
           visibilityState: "visible",
-          hidden: false,
-          hasFocus: true,
         }
       ),
+    getActiveTab: async () => Result.succeed(activeTab),
+    getActiveTabId: async () => Result.succeed(activeTab?.id ?? null),
+    isExtensionPage: false,
+    matchesFocusOverridePatterns: (patterns, url) =>
+      matchesAnyPattern(patterns, url),
+    openUrl: (url) => {
+      try {
+        const trimmed = url.trim();
+        if (!trimmed) {
+          return;
+        }
+        window.open(trimmed, "_blank", "noopener,noreferrer");
+      } catch {
+        // no-op
+      }
+    },
     reloadTab: async () => Result.succeed(),
     sendMessageToBackground: async (message) => {
       const action = getMessageAction(message);
@@ -172,22 +169,25 @@ export function createStoryPopupRuntime(options: Options = {}): PopupRuntime {
     sendMessageToTab: async () =>
       Result.succeed(
         (options.summaryTarget ?? {
-          text: "storybook summary target",
           source: "selection",
+          text: "storybook summary target",
           title: "storybook title",
           url: "https://example.com",
         }) as never
       ),
-    openUrl: (url) => {
-      try {
-        const trimmed = url.trim();
-        if (!trimmed) {
-          return;
-        }
-        window.open(trimmed, "_blank", "noopener,noreferrer");
-      } catch {
-        // no-op
-      }
+    storageLocalGet: async (keys) => Result.succeed(await local.get(keys)),
+    storageLocalRemove: async (keys) => {
+      await local.remove(keys);
+      return Result.succeed();
+    },
+    storageLocalSet: async (items) => {
+      await local.set(items);
+      return Result.succeed();
+    },
+    storageSyncGet: async (keys) => Result.succeed(await sync.get(keys)),
+    storageSyncSet: async (items) => {
+      await sync.set(items);
+      return Result.succeed();
     },
   };
 }

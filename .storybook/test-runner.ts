@@ -2,9 +2,6 @@ import type { TestRunnerConfig } from "@storybook/test-runner";
 import { toMatchImageSnapshot } from "jest-image-snapshot";
 
 const config: TestRunnerConfig = {
-  setup() {
-    expect.extend({ toMatchImageSnapshot });
-  },
   async postVisit(page, context) {
     // Skip visual regression for certain stories if needed
     // Can be controlled via story parameters in the future
@@ -15,8 +12,8 @@ const config: TestRunnerConfig = {
 
     const lightImage = await page.screenshot({ fullPage: true });
     expect(lightImage).toMatchImageSnapshot({
-      customSnapshotsDir: "__snapshots__",
       customSnapshotIdentifier: `${context.id}-light`,
+      customSnapshotsDir: "__snapshots__",
       failureThreshold: 0.01, // 1% difference tolerance
       failureThresholdType: "percent",
     });
@@ -27,11 +24,14 @@ const config: TestRunnerConfig = {
 
     const darkImage = await page.screenshot({ fullPage: true });
     expect(darkImage).toMatchImageSnapshot({
-      customSnapshotsDir: "__snapshots__",
       customSnapshotIdentifier: `${context.id}-dark`,
+      customSnapshotsDir: "__snapshots__",
       failureThreshold: 0.01, // 1% difference tolerance
       failureThresholdType: "percent",
     });
+  },
+  setup() {
+    expect.extend({ toMatchImageSnapshot });
   },
 };
 
