@@ -3,16 +3,16 @@ version: 1.0.0
 description: APM project for browser-toolkit
 author: jey3dayo
 targets:
-- codex
+  - codex
 dependencies:
   apm: []
   mcp:
-  - name: chrome-devtools
-    registry: false
-    transport: stdio
-    command: npx
-    args:
-    - -y
-    - chrome-devtools-mcp@latest
+    - name: chrome-devtools
+      registry: false
+      transport: stdio
+      command: npx
+      args:
+        - -y
+        - chrome-devtools-mcp@latest
 includes: auto
 scripts: {}
