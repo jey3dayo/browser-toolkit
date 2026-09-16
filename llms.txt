@@ -24,15 +24,12 @@
 ## Docs
 
 - [README](README.md): 機能概要・インストール・開発コマンド・プライバシー方針
-- [CLAUDE.md](CLAUDE.md): Claude / AI エージェント向け開発ガイド
+- [CLAUDE.md](CLAUDE.md): Claude / AI エージェント向け開発ガイド。Source Of Truth 表が各対象の正本を定める
 - [docs/architecture.md](docs/architecture.md): アーキテクチャ設計（ランタイム境界、AI 統一 I/F、Result 型）
 - [docs/context-actions.md](docs/context-actions.md): Context Actions の詳細
 - [docs/style-management.md](docs/style-management.md): Design Tokens / テーマ管理
 - [docs/icon-setup.md](docs/icon-setup.md): アイコン作成手順
 - [docs/e2e-test-checklist.md](docs/e2e-test-checklist.md): E2E テスト項目
-- [.kiro/steering/tech.md](.kiro/steering/tech.md): 技術スタックの正本
-- [.kiro/steering/product.md](.kiro/steering/product.md): プロダクト仕様の正本
-- [.kiro/steering/structure.md](.kiro/steering/structure.md): コードベース構造の正本
 - [.claude/rules/development.md](.claude/rules/development.md): コーディング規約
 - [.claude/rules/security.md](.claude/rules/security.md): セキュリティガイドライン（XSS 対策、APIトークン、CSP）
 

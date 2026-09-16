@@ -8,7 +8,7 @@ This file defines how Browser Toolkit UI design work is reviewed and where desig
 
 Use this guide for popup UI, shared React primitives, Storybook stories, Shadow DOM overlays, toasts, and content-script UI that appears on a web page.
 
-This guide does not replace `CLAUDE.md`, `.kiro/steering/*`, `docs/style-management.md`, or the CSS token implementation in `src/styles/tokens/`.
+This guide does not replace `CLAUDE.md`, `docs/style-management.md`, or the CSS token implementation in `src/styles/tokens/`.
 
 ## Routing Rules
 
@@ -26,7 +26,7 @@ Storybook UI reference is required for reusable visual behavior. A shared compon
 
 Review in this order:
 
-1. `CLAUDE.md` and relevant `.kiro/steering/*` source-of-truth documents.
+1. `CLAUDE.md`, including its Source Of Truth table, and the owner documents it names.
 2. `DESIGN.md` for visual system rules.
 3. `docs/style-management.md`, `src/styles/tokens/`, and shared primitives for implementation source.
 4. Storybook stories for current rendered reference states.
