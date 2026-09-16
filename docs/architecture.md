@@ -425,6 +425,18 @@ function handleTestAiTokenRequest(
 
 ---
 
+## ストレージ書き込みと quota fallback
+
+`storageSyncSet`（`src/background/storage.ts`）は保存前に `checkStorageQuota` を通し、
+per-item quota（`QUOTA_BYTES_PER_ITEM` = 8KB）を超えるキーがあると、そのキーだけ
+`chrome.storage.local` へ退避して警告ログと通知を出します。sync が満杯でも保存自体は
+失敗しませんが、**そのキーはデバイス間で同期されなくなります**。
+
+そのため、伸び続ける配列を sync へ置く設計は quota 到達時に黙って local へ落ちます。
+恒久的に大きくなるデータは、最初から保存先と上限を決めてください。
+
+---
+
 ## ストレージマイグレーション運用
 
 `src/storage/migrations.ts` は、拡張機能の install/update 時に `runMigrations()` から順番に実行されます。schema version と migration log は `chrome.storage.local` の reserved key で管理し、migration 前には `chrome.storage.sync` と `chrome.storage.local` の両方を backup します。
