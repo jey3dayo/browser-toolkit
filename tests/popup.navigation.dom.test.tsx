@@ -130,6 +130,12 @@ describe("popup navigation (React + Base UI Tabs)", () => {
       ".mbu-drawer-backdrop"
     );
     await act(async () => {
+      backdrop?.dispatchEvent(
+        new dom.window.PointerEvent("pointerdown", { bubbles: true })
+      );
+      backdrop?.dispatchEvent(
+        new dom.window.PointerEvent("pointerup", { bubbles: true })
+      );
       backdrop?.dispatchEvent(new dom.window.Event("click", { bubbles: true }));
       await flush(dom.window);
     });
