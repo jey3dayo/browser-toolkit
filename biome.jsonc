@@ -17,6 +17,9 @@
         "noSvgWithoutTitle": "off"
       },
       "style": {
+        // 宣言が重複しない :last-child / 入れ子セレクタの順序まで検知するため、
+        // src/styles の token 階層では構造的に誤検知になる
+        "noDescendingSpecificity": "off",
         "useConsistentTypeDefinitions": "off",
         "useFilenamingConvention": "off"
       }
