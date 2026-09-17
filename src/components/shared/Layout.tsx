@@ -69,7 +69,9 @@ export function PatternInputRow({
 }
 
 export function PaneCard({ className, ...props }: DivProps): React.JSX.Element {
-  return <div className={cva("card card-stack")({ className })} {...props} />;
+  return (
+    <div className={cva("pane-surface card-stack")({ className })} {...props} />
+  );
 }
 
 export function OutputPanel({

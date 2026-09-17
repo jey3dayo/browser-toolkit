@@ -1,5 +1,4 @@
 import { PaneCard } from "@/components/shared/Layout";
-import { Separator } from "@/components/shared/Separator";
 import { Hint, PaneTitle } from "@/components/shared/Typography";
 import { t } from "@/i18n";
 import { SettingsModelSection } from "@/popup/panes/settings/SettingsModelSection";
@@ -61,8 +60,6 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
         setModel={state.setModel}
       />
 
-      <Separator />
-
       <SettingsPromptSection
         clearPrompt={state.clearPrompt}
         customPrompt={state.customPrompt}
@@ -70,8 +67,6 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
         savePrompt={state.savePrompt}
         setCustomPrompt={state.setCustomPrompt}
       />
-
-      <Separator />
 
       <SettingsThemeSection
         saveTheme={state.saveTheme}

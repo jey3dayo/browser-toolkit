@@ -304,7 +304,7 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
       </section>
 
       {/* デバッグモード設定 */}
-      <section className="card settings-card settings-pane-card">
+      <section className="settings-pane-card">
         <Fieldset legend={t("debug.mode")} spacing="stack">
           <SwitchField
             checked={debugMode}
@@ -329,7 +329,7 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
       </section>
 
       {/* 検索結果ブロック診断 */}
-      <section className="card settings-card settings-pane-card">
+      <section className="settings-pane-card">
         <Fieldset legend={t("debug.searchBlocklist.title")} spacing="stack">
           {searchBlocklistDiagnostics.status === "ready" && (
             <Stack spacing="small">
@@ -366,7 +366,7 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
       {debugMode && (
         <>
           {/* ログ操作 */}
-          <section className="card settings-card settings-pane-card">
+          <section className="settings-pane-card">
             <Fieldset legend={t("debug.logActions")} spacing="stack">
               <ButtonRow>
                 <Button

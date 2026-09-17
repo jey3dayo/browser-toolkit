@@ -1,7 +1,10 @@
 import { Field } from "@base-ui/react/field";
 import { Radio } from "@base-ui/react/radio";
 import { RadioGroup } from "@base-ui/react/radio-group";
+import { cva } from "class-variance-authority";
 import { Fieldset } from "@/components/shared/Fieldset";
+
+const radioOptionsVariants = cva("mbu-radio-options");
 
 export type RadioFieldsetOption = {
   label: React.ReactNode;
@@ -41,7 +44,7 @@ export function RadioFieldset(props: RadioFieldsetProps): React.JSX.Element {
       >
         {props.groups.map((group) => (
           <div
-            className={group.className}
+            className={radioOptionsVariants({ className: group.className })}
             data-testid={group.testId}
             key={group.options.map((option) => option.value).join(":")}
           >

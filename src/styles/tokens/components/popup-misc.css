@@ -1,9 +1,16 @@
 .table-pane {
-  gap: 18px;
+  gap: var(--spacing-sm);
 }
 
 .table-pane-header {
-  gap: 14px;
+  gap: var(--spacing-xs);
+}
+
+.table-pane-status {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  color: var(--text-sub);
 }
 
 .table-pane-heading {
@@ -16,108 +23,15 @@
   min-width: 0;
 }
 
-.table-pane-summary {
-  display: grid;
-  gap: 14px;
-  padding: 16px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in oklab, var(--color-primary) 18%, transparent),
-    color-mix(in oklab, var(--color-primary-strong) 14%, transparent)
-  );
-  border: 1px solid color-mix(in oklab, var(--color-primary) 18%, var(--line));
-  border-radius: var(--radius-lg);
-}
-
-.table-pane-summary-heading {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: flex-start;
-  justify-content: space-between;
-}
-
-.table-pane-summary-heading > .stack-sm {
-  flex: 1;
-  min-width: 0;
-}
-
-.table-pane-summary-title,
-.table-pane-summary-copy,
-.table-pane-summary-label,
-.table-pane-summary-value,
-.table-pane-summary-meta {
-  margin: 0;
-}
-
-.table-pane-summary-title {
-  font-size: var(--font-size-md);
-  font-weight: 700;
-  line-height: 1.5;
-  color: var(--text);
-}
-
-.table-pane-summary-copy {
-  font-size: var(--font-size-sm);
-  line-height: 1.55;
-  color: var(--text-sub);
-}
-
-.table-pane-summary-status {
-  align-self: start;
-}
-
-.table-pane-summary-grid {
-  display: grid;
-  gap: 10px;
-}
-
-.table-pane-summary-item {
-  display: grid;
-  gap: 6px;
-  padding: 12px;
-  background: var(--primitive-alpha-white-04);
-  border: 1px solid var(--primitive-alpha-white-10);
-  border-radius: var(--radius-lg);
-}
-
-.table-pane-summary-label {
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  color: var(--text-sub);
-  text-transform: uppercase;
-  letter-spacing: 0.7px;
-}
-
-.table-pane-summary-value {
-  font-size: var(--font-size-md);
-  font-weight: 700;
-  line-height: 1.4;
-  color: var(--text);
-}
-
-.table-pane-summary-meta {
-  font-size: var(--font-size-sm);
-  line-height: 1.55;
-  color: var(--text-sub);
-}
-
-.table-pane-summary-meta code {
-  padding: 1px 6px;
-  font-size: var(--font-size-xs);
-  background: var(--primitive-alpha-white-08);
-  border: 1px solid var(--primitive-alpha-white-10);
-  border-radius: var(--radius-sm);
-}
-
 .table-pane-section {
   display: grid;
-  gap: 12px;
-  padding: 16px;
-  background: color-mix(in oklab, var(--panel-soft) 92%, transparent);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  box-shadow: inset 0 1px 0 var(--primitive-alpha-white-03);
+  gap: var(--spacing-sm);
+  padding: 0;
+}
+
+.table-pane-section + .table-pane-section {
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 .table-pane-section-heading {
@@ -139,12 +53,8 @@
 .pattern-list {
   position: relative;
   max-height: 320px;
-  padding: 8px;
+  padding: 0;
   margin: 0;
-  background: var(--primitive-alpha-white-03);
-  border: 1px dashed var(--line);
-  border-radius: var(--radius-lg);
-  box-shadow: inset 0 1px 0 var(--primitive-alpha-white-03);
 }
 
 .pattern-scrollarea {
@@ -191,14 +101,11 @@
 
 .pattern-item {
   display: grid;
-  gap: 10px;
+  gap: var(--spacing-sm);
   align-items: center;
   min-height: 48px;
-  padding: 10px 12px;
-  margin-bottom: 8px;
-  background: color-mix(in oklab, var(--panel) 92%, transparent);
-  border: 1px solid color-mix(in oklab, var(--line) 92%, transparent);
-  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .pattern-item--with-toggle {
@@ -210,7 +117,7 @@
 }
 
 .pattern-item:last-child {
-  margin-bottom: 0;
+  border-bottom: none;
 }
 
 .pattern-text {
@@ -467,14 +374,7 @@ input[type="checkbox"] {
 }
 
 .settings-surface {
-  gap: 16px;
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--panel) 98%, transparent),
-      color-mix(in oklab, var(--panel-soft) 82%, transparent)
-    ),
-    var(--panel);
+  gap: var(--spacing-md);
 }
 
 .settings-surface-heading {
@@ -537,12 +437,17 @@ input[type="checkbox"] {
 
 .settings-pane-card {
   display: grid;
-  gap: 12px;
-  padding: var(--card-padding);
-  background: color-mix(in oklab, var(--panel) 96%, transparent);
-  border: 1px solid color-mix(in oklab, var(--line) 92%, transparent);
-  border-radius: var(--radius-lg);
+  gap: var(--spacing-sm);
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
   box-shadow: none;
+}
+
+.settings-pane-card + .settings-pane-card {
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 .settings-pane-card > .field,
@@ -602,12 +507,19 @@ input[type="checkbox"] {
   color: var(--text);
 }
 
-.settings-pane-card[data-section="provider"] .mbu-radio-group--horizontal {
-  gap: 8px;
+.settings-pane-card .mbu-radio-group--horizontal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm) var(--spacing-lg);
+  align-items: center;
+}
+
+.settings-pane-card .mbu-radio-group--horizontal > .mbu-fieldset-legend {
+  flex-basis: 100%;
 }
 
 .settings-pane-card[data-section="token"] {
-  gap: 14px;
+  gap: var(--spacing-md);
 }
 
 /* Buttons size to their label. Stretching 保存 across half the card made the
@@ -621,43 +533,21 @@ input[type="checkbox"] {
 
 .settings-pane-card .settings-token-danger-actions {
   display: flex;
-  justify-content: flex-start;
+  margin-left: auto;
 }
 
 .settings-pane-card[data-section="prompt"] {
-  gap: 14px;
+  gap: var(--spacing-md);
 }
 
 .settings-pane-card[data-section="theme"] {
-  gap: 14px;
-}
-
-.settings-pane-card[data-section="theme"] .mbu-radio-group--horizontal {
-  grid-template-columns: minmax(0, 1fr);
-  grid-auto-flow: row;
-  gap: 10px;
-}
-
-.settings-pane-card .settings-theme-primary-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 20px;
-}
-
-.settings-pane-card .settings-theme-auto-option {
-  display: grid;
-  gap: 8px;
-  padding-top: 2px;
-}
-
-.settings-pane-card[data-section="theme"] .mbu-radio-label {
-  align-items: flex-start;
+  gap: var(--spacing-md);
 }
 
 .calendar-settings-pane .settings-pane-card,
 .debug-settings-pane .settings-pane-card,
 .templates-settings-pane .settings-pane-card {
-  gap: 14px;
+  gap: var(--spacing-md);
 }
 
 .calendar-settings-pane .button-row,
@@ -676,12 +566,6 @@ input[type="checkbox"] {
 
 .templates-settings-pane .row-between > .btn {
   flex-shrink: 0;
-}
-
-@media (min-width: 720px) {
-  .table-pane-summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 .mbu-build-error {

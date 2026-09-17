@@ -14,7 +14,7 @@ export type SettingsPaneCardProps = {
   section: SettingsPaneCardSection;
 };
 
-const settingsPaneCardClassName = cva("card settings-card settings-pane-card");
+const settingsPaneCardClassName = cva("settings-pane-card");
 const settingsPaneOverviewClassName = cva("stack-sm settings-pane-overview");
 
 export function SettingsPaneCard({
@@ -71,12 +71,3 @@ export function SettingsTokenActionRow({
     />
   );
 }
-
-export const settingsThemeOptionGroupVariants = cva("stack-sm", {
-  variants: {
-    variant: {
-      auto: "settings-theme-auto-option",
-      primary: "settings-theme-primary-options",
-    },
-  },
-});

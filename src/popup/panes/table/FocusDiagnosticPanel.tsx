@@ -139,7 +139,7 @@ export function FocusDiagnosticPanel({
               data-testid="focus-diagnostic-status"
               variant={focusDiagnosticBadgeVariant}
             >
-              {focusDiagnostic?.label ?? t("tablePane.summary.pending")}
+              {focusDiagnostic?.label ?? t("tablePane.diagnostic.pending")}
             </Badge>
             <FocusDiagnosticUrl data-testid="focus-diagnostic-summary">
               {focusDiagnostic?.currentUrl ??

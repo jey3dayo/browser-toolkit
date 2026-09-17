@@ -566,6 +566,7 @@ export const resources = {
             notConfigured: "現在のタブはフォーカス維持の対象外です",
             reloadRequired: "現在のタブでは再読み込みで反映されます",
           },
+          pending: "診断待ち",
           pendingUrl: "現在のURLを確認しています",
           refresh: "再診断",
           reload: "このタブを再読み込み",
@@ -597,25 +598,16 @@ export const resources = {
           aria: "{{pattern}}の行フィルタリング",
           tooltip: "0円・ハイフン・空白・N/A の行を非表示にします",
         },
+        status: {
+          focus: "フォーカス維持 {{count}} 件",
+          urlPatterns: "自動ソート {{count}} 件",
+        },
         success: {
           added: "追加しました",
           addedReload: "追加しました。このタブでは再読み込みで反映されます",
           deleted: "削除しました",
           enabled: "テーブルソートを有効化しました",
           reloaded: "このタブを再読み込みしました",
-        },
-        summary: {
-          description:
-            "自動ソート対象サイトごとの行フィルタと、フォーカス維持の一致状況をこの画面で管理します。",
-          focus: "フォーカス維持",
-          focusDescription:
-            "現在のタブを確認するとフォーカス維持の一致状況を表示します",
-          notRegistered: "まだ登録されていません",
-          pending: "診断待ち",
-          registeredCount: "{{count}}件を登録済み",
-          title: "このタブに必要な設定をまとめて確認できます",
-          urlPatterns: "自動ソート対象サイト",
-          urlPatternsMeta: "* ワイルドカード対応 / protocolは無視",
         },
         title: "サイト別機能",
         urlPatterns: {

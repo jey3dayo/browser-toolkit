@@ -172,10 +172,13 @@ describe("popup Settings pane", () => {
     expect(primaryActions).not.toBeNull();
     expect(
       Array.from(
-        primaryActions?.querySelectorAll<HTMLButtonElement>("button") ?? []
+        primaryActions?.querySelectorAll<HTMLButtonElement>(
+          ":scope > button"
+        ) ?? []
       ).map((button) => button.dataset.testid)
     ).toEqual(["token-save", "token-test"]);
     expect(dangerActions).not.toBeNull();
+    expect(dangerActions?.parentElement).toBe(primaryActions);
     expect(
       Array.from(
         dangerActions?.querySelectorAll<HTMLButtonElement>("button") ?? []

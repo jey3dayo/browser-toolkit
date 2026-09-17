@@ -78,6 +78,12 @@ body.no-js:has(.pane:target) .pane.active:not(:target) {
   font-weight: 650;
 }
 
+.pane-subtitle {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: 650;
+}
+
 .mbu-fieldset {
   min-inline-size: 0;
   padding: 0;

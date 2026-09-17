@@ -129,11 +129,11 @@ afterEach(async () => {
 });
 
 describe("popup Table Sort pane", { timeout: 15_000 }, () => {
-  it("renders the summary and section-card layout", async () => {
+  it("renders the status row and section layout", async () => {
     const { dom } = await setupTablePane();
 
-    const summary = dom.window.document.querySelector<HTMLElement>(
-      '[data-testid="table-pane-summary"]'
+    const status = dom.window.document.querySelector<HTMLElement>(
+      '[data-testid="table-pane-status"]'
     );
     const enable = dom.window.document.querySelector<HTMLButtonElement>(
       '[data-testid="enable-table-sort"]'
@@ -150,9 +150,9 @@ describe("popup Table Sort pane", { timeout: 15_000 }, () => {
       '[data-testid="focus-pattern-input"]'
     );
 
-    expect(summary).not.toBeNull();
-    expect(summary?.textContent ?? "").toContain("自動ソート対象サイト");
-    expect(summary?.textContent ?? "").toContain("フォーカス維持");
+    expect(status).not.toBeNull();
+    expect(status?.textContent ?? "").toContain("自動ソート 1 件");
+    expect(status?.textContent ?? "").toContain("フォーカス維持 1 件");
     expect(enable?.textContent).toContain("このタブで有効化");
     expect(sections).toEqual(["url-patterns", "focus-override"]);
     expect(diagnostic).not.toBeNull();

@@ -85,6 +85,13 @@
   justify-content: start;
 }
 
+.mbu-radio-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm) var(--spacing-lg);
+  align-items: center;
+}
+
 .mbu-radio-label {
   display: inline-flex;
   gap: 10px;
@@ -175,6 +182,10 @@
 .card-stack {
   display: grid;
   gap: 14px;
+}
+
+.pane-surface {
+  padding: var(--card-padding);
 }
 
 .card.secondary {

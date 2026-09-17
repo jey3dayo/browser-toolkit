@@ -75,8 +75,8 @@ describe("i18n", () => {
       "買い物を折りたたみ"
     );
     expect(i18n.t("debug.logActions")).toBe("ログ操作");
-    expect(i18n.t("tablePane.summary.registeredCount", { count: 2 })).toBe(
-      "2件を登録済み"
+    expect(i18n.t("tablePane.status.urlPatterns", { count: 2 })).toBe(
+      "自動ソート 2 件"
     );
     expect(
       i18n.t("background.contextActions.actionFailedTitle", {
