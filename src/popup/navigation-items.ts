@@ -47,6 +47,12 @@ export const navigationItems: NavigationItem[] = [
     labelKey: "navigation.searchGroups",
   },
   {
+    ariaLabelKey: "navigation.searchBlocklist",
+    icon: "circle-slash",
+    id: "pane-search-blocklist",
+    labelKey: "navigation.searchBlocklist",
+  },
+  {
     ariaLabelKey: "navigation.templates",
     icon: "file-text",
     id: "pane-templates",

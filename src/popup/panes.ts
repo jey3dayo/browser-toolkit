@@ -5,6 +5,7 @@ const PANE_IDS = [
   "pane-create-link",
   "pane-search-engines",
   "pane-search-groups",
+  "pane-search-blocklist",
   "pane-templates",
   "pane-history",
   "pane-debug",

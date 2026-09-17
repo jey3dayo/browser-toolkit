@@ -17,6 +17,7 @@ import { CalendarPane } from "@/popup/panes/CalendarPane";
 import { CreateLinkPane } from "@/popup/panes/CreateLinkPane";
 import { DebugPane } from "@/popup/panes/DebugPane";
 import { HistoryPane } from "@/popup/panes/HistoryPane";
+import { SearchBlocklistPane } from "@/popup/panes/SearchBlocklistPane";
 import { SearchEnginesPane } from "@/popup/panes/SearchEnginesPane";
 import { SearchGroupsPane } from "@/popup/panes/SearchGroupsPane";
 import { SettingsPane } from "@/popup/panes/SettingsPane";
@@ -181,6 +182,12 @@ export function PopupApp(): React.JSX.Element {
             </TabsPanel>
             <TabsPanel value="pane-search-groups">
               <SearchGroupsPane
+                notify={notifications.notify}
+                runtime={runtime}
+              />
+            </TabsPanel>
+            <TabsPanel value="pane-search-blocklist">
+              <SearchBlocklistPane
                 notify={notifications.notify}
                 runtime={runtime}
               />

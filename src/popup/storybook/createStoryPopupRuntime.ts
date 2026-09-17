@@ -1,5 +1,9 @@
 import { Result } from "@praha/byethrow";
 import type {
+  SearchBlocklistMutateRequest,
+  SearchBlocklistMutateResponse,
+} from "@/background/runtime_types";
+import type {
   ActiveTabInfo,
   FocusOverrideDiagnosticSnapshot,
   PopupRuntime,
@@ -9,6 +13,10 @@ import type {
   SyncStorageData,
   TestOpenAiTokenRequest,
 } from "@/popup/runtime";
+import {
+  applySearchBlocklistRuleMutation,
+  partitionStoredSearchBlocklistRules,
+} from "@/search-blocklist/rules";
 import type { LocalStorageData } from "@/storage/types";
 import { matchesAnyPattern } from "@/utils/url-pattern";
 
@@ -74,11 +82,33 @@ function createInMemoryStorageArea<T extends Record<string, unknown>>(
   };
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
 function getMessageAction(message: unknown): unknown {
-  if (typeof message !== "object" || message === null) {
+  if (!isRecord(message)) {
     return null;
   }
-  return (message as { action?: unknown }).action ?? null;
+  return message.action ?? null;
+}
+
+function isSearchBlocklistMutateRequest(
+  value: unknown
+): value is SearchBlocklistMutateRequest {
+  if (!isRecord(value) || value.action !== "searchBlocklistMutate") {
+    return false;
+  }
+  if (value.op !== "add" && value.op !== "remove" && value.op !== "update") {
+    return false;
+  }
+  return (
+    (value.pattern === undefined || typeof value.pattern === "string") &&
+    (value.ruleId === undefined || typeof value.ruleId === "string") &&
+    (value.ruleIds === undefined ||
+      (Array.isArray(value.ruleIds) &&
+        value.ruleIds.every((ruleId) => typeof ruleId === "string")))
+  );
 }
 
 export function createStoryPopupRuntime(options: Options = {}): PopupRuntime {
@@ -96,6 +126,47 @@ export function createStoryPopupRuntime(options: Options = {}): PopupRuntime {
   }
   const sync = createInMemoryStorageArea<SyncStorageData>(options.sync);
   const local = createInMemoryStorageArea<LocalStorageData>(options.local);
+  let searchBlocklistRevision = 0;
+  let searchBlocklistMutationQueue: Promise<void> = Promise.resolve();
+
+  const mutateSearchBlocklistNow = async (
+    request: SearchBlocklistMutateRequest
+  ): Promise<SearchBlocklistMutateResponse> => {
+    const stored = await local.get(["searchBlocklistRules"]);
+    const partition = partitionStoredSearchBlocklistRules(
+      stored.searchBlocklistRules
+    );
+
+    const mutated = applySearchBlocklistRuleMutation(partition, {
+      op: request.op,
+      pattern: request.pattern,
+      ruleId: request.ruleId,
+      ruleIds: request.ruleIds,
+    });
+    if (Result.isFailure(mutated)) {
+      return mutated;
+    }
+    await local.set({ searchBlocklistRules: mutated.value.rules });
+    searchBlocklistRevision += 1;
+    return Result.succeed({
+      revision: searchBlocklistRevision,
+      rules: mutated.value.rules,
+      skippedCount: mutated.value.skippedCount,
+    });
+  };
+
+  const mutateSearchBlocklist = (
+    request: SearchBlocklistMutateRequest
+  ): Promise<SearchBlocklistMutateResponse> => {
+    const pending = searchBlocklistMutationQueue.then(() =>
+      mutateSearchBlocklistNow(request)
+    );
+    searchBlocklistMutationQueue = pending.then(
+      () => undefined,
+      () => undefined
+    );
+    return pending;
+  };
 
   return {
     diagnoseFocusOverride: async () =>
@@ -162,6 +233,16 @@ export function createStoryPopupRuntime(options: Options = {}): PopupRuntime {
         return Result.succeed(
           Result.fail("storybook runtime: not implemented") as never
         );
+      }
+
+      if (action === "searchBlocklistMutate") {
+        if (!isSearchBlocklistMutateRequest(message)) {
+          return Result.fail(
+            "storybook runtime: invalid search blocklist request"
+          );
+        }
+        const response = await mutateSearchBlocklist(message);
+        return Result.succeed(response) as never;
       }
 
       return Result.succeed({} as never);
