@@ -2,11 +2,21 @@ import { Result } from "@praha/byethrow";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type {
+  SearchBlocklistMutateRequest,
+  SearchBlocklistMutateResponse,
+} from "@/background/runtime_types";
 import { CountBar } from "@/content/search-blocklist-ui/CountBar";
 import { FloatingWidget } from "@/content/search-blocklist-ui/FloatingWidget";
-import type {
-  BlocklistSnapshot,
-  BlocklistState,
+import {
+  createBlocklistState,
+  type StoredSearchBlocklistData,
+} from "@/search-blocklist/state";
+import {
+  BLOCKLIST_BLOCKED_ATTR,
+  BLOCKLIST_REVEALED_ATTR,
+  type SearchBlocklistRule,
+  type SearchResultEntry,
 } from "@/search-blocklist/types";
 
 (
@@ -23,33 +33,24 @@ async function flushEffects(times = 3): Promise<void> {
   );
 }
 
-type FakeBlocklistState = BlocklistState & {
-  setSnapshot: (next: BlocklistSnapshot) => void;
-};
+function resolvedRules(rules: SearchBlocklistRule[]) {
+  return Promise.resolve(
+    Result.succeed<StoredSearchBlocklistData>({ searchBlocklistRules: rules })
+  );
+}
 
-function createFakeState(initial: BlocklistSnapshot): FakeBlocklistState {
-  let snapshot = initial;
-  const listeners = new Set<() => void>();
-
-  return {
-    addRule: vi.fn(async () => Result.succeed(undefined)),
-    getSnapshot: () => snapshot,
-    ready: Promise.resolve(),
-    removeRules: vi.fn(async () => Result.succeed(undefined)),
-    setRevealed: vi.fn(),
-    setSnapshot: (next) => {
-      snapshot = next;
-      for (const listener of listeners) {
-        listener();
-      }
-    },
-    subscribe: (listener) => {
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
-    },
-  };
+function stubSendMessage(
+  respond: (
+    request: SearchBlocklistMutateRequest
+  ) => SearchBlocklistMutateResponse
+): ReturnType<typeof vi.fn> {
+  const sendMessage = vi.fn(async (request: SearchBlocklistMutateRequest) =>
+    respond(request)
+  );
+  vi.stubGlobal("chrome", {
+    runtime: { sendMessage },
+  });
+  return sendMessage;
 }
 
 let cleanupTargets: Array<() => void> = [];
@@ -59,16 +60,14 @@ afterEach(() => {
     cleanup();
   }
   cleanupTargets = [];
+  vi.unstubAllGlobals();
 });
 
 describe("CountBar", () => {
   it("renders nothing when nothing is blocked", async () => {
-    const state = createFakeState({
-      blockedCount: 0,
-      engineId: "google",
-      entries: [],
-      ruleRevision: 1,
-    });
+    const state = createBlocklistState("google", resolvedRules([]), () => []);
+    await state.ready;
+
     const container = document.createElement("div");
     document.body.appendChild(container);
     const root = createRoot(container);
@@ -86,18 +85,30 @@ describe("CountBar", () => {
   });
 
   it("shows the blocked count and toggles reveal on click", async () => {
-    const state = createFakeState({
-      blockedCount: 2,
-      engineId: "google",
-      entries: [],
-      ruleRevision: 1,
-    });
+    const containerA = document.createElement("div");
+    const containerB = document.createElement("div");
+    document.body.append(containerA, containerB);
+    const results: SearchResultEntry[] = [
+      { container: containerA, title: "A", url: "https://example.com/a" },
+      { container: containerB, title: "B", url: "https://example.com/b" },
+    ];
+
+    const state = createBlocklistState(
+      "google",
+      resolvedRules([{ createdAt: 0, id: "r1", pattern: "example.com" }]),
+      () => results
+    );
+    await state.ready;
+    expect(state.getSnapshot().blockedCount).toBe(2);
+
     const container = document.createElement("div");
     document.body.appendChild(container);
     const root = createRoot(container);
     cleanupTargets.push(() => {
       root.unmount();
       container.remove();
+      containerA.remove();
+      containerB.remove();
     });
 
     await act(async () => {
@@ -110,6 +121,8 @@ describe("CountBar", () => {
     const button = container.querySelector("button");
     expect(button).not.toBeNull();
 
+    expect(containerA.hasAttribute(BLOCKLIST_REVEALED_ATTR)).toBe(false);
+
     await act(async () => {
       button?.dispatchEvent(
         new MouseEvent("click", { bubbles: true, cancelable: true })
@@ -117,7 +130,8 @@ describe("CountBar", () => {
       await flushEffects();
     });
 
-    expect(state.setRevealed).toHaveBeenCalledWith(true);
+    expect(containerA.getAttribute(BLOCKLIST_REVEALED_ATTR)).toBe("1");
+    expect(containerB.getAttribute(BLOCKLIST_REVEALED_ATTR)).toBe("1");
   });
 });
 
@@ -157,20 +171,14 @@ describe("FloatingWidget", () => {
     const unrelated = document.createElement("div");
     document.body.appendChild(unrelated);
 
-    const state = createFakeState({
-      blockedCount: 0,
-      engineId: "google",
-      entries: [
-        {
-          blocked: false,
-          container: resultContainer,
-          matchedRuleIds: [],
-          title: "Example",
-          url: "https://example.com/page",
-        },
-      ],
-      ruleRevision: 1,
-    });
+    const state = createBlocklistState("google", resolvedRules([]), () => [
+      {
+        container: resultContainer,
+        title: "Example",
+        url: "https://example.com/page",
+      },
+    ]);
+    await state.ready;
 
     const { host, shadow, root } = mountWidget();
 
@@ -213,19 +221,29 @@ describe("FloatingWidget", () => {
       }) as DOMRect;
     document.body.appendChild(resultContainer);
 
-    const state = createFakeState({
-      blockedCount: 0,
-      engineId: "google",
-      entries: [
-        {
-          blocked: false,
-          container: resultContainer,
-          matchedRuleIds: [],
-          title: "Example",
-          url: "https://example.com/page",
-        },
-      ],
-      ruleRevision: 1,
+    const state = createBlocklistState("google", resolvedRules([]), () => [
+      {
+        container: resultContainer,
+        title: "Example",
+        url: "https://example.com/page",
+      },
+    ]);
+    await state.ready;
+    expect(state.getSnapshot().blockedCount).toBe(0);
+
+    const sendMessage = stubSendMessage((request) => {
+      expect(request.op).toBe("add");
+      return Result.succeed({
+        revision: 1,
+        rules: [
+          {
+            createdAt: 0,
+            id: "new-rule",
+            pattern: "example.com",
+          },
+        ],
+        skippedCount: 0,
+      });
     });
 
     const { host, shadow, root } = mountWidget();
@@ -272,6 +290,13 @@ describe("FloatingWidget", () => {
       await flushEffects();
     });
 
-    expect(state.addRule).toHaveBeenCalledWith("custom-pattern.example");
+    expect(sendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: "searchBlocklistMutate",
+        op: "add",
+        pattern: "*://*.custom-pattern.example/*",
+      })
+    );
+    expect(resultContainer.getAttribute(BLOCKLIST_BLOCKED_ATTR)).toBe("1");
   });
 });
