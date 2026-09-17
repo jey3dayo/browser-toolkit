@@ -290,7 +290,7 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
   }, []);
 
   return (
-    <div className="card-stack settings-surface debug-settings-pane">
+    <Stack className="settings-surface debug-settings-pane">
       <Hint as="div">{t("debug.description")}</Hint>
 
       {/* デバッグモード設定 */}
@@ -409,6 +409,6 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
           </section>
         </>
       )}
-    </div>
+    </Stack>
   );
 }

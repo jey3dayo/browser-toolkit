@@ -61,6 +61,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
 
   const {
     patterns,
+    addError,
     patternInput,
     setPatternInput,
     setPatterns,
@@ -85,6 +86,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
   } = useFocusDiagnostic(props, focusPatterns);
 
   const {
+    focusPatternAddError,
     focusPatternInput,
     setFocusPatternInput,
     addFocusPattern,
@@ -149,6 +151,8 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
         </TablePaneSectionHeading>
         <PatternAddForm
           buttonTestId="pattern-add"
+          errorMessage={addError ?? undefined}
+          errorTestId="pattern-error"
           inputTestId="pattern-input"
           onSubmit={addPattern}
           onSubmitError={handlePatternSubmitError}
@@ -194,6 +198,8 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
         <Hint as="div">{t("tablePane.focus.reloadHint")}</Hint>
         <PatternAddForm
           buttonTestId="focus-pattern-add"
+          errorMessage={focusPatternAddError ?? undefined}
+          errorTestId="focus-pattern-error"
           inputTestId="focus-pattern-input"
           onSubmit={addFocusPattern}
           onSubmitError={handlePatternSubmitError}

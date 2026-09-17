@@ -1,9 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority";
 
 export const textSurfaceVariants = cva("", {
-  defaultVariants: {
-    variant: "pattern",
-  },
   variants: {
     size: {
       default: null,

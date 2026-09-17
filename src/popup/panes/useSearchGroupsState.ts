@@ -27,6 +27,7 @@ export type SearchGroupsState = {
   editingNameGroupId: string | null;
   editingNameValue: string;
   newGroupNameInput: string;
+  newGroupNameError: string | null;
   setEditingNameValue: (value: string) => void;
   setNewGroupNameInput: (value: string) => void;
   toggleGroupEnabled: (groupId: string, checked: boolean) => Promise<void>;
@@ -55,7 +56,15 @@ export function useSearchGroupsState(
     null
   );
   const [editingNameValue, setEditingNameValue] = useState("");
-  const [newGroupNameInput, setNewGroupNameInput] = useState("");
+  const [newGroupNameInput, setNewGroupNameInputValue] = useState("");
+  const [newGroupNameError, setNewGroupNameError] = useState<string | null>(
+    null
+  );
+
+  const setNewGroupNameInput = (value: string): void => {
+    setNewGroupNameInputValue(value);
+    setNewGroupNameError(null);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -234,12 +243,9 @@ export function useSearchGroupsState(
   };
 
   const addNewGroup = async (): Promise<void> => {
-    const name = requireTrimmedString({
-      emptyMessage: t("searchGroups.errors.nameRequired"),
-      notify: props.notify,
-      value: newGroupNameInput,
-    });
+    const name = newGroupNameInput.trim();
     if (!name) {
+      setNewGroupNameError(t("searchGroups.errors.nameRequired"));
       return;
     }
 
@@ -249,7 +255,7 @@ export function useSearchGroupsState(
     }
 
     if (groups.some((g) => g.name === name)) {
-      props.notify.info(t("searchGroups.info.duplicate"));
+      setNewGroupNameError(t("searchGroups.info.duplicate"));
       return;
     }
 
@@ -360,6 +366,7 @@ export function useSearchGroupsState(
     expandedGroupId,
     groups,
     handleReorder,
+    newGroupNameError,
     newGroupNameInput,
     removeGroup,
     resetToDefaults,

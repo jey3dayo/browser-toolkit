@@ -83,6 +83,7 @@ export function PatternAddForm({
           className="hint--danger"
           data-testid={errorTestId}
           id={errorId}
+          role="alert"
         >
           {errorMessage}
         </Hint>

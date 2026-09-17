@@ -265,12 +265,18 @@ export function FloatingWidget(
                 placeholder={t("searchBlocklist.dialog.rulesToAddPlaceholder")}
                 rows={3}
                 value={rulesToAddText}
+                variant="pattern"
               />
             </Fieldset>
           )}
 
           <Fieldset legend={t("searchBlocklist.dialog.rulesToRemove")}>
-            <Textarea readOnly rows={2} value={rulesToRemoveText} />
+            <Textarea
+              readOnly
+              rows={2}
+              value={rulesToRemoveText}
+              variant="pattern"
+            />
           </Fieldset>
 
           {errorMessage && <Hint as="div">{errorMessage}</Hint>}

@@ -129,7 +129,6 @@ async function submitSearchBlocklistRulePattern(
   options: {
     rawPattern: string;
     isDuplicate: (normalizedPattern: string) => boolean;
-    onDuplicate: () => void;
     buildMutation: (normalizedPattern: string) => SearchBlocklistMutateRequest;
     onSuccess: () => void;
     notifySuccess: () => void;
@@ -148,8 +147,7 @@ async function submitSearchBlocklistRulePattern(
     return;
   }
   if (options.isDuplicate(normalized.value)) {
-    props.notify.info(t("searchBlocklist.info.duplicate"));
-    options.onDuplicate();
+    options.onValidationError(t("searchBlocklist.info.duplicate"));
     return;
   }
 
@@ -291,9 +289,6 @@ export function useSearchBlocklistRules(
         notifySuccess: () => {
           props.notify.success(t("searchBlocklist.success.added"));
         },
-        onDuplicate: () => {
-          setPatternInput("");
-        },
         onSuccess: () => {
           setPatternInput("");
         },
@@ -341,7 +336,6 @@ export function useSearchBlocklistRules(
         notifySuccess: () => {
           props.notify.success(t("searchBlocklist.success.updated"));
         },
-        onDuplicate: () => undefined,
         onSuccess: () => {
           cancelEditing();
         },

@@ -57,7 +57,6 @@ export const resources = {
           truncated: "長文のため先頭4,000文字のみ表示",
         },
         templateVars: "テンプレ変数:",
-        title: "アクション",
       },
       background: {
         actionExecutor: {
@@ -159,7 +158,6 @@ export const resources = {
           saved: "保存しました",
         },
         target: "登録先",
-        title: "カレンダー登録",
       },
       clipboard: {
         errors: {
@@ -443,7 +441,6 @@ export const resources = {
           deleted: "削除しました",
           updated: "更新しました",
         },
-        title: "検索結果ブロック",
       },
       searchEngines: {
         description: "選択したテキストを検索エンジンで検索できます。",
@@ -609,7 +606,6 @@ export const resources = {
           enabled: "テーブルソートを有効化しました",
           reloaded: "このタブを再読み込みしました",
         },
-        title: "サイト別機能",
         urlPatterns: {
           description:
             "テーブルの自動ソートを有効にしたいサイトを URL パターンで登録できます。行フィルタはサイトごとに有効化できます。",

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { APP_NAME } from "@/app_meta";
 import { TabsPanel, TabsRoot } from "@/components/shared/Tabs";
-import { t } from "@/i18n";
+import { i18n } from "@/i18n";
 import {
   PopupContent,
   PopupContentBody,
@@ -36,6 +37,8 @@ type CreateLinkInitialState = {
 } | null;
 
 export function PopupApp(): React.JSX.Element {
+  const { t } = useTranslation(undefined, { i18n });
+
   const initialValue = useMemo<PaneId>(
     () => getPaneIdFromHash(window.location.hash) ?? "pane-actions",
     []
@@ -97,12 +100,12 @@ export function PopupApp(): React.JSX.Element {
     document.title = APP_NAME;
   }, []);
 
-  const currentPaneLabel = useMemo(() => {
-    const item = navigationItems.find(
-      (navigationItem) => navigationItem.id === tabValue
-    );
-    return item ? t(item.labelKey) : APP_NAME;
-  }, [tabValue]);
+  const currentNavigationItem = navigationItems.find(
+    (navigationItem) => navigationItem.id === tabValue
+  );
+  const currentPaneLabel = currentNavigationItem
+    ? t(currentNavigationItem.labelKey)
+    : APP_NAME;
 
   useEffect(() => {
     handleCopyTitleLinkFailureOnPopupOpen({

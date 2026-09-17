@@ -11,9 +11,9 @@ import {
 import { t } from "@/i18n";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { persistWithRollback } from "@/popup/utils/persist";
-import { requireTrimmedString } from "@/popup/utils/required-input";
 
 export type UseFocusPatternsResult = {
+  focusPatternAddError: string | null;
   focusPatternInput: string;
   setFocusPatternInput: (value: string) => void;
   addFocusPattern: () => Promise<void>;
@@ -39,7 +39,15 @@ export function useFocusPatterns(
   }: UseFocusPatternsOptions
 ): UseFocusPatternsResult {
   const [focusPatterns, setFocusPatterns] = focusPatternsState;
-  const [focusPatternInput, setFocusPatternInput] = useState("");
+  const [focusPatternInput, setFocusPatternInputValue] = useState("");
+  const [focusPatternAddError, setFocusPatternAddError] = useState<
+    string | null
+  >(null);
+
+  const setFocusPatternInput = (value: string): void => {
+    setFocusPatternInputValue(value);
+    setFocusPatternAddError(null);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -104,17 +112,14 @@ export function useFocusPatterns(
   ]);
 
   const parseFocusPatternInput = (): string | null => {
-    const raw = requireTrimmedString({
-      emptyMessage: t("tablePane.errors.patternRequired"),
-      notify: props.notify,
-      value: focusPatternInput,
-    });
+    const raw = focusPatternInput.trim();
     if (!raw) {
+      setFocusPatternAddError(t("tablePane.errors.patternRequired"));
       return null;
     }
     const matchPatternResult = toFocusOverrideMatchPattern(raw);
     if (Result.isFailure(matchPatternResult)) {
-      props.notify.error(matchPatternResult.error);
+      setFocusPatternAddError(matchPatternResult.error);
       return null;
     }
     return raw;
@@ -126,8 +131,7 @@ export function useFocusPatterns(
       return;
     }
     if (focusPatterns.includes(raw)) {
-      props.notify.info(t("tablePane.info.duplicate"));
-      setFocusPatternInput("");
+      setFocusPatternAddError(t("tablePane.info.duplicate"));
       return;
     }
 
@@ -191,6 +195,7 @@ export function useFocusPatterns(
 
   return {
     addFocusPattern,
+    focusPatternAddError,
     focusPatternInput,
     removeFocusPattern,
     setFocusPatternInput,

@@ -27,7 +27,7 @@ typography:
   title:
     fontFamily: '"Segoe UI", "Helvetica Neue", system-ui, sans-serif'
     fontSize: "16px"
-    fontWeight: 700
+    fontWeight: 650
     lineHeight: 1.35
     letterSpacing: "0px"
   label:

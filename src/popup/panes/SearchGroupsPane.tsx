@@ -21,6 +21,7 @@ export function SearchGroupsPane(
     editingNameGroupId,
     editingNameValue,
     newGroupNameInput,
+    newGroupNameError,
     setEditingNameValue,
     setNewGroupNameInput,
     toggleGroupExpand,
@@ -66,6 +67,8 @@ export function SearchGroupsPane(
         <PatternAddForm
           buttonTestId="add-search-group"
           disabled={engines.length === 0}
+          errorMessage={newGroupNameError ?? undefined}
+          errorTestId="new-group-name-error"
           inputTestId="new-group-name"
           onSubmit={addNewGroup}
           onSubmitError={handleSubmitError}

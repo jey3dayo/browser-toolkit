@@ -12,7 +12,7 @@ type Props = {
   onCopy: () => void;
   onOpenCalendar: () => void;
   onDownloadIcs: () => void;
-  copyState: CalendarActionButtonState;
+  copyState: { enabled: boolean };
   googleState: CalendarActionButtonState;
   icsState: CalendarActionButtonState;
 };
@@ -29,17 +29,16 @@ export function CalendarActionButtons(props: Props): React.JSX.Element {
       >
         {t("calendarPane.run")}
       </Button>
-      {props.copyState.visible && props.copyState.enabled ? (
-        <Button
-          data-testid="calendar-copy"
-          onClick={props.onCopy}
-          size="small"
-          type="button"
-          variant="ghost"
-        >
-          {t("common.copy")}
-        </Button>
-      ) : null}
+      <Button
+        data-testid="calendar-copy"
+        disabled={!props.copyState.enabled}
+        onClick={props.onCopy}
+        size="small"
+        type="button"
+        variant="ghost"
+      >
+        {t("common.copy")}
+      </Button>
       {props.googleState.visible ? (
         <Button
           data-testid="calendar-open-google"

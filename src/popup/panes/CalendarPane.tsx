@@ -93,7 +93,7 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
         />
 
         <CalendarActionButtons
-          copyState={{ enabled: canCopyOutput, visible: true }}
+          copyState={{ enabled: canCopyOutput }}
           googleState={{ enabled: canOpenCalendar, visible: hasGoogle }}
           icsState={{ enabled: canDownloadIcs, visible: hasIcs }}
           onCopy={handleCopy}
