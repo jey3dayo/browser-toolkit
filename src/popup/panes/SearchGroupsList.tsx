@@ -3,30 +3,27 @@ import { SortableList } from "@/components/SortableList";
 import { EmptyMessage } from "@/components/shared/Typography";
 import { t } from "@/i18n";
 import { SearchGroupItem } from "@/popup/panes/SearchGroupItem";
+import type { SearchGroupsState } from "@/popup/panes/useSearchGroupsState";
 import type { SearchEngineGroup } from "@/search_engine_groups";
-import type { SearchEngine } from "@/search_engine_types";
 
-export type SearchGroupsListProps = {
-  groups: SearchEngineGroup[];
-  engines: SearchEngine[];
-  enginesById: Map<string, SearchEngine>;
-  expandedGroupId: string | null;
-  editingNameGroupId: string | null;
-  editingNameValue: string;
-  setEditingNameValue: (value: string) => void;
-  toggleGroupExpand: (groupId: string) => void;
-  startEditingGroupName: (group: SearchEngineGroup) => void;
-  cancelEditingGroupName: () => void;
-  saveGroupName: (groupId: string) => Promise<void>;
-  toggleGroupEnabled: (groupId: string, checked: boolean) => Promise<void>;
-  removeGroup: (groupId: string) => Promise<void>;
-  toggleEngineInGroup: (
-    groupId: string,
-    engineId: string,
-    isIncluded: boolean
-  ) => Promise<void>;
-  handleReorder: (reorderedGroups: SearchEngineGroup[]) => Promise<void>;
-};
+export type SearchGroupsListProps = Pick<
+  SearchGroupsState,
+  | "groups"
+  | "engines"
+  | "enginesById"
+  | "expandedGroupId"
+  | "editingNameGroupId"
+  | "editingNameValue"
+  | "setEditingNameValue"
+  | "toggleGroupExpand"
+  | "startEditingGroupName"
+  | "cancelEditingGroupName"
+  | "saveGroupName"
+  | "toggleGroupEnabled"
+  | "removeGroup"
+  | "toggleEngineInGroup"
+  | "handleReorder"
+>;
 
 export function SearchGroupsList(
   props: SearchGroupsListProps
