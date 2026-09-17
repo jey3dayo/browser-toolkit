@@ -114,6 +114,7 @@ function hashUrl(url: string): string {
 
 type CompiledRule = {
   id: string;
+  pattern: string;
   compiled: CompiledSearchBlocklistPattern;
 };
 
@@ -132,6 +133,9 @@ function validateStoredRules(
 
 function createBlocklistEntry(entry: BlocklistEntry): BlocklistEntry {
   Object.freeze(entry.matchedRuleIds);
+  if (entry.matchedPatterns) {
+    Object.freeze(entry.matchedPatterns);
+  }
   return Object.freeze(entry);
 }
 
@@ -149,7 +153,11 @@ function compileRules(rules: SearchBlocklistRule[]): CompiledRule[] {
       failedCount += 1;
       continue;
     }
-    compiled.push({ compiled: compiledPattern.value, id: rule.id });
+    compiled.push({
+      compiled: compiledPattern.value,
+      id: rule.id,
+      pattern: normalized.value,
+    });
   }
   if (failedCount > 0) {
     debugLog("search-blocklist", "invalid rules skipped", {
@@ -244,11 +252,11 @@ export function createBlocklistState(
       return;
     }
 
-    const matchedRuleIds = compiledRules
-      .filter((rule) =>
-        matchesCompiledSearchBlocklistPattern(rule.compiled, result.url)
-      )
-      .map((rule) => rule.id);
+    const matchedRules = compiledRules.filter((rule) =>
+      matchesCompiledSearchBlocklistPattern(rule.compiled, result.url)
+    );
+    const matchedRuleIds = matchedRules.map((rule) => rule.id);
+    const matchedPatterns = matchedRules.map((rule) => rule.pattern);
     const blocked = matchedRuleIds.length > 0;
 
     if (blocked) {
@@ -269,6 +277,7 @@ export function createBlocklistState(
       createBlocklistEntry({
         blocked,
         container: result.container,
+        matchedPatterns,
         matchedRuleIds,
         title: result.title,
         url: result.url,

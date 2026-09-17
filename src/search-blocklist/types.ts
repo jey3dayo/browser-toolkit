@@ -22,6 +22,7 @@ export type BlocklistEntry = {
   title: string;
   blocked: boolean;
   matchedRuleIds: string[];
+  matchedPatterns?: string[];
 };
 
 export type BlocklistSnapshot = {

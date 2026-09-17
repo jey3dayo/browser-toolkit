@@ -58,6 +58,7 @@ export function makeStoryEntry(
   return {
     blocked: false,
     container,
+    matchedPatterns: [],
     matchedRuleIds: [],
     title: "スパム気味のブログ記事タイトル",
     url: "https://spammy-example.com/article/123",

@@ -199,7 +199,7 @@ export function FloatingWidget(
 
   const hostname = suggestPatternFromUrl(currentEntry.url);
   const rulesToRemoveText = currentEntry.blocked
-    ? currentEntry.matchedRuleIds.join("\n")
+    ? (currentEntry.matchedPatterns ?? []).join("\n")
     : t("searchBlocklist.dialog.rulesToRemoveEmpty");
 
   return (

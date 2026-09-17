@@ -91,6 +91,7 @@ export const UnblockShowsMatchedRules: Story = {
     entries: [
       makeStoryEntry({
         blocked: true,
+        matchedPatterns: ["*://*.spammy-example.com/*"],
         matchedRuleIds: ["sbl-spammy-example-com-1"],
       }),
     ],
@@ -121,6 +122,6 @@ export const UnblockShowsMatchedRules: Story = {
     const removeTextarea = getWidgetShadow(canvasElement).querySelector(
       "textarea[readonly]"
     ) as HTMLTextAreaElement | null;
-    expect(removeTextarea?.value).toBe("sbl-spammy-example-com-1");
+    expect(removeTextarea?.value).toBe("*://*.spammy-example.com/*");
   },
 };
