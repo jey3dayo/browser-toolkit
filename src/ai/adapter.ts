@@ -13,7 +13,10 @@ export type ChatRequestBody = {
   messages: Array<{ role: string; content: string }>;
   temperature?: number;
   max_completion_tokens?: number;
+  /** OpenAI / z.ai 向け（`{ type: "json_object" }`） */
   response_format?: unknown;
+  /** Anthropic 向け（`{ format: { type: "json_schema", schema } }`） */
+  output_config?: { format: { type: "json_schema"; schema: unknown } };
 };
 
 /**

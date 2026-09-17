@@ -15,7 +15,10 @@ import {
 import type { ChatMessage } from "@/background/runtime_types";
 import { storageLocalGetTyped } from "@/background/storage";
 import type { BackgroundResponse, SummaryTarget } from "@/background/types";
-import { ExtractedEventSchema } from "@/schemas/extracted_event";
+import {
+  EXTRACTED_EVENT_JSON_SCHEMA,
+  ExtractedEventSchema,
+} from "@/schemas/extracted_event";
 import { safeParseJsonObject } from "@/schemas/json";
 import { safeParseAiProvider } from "@/schemas/provider";
 import type { ExtractedEvent } from "@/shared_types";
@@ -236,7 +239,7 @@ export async function extractEventWithOpenAI(
         "description はイベントの概要を日本語で短くまとめる。",
       ].join("\n");
 
-      // Anthropicでは response_format が非対応なので、プロバイダーに応じて分岐
+      // 構造化出力の指定方法はプロバイダーごとに違う（下で分岐）
       const body: ChatRequestBody = {
         messages: [
           {
@@ -260,8 +263,11 @@ export async function extractEventWithOpenAI(
         temperature: 0.2,
       };
 
-      // OpenAIとz.aiのみ response_format をサポート
-      if (settings.provider === "openai" || settings.provider === "zai") {
+      if (settings.provider === "anthropic") {
+        body.output_config = {
+          format: { schema: EXTRACTED_EVENT_JSON_SCHEMA, type: "json_schema" },
+        };
+      } else {
         body.response_format = { type: "json_object" };
       }
 

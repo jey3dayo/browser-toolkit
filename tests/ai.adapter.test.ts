@@ -150,6 +150,48 @@ describe("ai/adapter", () => {
       expect(body.model).toBe("claude-sonnet-5");
     });
 
+    it("defaults max_tokens high enough for long structured answers", () => {
+      // 4096 では 7 セクション構成のレビュー出力が stop_reason: max_tokens で切れる。
+      const { init } = anthropicAdapter.buildRequest("test-token", {
+        messages: [{ content: "test", role: "user" }],
+        model: "claude-sonnet-5",
+      });
+
+      const body = JSON.parse(init.body as string) as { max_tokens?: number };
+      expect(body.max_tokens).toBe(16_000);
+    });
+
+    it("forwards output_config for structured outputs", () => {
+      // Anthropic は response_format ではなく output_config.format でスキーマを強制する。
+      const schema = {
+        additionalProperties: false,
+        properties: { title: { type: "string" } },
+        required: ["title"],
+        type: "object",
+      };
+      const { init } = anthropicAdapter.buildRequest("test-token", {
+        messages: [{ content: "test", role: "user" }],
+        model: "claude-sonnet-5",
+        output_config: { format: { schema, type: "json_schema" } },
+      });
+
+      const body = JSON.parse(init.body as string) as {
+        output_config?: { format?: { type?: string; schema?: unknown } };
+      };
+      expect(body.output_config?.format?.type).toBe("json_schema");
+      expect(body.output_config?.format?.schema).toEqual(schema);
+    });
+
+    it("omits output_config when the caller does not set one", () => {
+      const { init } = anthropicAdapter.buildRequest("test-token", {
+        messages: [{ content: "test", role: "user" }],
+        model: "claude-sonnet-5",
+      });
+
+      const body = JSON.parse(init.body as string) as Record<string, unknown>;
+      expect(body).not.toHaveProperty("output_config");
+    });
+
     it("extracts text from valid response", () => {
       const response = {
         content: [{ text: "  Hello  " }],

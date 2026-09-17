@@ -4,7 +4,7 @@
  * Anthropic APIの特徴:
  * - systemメッセージは別パラメータとして送信
  * - max_completion_tokens → max_tokens
- * - response_format は非対応（プロンプトで指示）
+ * - 構造化出力は output_config.format（OpenAI 互換の response_format は非対応）
  * - レスポンスは content[0].text
  * - temperature / top_p / top_k は非対応（Claude 4.6 以降で削除。送ると 400）
  */
@@ -12,6 +12,8 @@
 import { PROVIDER_CONFIGS } from "@/schemas/provider";
 import type { ChatCompletionAdapter, ChatRequestBody } from "./adapter";
 import { extractApiErrorMessage } from "./adapter-helpers";
+
+const DEFAULT_MAX_TOKENS = 16_000;
 
 export const anthropicAdapter: ChatCompletionAdapter = {
   buildRequest(token: string, body: ChatRequestBody) {
@@ -23,10 +25,14 @@ export const anthropicAdapter: ChatCompletionAdapter = {
 
     // Anthropic APIのボディ形式に変換
     const anthropicBody: Record<string, unknown> = {
-      max_tokens: body.max_completion_tokens ?? 4096,
+      max_tokens: body.max_completion_tokens ?? DEFAULT_MAX_TOKENS,
       messages: otherMessages,
       model: body.model,
     };
+
+    if (body.output_config) {
+      anthropicBody.output_config = body.output_config;
+    }
 
     // systemメッセージがあれば追加
     if (systemMessages.length > 0) {
