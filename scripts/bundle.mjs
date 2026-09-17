@@ -23,6 +23,7 @@ const buildOptions = {
     "src/content.ts",
     "src/popup.ts",
     "src/focus-override.ts",
+    "src/search-blocklist.ts",
   ],
   format: "iife",
   jsx: "automatic",

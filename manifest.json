@@ -48,6 +48,11 @@
       "matches": ["<all_urls>"],
       "js": ["dist/content.js"],
       "css": ["content.css"]
+    },
+    {
+      "matches": ["*://www.google.com/search*", "*://www.google.co.jp/search*"],
+      "js": ["dist/search-blocklist.js"],
+      "run_at": "document_start"
     }
   ],
   "icons": {
