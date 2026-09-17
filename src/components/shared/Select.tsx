@@ -64,7 +64,12 @@ export function Select({
       </BaseSelect.Trigger>
       <BaseSelect.Portal>
         <BaseSelect.Positioner
+          // alignItemWithTrigger の既定 true は window resize で popup を即座に close する
+          // (@base-ui/react 1.8.0 の resize-close listener)。Arc/Dia は popup 寸法確定後に
+          // resize を発火させるため必ず閉じてしまう。false で listener 自体を無効化する。
+          alignItemWithTrigger={false}
           className="mbu-select-positioner"
+          positionMethod="fixed"
           sideOffset={positionerSideOffset}
         >
           <BaseSelect.Popup className="mbu-select-popup">

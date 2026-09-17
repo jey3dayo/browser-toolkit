@@ -30,6 +30,24 @@ function SelectStory({ variant }: SelectStoryProps): React.JSX.Element {
   );
 }
 
+function SelectResizeStory(): React.JSX.Element {
+  const [value, setValue] = useState<string | null>(OPTIONS[0].value);
+
+  return (
+    <div style={{ paddingBottom: 400, paddingTop: 400 }}>
+      <Select
+        ariaLabel="モデル"
+        name="model"
+        onValueChange={setValue}
+        options={OPTIONS}
+        triggerTestId={TRIGGER_TEST_ID}
+        value={value}
+        variant="token"
+      />
+    </div>
+  );
+}
+
 function getPopup(): HTMLElement | null {
   return document.body.querySelector<HTMLElement>(".mbu-select-popup");
 }
@@ -128,4 +146,40 @@ export const Pattern: Story = {
     expect(rect.height).toBeGreaterThan(0);
     expect(getItems()).toHaveLength(OPTIONS.length);
   },
+};
+
+export const SurvivesWindowResize: Story = {
+  args: {
+    variant: "token",
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const trigger = canvas.getByTestId(TRIGGER_TEST_ID);
+
+    await userEvent.click(trigger);
+
+    await waitFor(() => {
+      expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    });
+
+    await waitFor(() => {
+      const el = getPopup();
+      if (!el) {
+        throw new Error("select popup not found");
+      }
+      return el;
+    });
+
+    window.dispatchEvent(new Event("resize"));
+
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    const popup = getPopup();
+    if (!popup) {
+      throw new Error("select popup closed after window resize");
+    }
+    const rect = popup.getBoundingClientRect();
+    expect(rect.width).toBeGreaterThan(0);
+    expect(rect.height).toBeGreaterThan(0);
+  },
+  render: () => <SelectResizeStory />,
 };
