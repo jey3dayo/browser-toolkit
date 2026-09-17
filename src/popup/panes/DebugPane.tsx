@@ -11,14 +11,65 @@ import {
 import { SwitchField } from "@/components/shared/SwitchField";
 import { TextOutput } from "@/components/shared/TextOutput";
 import { Hint, PaneTitle } from "@/components/shared/Typography";
+import type {
+  GetSearchBlocklistDiagnosticsMessage,
+  SearchBlocklistDiagnosticsResponse,
+} from "@/content-script-messages";
 import { t } from "@/i18n";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { sendBackgroundResult } from "@/popup/utils/background_result";
+import { resolveActiveTabId } from "@/popup/utils/summary_target";
 import type { LocalStorageData } from "@/storage/types";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
+import { isRecord } from "@/utils/guards";
 
 export type DebugPaneProps = PopupPaneBaseProps;
+
+type SearchBlocklistDiagnosticsPanelState =
+  | { status: "loading" }
+  | { status: "unavailable" }
+  | { status: "error" }
+  | {
+      status: "ready";
+      detectedCount: number;
+      blockedCount: number;
+      ruleRevision: number;
+      engineId: string;
+    };
+
+const MAX_SEARCH_BLOCKLIST_ENGINE_ID_LENGTH = 200;
+
+function isNonNegativeFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0;
+}
+
+function toSearchBlocklistDiagnosticsPanelState(
+  value: unknown
+): SearchBlocklistDiagnosticsPanelState {
+  if (!isRecord(value) || typeof value.available !== "boolean") {
+    return { status: "error" };
+  }
+  if (!value.available) {
+    return { status: "unavailable" };
+  }
+  if (
+    isNonNegativeFiniteNumber(value.detectedCount) &&
+    isNonNegativeFiniteNumber(value.blockedCount) &&
+    isNonNegativeFiniteNumber(value.ruleRevision) &&
+    typeof value.engineId === "string" &&
+    value.engineId.length <= MAX_SEARCH_BLOCKLIST_ENGINE_ID_LENGTH
+  ) {
+    return {
+      blockedCount: value.blockedCount,
+      detectedCount: value.detectedCount,
+      engineId: value.engineId,
+      ruleRevision: value.ruleRevision,
+      status: "ready",
+    };
+  }
+  return { status: "error" };
+}
 
 export function DebugPane(props: DebugPaneProps): React.JSX.Element {
   const [debugMode, setDebugMode] = useState(false);
@@ -28,6 +79,8 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
   } | null>(null);
   const [showLogs, setShowLogs] = useState(false);
   const [logContent, setLogContent] = useState("");
+  const [searchBlocklistDiagnostics, setSearchBlocklistDiagnostics] =
+    useState<SearchBlocklistDiagnosticsPanelState>({ status: "loading" });
 
   const loadLogStats = useCallback(async (): Promise<void> => {
     const result = await props.runtime.sendMessageToBackground<
@@ -78,6 +131,43 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
       cancelled = true;
     };
   }, [loadLogStats, props.runtime]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const tabId = await resolveActiveTabId({
+        onError: () => undefined,
+        runtime: props.runtime,
+      });
+      if (tabId === null) {
+        if (!cancelled) {
+          setSearchBlocklistDiagnostics({ status: "error" });
+        }
+        return;
+      }
+      const response = await props.runtime.sendMessageToTab<
+        GetSearchBlocklistDiagnosticsMessage,
+        SearchBlocklistDiagnosticsResponse
+      >(tabId, { action: "getSearchBlocklistDiagnostics" });
+      if (cancelled) {
+        return;
+      }
+      if (Result.isFailure(response)) {
+        setSearchBlocklistDiagnostics({ status: "error" });
+        return;
+      }
+      setSearchBlocklistDiagnostics(
+        toSearchBlocklistDiagnosticsPanelState(response.value)
+      );
+    })().catch(() => {
+      if (!cancelled) {
+        setSearchBlocklistDiagnostics({ status: "error" });
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [props.runtime]);
 
   const loadAndShowLogs = async (): Promise<void> => {
     const result = await props.runtime.sendMessageToBackground<
@@ -236,6 +326,41 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
             })}
           </Hint>
         )}
+      </section>
+
+      {/* 検索結果ブロック診断 */}
+      <section className="card settings-card settings-pane-card">
+        <Fieldset legend={t("debug.searchBlocklist.title")} spacing="stack">
+          {searchBlocklistDiagnostics.status === "ready" && (
+            <Stack spacing="small">
+              <RowBetween>
+                <span>{t("debug.searchBlocklist.detectedCount")}</span>
+                <span>{searchBlocklistDiagnostics.detectedCount}</span>
+              </RowBetween>
+              <RowBetween>
+                <span>{t("debug.searchBlocklist.blockedCount")}</span>
+                <span>{searchBlocklistDiagnostics.blockedCount}</span>
+              </RowBetween>
+              <RowBetween>
+                <span>{t("debug.searchBlocklist.ruleRevision")}</span>
+                <span>{searchBlocklistDiagnostics.ruleRevision}</span>
+              </RowBetween>
+              <RowBetween>
+                <span>{t("debug.searchBlocklist.engineId")}</span>
+                <span>{searchBlocklistDiagnostics.engineId}</span>
+              </RowBetween>
+            </Stack>
+          )}
+          {searchBlocklistDiagnostics.status === "unavailable" && (
+            <Hint>{t("debug.searchBlocklist.empty")}</Hint>
+          )}
+          {searchBlocklistDiagnostics.status === "loading" && (
+            <Hint>{t("debug.searchBlocklist.loading")}</Hint>
+          )}
+          {searchBlocklistDiagnostics.status === "error" && (
+            <Hint>{t("debug.searchBlocklist.unavailable")}</Hint>
+          )}
+        </Fieldset>
       </section>
 
       {debugMode && (
