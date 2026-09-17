@@ -12,7 +12,7 @@
   color: var(--mbu-text);
   background: var(--mbu-surface);
   border: 1px solid var(--mbu-border);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   box-shadow: var(--mbu-shadow);
 }
 
@@ -45,7 +45,7 @@
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 13px;
+  font-size: var(--font-size-md);
   font-weight: 750;
   white-space: nowrap;
 }
@@ -56,12 +56,12 @@
   align-items: center;
   padding: 2px 8px;
   margin-left: 8px;
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 650;
   color: var(--mbu-text-muted);
   background: color-mix(in oklab, var(--mbu-surface) 60%, transparent);
   border: 1px solid var(--mbu-border);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .mbu-overlay-actions {
@@ -86,19 +86,19 @@
   min-width: 180px;
   max-width: min(240px, 70vw);
   padding: 8px 10px;
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   line-height: 1.4;
   color: var(--mbu-text);
   pointer-events: none;
   background: color-mix(in oklab, var(--mbu-surface) 94%, transparent);
   border: 1px solid var(--mbu-border);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   box-shadow: var(--mbu-shadow);
   opacity: 0;
   transform: translateY(-4px) scale(0.98);
   transition:
-    opacity 120ms ease,
-    transform 120ms ease;
+    opacity var(--motion-duration-fast) ease,
+    transform var(--motion-duration-fast) ease;
 }
 
 .mbu-overlay-popover-title {
@@ -124,7 +124,7 @@
   justify-content: center;
   height: 32px;
   padding: 0 10px;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-weight: 700;
   line-height: 1;
   color: var(--mbu-text);
@@ -132,11 +132,11 @@
   cursor: pointer;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   transition:
-    background 140ms ease,
-    color 140ms ease,
-    opacity 140ms ease;
+    background var(--motion-duration-fast) ease,
+    color var(--motion-duration-fast) ease,
+    opacity var(--motion-duration-fast) ease;
 }
 
 .mbu-overlay-action:hover:not(:disabled) {
@@ -171,13 +171,13 @@
   color: var(--mbu-text-muted);
   white-space: nowrap;
   background: transparent;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   opacity: 0.62;
   transition:
-    background 140ms ease,
-    color 140ms ease,
-    opacity 140ms ease,
-    width 140ms ease;
+    background var(--motion-duration-fast) ease,
+    color var(--motion-duration-fast) ease,
+    opacity var(--motion-duration-fast) ease,
+    width var(--motion-duration-fast) ease;
 }
 
 .mbu-overlay-copy:hover:not(:disabled) {
@@ -189,7 +189,7 @@
 }
 
 .mbu-overlay-copy::after {
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   content: "";
 }
@@ -237,7 +237,7 @@
   cursor: grab;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 
 .mbu-overlay-drag:active {
@@ -312,12 +312,12 @@
   cursor: pointer;
   background: color-mix(in oklab, var(--mbu-surface) 72%, transparent);
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   box-shadow: var(--mbu-shadow);
   opacity: 1;
   transition:
-    opacity 160ms ease,
-    transform 160ms ease;
+    opacity var(--motion-duration) ease,
+    transform var(--motion-duration) ease;
 }
 
 .mbu-overlay-chat-scroller-button[data-active="false"] {
@@ -338,7 +338,7 @@
 }
 
 .mbu-overlay-chat-role {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 700;
   color: var(--mbu-text-muted);
 }
@@ -350,7 +350,7 @@
 .mbu-overlay-chat-text {
   margin: 0;
   font-family: inherit;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   line-height: 1.5;
   color: var(--mbu-text);
   word-break: break-word;
@@ -367,7 +367,7 @@
   width: 40px;
   height: auto;
   min-height: 42px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 
 .mbu-overlay-chat-input-row .mbu-overlay-icon-button:disabled {
@@ -381,13 +381,13 @@
   min-height: 42px;
   padding: 11px 10px;
   font-family: inherit;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   line-height: 18px;
   color: var(--mbu-text);
   resize: none;
   background: var(--mbu-surface);
   border: 1px solid var(--mbu-border);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 
 .mbu-overlay-chat-input:focus {

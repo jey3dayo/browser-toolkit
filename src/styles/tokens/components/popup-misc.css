@@ -23,10 +23,10 @@
   background: linear-gradient(
     135deg,
     color-mix(in oklab, var(--color-primary) 18%, transparent),
-    color-mix(in oklab, var(--color-primary-2) 14%, transparent)
+    color-mix(in oklab, var(--color-primary-strong) 14%, transparent)
   );
-  border: 1px solid color-mix(in oklab, var(--color-primary-2) 18%, var(--line));
-  border-radius: 16px;
+  border: 1px solid color-mix(in oklab, var(--color-primary) 18%, var(--line));
+  border-radius: var(--radius-lg);
 }
 
 .table-pane-summary-heading {
@@ -51,14 +51,14 @@
 }
 
 .table-pane-summary-title {
-  font-size: 13px;
+  font-size: var(--font-size-md);
   font-weight: 700;
   line-height: 1.5;
   color: var(--text);
 }
 
 .table-pane-summary-copy {
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   line-height: 1.55;
   color: var(--text-sub);
 }
@@ -76,13 +76,13 @@
   display: grid;
   gap: 6px;
   padding: 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
+  background: var(--primitive-alpha-white-04);
+  border: 1px solid var(--primitive-alpha-white-10);
+  border-radius: var(--radius-lg);
 }
 
 .table-pane-summary-label {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 700;
   color: var(--text-sub);
   text-transform: uppercase;
@@ -90,24 +90,24 @@
 }
 
 .table-pane-summary-value {
-  font-size: 14px;
+  font-size: var(--font-size-md);
   font-weight: 700;
   line-height: 1.4;
   color: var(--text);
 }
 
 .table-pane-summary-meta {
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   line-height: 1.55;
   color: var(--text-sub);
 }
 
 .table-pane-summary-meta code {
   padding: 1px 6px;
-  font-size: 11px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  font-size: var(--font-size-xs);
+  background: var(--primitive-alpha-white-08);
+  border: 1px solid var(--primitive-alpha-white-10);
+  border-radius: var(--radius-sm);
 }
 
 .table-pane-section {
@@ -116,8 +116,8 @@
   padding: 16px;
   background: color-mix(in oklab, var(--panel-soft) 92%, transparent);
   border: 1px solid var(--line);
-  border-radius: 16px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-lg);
+  box-shadow: inset 0 1px 0 var(--primitive-alpha-white-03);
 }
 
 .table-pane-section-heading {
@@ -141,10 +141,10 @@
   max-height: 320px;
   padding: 8px;
   margin: 0;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--primitive-alpha-white-03);
   border: 1px dashed var(--line);
-  border-radius: 14px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-lg);
+  box-shadow: inset 0 1px 0 var(--primitive-alpha-white-03);
 }
 
 .pattern-scrollarea {
@@ -163,10 +163,10 @@
   width: 0.35rem;
   margin: 0.5rem;
   pointer-events: none;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 999px;
+  background: var(--primitive-alpha-white-08);
+  border-radius: var(--radius-pill);
   opacity: 0;
-  transition: opacity 150ms;
+  transition: opacity var(--motion-duration-fast);
 }
 
 .pattern-scrollbar[data-state="hidden"] {
@@ -185,7 +185,7 @@
 
 .pattern-thumb {
   width: 100%;
-  background: rgba(255, 255, 255, 0.38);
+  background: var(--primitive-alpha-white-38);
   border-radius: inherit;
 }
 
@@ -198,7 +198,7 @@
   margin-bottom: 8px;
   background: color-mix(in oklab, var(--panel) 92%, transparent);
   border: 1px solid color-mix(in oklab, var(--line) 92%, transparent);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
 }
 
 .pattern-item--with-toggle {
@@ -217,7 +217,7 @@
   flex: 1;
   min-width: 0;
   padding-right: 0;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   line-height: 1.4;
   word-break: break-all;
   overflow-wrap: anywhere;
@@ -285,7 +285,7 @@
   min-height: 110px;
   padding: 12px;
   font: inherit;
-  font-size: 13px;
+  font-size: var(--font-size-md);
   line-height: 1.5;
   color: var(--input-text);
   resize: vertical;
@@ -303,7 +303,7 @@
   min-height: 160px;
   padding: 12px;
   font: inherit;
-  font-size: 13px;
+  font-size: var(--font-size-md);
   line-height: 1.5;
   color: var(--input-text);
   resize: vertical;
@@ -324,13 +324,13 @@
   max-height: 400px;
   padding: 12px;
   overflow: auto;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   line-height: 1.5;
   word-break: break-word;
   white-space: pre-wrap;
   background: color-mix(in oklab, var(--panel-soft) 88%, transparent);
   border: 1px solid color-mix(in oklab, var(--line) 90%, transparent);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
 }
 
 .field-label {
@@ -342,7 +342,7 @@
 
 .hint {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   line-height: 1.5;
   color: var(--text-sub);
 }
@@ -358,12 +358,12 @@ input[type="checkbox"] {
 .empty-message {
   padding: 14px;
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   line-height: 1.55;
   color: var(--text-sub);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--primitive-alpha-white-03);
   border: 1px dashed var(--line);
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
 }
 
 .focus-diagnostic-panel {
@@ -376,7 +376,7 @@ input[type="checkbox"] {
     color-mix(in oklab, var(--panel-soft) 92%, transparent)
   );
   border: 1px solid color-mix(in oklab, var(--line) 96%, transparent);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
 }
 
 .focus-diagnostic-panel > .row-between {
@@ -386,7 +386,7 @@ input[type="checkbox"] {
 
 .focus-diagnostic-eyebrow {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--text-sub);
   text-transform: uppercase;
   letter-spacing: 0.6px;
@@ -402,10 +402,10 @@ input[type="checkbox"] {
   align-items: center;
   width: fit-content;
   padding: 4px 10px;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-weight: 700;
   line-height: 1.2;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .focus-diagnostic-status--neutral {
@@ -440,9 +440,9 @@ input[type="checkbox"] {
   line-height: 1.5;
   word-break: break-all;
   overflow-wrap: anywhere;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--primitive-alpha-white-04);
   border: 1px dashed color-mix(in oklab, var(--line) 90%, transparent);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
 }
 
 .focus-diagnostic-actions {
@@ -453,7 +453,7 @@ input[type="checkbox"] {
 .focus-diagnostic-meta,
 .focus-diagnostic-loading {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   line-height: 1.55;
 }
 
@@ -490,7 +490,7 @@ input[type="checkbox"] {
 .settings-section-label {
   align-self: center;
   min-width: 0;
-  font-size: 13px;
+  font-size: var(--font-size-md);
   font-weight: 700;
   line-height: 1.4;
   color: var(--text);
@@ -503,20 +503,20 @@ input[type="checkbox"] {
   padding: 14px;
   background: color-mix(in oklab, var(--panel) 94%, transparent);
   border: 1px solid color-mix(in oklab, var(--line) 92%, transparent);
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
 }
 
 .settings-status-note {
   width: fit-content;
   padding: 8px 10px;
-  color: color-mix(in oklab, var(--color-primary-2) 70%, var(--text));
+  color: color-mix(in oklab, var(--color-primary) 70%, var(--text));
   background: color-mix(
     in oklab,
-    var(--color-primary-2) var(--accent-mix-12),
+    var(--color-primary) var(--accent-mix-12),
     transparent
   );
-  border: 1px solid color-mix(in oklab, var(--color-primary-2) 26%, var(--line));
-  border-radius: 10px;
+  border: 1px solid color-mix(in oklab, var(--color-primary) 26%, var(--line));
+  border-radius: var(--radius-sm);
 }
 
 /* Pane heading, not a hero card: no surface of its own so the first real
@@ -528,11 +528,6 @@ input[type="checkbox"] {
   background: none;
   border: none;
   box-shadow: none;
-}
-
-.settings-pane-overview .pane-title {
-  font-size: 15px;
-  line-height: 1.4;
 }
 
 .settings-pane-overview .hint {
@@ -557,7 +552,7 @@ input[type="checkbox"] {
 }
 
 .settings-pane-card .mbu-fieldset-legend {
-  font-size: 13px;
+  font-size: var(--font-size-md);
   font-weight: 700;
   color: var(--text);
   opacity: 1;
@@ -569,7 +564,7 @@ input[type="checkbox"] {
 
 .settings-pane-card .hint {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   line-height: 1.55;
 }
 
@@ -696,12 +691,12 @@ input[type="checkbox"] {
   left: 12px;
   z-index: 2147483647;
   padding: 10px 12px;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-weight: 700;
-  color: #fff;
-  background: rgba(229, 57, 53, 0.92);
-  border-radius: 12px;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+  color: var(--primitive-color-neutral-0);
+  background: color-mix(in oklab, var(--color-danger) 92%, transparent);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 24px var(--primitive-alpha-black-30);
 }
 
 /* Search Engine Settings UI */
@@ -718,7 +713,7 @@ input[type="checkbox"] {
   padding: 8px 12px;
   background: var(--color-surface);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 
 .search-engine-item + .search-engine-item {
@@ -746,7 +741,7 @@ input[type="checkbox"] {
   gap: 6px;
   align-items: center;
   /* Align engine name and encoding badge */
-  font-size: 14px;
+  font-size: var(--font-size-md);
   font-weight: 500;
   line-height: 1.4;
   color: var(--text);
@@ -755,10 +750,10 @@ input[type="checkbox"] {
 .badge {
   display: inline-block;
   padding: 1px 6px;
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   line-height: 1.4;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .badge-info {
@@ -772,9 +767,9 @@ input[type="checkbox"] {
 
 .search-engine-url {
   font-family: "Consolas", "Monaco", "Courier New", monospace;
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   line-height: 1.4;
-  color: var(--text-secondary);
+  color: var(--text-sub);
   word-break: break-all;
 }
 
@@ -828,7 +823,7 @@ input[type="checkbox"] {
   margin-top: -1px;
   background: color-mix(in oklab, var(--color-surface) 85%, transparent);
   border-top: 1px solid var(--line);
-  border-radius: 0 0 8px 8px;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
 }
 
 .group-engine-item {
@@ -843,7 +838,7 @@ input[type="checkbox"] {
 }
 
 .group-engine-name {
-  font-size: 13px;
+  font-size: var(--font-size-md);
   color: var(--text);
 }
 

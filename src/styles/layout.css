@@ -15,7 +15,7 @@
   pointer-events: none;
   background: var(--color-scrim);
   opacity: 0;
-  transition: opacity 0.16s ease;
+  transition: opacity var(--motion-duration) ease;
 }
 
 body.menu-open .menu-scrim {
@@ -41,15 +41,15 @@ body.menu-open .menu-scrim {
   opacity: 0;
   backdrop-filter: blur(14px);
   transition:
-    opacity 0.14s ease,
-    visibility 0s linear 0.14s;
+    opacity var(--motion-duration) ease,
+    visibility 0s linear var(--motion-duration);
 }
 
 body.menu-open .menu-drawer {
   visibility: visible;
   pointer-events: auto;
   opacity: 1;
-  transition: opacity 0.14s ease;
+  transition: opacity var(--motion-duration) ease;
 }
 
 .menu-drawer-header {
@@ -74,11 +74,11 @@ body.menu-open .menu-drawer {
   cursor: pointer;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   transition:
-    transform 0.16s ease,
-    background 0.16s ease,
-    border-color 0.16s ease;
+    transform var(--motion-duration) ease,
+    background var(--motion-duration) ease,
+    border-color var(--motion-duration) ease;
 }
 
 .menu-close svg {
@@ -123,10 +123,10 @@ body.menu-open .menu-drawer {
   color: var(--text);
   letter-spacing: 0.1px;
   text-decoration: none;
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
   transition:
-    background 0.16s ease,
-    transform 0.16s ease;
+    background var(--motion-duration) ease,
+    transform var(--motion-duration) ease;
 }
 
 .menu-icon {
@@ -136,7 +136,7 @@ body.menu-open .menu-drawer {
   height: 38px;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 
 .menu-icon svg {
@@ -205,7 +205,7 @@ body.menu-open .menu-drawer {
   border-left: 1px solid var(--line);
   opacity: 1;
   transition:
-    opacity 0.16s ease,
+    opacity var(--motion-duration) ease,
     visibility 0s linear 0s;
 }
 
@@ -214,8 +214,8 @@ body.menu-open .sidebar {
   pointer-events: none;
   opacity: 0;
   transition:
-    opacity 0.16s ease,
-    visibility 0s linear 0.16s;
+    opacity var(--motion-duration) ease,
+    visibility 0s linear var(--motion-duration);
 }
 
 .sidebar-brand {
@@ -233,10 +233,10 @@ body.menu-open .sidebar {
   background: linear-gradient(
     135deg,
     color-mix(in oklab, var(--color-primary) 95%, transparent),
-    color-mix(in oklab, var(--color-primary-2) 90%, transparent)
+    color-mix(in oklab, var(--color-primary-strong) 90%, transparent)
   );
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   isolation: isolate;
 }
 
@@ -249,11 +249,15 @@ body.menu-open .sidebar {
   background:
     radial-gradient(
       circle at 20% 20%,
-      rgba(255, 255, 255, 0.42),
+      var(--primitive-alpha-white-42),
       transparent 45%
     ),
-    radial-gradient(circle at 70% 80%, rgba(15, 23, 36, 0.24), transparent 55%);
-  border-radius: 10px;
+    radial-gradient(
+      circle at 70% 80%,
+      var(--primitive-alpha-black-24),
+      transparent 55%
+    );
+  border-radius: var(--radius-sm);
   opacity: 0.55;
 }
 
@@ -288,8 +292,10 @@ body.menu-open .sidebar {
   cursor: pointer;
   background: transparent;
   border: none;
-  border-radius: 6px;
-  transition: all 0.2s ease;
+  border-radius: var(--radius-sm);
+  transition:
+    color var(--motion-duration) ease,
+    background var(--motion-duration) ease;
 }
 
 .nav-item .nav-icon {
@@ -299,7 +305,7 @@ body.menu-open .sidebar {
   height: 32px;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   box-shadow: none;
 }
 
@@ -314,7 +320,7 @@ body.menu-open .sidebar {
 }
 
 .nav-item .nav-label {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   line-height: 1.15;
   letter-spacing: 0.4px;
   word-break: keep-all;
@@ -331,7 +337,7 @@ body.menu-open .sidebar {
   right: calc(100% + 10px);
   z-index: 20;
   padding: 8px 10px;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   color: var(--text);
   letter-spacing: 0.2px;
   white-space: nowrap;
@@ -339,19 +345,15 @@ body.menu-open .sidebar {
   content: attr(data-tooltip);
   background: color-mix(in oklab, var(--color-bg) 92%, transparent);
   border: 1px solid
-    color-mix(
-      in oklab,
-      var(--color-primary-2) var(--accent-mix-18),
-      transparent
-    );
-  border-radius: 12px;
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
+    color-mix(in oklab, var(--color-primary) var(--accent-mix-18), transparent);
+  border-radius: var(--radius-md);
+  box-shadow: 0 14px 30px var(--primitive-alpha-black-28);
   opacity: 0;
   backdrop-filter: blur(10px);
   transform: translateY(-50%) translateX(6px);
   transition:
-    opacity 0.12s ease,
-    transform 0.12s ease;
+    opacity var(--motion-duration-fast) ease,
+    transform var(--motion-duration-fast) ease;
 }
 
 .sidebar [data-tooltip]:hover::after,
@@ -390,17 +392,6 @@ body.menu-open .sidebar {
   );
   border-color: transparent;
   box-shadow: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sidebar,
-  .nav-item,
-  .menu-drawer,
-  .menu-scrim,
-  .menu-close,
-  .menu-item {
-    transition: none !important;
-  }
 }
 
 .nav-item:focus-visible {
@@ -461,9 +452,9 @@ body.menu-open .sidebar {
   background: linear-gradient(
     135deg,
     color-mix(in oklab, var(--color-primary) 95%, transparent),
-    color-mix(in oklab, var(--color-primary-2) 90%, transparent)
+    color-mix(in oklab, var(--color-primary-strong) 90%, transparent)
   );
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   isolation: isolate;
 }
 
@@ -476,11 +467,15 @@ body.menu-open .sidebar {
   background:
     radial-gradient(
       circle at 20% 20%,
-      rgba(255, 255, 255, 0.45),
+      var(--primitive-alpha-white-45),
       transparent 45%
     ),
-    radial-gradient(circle at 70% 80%, rgba(15, 23, 36, 0.25), transparent 55%);
-  border-radius: 10px;
+    radial-gradient(
+      circle at 70% 80%,
+      var(--primitive-alpha-black-25),
+      transparent 55%
+    );
+  border-radius: var(--radius-sm);
   opacity: 0.55;
 }
 
@@ -494,7 +489,7 @@ body.menu-open .sidebar {
 
 .title-text h1 {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--font-size-lg);
   line-height: 1.25;
   letter-spacing: 0.2px;
 }

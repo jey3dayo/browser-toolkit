@@ -1,19 +1,22 @@
 ---
 colors:
-  primary: "#3ecf8e"
-  bgDark: "#0f1724"
-  surfaceDark: "#1b2334"
-  surfaceDarkRaised: "#232d42"
-  textDark: "#f6f7fb"
-  textDarkMuted: "#c8d0e5"
-  primaryDark: "#3ecf8e"
-  primaryDarkSecondary: "#7bdcf7"
-  dangerDark: "#e57373"
-  bgLight: "#ffffff"
-  surfaceLightRaised: "#f3f4f6"
-  textLight: "#111827"
-  primaryLight: "#4285f4"
-  primaryLightStrong: "#1b64da"
+  primary: "#7c8cff"
+  bgDark: "#0c0d10"
+  surfaceDark: "#15171c"
+  surfaceDarkRaised: "#1c1f26"
+  textDark: "#ececef"
+  textDarkMuted: "#9aa0ac"
+  primaryDark: "#7c8cff"
+  primaryDarkStrong: "#6674f5"
+  dangerDark: "#f07178"
+  bgLight: "#f6f6f8"
+  surfaceLight: "#ffffff"
+  surfaceLightRaised: "#f0f1f4"
+  textLight: "#16181d"
+  textLightMuted: "#6b7080"
+  primaryLight: "#4f5fe0"
+  primaryLightStrong: "#3f4dc7"
+  dangerLight: "#d64545"
 typography:
   ui:
     fontFamily: '"Segoe UI", "Helvetica Neue", system-ui, sans-serif'
@@ -52,7 +55,7 @@ rounded:
   pill: "999px"
 components:
   buttonPrimary:
-    backgroundColor: "{colors.primaryDark}"
+    backgroundColor: "{colors.primaryDarkStrong}"
     textColor: "{colors.bgDark}"
     typography: "{typography.compactAction}"
     rounded: "{rounded.md}"
@@ -77,7 +80,7 @@ components:
     padding: "16px"
   chip:
     backgroundColor: "{colors.surfaceDarkRaised}"
-    textColor: "{colors.primaryDarkSecondary}"
+    textColor: "{colors.primaryDark}"
     typography: "{typography.label}"
     rounded: "{rounded.pill}"
     padding: "4px 10px"
@@ -129,15 +132,15 @@ popup は 800px x 600px の固定的な作業面を前提に、設定・一覧�
 
 CSS custom properties in `src/styles/tokens/` are the implementation source of truth. New UI must use semantic tokens such as `--color-bg`, `--color-surface`, `--color-text`, `--color-primary`, `--mbu-surface`, and `--mbu-accent` instead of hard-coded colors.
 
-Dark theme uses slate surfaces with green/cyan accents. Light theme uses white/gray surfaces with blue/cyan accents. Auto theme follows `prefers-color-scheme` when `data-theme` is absent.
+Both themes use neutral, low-saturation surfaces with a single indigo/blue accent hue (`--color-primary` / `--color-primary-strong`); there is no second accent color. `--color-primary-2` is kept only as a legacy alias of `--color-primary` for existing markup. Dark theme uses near-black neutrals; light theme uses off-white/white neutrals. Auto theme follows `prefers-color-scheme` when `data-theme` is absent. Muted text is a solid, non-alpha color in both themes so it holds at least 4.5:1 contrast against `--color-surface`.
 
-Primary fills are flat: a solid `--color-primary` (or `--color-primary-strong` in light theme, which keeps AA contrast under white label text). Do not use accent gradients or colored glow shadows on buttons, icon wells, or nav items — reserve gradients for the product brandmark alone.
+Primary fills are flat: a solid `--color-primary` (or `--color-primary-strong` in light theme, which keeps AA contrast under white label text). Do not use accent gradients or colored glow shadows on buttons, icon wells, or nav items — reserve gradients for the product brandmark alone, and keep that gradient a single hue (`--color-primary` to `--color-primary-strong`), never a second color. The popup body background is a flat `--color-bg`, not a radial wash.
 
 Primary color is reserved for the main affirmative action, selected state, active state, and focused affordance. Danger color is reserved for destructive or failure states. Muted text is used for labels, descriptions, helper text, and secondary metadata.
 
 ## Typography
 
-Use the project sans stack everywhere: `"Segoe UI", "Helvetica Neue", system-ui, sans-serif`. Popup and overlay text should stay compact: body text is typically 13px, section titles 16px, labels and metadata 12px, and overlay utility controls 11px-12px.
+Use the project sans stack everywhere: `"Segoe UI", "Helvetica Neue", system-ui, sans-serif`. Use the semantic font-size tokens instead of raw px: `--font-size-xs` (11px) for the smallest labels, `--font-size-sm` (12px) for metadata and overlay utility controls, `--font-size-md` (13px) for body text, `--font-size-lg` (16px) for pane and section titles, and `--font-size-xl` (18px) for the largest headings. `.pane-title` is a single definition (`--font-size-lg` / weight 650); do not add per-pane overrides.
 
 Do not introduce viewport-scaled type. Keep letter spacing at 0 for new reusable typography rules unless an existing compact badge or legacy class already defines a small positive value.
 

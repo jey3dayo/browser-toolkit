@@ -5,9 +5,9 @@
   border: none;
   border-radius: var(--button-radius);
   transition:
-    transform 0.08s ease,
-    filter 0.12s ease,
-    background 0.2s ease;
+    transform var(--motion-duration-fast) ease,
+    filter var(--motion-duration-fast) ease,
+    background var(--motion-duration) ease;
 }
 
 .btn:disabled,
@@ -48,7 +48,7 @@
 
 .btn-small {
   padding: var(--button-padding-sm);
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-weight: var(--button-font-weight);
   border-radius: var(--button-radius-sm);
 }
@@ -82,7 +82,7 @@
   min-width: 0;
   padding: var(--input-padding);
   font: inherit;
-  font-size: var(--primitive-font-size-14);
+  font-size: var(--font-size-md);
   color: var(--input-text);
   background: var(--input-bg);
   border: var(--input-border);
@@ -110,7 +110,7 @@
   cursor: pointer;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 
 .input-icon-toggle:hover {
@@ -167,7 +167,7 @@
   padding: 6px;
   background: color-mix(in oklab, var(--color-surface) 98%, transparent);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow);
   backdrop-filter: blur(14px);
 }
@@ -188,7 +188,7 @@
   color: var(--text);
   cursor: pointer;
   user-select: none;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
 }
 
 .mbu-select-item[data-highlighted] {
@@ -233,7 +233,7 @@
   user-select: none;
   background: color-mix(in oklab, var(--color-text) 4%, transparent);
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 
 .mbu-toggle:hover {
@@ -254,7 +254,7 @@
   align-self: start;
   justify-content: start;
   padding: 6px 10px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
 }
 
 .mbu-toggle-group {
@@ -263,7 +263,7 @@
   padding: 2px;
   background: color-mix(in oklab, var(--color-text) 4%, transparent);
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 
 .mbu-toggle-group-item {
@@ -275,7 +275,7 @@
   user-select: none;
   background: transparent;
   border: 0;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .mbu-toggle-group-item:hover {
@@ -302,7 +302,7 @@
   user-select: none;
   background: color-mix(in oklab, var(--color-text) 4%, transparent);
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 
 .mbu-switch-text {
@@ -321,10 +321,10 @@
   cursor: pointer;
   background: color-mix(in oklab, var(--color-text) 8%, transparent);
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   transition:
-    background 160ms ease,
-    border-color 160ms ease;
+    background var(--motion-duration) ease,
+    border-color var(--motion-duration) ease;
 }
 
 .mbu-switch[data-checked] {
@@ -354,10 +354,10 @@
   width: 18px;
   height: 18px;
   background: var(--color-surface);
-  border-radius: 999px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 4px 12px var(--primitive-alpha-black-25);
   transform: translateX(0);
-  transition: transform 160ms ease;
+  transition: transform var(--motion-duration) ease;
 }
 
 .mbu-switch[data-checked] .mbu-switch-thumb {
