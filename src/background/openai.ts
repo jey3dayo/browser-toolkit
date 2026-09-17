@@ -24,6 +24,8 @@ import { safeParseAiProvider } from "@/schemas/provider";
 import type { ExtractedEvent } from "@/shared_types";
 import { fetchChatCompletionOk, fetchChatCompletionText } from "@/utils/openai";
 
+const MAX_CHAT_TURNS = 20;
+
 type AiTextRequest = {
   target: SummaryTarget;
   missingTextMessage: string;
@@ -320,7 +322,12 @@ export async function chatFollowUpWithOpenAI(
     settings.customPrompt
   );
 
-  const MAX_CHAT_TURNS = 20;
+  const recentMessages = messages.slice(-MAX_CHAT_TURNS);
+  if (recentMessages.at(-1)?.role !== "user") {
+    // 末尾が assistant のまま送ると prefill 扱いになり、Claude 4.6 以降は 400 になる
+    return Result.fail("チャット履歴が不正です");
+  }
+
   const body: ChatRequestBody = {
     messages: [
       { content: systemContent, role: "system" },
@@ -336,7 +343,7 @@ export async function chatFollowUpWithOpenAI(
             },
           ]
         : []),
-      ...messages.slice(-MAX_CHAT_TURNS),
+      ...recentMessages,
     ],
     model: settings.model,
     temperature: 0.2,
