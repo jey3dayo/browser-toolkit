@@ -28,15 +28,17 @@ export type SummarizeEventRequest = {
   target: SummaryTarget;
 };
 
-export type TestOpenAiTokenRequest = {
-  action: "testOpenAiToken";
+type TestTokenFields = {
   token?: string;
+};
+
+export type TestOpenAiTokenRequest = TestTokenFields & {
+  action: "testOpenAiToken";
 };
 export type TestOpenAiTokenResponse = Result.Result<void, string>;
 
-export type TestAiTokenRequest = {
+export type TestAiTokenRequest = TestTokenFields & {
   action: "testAiToken";
-  token?: string;
 };
 export type TestAiTokenResponse = Result.Result<void, string>;
 

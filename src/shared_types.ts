@@ -5,6 +5,11 @@ export type Size = {
   height: number;
 };
 
+export type Point = {
+  left: number;
+  top: number;
+};
+
 export type ExtractedEvent = {
   title: string;
   start: string;

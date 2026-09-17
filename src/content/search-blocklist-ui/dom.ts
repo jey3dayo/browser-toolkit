@@ -1,4 +1,5 @@
 import type { BlocklistEntry } from "@/search-blocklist/types";
+import type { Point } from "@/shared_types";
 import { SEARCH_BLOCKLIST_BUTTON_SIZE } from "./constants";
 
 export function isDomNode(value: EventTarget | null): value is Node {
@@ -25,7 +26,7 @@ export function findEntryForNode(
   return null;
 }
 
-export type ButtonPosition = { top: number; left: number };
+export type ButtonPosition = Point;
 
 export function computeButtonPosition(rect: DOMRect): ButtonPosition {
   return {

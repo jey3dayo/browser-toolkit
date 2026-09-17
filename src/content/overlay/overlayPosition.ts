@@ -11,7 +11,7 @@ import {
   OVERLAY_TOAST_SURFACE_INSET_INSIDE,
 } from "./overlayUtils";
 
-export type Point = { left: number; top: number };
+export type Point = import("@/shared_types").Point;
 export type DragOffset = { x: number; y: number };
 export type PanelSize = Size;
 export type StateSetter<T> = React.Dispatch<React.SetStateAction<T>>;
