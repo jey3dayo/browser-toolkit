@@ -83,9 +83,13 @@ export const InvalidPattern: Story = {
     );
     await userEvent.click(canvas.getByTestId("search-blocklist-add"));
     await waitFor(() => {
-      expect(args.notify.error).toHaveBeenCalledWith(
-        "正規表現ルールは v1 未対応です"
-      );
+      const hint = canvas.getByTestId("search-blocklist-error");
+      expect(hint.textContent).toBe("正規表現ルールは v1 未対応です");
+
+      const input = canvas.getByTestId("search-blocklist-input");
+      expect(input.getAttribute("aria-invalid")).toBe("true");
+      expect(input.getAttribute("aria-describedby")).toBe(hint.id);
     });
+    expect(args.notify.error).not.toHaveBeenCalled();
   },
 };

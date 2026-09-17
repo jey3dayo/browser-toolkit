@@ -29,16 +29,17 @@ export function CalendarActionButtons(props: Props): React.JSX.Element {
       >
         {t("calendarPane.run")}
       </Button>
-      <Button
-        data-testid="calendar-copy"
-        disabled={!props.copyState.enabled}
-        onClick={props.onCopy}
-        size="small"
-        type="button"
-        variant="ghost"
-      >
-        {t("common.copy")}
-      </Button>
+      {props.copyState.visible && props.copyState.enabled ? (
+        <Button
+          data-testid="calendar-copy"
+          onClick={props.onCopy}
+          size="small"
+          type="button"
+          variant="ghost"
+        >
+          {t("common.copy")}
+        </Button>
+      ) : null}
       {props.googleState.visible ? (
         <Button
           data-testid="calendar-open-google"

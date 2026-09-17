@@ -76,13 +76,15 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
             <PaneTitle>{t("calendarPane.title")}</PaneTitle>
             <Hint>{t("calendarPane.description")}</Hint>
           </Stack>
-          <Badge data-testid="calendar-source" variant="chipSoft">
-            {output.status === "ready" ? output.sourceLabel : "-"}
-          </Badge>
+          {output.status === "ready" ? (
+            <Badge data-testid="calendar-source" variant="chipSoft">
+              {output.sourceLabel}
+            </Badge>
+          ) : null}
         </RowBetween>
       </section>
 
-      <section className="card settings-card settings-pane-card">
+      <section className="settings-pane-card">
         <CalendarTargetsField
           googleId={googleId}
           hasGoogle={hasGoogle}

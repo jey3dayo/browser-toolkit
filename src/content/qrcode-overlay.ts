@@ -36,7 +36,7 @@ function createCloseButton(onClose: () => void): HTMLButtonElement {
     "padding: 6px 20px",
     "border: none",
     "border-radius: 6px",
-    "background: var(--color-primary, #4285f4)",
+    "background: var(--color-primary, #4f5fe0)",
     "color: #fff",
     "font-size: 14px",
     "cursor: pointer",
@@ -68,8 +68,8 @@ function createDialog(url: string, onClose: () => void): HTMLDivElement {
   card.setAttribute("aria-modal", "true");
   card.setAttribute("role", "dialog");
   card.style.cssText = [
-    "background: var(--color-bg-base, #fff)",
-    "color: var(--color-text-primary, #333)",
+    "background: var(--color-bg-base, #ffffff)",
+    "color: var(--color-text-primary, #16181d)",
     "border-radius: 12px",
     "padding: 24px",
     "display: flex",
@@ -110,7 +110,7 @@ function createDialog(url: string, onClose: () => void): HTMLDivElement {
   QRCode.toCanvas(canvas, url, { margin: 2, width: 200 }).catch(() => {
     const errorMsg = document.createElement("p");
     errorMsg.textContent = t("qrCodeOverlay.errors.generation");
-    errorMsg.style.cssText = "margin: 0; color: var(--color-error, #e53935);";
+    errorMsg.style.cssText = "margin: 0; color: var(--color-error, #d64545);";
     canvas.replaceWith(errorMsg);
   });
 

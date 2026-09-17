@@ -26,7 +26,7 @@ export function CountBar(props: CountBarProps): React.JSX.Element | null {
   }
 
   return (
-    <div className="card">
+    <div className="mbu-countbar">
       <RowBetween>
         <span>
           {t("searchBlocklist.countBar.summary", {

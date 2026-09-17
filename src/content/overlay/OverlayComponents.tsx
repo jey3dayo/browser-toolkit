@@ -86,6 +86,7 @@ function OverlayEventModeActions(
     <div className={overlayClassNames.bodyActions}>
       {props.canOpenCalendar ? (
         <Button
+          className={overlayClassNames.actionPrimary}
           disabled={!props.canOpenCalendar}
           onClick={props.onOpenCalendar}
           type="button"
@@ -203,7 +204,16 @@ function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {
   return (
     <>
       {props.statusLabel ? (
-        <div className={overlayClassNames.status}>{props.statusLabel}</div>
+        <div className={overlayClassNames.status}>
+          {props.statusLabel}
+          {props.status === "loading" ? (
+            <span aria-hidden="true" className={overlayClassNames.statusDots}>
+              <span className={overlayClassNames.statusDot} />
+              <span className={overlayClassNames.statusDot} />
+              <span className={overlayClassNames.statusDot} />
+            </span>
+          ) : null}
+        </div>
       ) : null}
       <div className={primaryBlockClassName}>
         {props.markdownView ? (

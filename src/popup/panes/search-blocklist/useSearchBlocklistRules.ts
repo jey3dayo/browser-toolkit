@@ -19,6 +19,7 @@ export type UseSearchBlocklistRulesResult = {
   rules: SearchBlocklistRule[];
   corrupted: boolean;
   corruptedCount: number;
+  addError: string | null;
   patternInput: string;
   setPatternInput: (value: string) => void;
   addRule: () => Promise<void>;
@@ -132,17 +133,18 @@ async function submitSearchBlocklistRulePattern(
     buildMutation: (normalizedPattern: string) => SearchBlocklistMutateRequest;
     onSuccess: () => void;
     notifySuccess: () => void;
+    onValidationError: (message: string) => void;
   },
   applyPayload: (payload: SearchBlocklistMutatePayload) => void
 ): Promise<void> {
   const raw = options.rawPattern.trim();
   if (!raw) {
-    props.notify.error(t("searchBlocklist.errors.patternRequired"));
+    options.onValidationError(t("searchBlocklist.errors.patternRequired"));
     return;
   }
   const normalized = normalizeSearchBlocklistPattern(raw);
   if (Result.isFailure(normalized)) {
-    props.notify.error(normalized.error);
+    options.onValidationError(normalized.error);
     return;
   }
   if (options.isDuplicate(normalized.value)) {
@@ -201,7 +203,8 @@ export function useSearchBlocklistRules(
   const [rules, setRules] = useState<SearchBlocklistRule[]>([]);
   const [corruptedCount, setCorruptedCount] = useState(0);
   const [overLimit, setOverLimit] = useState(false);
-  const [patternInput, setPatternInput] = useState("");
+  const [patternInput, setPatternInputValue] = useState("");
+  const [addError, setAddError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState("");
 
@@ -247,6 +250,11 @@ export function useSearchBlocklistRules(
     };
   }, [props.runtime]);
 
+  const setPatternInput = (value: string): void => {
+    setPatternInputValue(value);
+    setAddError(null);
+  };
+
   const startEditing = (rule: SearchBlocklistRule): void => {
     setEditingId(rule.id);
     setEditingValue(rule.pattern);
@@ -289,6 +297,7 @@ export function useSearchBlocklistRules(
         onSuccess: () => {
           setPatternInput("");
         },
+        onValidationError: setAddError,
         rawPattern: patternInput,
       },
       applyPayload
@@ -336,6 +345,9 @@ export function useSearchBlocklistRules(
         onSuccess: () => {
           cancelEditing();
         },
+        onValidationError: (message: string) => {
+          props.notify.error(message);
+        },
         rawPattern: editingValue,
       },
       applyPayload
@@ -343,6 +355,7 @@ export function useSearchBlocklistRules(
   };
 
   return {
+    addError,
     addRule,
     cancelEditing,
     corrupted: corruptedCount > 0 || overLimit,

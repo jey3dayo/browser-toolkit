@@ -1,4 +1,5 @@
 export const overlayClassNames = {
+  actionPrimary: "mbu-overlay-action--primary",
   actions: "mbu-overlay-actions",
   aux: "mbu-overlay-aux",
   auxSummary: "mbu-overlay-aux-summary",
@@ -29,6 +30,8 @@ export const overlayClassNames = {
   primaryMarkdown: "mbu-overlay-primary-markdown",
   quote: "mbu-overlay-quote",
   status: "mbu-overlay-status",
+  statusDot: "mbu-overlay-status-dot",
+  statusDots: "mbu-overlay-status-dots",
   surface: "mbu-overlay-surface",
   title: "mbu-overlay-title",
 } as const;

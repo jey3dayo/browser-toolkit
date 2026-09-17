@@ -18,6 +18,7 @@ export function SearchBlocklistPane(
     rules,
     corrupted,
     corruptedCount,
+    addError,
     patternInput,
     setPatternInput,
     addRule,
@@ -51,6 +52,8 @@ export function SearchBlocklistPane(
 
       <PatternAddForm
         buttonTestId="search-blocklist-add"
+        errorMessage={addError ?? undefined}
+        errorTestId="search-blocklist-error"
         inputTestId="search-blocklist-input"
         onSubmit={addRule}
         onSubmitError={handleSubmitError}

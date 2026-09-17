@@ -1,7 +1,7 @@
 import { Button } from "@/components/shared/Button";
 import { ButtonRow, OutputPanel, RowBetween } from "@/components/shared/Layout";
 import { Textarea } from "@/components/shared/Textarea";
-import { MetaTitle } from "@/components/shared/Typography";
+import { EmptyMessage, MetaTitle } from "@/components/shared/Typography";
 import { t } from "@/i18n";
 
 type Props = {
@@ -29,13 +29,19 @@ export function ActionOutputPanel(props: Props): React.JSX.Element {
           </Button>
         </ButtonRow>
       </RowBetween>
-      <Textarea
-        data-testid="action-output"
-        readOnly
-        size="small"
-        value={props.value}
-        variant="summary"
-      />
+      {props.value ? (
+        <Textarea
+          data-testid="action-output"
+          readOnly
+          size="small"
+          value={props.value}
+          variant="summary"
+        />
+      ) : (
+        <EmptyMessage data-testid="action-output-empty">
+          {t("actions.output.empty")}
+        </EmptyMessage>
+      )}
     </OutputPanel>
   );
 }

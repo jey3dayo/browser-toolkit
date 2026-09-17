@@ -220,7 +220,7 @@ export function FloatingWidget(
             ? t("searchBlocklist.dialog.titleUnblock")
             : t("searchBlocklist.dialog.titleBlock")
         }
-        popupClassName="card card-stack"
+        popupClassName="card card-stack mbu-blocklist-dialog"
         portalContainer={anchorRef}
         trigger={<Icon aria-hidden="true" name="circle-slash" size={16} />}
         triggerAriaLabel={t("searchBlocklist.dialog.triggerAria")}
@@ -237,6 +237,7 @@ export function FloatingWidget(
           </Hint>
 
           <Accordion
+            className="mbu-blocklist-details"
             defaultOpen={false}
             itemValue="search-blocklist-details"
             title={t("searchBlocklist.dialog.detailsTitle")}
@@ -296,7 +297,7 @@ export function FloatingWidget(
               onClick={handleSubmit}
               size="small"
               type="button"
-              variant={currentEntry.blocked ? "primary" : "danger"}
+              variant="primary"
             >
               {currentEntry.blocked
                 ? t("searchBlocklist.dialog.unblockAction")

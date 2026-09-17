@@ -30,6 +30,7 @@ export const resources = {
         output: {
           copy: "コピー",
           defaultTitle: "出力",
+          empty: "アクションを実行すると結果がここに表示されます",
           running: "実行中...",
         },
         reorder: {

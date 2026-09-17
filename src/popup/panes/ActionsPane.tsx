@@ -180,9 +180,11 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
     <PaneCard className="actions-page">
       <RowBetween>
         <PaneTitle>{t("actions.title")}</PaneTitle>
-        <Badge data-testid="action-source" variant="chipSoft">
-          {output.status === "ready" ? output.sourceLabel : "-"}
-        </Badge>
+        {output.status === "ready" ? (
+          <Badge data-testid="action-source" variant="chipSoft">
+            {output.sourceLabel}
+          </Badge>
+        ) : null}
       </RowBetween>
 
       <Hint data-testid="template-vars">
