@@ -7,12 +7,14 @@ import {
 } from "@/content/message-handlers";
 import type { ToastMount } from "@/content/notification";
 import type { OverlayMount } from "@/content/overlay-helpers";
+import { buildDiagnosticsResponse } from "@/content/search-blocklist-ui/diagnostics";
 import { setupTableAutoExec } from "@/content/table-auto-exec";
 import { stopTableObserver } from "@/content/table-observer";
 import { createThemeManager } from "@/content/theme-manager";
 import type { GlobalContentState } from "@/content/types";
 import type {
   ActionOverlayRequest,
+  SearchBlocklistDiagnosticsResponse,
   SummaryOverlayRequest,
 } from "@/content-script-messages";
 import { storageLocalSet } from "@/storage/helpers";
@@ -47,6 +49,7 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
   type NotificationModule = typeof import("./content/notification");
   type OverlayModule = typeof import("./content/overlay-helpers");
   type QrCodeOverlayModule = typeof import("./content/qrcode-overlay");
+  type SearchBlocklistUiModule = typeof import("./content/search-blocklist-ui");
 
   const globalContainer = globalThis as unknown as {
     __MBU_CONTENT_STATE__?: GlobalContentState;
@@ -68,6 +71,9 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
   );
   const loadQrCodeOverlayModule = createLazyLoader<QrCodeOverlayModule>(
     () => import("./content/qrcode-overlay")
+  );
+  const loadSearchBlocklistUiModule = createLazyLoader<SearchBlocklistUiModule>(
+    () => import("./content/search-blocklist-ui")
   );
 
   const themeManager = createThemeManager(globalState);
@@ -125,6 +131,23 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
     // no-op
   });
   themeManager.setupStorageListener();
+
+  function bootstrapSearchBlocklistUi(): void {
+    if (!supportsHtmlDocument) {
+      return;
+    }
+    const blocklistState = globalThis.__MBU_BLOCKLIST_STATE__;
+    if (!blocklistState) {
+      return;
+    }
+    loadSearchBlocklistUiModule()
+      .then((module) => module?.startSearchBlocklistUi(blocklistState))
+      .catch(() => {
+        // no-op
+      });
+  }
+
+  bootstrapSearchBlocklistUi();
 
   // ========================================
   // 4. 通知・クリップボード（モジュール化済み）
@@ -247,6 +270,11 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
     });
   }
 
+  function getSearchBlocklistDiagnostics(): SearchBlocklistDiagnosticsResponse {
+    const blocklistState = globalThis.__MBU_BLOCKLIST_STATE__;
+    return buildDiagnosticsResponse(blocklistState?.getSnapshot() ?? null);
+  }
+
   function showQrCodeOverlay(url: string): void {
     (async () => {
       if (!supportsHtmlDocument) {
@@ -288,6 +316,7 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
   const messageHandlerDeps: MessageHandlerDeps = {
     enableTableSortWithNotification,
     getOrCreateToastMount,
+    getSearchBlocklistDiagnostics,
     showActionOverlay,
     showNotification,
     showQrCodeOverlay,

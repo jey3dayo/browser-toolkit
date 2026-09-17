@@ -16,6 +16,7 @@ import {
 import type {
   ActionOverlayRequest,
   ContentRequest,
+  SearchBlocklistDiagnosticsResponse,
   SummaryOverlayRequest,
   SummaryTarget,
 } from "@/content-script-messages";
@@ -29,6 +30,7 @@ export type MessageHandlerDeps = {
   showActionOverlay: (request: ActionOverlayRequest) => void;
   showSummaryOverlay: (request: SummaryOverlayRequest) => void;
   showQrCodeOverlay: (url: string) => void;
+  getSearchBlocklistDiagnostics: () => SearchBlocklistDiagnosticsResponse;
 };
 
 /**
@@ -216,6 +218,16 @@ function handleShowActionOverlay(
 }
 
 /**
+ * getSearchBlocklistDiagnosticsアクションのハンドラー
+ */
+function handleGetSearchBlocklistDiagnostics(
+  deps: MessageHandlerDeps,
+  sendResponse: (response: SearchBlocklistDiagnosticsResponse) => void
+): void {
+  sendResponse(deps.getSearchBlocklistDiagnostics());
+}
+
+/**
  * メッセージリスナーのメインディスパッチャー
  */
 export function createMessageListener(deps: MessageHandlerDeps) {
@@ -261,6 +273,10 @@ export function createMessageListener(deps: MessageHandlerDeps) {
       case "showQrCodeOverlay": {
         deps.showQrCodeOverlay(request.url);
         sendResponse({ ok: true });
+        return;
+      }
+      case "getSearchBlocklistDiagnostics": {
+        handleGetSearchBlocklistDiagnostics(deps, sendResponse);
         return;
       }
       default: {
