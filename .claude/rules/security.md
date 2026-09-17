@@ -186,6 +186,28 @@ if (import.meta.env.DEV) {
 }
 ```
 
+## 🛡️ ユーザー入力から URL 判定器を構築する場合（ReDoS 対策）
+
+検索結果ブロックリストのように、ユーザーが入力した match pattern から URL を判定する
+機能を実装する場合、パターンを `RegExp` へ変換して使うと ReDoS（正規表現の破局的
+バックトラッキング）の入口になります。
+
+- ❌ ユーザー入力の glob / match pattern をそのまま `RegExp` へコンパイルして判定に使う
+- ✅ URL パース（`new URL()`）+ ホストラベル単位の接尾辞比較 + 線形時間の path glob
+  マッチャー（バックトラッキングしない実装）で判定する
+
+上限を設けず無制限のパターン・ルールを受け付けると、判定コストが利用者の入力に比例して
+膨らみます。以下の上限を設け、超過時は**切り捨てず明示エラー**を返してください（暗黙の
+切り捨ては、ユーザーが「保存したつもり」のルールが実は保存されていない事故につながる）。
+
+```typescript
+// src/search-blocklist/rules.ts の上限
+export const SEARCH_BLOCKLIST_RULE_LIMIT = 2000;
+export const SEARCH_BLOCKLIST_PATTERN_MAX_LENGTH = 255;
+export const SEARCH_BLOCKLIST_PATTERN_MAX_WILDCARDS = 3;
+export const SEARCH_BLOCKLIST_URL_MAX_LENGTH = 2048;
+```
+
 ## 📋 コードレビューチェックリスト
 
 PRレビュー時に以下を確認してください：
@@ -208,6 +230,7 @@ PRレビュー時に以下を確認してください：
 - [ ] ユーザー入力の長さ制限を設けているか？
 - [ ] 型検証を実施しているか？
 - [ ] URLや数値の妥当性検証を行っているか？
+- [ ] ユーザー入力から `RegExp` を構築していないか？（件数・長さの上限と、超過時の明示エラーがあるか）
 
 ## 🔧 自動チェック
 
