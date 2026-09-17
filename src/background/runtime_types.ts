@@ -6,6 +6,7 @@ import type {
   SummarizeEventResponse,
   SummaryTarget,
 } from "@/background/types";
+import type { SearchBlocklistRule } from "@/search-blocklist/types";
 
 export type ChatMessage = {
   role: "user" | "assistant";
@@ -20,12 +21,32 @@ export type ChatFollowUpRequest = {
 
 export type ChatFollowUpResponse = Result.Result<{ text: string }, string>;
 
+export type OpenPopupPaneRequest = {
+  action: "openPopupPane";
+  paneId: string;
+};
+
+export type SearchBlocklistMutateRequest = {
+  action: "searchBlocklistMutate";
+  op: "add" | "remove" | "update";
+  pattern?: string;
+  ruleIds?: string[];
+  ruleId?: string;
+};
+
+export type SearchBlocklistMutateResponse = Result.Result<
+  { rules: SearchBlocklistRule[]; revision: number; skippedCount: number },
+  string
+>;
+
 export type RuntimeRequest =
   | BackgroundRequest
   | { action: "summarizeText"; target: SummaryTarget }
   | { action: "testOpenAiToken"; token?: string }
   | { action: "summarizeEvent"; target: SummaryTarget }
   | { action: "openPopupSettings" }
+  | OpenPopupPaneRequest
+  | SearchBlocklistMutateRequest
   | { action: "downloadDebugLogs" }
   | { action: "clearDebugLogs" }
   | { action: "getDebugLogStats" }
@@ -44,6 +65,7 @@ type RuntimeResponse =
   | DownloadDebugLogsResponse
   | ClearDebugLogsResponse
   | ChatFollowUpResponse
+  | SearchBlocklistMutateResponse
   | { ok: true }
   | { ok: false; error: string }
   | {

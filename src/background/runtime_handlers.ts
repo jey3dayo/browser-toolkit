@@ -19,7 +19,10 @@ import {
 import { debugRuntimeHandlers } from "@/background/runtime_debug_handlers";
 import type {
   ChatFollowUpRequest,
+  OpenPopupPaneRequest,
   RuntimeSendResponse,
+  SearchBlocklistMutateRequest,
+  SearchBlocklistMutateResponse,
   SummarizeEventRequest,
   SummarizeTextRequest,
 } from "@/background/runtime_types";
@@ -33,8 +36,80 @@ import type {
 } from "@/background/types";
 import type { ContextAction } from "@/context_actions";
 import { t } from "@/i18n";
+import { coercePaneId } from "@/popup/panes";
+import {
+  applySearchBlocklistRuleMutation,
+  partitionStoredSearchBlocklistRules,
+  type SearchBlocklistRulePartition,
+} from "@/search-blocklist/rules";
+import { storageLocalGet, storageLocalSet } from "@/storage/helpers";
 import { debugLog } from "@/utils/debug_log";
 import { showErrorNotification } from "@/utils/notifications";
+
+let mutationQueue: Promise<unknown> = Promise.resolve();
+let searchBlocklistRevision = 0;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function mutationFailureMessage(
+  op: SearchBlocklistMutateRequest["op"]
+): string {
+  if (op === "add") {
+    return t("searchBlocklist.errors.addFailed");
+  }
+  if (op === "remove") {
+    return t("searchBlocklist.errors.deleteFailed");
+  }
+  return t("searchBlocklist.errors.saveFailed");
+}
+
+async function loadSearchBlocklistRules(
+  op: SearchBlocklistMutateRequest["op"]
+): Promise<Result.Result<SearchBlocklistRulePartition, string>> {
+  const loaded = await storageLocalGet<unknown>(["searchBlocklistRules"]);
+  if (Result.isFailure(loaded)) {
+    return Result.fail(mutationFailureMessage(op));
+  }
+  const stored = isRecord(loaded.value)
+    ? loaded.value.searchBlocklistRules
+    : undefined;
+  return Result.succeed(partitionStoredSearchBlocklistRules(stored));
+}
+
+async function applySearchBlocklistMutation(
+  request: SearchBlocklistMutateRequest
+): Promise<SearchBlocklistMutateResponse> {
+  const loaded = await loadSearchBlocklistRules(request.op);
+  if (Result.isFailure(loaded)) {
+    return loaded;
+  }
+
+  const mutated = applySearchBlocklistRuleMutation(loaded.value, {
+    op: request.op,
+    pattern: request.pattern,
+    ruleId: request.ruleId,
+    ruleIds: request.ruleIds,
+  });
+  if (Result.isFailure(mutated)) {
+    return mutated;
+  }
+
+  const saved = await storageLocalSet({
+    searchBlocklistRules: mutated.value.persisted,
+  });
+  if (Result.isFailure(saved)) {
+    return Result.fail(mutationFailureMessage(request.op));
+  }
+
+  searchBlocklistRevision += 1;
+  return Result.succeed({
+    revision: searchBlocklistRevision,
+    rules: mutated.value.rules,
+    skippedCount: mutated.value.skippedCount,
+  });
+}
 
 type RunContextActionHandlerOptions<T> = {
   execute: () => Promise<Result.Result<T, string>>;
@@ -320,13 +395,13 @@ function handleSummarizeEventRequest(
   return true;
 }
 
-function handleOpenPopupSettingsRequest(
-  _request: { action: "openPopupSettings" },
+function handleOpenPopupPaneRequest(
+  request: OpenPopupPaneRequest,
   sendResponse: RuntimeSendResponse
 ): boolean {
   chrome.tabs
     .create({
-      url: chrome.runtime.getURL("popup.html#pane-settings"),
+      url: chrome.runtime.getURL(`popup.html#${coercePaneId(request.paneId)}`),
     })
     .then(() => {
       sendResponse({ ok: true });
@@ -336,6 +411,40 @@ function handleOpenPopupSettingsRequest(
         error: t("background.runtime.openSettingsFailed"),
         ok: false,
       });
+    });
+  return true;
+}
+
+function handleOpenPopupSettingsRequest(
+  _request: { action: "openPopupSettings" },
+  sendResponse: RuntimeSendResponse
+): boolean {
+  return handleOpenPopupPaneRequest(
+    { action: "openPopupPane", paneId: "pane-settings" },
+    sendResponse
+  );
+}
+
+function handleSearchBlocklistMutateRequest(
+  request: SearchBlocklistMutateRequest,
+  sendResponse: RuntimeSendResponse
+): boolean {
+  const operation = mutationQueue.then(() =>
+    applySearchBlocklistMutation(request)
+  );
+  mutationQueue = operation.catch(() => undefined);
+  operation
+    .then((result) => {
+      sendResponse(result);
+    })
+    .catch((error: unknown) => {
+      sendResponse(
+        Result.fail(
+          error instanceof Error
+            ? error.message
+            : mutationFailureMessage(request.op)
+        )
+      );
     });
   return true;
 }
@@ -376,8 +485,10 @@ function handleChatFollowUpRequest(
 
 export const runtimeHandlers = {
   chatFollowUp: handleChatFollowUpRequest,
+  openPopupPane: handleOpenPopupPaneRequest,
   openPopupSettings: handleOpenPopupSettingsRequest,
   runContextAction: handleRunContextActionRequest,
+  searchBlocklistMutate: handleSearchBlocklistMutateRequest,
   summarizeEvent: handleSummarizeEventRequest,
   summarizeTab: handleSummarizeTabRequest,
   summarizeText: handleSummarizeTextRequest,

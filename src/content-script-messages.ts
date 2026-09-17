@@ -54,6 +54,20 @@ export type ShowQrCodeOverlayMessage = {
   url: string;
 };
 
+export type GetSearchBlocklistDiagnosticsMessage = {
+  action: "getSearchBlocklistDiagnostics";
+};
+
+export type SearchBlocklistDiagnosticsResponse =
+  | {
+      available: true;
+      detectedCount: number;
+      blockedCount: number;
+      ruleRevision: number;
+      engineId: string;
+    }
+  | { available: false };
+
 export type ContentScriptMessage =
   | ShowNotificationMessage
   | GetSummaryTargetTextMessage
@@ -61,7 +75,8 @@ export type ContentScriptMessage =
   | PasteTemplateMessage
   | SummaryOverlayRequest
   | ActionOverlayRequest
-  | ShowQrCodeOverlayMessage;
+  | ShowQrCodeOverlayMessage
+  | GetSearchBlocklistDiagnosticsMessage;
 
 export type ContentRequest =
   | { action: "enableTableSort" }
