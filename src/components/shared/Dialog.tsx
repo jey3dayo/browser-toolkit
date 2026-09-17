@@ -1,5 +1,9 @@
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 
+export type DialogPortalContainer = React.ComponentProps<
+  typeof BaseDialog.Portal
+>["container"];
+
 export type DrawerDialogProps = Omit<
   React.ComponentProps<typeof BaseDialog.Root>,
   "children"
@@ -8,6 +12,7 @@ export type DrawerDialogProps = Omit<
   children: React.ReactNode;
   popupAriaLabel: string;
   popupClassName?: string;
+  portalContainer?: DialogPortalContainer;
   trigger: React.ReactNode;
   triggerAriaLabel: string;
   triggerClassName?: string;
@@ -18,6 +23,7 @@ export function DrawerDialog({
   children,
   popupAriaLabel,
   popupClassName,
+  portalContainer,
   trigger,
   triggerAriaLabel,
   triggerClassName,
@@ -31,7 +37,7 @@ export function DrawerDialog({
       >
         {trigger}
       </BaseDialog.Trigger>
-      <BaseDialog.Portal>
+      <BaseDialog.Portal container={portalContainer}>
         <BaseDialog.Backdrop className={backdropClassName} />
         <BaseDialog.Popup
           aria-label={popupAriaLabel}

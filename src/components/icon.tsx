@@ -4,6 +4,7 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
+  CircleSlash,
   Clock,
   Copy,
   Eye,
@@ -33,6 +34,7 @@ export type IconName =
   | "check"
   | "chevron-down"
   | "chevron-right"
+  | "circle-slash"
   | "clock"
   | "close"
   | "copy"
@@ -60,6 +62,7 @@ const icons: Record<IconName, React.ComponentType<LucideProps>> = {
   check: Check,
   "chevron-down": ChevronDown,
   "chevron-right": ChevronRight,
+  "circle-slash": CircleSlash,
   clock: Clock,
   close: X,
   copy: Copy,
