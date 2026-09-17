@@ -1,6 +1,17 @@
 import { Result } from "@praha/byethrow";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { isRecord } from "@/utils/guards";
 import { type ChromeStub, createChromeStub } from "./helpers/chromeStub";
+
+function sentMessageRoles(rawBody: string): string[] {
+  const parsed: unknown = JSON.parse(rawBody);
+  if (!(isRecord(parsed) && Array.isArray(parsed.messages))) {
+    return [];
+  }
+  return parsed.messages.map((message: unknown) =>
+    isRecord(message) && typeof message.role === "string" ? message.role : ""
+  );
+}
 
 describe("background: chat follow-up history guard", () => {
   let chromeStub: ChromeStub;
@@ -62,8 +73,9 @@ describe("background: chat follow-up history guard", () => {
   it("sends the request when the history ends with a user turn", async () => {
     let sentBody = "";
     const fetchSpy = vi.fn((_url: string, options?: unknown) => {
-      const raw = (options as { body?: unknown } | undefined)?.body;
-      sentBody = typeof raw === "string" ? raw : "";
+      if (isRecord(options) && typeof options.body === "string") {
+        sentBody = options.body;
+      }
       return Promise.resolve({
         json: () => Promise.resolve({ content: [{ text: "ok" }] }),
         ok: true,
@@ -80,7 +92,6 @@ describe("background: chat follow-up history guard", () => {
 
     expect(Result.isSuccess(result)).toBe(true);
     expect(fetchSpy).toHaveBeenCalledTimes(1);
-    const body = JSON.parse(sentBody) as { messages: Array<{ role: string }> };
-    expect(body.messages.at(-1)?.role).toBe("user");
+    expect(sentMessageRoles(sentBody).at(-1)).toBe("user");
   });
 });

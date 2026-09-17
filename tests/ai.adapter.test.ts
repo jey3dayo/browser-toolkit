@@ -4,6 +4,17 @@ import { getAdapter } from "@/ai/get-adapter";
 import { openaiAdapter } from "@/ai/openai-adapter";
 import { zaiAdapter } from "@/ai/zai-adapter";
 import { OPENAI_MODELS } from "@/constants/models";
+import { isRecord } from "@/utils/guards";
+
+function parseRequestBody(
+  body: BodyInit | null | undefined
+): Record<string, unknown> {
+  const parsed: unknown = JSON.parse(String(body));
+  if (!isRecord(parsed)) {
+    throw new Error("request body is not a JSON object");
+  }
+  return parsed;
+}
 
 describe("ai/adapter", () => {
   describe("getAdapter", () => {
@@ -157,8 +168,7 @@ describe("ai/adapter", () => {
         model: "claude-sonnet-5",
       });
 
-      const body = JSON.parse(init.body as string) as { max_tokens?: number };
-      expect(body.max_tokens).toBe(16_000);
+      expect(parseRequestBody(init.body).max_tokens).toBe(16_000);
     });
 
     it("forwards output_config for structured outputs", () => {
@@ -175,11 +185,9 @@ describe("ai/adapter", () => {
         output_config: { format: { schema, type: "json_schema" } },
       });
 
-      const body = JSON.parse(init.body as string) as {
-        output_config?: { format?: { type?: string; schema?: unknown } };
-      };
-      expect(body.output_config?.format?.type).toBe("json_schema");
-      expect(body.output_config?.format?.schema).toEqual(schema);
+      expect(parseRequestBody(init.body)).toMatchObject({
+        output_config: { format: { schema, type: "json_schema" } },
+      });
     });
 
     it("omits output_config when the caller does not set one", () => {
@@ -188,8 +196,7 @@ describe("ai/adapter", () => {
         model: "claude-sonnet-5",
       });
 
-      const body = JSON.parse(init.body as string) as Record<string, unknown>;
-      expect(body).not.toHaveProperty("output_config");
+      expect(parseRequestBody(init.body)).not.toHaveProperty("output_config");
     });
 
     it("extracts text from valid response", () => {

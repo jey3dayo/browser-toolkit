@@ -33,4 +33,4 @@ export const EXTRACTED_EVENT_JSON_SCHEMA = {
   },
   required: ["title", "start"],
   type: "object",
-} as const;
+};
