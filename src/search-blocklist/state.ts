@@ -3,7 +3,7 @@ import type {
   SearchBlocklistMutateRequest,
   SearchBlocklistMutateResponse,
 } from "@/background/runtime_types";
-import { t } from "@/i18n";
+import { searchBlocklistMutationFailureMessage } from "@/search-blocklist/mutation_failure_message";
 import { type StorageError, storageLocalGet } from "@/storage/helpers";
 import { debugLog } from "@/utils/debug_log";
 import {
@@ -62,14 +62,6 @@ function isSearchBlocklistMutationPayload(
   );
 }
 
-function mutationFailureMessage(
-  op: SearchBlocklistMutateRequest["op"]
-): string {
-  return op === "remove"
-    ? t("searchBlocklist.errors.deleteFailed")
-    : t("searchBlocklist.errors.saveFailed");
-}
-
 async function sendSearchBlocklistMutation(
   request: SearchBlocklistMutateRequest
 ): Promise<
@@ -81,25 +73,25 @@ async function sendSearchBlocklistMutation(
       SearchBlocklistMutateResponse
     >(request);
     if (!isRecord(response)) {
-      return Result.fail(mutationFailureMessage(request.op));
+      return Result.fail(searchBlocklistMutationFailureMessage(request.op));
     }
     if (response.type === "Failure") {
       return typeof response.error === "string"
         ? Result.fail(response.error)
-        : Result.fail(mutationFailureMessage(request.op));
+        : Result.fail(searchBlocklistMutationFailureMessage(request.op));
     }
     if (
       response.type !== "Success" ||
       !isSearchBlocklistMutationPayload(response.value)
     ) {
-      return Result.fail(mutationFailureMessage(request.op));
+      return Result.fail(searchBlocklistMutationFailureMessage(request.op));
     }
     return Result.succeed(response.value);
   } catch (error) {
     return Result.fail(
       error instanceof Error
         ? error.message
-        : mutationFailureMessage(request.op)
+        : searchBlocklistMutationFailureMessage(request.op)
     );
   }
 }

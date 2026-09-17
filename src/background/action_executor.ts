@@ -15,21 +15,13 @@ import type { ExtractedEvent } from "@/shared_types";
  */
 export type ActionExecutionResult<T> = Result.Result<T, string>;
 
-/**
- * Event action execution parameters
- */
-export interface EventActionParams {
+export interface ContextActionExecutionParams {
   action: ContextAction;
   target: SummaryTarget;
 }
 
-/**
- * Prompt action execution parameters
- */
-export interface PromptActionParams {
-  action: ContextAction;
-  target: SummaryTarget;
-}
+export type EventActionParams = ContextActionExecutionParams;
+export type PromptActionParams = ContextActionExecutionParams;
 
 /**
  * Event action execution result

@@ -6,6 +6,7 @@ import type {
 } from "@/background/runtime_types";
 import { t } from "@/i18n";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
+import { searchBlocklistMutationFailureMessage } from "@/search-blocklist/mutation_failure_message";
 import {
   compileSearchBlocklistPattern,
   listDisplayableSearchBlocklistRules,
@@ -111,16 +112,57 @@ function countCorruptedStoredRules(
   return displayable.filter(hasCorruptedPattern).length + undisplayableCount;
 }
 
-function mutationFailureMessage(
-  op: SearchBlocklistMutateRequest["op"]
-): string {
-  if (op === "add") {
-    return t("searchBlocklist.errors.addFailed");
+function applySearchBlocklistMutatePayload(
+  payload: SearchBlocklistMutatePayload,
+  setRules: (rules: SearchBlocklistRule[]) => void,
+  setCorruptedCount: (count: number) => void,
+  setOverLimit: (overLimit: boolean) => void
+): void {
+  setRules(payload.rules);
+  setCorruptedCount(payload.skippedCount);
+  setOverLimit(exceedsRuleLimit(payload.rules));
+}
+
+async function submitSearchBlocklistRulePattern(
+  props: PopupPaneBaseProps,
+  options: {
+    rawPattern: string;
+    isDuplicate: (normalizedPattern: string) => boolean;
+    onDuplicate: () => void;
+    buildMutation: (normalizedPattern: string) => SearchBlocklistMutateRequest;
+    onSuccess: () => void;
+    notifySuccess: () => void;
+  },
+  applyPayload: (payload: SearchBlocklistMutatePayload) => void
+): Promise<void> {
+  const raw = options.rawPattern.trim();
+  if (!raw) {
+    props.notify.error(t("searchBlocklist.errors.patternRequired"));
+    return;
   }
-  if (op === "remove") {
-    return t("searchBlocklist.errors.deleteFailed");
+  const normalized = normalizeSearchBlocklistPattern(raw);
+  if (Result.isFailure(normalized)) {
+    props.notify.error(normalized.error);
+    return;
   }
-  return t("searchBlocklist.errors.saveFailed");
+  if (options.isDuplicate(normalized.value)) {
+    props.notify.info(t("searchBlocklist.info.duplicate"));
+    options.onDuplicate();
+    return;
+  }
+
+  const response = await sendSearchBlocklistMutation(
+    props,
+    options.buildMutation(normalized.value)
+  );
+  if (Result.isFailure(response)) {
+    props.notify.error(response.error);
+    return;
+  }
+
+  applyPayload(response.value);
+  options.onSuccess();
+  options.notifySuccess();
 }
 
 async function sendSearchBlocklistMutation(
@@ -137,18 +179,18 @@ async function sendSearchBlocklistMutation(
 
   const response = sent.value;
   if (!isRecord(response)) {
-    return Result.fail(mutationFailureMessage(request.op));
+    return Result.fail(searchBlocklistMutationFailureMessage(request.op));
   }
   if (response.type === "Failure") {
     return typeof response.error === "string"
       ? Result.fail(response.error)
-      : Result.fail(mutationFailureMessage(request.op));
+      : Result.fail(searchBlocklistMutationFailureMessage(request.op));
   }
   if (
     response.type !== "Success" ||
     !isSearchBlocklistMutatePayload(response.value)
   ) {
-    return Result.fail(mutationFailureMessage(request.op));
+    return Result.fail(searchBlocklistMutationFailureMessage(request.op));
   }
   return Result.succeed(response.value);
 }
@@ -215,44 +257,42 @@ export function useSearchBlocklistRules(
     setEditingValue("");
   };
 
+  const applyPayload = (payload: SearchBlocklistMutatePayload): void => {
+    applySearchBlocklistMutatePayload(
+      payload,
+      setRules,
+      setCorruptedCount,
+      setOverLimit
+    );
+  };
+
   const addRule = async (): Promise<void> => {
-    const raw = patternInput.trim();
-    if (!raw) {
-      props.notify.error(t("searchBlocklist.errors.patternRequired"));
-      return;
-    }
-    const normalized = normalizeSearchBlocklistPattern(raw);
-    if (Result.isFailure(normalized)) {
-      props.notify.error(normalized.error);
-      return;
-    }
-
     const latest = rules;
-    if (
-      latest.some((rule) =>
-        patternsAreEquivalent(rule.pattern, normalized.value)
-      )
-    ) {
-      props.notify.info(t("searchBlocklist.info.duplicate"));
-      setPatternInput("");
-      return;
-    }
-
-    const response = await sendSearchBlocklistMutation(props, {
-      action: "searchBlocklistMutate",
-      op: "add",
-      pattern: normalized.value,
-    });
-    if (Result.isFailure(response)) {
-      props.notify.error(response.error);
-      return;
-    }
-
-    setRules(response.value.rules);
-    setCorruptedCount(response.value.skippedCount);
-    setOverLimit(exceedsRuleLimit(response.value.rules));
-    setPatternInput("");
-    props.notify.success(t("searchBlocklist.success.added"));
+    await submitSearchBlocklistRulePattern(
+      props,
+      {
+        buildMutation: (normalizedPattern) => ({
+          action: "searchBlocklistMutate",
+          op: "add",
+          pattern: normalizedPattern,
+        }),
+        isDuplicate: (normalizedPattern) =>
+          latest.some((rule) =>
+            patternsAreEquivalent(rule.pattern, normalizedPattern)
+          ),
+        notifySuccess: () => {
+          props.notify.success(t("searchBlocklist.success.added"));
+        },
+        onDuplicate: () => {
+          setPatternInput("");
+        },
+        onSuccess: () => {
+          setPatternInput("");
+        },
+        rawPattern: patternInput,
+      },
+      applyPayload
+    );
   };
 
   const removeRule = async (id: string): Promise<void> => {
@@ -273,45 +313,33 @@ export function useSearchBlocklistRules(
   };
 
   const saveEditing = async (id: string): Promise<void> => {
-    const raw = editingValue.trim();
-    if (!raw) {
-      props.notify.error(t("searchBlocklist.errors.patternRequired"));
-      return;
-    }
-    const normalized = normalizeSearchBlocklistPattern(raw);
-    if (Result.isFailure(normalized)) {
-      props.notify.error(normalized.error);
-      return;
-    }
-
     const latest = rules;
-    if (
-      latest.some(
-        (rule) =>
-          rule.id !== id &&
-          patternsAreEquivalent(rule.pattern, normalized.value)
-      )
-    ) {
-      props.notify.info(t("searchBlocklist.info.duplicate"));
-      return;
-    }
-
-    const response = await sendSearchBlocklistMutation(props, {
-      action: "searchBlocklistMutate",
-      op: "update",
-      pattern: normalized.value,
-      ruleId: id,
-    });
-    if (Result.isFailure(response)) {
-      props.notify.error(response.error);
-      return;
-    }
-
-    setRules(response.value.rules);
-    setCorruptedCount(response.value.skippedCount);
-    setOverLimit(exceedsRuleLimit(response.value.rules));
-    cancelEditing();
-    props.notify.success(t("searchBlocklist.success.updated"));
+    await submitSearchBlocklistRulePattern(
+      props,
+      {
+        buildMutation: (normalizedPattern) => ({
+          action: "searchBlocklistMutate",
+          op: "update",
+          pattern: normalizedPattern,
+          ruleId: id,
+        }),
+        isDuplicate: (normalizedPattern) =>
+          latest.some(
+            (rule) =>
+              rule.id !== id &&
+              patternsAreEquivalent(rule.pattern, normalizedPattern)
+          ),
+        notifySuccess: () => {
+          props.notify.success(t("searchBlocklist.success.updated"));
+        },
+        onDuplicate: () => undefined,
+        onSuccess: () => {
+          cancelEditing();
+        },
+        rawPattern: editingValue,
+      },
+      applyPayload
+    );
   };
 
   return {

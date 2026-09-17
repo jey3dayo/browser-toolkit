@@ -4,11 +4,8 @@ import { getAiProviderTokenKey } from "@/ai/provider-token";
 import { t } from "@/i18n";
 import { DEFAULT_OPENAI_MODEL } from "@/openai/settings";
 import { isTestAiTokenResponse } from "@/popup/panes/settings/isTestAiTokenResponse";
-import type {
-  PopupRuntime,
-  TestAiTokenRequest,
-  TestAiTokenResponse,
-} from "@/popup/runtime";
+import type { PopupPaneBaseProps } from "@/popup/panes/types";
+import type { TestAiTokenRequest, TestAiTokenResponse } from "@/popup/runtime";
 import {
   type AiProvider,
   normalizeAiModel,
@@ -16,14 +13,8 @@ import {
 } from "@/schemas/provider";
 import type { LocalStorageData } from "@/storage/types";
 import { applyTheme, isTheme, type Theme } from "@/ui/theme";
-import type { Notifier } from "@/ui/toast";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
-
-export type UseSettingsStateParams = {
-  runtime: PopupRuntime;
-  notify: Notifier;
-};
 
 export type UseSettingsState = {
   provider: AiProvider;
@@ -50,9 +41,7 @@ export type UseSettingsState = {
   saveTheme: (value: Theme) => Promise<void>;
 };
 
-export function useSettingsState(
-  params: UseSettingsStateParams
-): UseSettingsState {
+export function useSettingsState(params: PopupPaneBaseProps): UseSettingsState {
   const { runtime, notify } = params;
   const [provider, setProvider] = useState<AiProvider>("openai");
   const [token, setToken] = useState("");

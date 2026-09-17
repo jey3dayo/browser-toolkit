@@ -6,6 +6,7 @@ import type {
   SummarizeEventResponse,
   SummaryTarget,
 } from "@/background/types";
+import type { SearchBlocklistRuleMutation } from "@/search-blocklist/rules";
 import type { SearchBlocklistRule } from "@/search-blocklist/types";
 
 export type ChatMessage = {
@@ -28,11 +29,7 @@ export type OpenPopupPaneRequest = {
 
 export type SearchBlocklistMutateRequest = {
   action: "searchBlocklistMutate";
-  op: "add" | "remove" | "update";
-  pattern?: string;
-  ruleIds?: string[];
-  ruleId?: string;
-};
+} & SearchBlocklistRuleMutation;
 
 export type SearchBlocklistMutateResponse = Result.Result<
   { rules: SearchBlocklistRule[]; revision: number; skippedCount: number },

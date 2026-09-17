@@ -6,19 +6,12 @@ import { persistWithRollback } from "@/popup/utils/persist";
 import { requireTrimmedString } from "@/popup/utils/required-input";
 import type { Notifier } from "@/ui/toast";
 
-type EditorState = {
-  id: string;
-  title: string;
-  kind: ContextActionKind;
-  prompt: string;
-};
-
-const EMPTY_EDITOR_STATE: EditorState = {
+const EMPTY_EDITOR_STATE: ContextAction = {
   id: "",
   kind: "text",
   prompt: "",
   title: "",
-} satisfies EditorState;
+};
 
 function createActionId(): string {
   const uuid =
@@ -52,7 +45,7 @@ export function useActionEditor(params: {
   deleteEditor: () => Promise<void>;
   resetEditorState: () => void;
 } {
-  const [editor, setEditor] = useState<EditorState>(EMPTY_EDITOR_STATE);
+  const [editor, setEditor] = useState<ContextAction>(EMPTY_EDITOR_STATE);
 
   const resetEditorState = useCallback((): void => {
     setEditor(EMPTY_EDITOR_STATE);

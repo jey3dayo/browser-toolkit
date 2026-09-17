@@ -14,13 +14,10 @@ import type {
   SummaryTarget,
   SyncStorageData,
 } from "@/background/types";
+import type { ActionOverlayRequest } from "@/content-script-messages";
 import type { ContextAction } from "@/context_actions";
 import { t } from "@/i18n";
-import type {
-  CalendarRegistrationTarget,
-  ExtractedEvent,
-  SummarySource,
-} from "@/shared_types";
+import type { CalendarRegistrationTarget, SummarySource } from "@/shared_types";
 import { resolveCalendarTargets } from "@/utils/calendar_targets";
 import { showErrorNotification } from "@/utils/notifications";
 
@@ -133,29 +130,17 @@ function buildResolvedTitle(
   return `${action.title}（${resolvedSuffix}）`;
 }
 
-async function sendActionOverlayMessage(params: {
+type SendActionOverlayMessageParams = Omit<ActionOverlayRequest, "action"> & {
   tabId: number;
-  status: "loading" | "ready" | "error";
-  mode: "text" | "event";
-  source: SummarySource;
-  title: string;
-  primary?: string;
-  secondary?: string;
-  event?: ExtractedEvent;
-  calendarUrl?: string;
-  ics?: string;
-}): Promise<void> {
-  await sendMessageToTab(params.tabId, {
+};
+
+async function sendActionOverlayMessage(
+  params: SendActionOverlayMessageParams
+): Promise<void> {
+  const { tabId, ...overlay } = params;
+  await sendMessageToTab(tabId, {
     action: "showActionOverlay",
-    calendarUrl: params.calendarUrl,
-    event: params.event,
-    ics: params.ics,
-    mode: params.mode,
-    primary: params.primary,
-    secondary: params.secondary,
-    source: params.source,
-    status: params.status,
-    title: params.title,
+    ...overlay,
   });
 }
 

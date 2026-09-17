@@ -151,6 +151,25 @@ describe("background search blocklist mutation queue", () => {
     expect(storage.chrome.storage.sync.set).not.toHaveBeenCalled();
   });
 
+  it("returns addFailed when persisting an add fails", async () => {
+    const storage = createDelayedStorage();
+    storage.failNextWrite();
+    vi.stubGlobal("chrome", storage.chrome);
+    const { runtimeHandlers } = await import("@/background/runtime_handlers");
+
+    const response = await sendMutationForResponse(
+      runtimeHandlers.searchBlocklistMutate,
+      {
+        action: "searchBlocklistMutate",
+        op: "add",
+        pattern: "failed.example.com",
+      }
+    );
+
+    expect(failureError(response)).toBe("追加に失敗しました");
+    expect(storage.getRules()).toEqual([]);
+  });
+
   it("continues with the next mutation after a write failure", async () => {
     const storage = createDelayedStorage();
     storage.failNextWrite();
