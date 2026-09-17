@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { i18n } from "@/i18n";
 import { PopupApp } from "@/popup/App";
 import { navigationItems } from "@/popup/navigation-items";
+import { coercePaneId, getPaneIdFromHash } from "@/popup/panes";
 import { flush } from "./helpers/async";
 import {
   createPopupChromeStub,
@@ -60,6 +61,27 @@ describe("popup navigation (React + Base UI Tabs)", () => {
     });
   });
 
+  it("maps the legacy debug hash onto the settings pane", () => {
+    expect(getPaneIdFromHash("#pane-debug")).toBe("pane-settings");
+    expect(coercePaneId("pane-debug")).toBe("pane-settings");
+    expect(getPaneIdFromHash("#pane-unknown")).toBeNull();
+    expect(navigationItems.some((item) => item.id === "pane-settings")).toBe(
+      true
+    );
+  });
+
+  it("splits navigation into the daily and manage groups", () => {
+    const groups = navigationItems.map((item) => item.group);
+    const firstManageIndex = groups.indexOf("manage");
+
+    expect(groups.slice(0, firstManageIndex).every((g) => g === "daily")).toBe(
+      true
+    );
+    expect(groups.slice(firstManageIndex).every((g) => g === "manage")).toBe(
+      true
+    );
+  });
+
   it("keeps navigation metadata as translation keys for render-time resolution", () => {
     expect(navigationItems[0]).toMatchObject({
       ariaLabelKey: "navigation.actions",
@@ -98,66 +120,6 @@ describe("popup navigation (React + Base UI Tabs)", () => {
     expect(
       dom.window.document.querySelector('[data-pane="pane-table"]')
     ).not.toBeNull();
-
-    act(() => {
-      root.unmount();
-    });
-  });
-
-  it("opens and closes the menu drawer (scrim + Escape)", async () => {
-    const rootEl = dom.window.document.getElementById("root");
-    if (!rootEl) {
-      throw new Error("missing #root");
-    }
-
-    const root = createRoot(rootEl);
-    await act(async () => {
-      root.render(<PopupApp />);
-      await flush(dom.window);
-    });
-
-    const openButton = dom.window.document.querySelector<HTMLButtonElement>(
-      'button[aria-label="メニュー"]'
-    );
-    await act(async () => {
-      openButton?.click();
-      await flush(dom.window);
-    });
-
-    expect(dom.window.document.querySelector('[role="dialog"]')).not.toBeNull();
-
-    const backdrop = dom.window.document.querySelector<HTMLElement>(
-      ".mbu-drawer-backdrop"
-    );
-    await act(async () => {
-      backdrop?.dispatchEvent(
-        new dom.window.PointerEvent("pointerdown", { bubbles: true })
-      );
-      backdrop?.dispatchEvent(
-        new dom.window.PointerEvent("pointerup", { bubbles: true })
-      );
-      backdrop?.dispatchEvent(new dom.window.Event("click", { bubbles: true }));
-      await flush(dom.window);
-    });
-
-    expect(dom.window.document.querySelector('[role="dialog"]')).toBeNull();
-
-    await act(async () => {
-      openButton?.click();
-      await flush(dom.window);
-    });
-    expect(dom.window.document.querySelector('[role="dialog"]')).not.toBeNull();
-
-    await act(async () => {
-      dom.window.document.dispatchEvent(
-        new dom.window.KeyboardEvent("keydown", {
-          bubbles: true,
-          key: "Escape",
-        })
-      );
-      await flush(dom.window);
-    });
-    expect(dom.window.document.querySelector('[role="dialog"]')).toBeNull();
 
     act(() => {
       root.unmount();

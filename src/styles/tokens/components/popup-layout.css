@@ -222,28 +222,17 @@
 }
 
 .actions-page {
-  gap: 16px;
-  padding: 18px;
+  gap: var(--spacing-lg);
+  padding: 0;
   color: var(--actions-ink);
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--actions-surface) 92%, transparent),
-      color-mix(in oklab, var(--actions-subtle) 88%, transparent)
-    ),
-    var(--actions-surface);
-  border-color: var(--actions-line);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--actions-shadow);
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
-.actions-page > .row-between:first-child {
-  align-items: flex-start;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--actions-line);
-}
-
-.actions-page > .row-between:first-child .chip {
+.actions-page > .chip {
+  justify-self: start;
   min-height: 24px;
   padding: 3px 8px;
   font-size: var(--font-size-sm);
@@ -307,8 +296,7 @@
   transform: translateY(-1px);
 }
 
-.actions-page .output-panel,
-.actions-page .editor-panel {
+.actions-page .output-panel {
   display: grid;
   gap: 12px;
   padding: 14px;
@@ -320,6 +308,17 @@
   );
   border: 1px solid var(--actions-line);
   border-radius: var(--radius-sm);
+}
+
+.actions-page .editor-panel {
+  display: grid;
+  gap: 12px;
+  padding: var(--spacing-md) 0 0;
+  margin: 0;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--color-border-subtle);
+  border-radius: 0;
 }
 
 .actions-page .output-panel > .row-between,

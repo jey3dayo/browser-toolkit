@@ -1,7 +1,7 @@
 import { useCallback, useId } from "react";
 import { Badge } from "@/components/shared/Badge";
 import { PaneCard, RowBetween, Stack } from "@/components/shared/Layout";
-import { Hint, PaneTitle } from "@/components/shared/Typography";
+import { Hint } from "@/components/shared/Typography";
 import { t } from "@/i18n";
 import type { PaneId } from "@/popup/panes";
 import { CalendarActionButtons } from "@/popup/panes/calendar/CalendarActionButtons";
@@ -73,7 +73,6 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
       <section className="settings-pane-overview">
         <RowBetween className="settings-surface-heading">
           <Stack spacing="small">
-            <PaneTitle>{t("calendarPane.title")}</PaneTitle>
             <Hint>{t("calendarPane.description")}</Hint>
           </Stack>
           {output.status === "ready" ? (

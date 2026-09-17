@@ -363,3 +363,7 @@
 .mbu-switch[data-checked] .mbu-switch-thumb {
   transform: translateX(22px);
 }
+
+.hint--danger {
+  color: var(--color-danger);
+}

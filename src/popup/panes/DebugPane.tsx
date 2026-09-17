@@ -2,15 +2,10 @@ import { Result } from "@praha/byethrow";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/shared/Button";
 import { Fieldset } from "@/components/shared/Fieldset";
-import {
-  ButtonRow,
-  PaneCard,
-  RowBetween,
-  Stack,
-} from "@/components/shared/Layout";
+import { ButtonRow, RowBetween, Stack } from "@/components/shared/Layout";
 import { SwitchField } from "@/components/shared/SwitchField";
 import { TextOutput } from "@/components/shared/TextOutput";
-import { Hint, PaneTitle } from "@/components/shared/Typography";
+import { Hint } from "@/components/shared/Typography";
 import type {
   GetSearchBlocklistDiagnosticsMessage,
   SearchBlocklistDiagnosticsResponse,
@@ -295,13 +290,8 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
   }, []);
 
   return (
-    <PaneCard className="settings-surface debug-settings-pane">
-      <section className="settings-pane-overview">
-        <Stack spacing="small">
-          <PaneTitle>{t("debug.title")}</PaneTitle>
-          <Hint>{t("debug.description")}</Hint>
-        </Stack>
-      </section>
+    <div className="card-stack settings-surface debug-settings-pane">
+      <Hint as="div">{t("debug.description")}</Hint>
 
       {/* デバッグモード設定 */}
       <section className="settings-pane-card">
@@ -419,6 +409,6 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
           </section>
         </>
       )}
-    </PaneCard>
+    </div>
   );
 }

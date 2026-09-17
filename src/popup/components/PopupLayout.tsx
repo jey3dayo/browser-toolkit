@@ -28,13 +28,6 @@ export function PopupContentHeader({
   return <header className={cva("content-header")({ className })} {...props} />;
 }
 
-export function PopupTitleBlock({
-  className,
-  ...props
-}: DivProps): React.JSX.Element {
-  return <div className={cva("title-block")({ className })} {...props} />;
-}
-
 export function PopupContentBody({
   className,
   ...props

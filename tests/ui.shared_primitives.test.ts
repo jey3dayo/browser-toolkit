@@ -69,8 +69,7 @@ const directListItemRowTextClassPattern =
   /className=["'][^"']*(?:search-engine-name|search-engine-url)(?:\s|["'])/;
 const directAccordionPreviewClassPattern =
   /className=["'][^"']*mbu-accordion-(?:meta|note|text-wrapper|text)(?:\s|["'])/;
-const sharedDialogPopupClassPattern =
-  /(?:sidebar-brand|menu-scrim|menu-drawer|mbu-drawer-backdrop)/;
+const sharedDialogPopupClassPattern = /(?:sidebar-brand|mbu-drawer-backdrop)/;
 const directPatternAddFormClassPattern =
   /<Form[\s\S]*variant=["']patternGroup["'][\s\S]*<Input[\s\S]*variant=["']pattern["'][\s\S]*<Button[\s\S]*type=["']submit["']/;
 const lucideImportPattern = /from\s+["']lucide-react["']/;

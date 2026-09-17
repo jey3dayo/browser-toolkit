@@ -550,12 +550,6 @@ input[type="checkbox"] {
   gap: var(--spacing-md);
 }
 
-.calendar-settings-pane .button-row,
-.debug-settings-pane .button-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(108px, 1fr));
-}
-
 .templates-settings-pane .sortable-list {
   max-height: 380px;
 }

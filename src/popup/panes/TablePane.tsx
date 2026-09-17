@@ -11,7 +11,6 @@ import {
   EmptyMessage,
   Hint,
   PaneSubtitle,
-  PaneTitle,
 } from "@/components/shared/Typography";
 import { t } from "@/i18n";
 import { FocusDiagnosticPanel } from "@/popup/panes/table/FocusDiagnosticPanel";
@@ -130,7 +129,6 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
     <PaneCard className="table-pane">
       <TablePaneHeader>
         <TablePaneHeading>
-          <PaneTitle>{t("tablePane.title")}</PaneTitle>
           <Button
             data-testid="enable-table-sort"
             onClick={handleEnableNow}

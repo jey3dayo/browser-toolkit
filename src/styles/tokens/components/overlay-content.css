@@ -66,10 +66,6 @@
   border-radius: var(--radius-sm);
 }
 
-.hint--danger {
-  color: var(--color-danger);
-}
-
 .mbu-overlay-primary-text,
 .mbu-overlay-secondary-text {
   margin: 0;

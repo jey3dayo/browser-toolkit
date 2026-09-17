@@ -7,8 +7,7 @@
   /* Layout sizing */
   --layout-popup-width: 800px;
   --layout-popup-height: 600px;
-  --layout-rail: 56px;
-  --layout-drawer: 284px;
+  --layout-rail: 88px;
 
   /* Spacing semantics */
   --spacing-xs: var(--primitive-space-2);
@@ -42,8 +41,7 @@
 :host {
   --layout-popup-width: 800px;
   --layout-popup-height: 600px;
-  --layout-rail: 56px;
-  --layout-drawer: 284px;
+  --layout-rail: 88px;
 
   --spacing-xs: var(--primitive-space-2);
   --spacing-sm: var(--primitive-space-3);
@@ -307,7 +305,6 @@
   --popup-width: var(--layout-popup-width);
   --popup-height: var(--layout-popup-height);
   --rail: var(--layout-rail);
-  --drawer: var(--layout-drawer);
 
   /* ui/styles.ts legacy (Toast/Overlay) */
   --mbu-bg: var(--color-bg);
@@ -343,7 +340,6 @@
   --popup-width: var(--layout-popup-width);
   --popup-height: var(--layout-popup-height);
   --rail: var(--layout-rail);
-  --drawer: var(--layout-drawer);
 
   --mbu-bg: var(--color-bg);
   --mbu-surface: var(--color-surface);

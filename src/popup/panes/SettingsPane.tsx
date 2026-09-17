@@ -1,6 +1,8 @@
+import { Accordion } from "@/components/shared/Accordion";
 import { PaneCard } from "@/components/shared/Layout";
-import { Hint, PaneTitle } from "@/components/shared/Typography";
+import { Hint } from "@/components/shared/Typography";
 import { t } from "@/i18n";
+import { DebugPane } from "@/popup/panes/DebugPane";
 import { SettingsModelSection } from "@/popup/panes/settings/SettingsModelSection";
 import { SettingsPaneOverview } from "@/popup/panes/settings/SettingsPaneLayout";
 import { SettingsPromptSection } from "@/popup/panes/settings/SettingsPromptSection";
@@ -24,7 +26,6 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
   return (
     <PaneCard className="settings-surface settings-pane">
       <SettingsPaneOverview>
-        <PaneTitle>{t("settings.title")}</PaneTitle>
         <Hint>{t("settings.description")}</Hint>
       </SettingsPaneOverview>
 
@@ -73,6 +74,16 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
         setTheme={state.setTheme}
         theme={state.theme}
       />
+
+      <section className="settings-pane-card">
+        <Accordion
+          defaultOpen={false}
+          itemValue="debug"
+          title={t("settings.debugSection")}
+        >
+          <DebugPane notify={props.notify} runtime={props.runtime} />
+        </Accordion>
+      </section>
     </PaneCard>
   );
 }

@@ -1,21 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { APP_NAME } from "@/app_meta";
 import { TabsPanel, TabsRoot } from "@/components/shared/Tabs";
+import { t } from "@/i18n";
 import {
   PopupContent,
   PopupContentBody,
   PopupContentHeader,
   PopupShell,
-  PopupTitleBlock,
 } from "@/popup/components/PopupLayout";
 import { Sidebar } from "@/popup/components/Sidebar";
 import { handleCopyTitleLinkFailureOnPopupOpen } from "@/popup/copy-title-link-failure";
 import { replaceHashSafely } from "@/popup/hash";
+import { navigationItems } from "@/popup/navigation-items";
 import { coercePaneId, getPaneIdFromHash, type PaneId } from "@/popup/panes";
 import { ActionsPane } from "@/popup/panes/ActionsPane";
 import { CalendarPane } from "@/popup/panes/CalendarPane";
 import { CreateLinkPane } from "@/popup/panes/CreateLinkPane";
-import { DebugPane } from "@/popup/panes/DebugPane";
 import { HistoryPane } from "@/popup/panes/HistoryPane";
 import { SearchBlocklistPane } from "@/popup/panes/SearchBlocklistPane";
 import { SearchEnginesPane } from "@/popup/panes/SearchEnginesPane";
@@ -41,7 +41,6 @@ export function PopupApp(): React.JSX.Element {
     []
   );
   const [tabValue, setTabValue] = useState<PaneId>(initialValue);
-  const [menuOpen, setMenuOpen] = useState(false);
   const tokenInputRef = useRef<HTMLInputElement | null>(null);
 
   const runtime = useMemo(() => createPopupRuntime(), []);
@@ -62,12 +61,10 @@ export function PopupApp(): React.JSX.Element {
 
   const navigateToPane = useCallback((paneId: PaneId) => {
     setTabValue(paneId);
-    setMenuOpen(false);
   }, []);
 
   const handleTabValueChange = useCallback((value: string) => {
     setTabValue(coercePaneId(value));
-    setMenuOpen(false);
   }, []);
 
   const syncFromHashRef = useRef<() => void>(() => {
@@ -100,12 +97,12 @@ export function PopupApp(): React.JSX.Element {
     document.title = APP_NAME;
   }, []);
 
-  useEffect(() => {
-    document.body.classList.toggle("menu-open", menuOpen);
-    return () => {
-      document.body.classList.remove("menu-open");
-    };
-  }, [menuOpen]);
+  const currentPaneLabel = useMemo(() => {
+    const item = navigationItems.find(
+      (navigationItem) => navigationItem.id === tabValue
+    );
+    return item ? t(item.labelKey) : APP_NAME;
+  }, [tabValue]);
 
   useEffect(() => {
     handleCopyTitleLinkFailureOnPopupOpen({
@@ -128,22 +125,7 @@ export function PopupApp(): React.JSX.Element {
         />
         <PopupContent>
           <PopupContentHeader>
-            <PopupTitleBlock>
-              <div className="hero-logo-wrap">
-                <img
-                  alt={APP_NAME}
-                  className="hero-logo"
-                  height={32}
-                  src="images/icon48.png"
-                  width={32}
-                />
-              </div>
-              <div className="title-text">
-                <div className="title-row">
-                  <h1>{APP_NAME}</h1>
-                </div>
-              </div>
-            </PopupTitleBlock>
+            <h1 className="content-title">{currentPaneLabel}</h1>
           </PopupContentHeader>
 
           <PopupContentBody>
@@ -198,9 +180,6 @@ export function PopupApp(): React.JSX.Element {
             <TabsPanel value="pane-history">
               <HistoryPane notify={notifications.notify} runtime={runtime} />
             </TabsPanel>
-            <TabsPanel value="pane-debug">
-              <DebugPane notify={notifications.notify} runtime={runtime} />
-            </TabsPanel>
             <TabsPanel value="pane-settings">
               <SettingsPane
                 notify={notifications.notify}
@@ -211,12 +190,7 @@ export function PopupApp(): React.JSX.Element {
           </PopupContentBody>
         </PopupContent>
 
-        <Sidebar
-          currentPane={tabValue}
-          menuOpen={menuOpen}
-          onMenuOpenChange={setMenuOpen}
-          onNavigate={navigateToPane}
-        />
+        <Sidebar />
       </PopupShell>
     </TabsRoot>
   );

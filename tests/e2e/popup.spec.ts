@@ -4,26 +4,25 @@ test.describe("Popup UI", () => {
   test("should navigate between panes", async ({ page, extensionId }) => {
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
 
-    // Verify initial pane is Actions (heading text is the fixed pane title
-    // "Context Actions", not the "アクション" nav label; see
-    // src/popup/panes/ActionsPane.tsx + src/i18n/resources.ts `actions.title`)
-    await expect(page.locator("h2")).toHaveText("Context Actions");
+    // The popup header carries the current pane name (src/popup/App.tsx reads
+    // it from src/popup/navigation-items.ts); panes no longer repeat it.
+    await expect(page.locator("h1")).toHaveText("アクション");
 
     // Navigate to Settings
     await page.click('button[aria-label="設定"]');
-    await expect(page.locator("h2")).toHaveText("設定");
+    await expect(page.locator("h1")).toHaveText("設定");
 
     // Navigate to site-specific features
     await page.click('button[aria-label="サイト別機能"]');
-    await expect(page.locator("h2")).toHaveText("サイト別機能");
+    await expect(page.locator("h1")).toHaveText("サイト別機能");
 
     // Navigate to Create Link
     await page.click('button[aria-label="リンク作成"]');
-    await expect(page.locator("h2")).toHaveText("リンク作成");
+    await expect(page.locator("h1")).toHaveText("リンク作成");
 
     // Navigate back to Actions
     await page.click('button[aria-label="アクション"]');
-    await expect(page.locator("h2")).toHaveText("Context Actions");
+    await expect(page.locator("h1")).toHaveText("アクション");
   });
 
   test("should persist theme selection", async ({ page, extensionId }) => {
@@ -35,7 +34,7 @@ test.describe("Popup UI", () => {
     // group in the Settings pane (src/popup/panes/settings/SettingsThemeSection.tsx),
     // with labels sourced from src/i18n/resources.ts `theme.light` / `theme.dark`.
     await page.click('button[aria-label="設定"]');
-    await expect(page.locator("h2")).toHaveText("設定");
+    await expect(page.locator("h1")).toHaveText("設定");
 
     // Get initial theme
     const initialTheme = await page.locator("html").getAttribute("data-theme");
@@ -72,7 +71,7 @@ test.describe("Popup UI", () => {
 
     // Navigate to Settings
     await page.click('button[aria-label="設定"]');
-    await expect(page.locator("h2")).toHaveText("設定");
+    await expect(page.locator("h1")).toHaveText("設定");
 
     // Verify settings sections exist. The token fieldset legend is
     // "{{provider}} API トークン" (src/i18n/resources.ts `settings.apiToken`),
@@ -112,7 +111,7 @@ test.describe("Popup UI", () => {
 
     // Navigate to site-specific features
     await page.click('button[aria-label="サイト別機能"]');
-    await expect(page.locator("h2")).toHaveText("サイト別機能");
+    await expect(page.locator("h1")).toHaveText("サイト別機能");
 
     // Add a new pattern
     const patternInput = page.locator('input[placeholder*="ドメイン"]');

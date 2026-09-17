@@ -5,14 +5,12 @@ import {
   ActionListItem,
   EditorPanel,
   PaneCard,
-  RowBetween,
 } from "@/components/shared/Layout";
 import {
   ActionTitle,
   EditorTitle,
   EmptyMessage,
   Hint,
-  PaneTitle,
 } from "@/components/shared/Typography";
 import type { ContextAction } from "@/context_actions";
 import { t } from "@/i18n";
@@ -178,14 +176,11 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
 
   return (
     <PaneCard className="actions-page">
-      <RowBetween>
-        <PaneTitle>{t("actions.title")}</PaneTitle>
-        {output.status === "ready" ? (
-          <Badge data-testid="action-source" variant="chipSoft">
-            {output.sourceLabel}
-          </Badge>
-        ) : null}
-      </RowBetween>
+      {output.status === "ready" ? (
+        <Badge data-testid="action-source" variant="chipSoft">
+          {output.sourceLabel}
+        </Badge>
+      ) : null}
 
       <Hint data-testid="template-vars">
         {t("actions.templateVars")} <code>{"{{text}}"}</code>{" "}

@@ -88,7 +88,7 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
         </RowBetween>
       </section>
 
-      <section className="card settings-card settings-pane-card">
+      <section className="settings-pane-card">
         <Hint as="div">{t("templatesPane.hiddenDescription")}</Hint>
 
         {editingId ? (

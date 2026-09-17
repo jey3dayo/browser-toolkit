@@ -57,7 +57,7 @@ export const resources = {
           truncated: "長文のため先頭4,000文字のみ表示",
         },
         templateVars: "テンプレ変数:",
-        title: "Context Actions",
+        title: "アクション",
       },
       background: {
         actionExecutor: {
@@ -267,7 +267,6 @@ export const resources = {
           downloaded: "ダウンロードしました",
           saved: "保存しました",
         },
-        title: "デバッグ",
       },
       history: {
         clearAll: "全削除",
@@ -293,9 +292,8 @@ export const resources = {
       },
       navigation: {
         actions: "アクション",
-        calendar: "カレンダー登録",
+        calendar: "カレンダー",
         createLink: "リンク作成",
-        debug: "デバッグ",
         history: "履歴",
         historyAria: "アクション履歴",
         searchBlocklist: "検索結果ブロック",
@@ -517,6 +515,7 @@ export const resources = {
         apiToken: "{{provider}} API トークン",
         customPrompt: "追加指示",
         customPromptLegend: "追加指示（オプション）",
+        debugSection: "デバッグ",
         description: "AI設定はこの端末のみ（同期されません）",
         errors: {
           deleteFailed: "削除に失敗しました",
