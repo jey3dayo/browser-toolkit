@@ -67,6 +67,12 @@ ShadowRoot UIs load the same token/stylesheets via:
 
 This attaches `<link rel="stylesheet">` tags to the ShadowRoot so the overlay/toast UI remains CSP-friendly and consistent with the popup theme/tokens.
 
+Base UI's `Portal` renders to `document.body` by default, which escapes the ShadowRoot and
+loses styling. Any Base UI component with a portal (`Dialog`, `Toast`, etc.) rendered inside a
+ShadowRoot must pass an explicit `container` pointing at the ShadowRoot. See
+`src/ui/toast.tsx` (`Toast.Portal container`) and `src/components/shared/Dialog.tsx`
+(`portalContainer` prop) for the established pattern.
+
 ## Legacy Alias Variables
 
 `src/styles/tokens/semantic.css` still exposes a small set of legacy aliases (e.g. `--bg`, `--panel`, `--text`, and `--mbu-*`) to keep incremental refactors stable while migrating older styles.
