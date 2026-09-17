@@ -166,7 +166,7 @@ export function useSearchBlocklistRules(
   useEffect(() => {
     let cancelled = false;
 
-    (async () => {
+    async function loadRules(): Promise<void> {
       const data = await props.runtime.storageLocalGet([
         "searchBlocklistRules",
       ]);
@@ -178,12 +178,30 @@ export function useSearchBlocklistRules(
       setRules(displayable);
       setCorruptedCount(countCorruptedStoredRules(stored, displayable));
       setOverLimit(exceedsRuleLimit(displayable));
-    })().catch(() => {
+    }
+
+    loadRules().catch(() => {
       // no-op: fail open with an empty list
     });
 
+    const onChanged =
+      typeof chrome === "undefined" ? undefined : chrome.storage?.onChanged;
+    const handleStorageChange = (
+      changes: Record<string, chrome.storage.StorageChange>,
+      areaName: string
+    ): void => {
+      if (areaName !== "local" || !("searchBlocklistRules" in changes)) {
+        return;
+      }
+      loadRules().catch(() => {
+        // no-op: keep the previous list on reload failure
+      });
+    };
+    onChanged?.addListener(handleStorageChange);
+
     return () => {
       cancelled = true;
+      onChanged?.removeListener(handleStorageChange);
     };
   }, [props.runtime]);
 
