@@ -63,6 +63,21 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+describe("createBlocklistState add mutation failures", () => {
+  it("returns addFailed when an add mutation response omits a usable error", async () => {
+    stubSendMessage(() => ({ type: "Failure" }));
+    const state = createBlocklistState("google", resolvedRules([]), () => []);
+    await state.ready;
+
+    const result = await state.addRule("new.example.com");
+
+    expect(Result.isFailure(result)).toBe(true);
+    if (Result.isFailure(result)) {
+      expect(result.error).toBe("追加に失敗しました");
+    }
+  });
+});
+
 describe("CountBar", () => {
   it("renders nothing when nothing is blocked", async () => {
     const state = createBlocklistState("google", resolvedRules([]), () => []);

@@ -37,6 +37,7 @@ import type {
 import type { ContextAction } from "@/context_actions";
 import { t } from "@/i18n";
 import { coercePaneId } from "@/popup/panes";
+import { searchBlocklistMutationFailureMessage } from "@/search-blocklist/mutation_failure_message";
 import {
   applySearchBlocklistRuleMutation,
   partitionStoredSearchBlocklistRules,
@@ -53,24 +54,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-function mutationFailureMessage(
-  op: SearchBlocklistMutateRequest["op"]
-): string {
-  if (op === "add") {
-    return t("searchBlocklist.errors.addFailed");
-  }
-  if (op === "remove") {
-    return t("searchBlocklist.errors.deleteFailed");
-  }
-  return t("searchBlocklist.errors.saveFailed");
-}
-
 async function loadSearchBlocklistRules(
   op: SearchBlocklistMutateRequest["op"]
 ): Promise<Result.Result<SearchBlocklistRulePartition, string>> {
   const loaded = await storageLocalGet<unknown>(["searchBlocklistRules"]);
   if (Result.isFailure(loaded)) {
-    return Result.fail(mutationFailureMessage(op));
+    return Result.fail(searchBlocklistMutationFailureMessage(op));
   }
   const stored = isRecord(loaded.value)
     ? loaded.value.searchBlocklistRules
@@ -100,7 +89,7 @@ async function applySearchBlocklistMutation(
     searchBlocklistRules: mutated.value.persisted,
   });
   if (Result.isFailure(saved)) {
-    return Result.fail(mutationFailureMessage(request.op));
+    return Result.fail(searchBlocklistMutationFailureMessage(request.op));
   }
 
   searchBlocklistRevision += 1;
@@ -442,7 +431,7 @@ function handleSearchBlocklistMutateRequest(
         Result.fail(
           error instanceof Error
             ? error.message
-            : mutationFailureMessage(request.op)
+            : searchBlocklistMutationFailureMessage(request.op)
         )
       );
     });
