@@ -54,6 +54,11 @@ Browser Toolkitは、Chrome Extension（Manifest V3）として構築された�
 │                 │   (Type-safe)      │                      │
 │                 └────────────────────┘                      │
 │                                                              │
+│  ┌──────────────────────────────────────────────────┐      │
+│  │  Search Blocklist (Content Script #2)             │      │
+│  │  (src/search-blocklist.ts, document_start, no UI) │      │
+│  └──────────────────────────────────────────────────┘      │
+│                                                              │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -61,7 +66,7 @@ Browser Toolkitは、Chrome Extension（Manifest V3）として構築された�
 
 ## ランタイム境界
 
-Browser Toolkitは3つの独立した実行環境（ランタイム境界）を持ち、それぞれが異なる責務を担います。
+Browser Toolkitは4つの独立した実行環境（ランタイム境界）を持ち、それぞれが異なる責務を担います。
 
 ### 1. Background Worker (`src/background.ts`)
 
@@ -118,6 +123,28 @@ Browser Toolkitは3つの独立した実行環境（ランタイム境界）を�
 - ✅ `chrome.storage`
 - ✅ `chrome.tabs`（限定的）
 - ❌ ページDOM（直接アクセス不可）
+
+### 4. Search Blocklist Content Script (`src/search-blocklist.ts`)
+
+役割: 検索結果ページ（Google のみ、v1）でのブロック判定と非表示
+
+`content_scripts` の 2 本目のエントリとして `document_start` で注入されます。既存
+`content.ts` は `document_idle` で、`src/content/table-observer.ts` が `document.body`
+を observe する前提のため `document_start` へは動かせません。この entry はその制約を
+避けるために独立させています。
+
+React は含みません。esbuild の bundle 設定（`scripts/bundle.mjs`）が `format: "iife"` で
+code splitting をサポートしないため、UI コンポーネントを同じ entry に混ぜると、Google
+検索を開くたびに React が余分にパースされます。判定・非表示・state 管理のみをここに置き、
+浮動ボタン/ダイアログ/件数バーの UI は `src/content/search-blocklist-ui/` として既存
+`content.js` 側から遅延ロードします。
+
+#### アクセス可能なAPI
+
+- ✅ ページDOM（読み取り/書き込み、対象ページに限定）
+- ✅ `chrome.storage.local`
+- ❌ `chrome.contextMenus`（アクセス不可）
+- ❌ CORS制限なしのfetch（アクセス不可）
 
 ### メッセージパッシング
 

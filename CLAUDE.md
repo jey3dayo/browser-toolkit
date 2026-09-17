@@ -50,6 +50,7 @@ Browser Toolkitは、個人用のChrome拡張機能（Manifest V3）です。Web
 | Context Actions behavior | `docs/context-actions.md` | context action の実行経路、対象解決、組み込みaction、calendar handoff の仕様 |
 | Context Actions implementation / prompts | `src/context_actions.ts`, `src/prompts/` | action defaults と AI prompt template。表示文言とは分けて扱う |
 | Storage schema / migrations | `src/storage/`, `src/storage/migrations.ts`, `src/schemas/` | storage shape、migration、runtime validation |
+| Search result blocklist behavior / implementation | `src/search-blocklist/`, `src/content/search-blocklist-ui/` | ブロック判定ロジック、ルール構文、engine adapter、浮動UI/ダイアログ/件数バー |
 | User-facing setup / usage | `README.md` | インストール、使い方、開発セットアップ、利用者向け機能説明 |
 | Long-form architecture reference | `docs/architecture.md` | 詳細な設計解説。方針判断ではこの表の正本と実装を優先し、内容を整合させる |
 | Build / verification commands | `package.json`, `mise.toml` | scripts、CI相当の検証、tool versions |
@@ -65,6 +66,10 @@ Browser Toolkitは、個人用のChrome拡張機能（Manifest V3）です。Web
 - `scripting` は active tab への機能注入、`downloads` は `.ics` などのファイル出力、`notifications` はユーザー向け通知、`alarms` は Manifest V3 service worker の復帰補助に使います。未使用に見える権限を削る前に、対応する runtime path を `src/background.ts`、`src/content.ts`、`src/popup/` から確認してください。
 - AI provider の endpoint を追加・変更するときは、`src/constants/api-endpoints.ts`、`manifest.json` の `host_permissions`、`content_security_policy.connect-src` を同じ差分で揃えてください。
 - Chrome Web Store など外部配布に進む前は、強い権限の理由をリリース説明に転記できる粒度で残してください。
+- `content_scripts` は2エントリあります。既存 `dist/content.js`（全ページ、`document_idle`）に加え、
+  検索結果ブロックリスト用の `dist/search-blocklist.js` が `*://www.google.com/search*` /
+  `*://www.google.co.jp/search*` に限定して `document_start` で注入されます。`<all_urls>` の
+  host_permissions はこの2本目のために広げたものではなく、上記の既存記述のまま変わりません。
 
 ## 🛠️ 技術スタック（概要）
 
@@ -103,13 +108,16 @@ browser-toolkit/
 │   ├── background.ts       # Service worker（コンテキストメニュー、OpenAI呼び出し）
 │   ├── content.ts          # Content script（テーブルソート、オーバーレイ）
 │   ├── popup.ts            # ポップアップ（React root）
+│   ├── search-blocklist.ts # Content script #2（検索結果ブロック判定、document_start）
 │   ├── background/         # Background worker モジュール
 │   ├── content/            # Content script モジュール（overlay等）
+│   │   └── search-blocklist-ui/ # 検索結果ブロックリストのUI（浮動ボタン/ダイアログ/件数バー）
 │   ├── popup/              # ポップアップ UI（pane-based）
 │   ├── components/         # 共有 React コンポーネント
 │   ├── ui/                 # テーマ、スタイル、toast
 │   ├── openai/             # OpenAI設定
 │   ├── storage/            # Storageスキーマ型定義
+│   ├── search-blocklist/   # 検索結果ブロックリストの判定ロジック（ルール構文、engine adapter）
 │   └── prompts/            # 組み込みアクションプロンプト（TOML）
 ├── docs/                   # architecture / feature / setup references
 └── .claude/rules/          # 開発ルール（日本語）

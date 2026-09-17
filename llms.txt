@@ -20,6 +20,7 @@
 - `src/background.ts` — Service Worker。contextMenus、AI API 呼び出し、storage、runtime メッセージ。
 - `src/content.ts` — Content Script。テーブルソート、オーバーレイ、選択キャッシュ、QR コード表示、テンプレート貼り付け。
 - `src/popup.ts` — Popup UI (React root)。pane ベースで設定/履歴/アクション等を提供。
+- `src/search-blocklist.ts` — Content Script（`document_start`、React 無し）。検索結果ブロックリストの判定・非表示のみ。
 
 ## Docs
 
@@ -55,9 +56,12 @@
 - `src/constants/models.ts` — 対応モデルの一覧と既定値
 - `src/storage/` — 永続化スキーマとマイグレーション
 - `src/prompts/` — 組み込みアクションプロンプト（TOML）
+- `src/search-blocklist/` — 検索結果ブロックリストの判定ロジック（ルール構文、マッチング、engine adapter）
+- `src/content/search-blocklist-ui/` — 検索結果ブロックリストの UI（浮動ボタン/ダイアログ/件数バー、`content.js` から遅延ロード）
 - `manifest.json` — permissions: `activeTab`, `contextMenus`, `scripting`, `storage`, `notifications`, `downloads`, `alarms`
   - host_permissions: `<all_urls>`, `api.openai.com`, `api.anthropic.com`, `api.z.ai`
   - CSP: `script-src 'self'; object-src 'self'; connect-src 'self' https://api.openai.com https://api.anthropic.com https://api.z.ai`
+  - `content_scripts` は2エントリ（既存 `dist/content.js` に加え、検索結果ページ限定で `document_start` 注入される `dist/search-blocklist.js`）。permissions/host_permissions/CSP に変更はない
 
 ## Development commands
 
