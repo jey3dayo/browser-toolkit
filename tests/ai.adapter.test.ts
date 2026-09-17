@@ -4,6 +4,17 @@ import { getAdapter } from "@/ai/get-adapter";
 import { openaiAdapter } from "@/ai/openai-adapter";
 import { zaiAdapter } from "@/ai/zai-adapter";
 import { OPENAI_MODELS } from "@/constants/models";
+import { isRecord } from "@/utils/guards";
+
+function parseRequestBody(
+  body: BodyInit | null | undefined
+): Record<string, unknown> {
+  const parsed: unknown = JSON.parse(String(body));
+  if (!isRecord(parsed)) {
+    throw new Error("request body is not a JSON object");
+  }
+  return parsed;
+}
 
 describe("ai/adapter", () => {
   describe("getAdapter", () => {
@@ -148,6 +159,44 @@ describe("ai/adapter", () => {
       expect(body).not.toHaveProperty("top_p");
       expect(body).not.toHaveProperty("top_k");
       expect(body.model).toBe("claude-sonnet-5");
+    });
+
+    it("defaults max_tokens high enough for long structured answers", () => {
+      // 4096 では 7 セクション構成のレビュー出力が stop_reason: max_tokens で切れる。
+      const { init } = anthropicAdapter.buildRequest("test-token", {
+        messages: [{ content: "test", role: "user" }],
+        model: "claude-sonnet-5",
+      });
+
+      expect(parseRequestBody(init.body).max_tokens).toBe(16_000);
+    });
+
+    it("forwards output_config for structured outputs", () => {
+      // Anthropic は response_format ではなく output_config.format でスキーマを強制する。
+      const schema = {
+        additionalProperties: false,
+        properties: { title: { type: "string" } },
+        required: ["title"],
+        type: "object",
+      };
+      const { init } = anthropicAdapter.buildRequest("test-token", {
+        messages: [{ content: "test", role: "user" }],
+        model: "claude-sonnet-5",
+        output_config: { format: { schema, type: "json_schema" } },
+      });
+
+      expect(parseRequestBody(init.body)).toMatchObject({
+        output_config: { format: { schema, type: "json_schema" } },
+      });
+    });
+
+    it("omits output_config when the caller does not set one", () => {
+      const { init } = anthropicAdapter.buildRequest("test-token", {
+        messages: [{ content: "test", role: "user" }],
+        model: "claude-sonnet-5",
+      });
+
+      expect(parseRequestBody(init.body)).not.toHaveProperty("output_config");
     });
 
     it("extracts text from valid response", () => {

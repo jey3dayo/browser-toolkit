@@ -1,15 +1,5 @@
 # Chrome拡張機能 開発ルール
 
-> **Note**: このプロジェクトの開発ルールは、Chrome Extension Best Practicesスキルに統合されています。
-> 詳細なベストプラクティス、セキュリティパターン、Web Storeポリシー準拠ガイドについては、スキルを参照してください。
->
-> **スキル起動方法**:
->
-> - "Chrome拡張のセキュリティをレビューして"
-> - "Manifest V3に準拠しているかチェックして"
-> - "Web Store申請前のチェックをして"
-> - または、manifest.json、chrome.\* API、content/background scriptの編集時に自動起動
-
 このプロジェクトの開発における基本ルールとガイドラインです。
 
 > **セキュリティガイドライン**: XSS対策、APIトークン保護、入力検証などの詳細は [security.md](security.md) を参照してください。
@@ -43,46 +33,25 @@ browser-toolkit/
 
 ## 📝 コーディング規約
 
-### JavaScript
+### TypeScript
 
-- ES6+構文を使用: `const`/`let`、アロー関数、テンプレート文字列
-- async/await推奨: Promiseベースの非同期処理
-- エラーハンドリング必須: try-catchで適切にエラーをキャッチ
-- コメント: JSDocスタイルで関数の説明を記述
-
-```javascript
-/**
- * 関数の説明
- * @param {type} paramName - パラメータの説明
- * @returns {type} - 戻り値の説明
- */
-function example(paramName) {
-  // 実装
-}
-```
+- strict mode 前提。`any` と型アサーションを入れない（`unknown` + 型ガードへ）
+- エラーは握りつぶさず、境界で `Result` / `ResultAsync`（`@praha/byethrow`）として返す
+- 非同期は async/await
+- フォーマットは Ultracite (Biome)
 
 ### HTML/CSS
 
 - セマンティックHTML: 適切なタグを使用（div乱用を避ける）
-- BEM記法推奨: クラス名は `.block__element--modifier` 形式
-- レスポンシブ: ポップアップは固定幅320px
+- スタイルは `src/styles/tokens/` の design token 経由で当てる（生の値を直書きしない）
+- ポップアップ幅は `--layout-popup-width`（`src/styles/tokens/semantic.css`）が正本
 - アクセシビリティ: alt属性、aria属性を適切に設定
 
 ## 🎨 デザインガイドライン
 
-### カラーパレット
-
-- プライマリ: `#4285f4` (Google Blue)
-- エラー: `#e53935` (赤)
-- テキスト: `#333` (濃いグレー)
-- 背景: `#ffffff` (白)、`#f9f9f9` (薄いグレー)
-
-### タイポグラフィ
-
-- フォント: システムフォント (`-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto`)
-- 見出し: 18px (h1), 14px (h2), 13px (h3)
-- 本文: 14px
-- 小文字: 12px (ヒント、補足情報)
+カラー・タイポグラフィ・spacing の値は [DESIGN.md](../../DESIGN.md) と
+`src/styles/tokens/` が正本。ここには重複させない（ライト/ダークで別 token を持つため、
+単一の hex を書くと必ずずれる）。
 
 ## 🔒 セキュリティガイドライン
 
@@ -90,15 +59,7 @@ function example(paramName) {
 
 - ユーザー入力のエスケープ必須: DOMに挿入する前に必ず処理
 - innerHTML禁止: textContentまたはcreateElementを使用
-- escapeHtml関数を活用: 既存のユーティリティを使用
-
-```javascript
-function escapeHtml(text) {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
-}
-```
+- HTML 文字列を組み立てる箇所では `src/utils/link_format.ts` のエスケープ関数を使う
 
 ### バリデーション
 
@@ -108,13 +69,16 @@ function escapeHtml(text) {
 
 ### ストレージ
 
-- chrome.storage.sync: ユーザー設定（最大8KB）
-- chrome.storage.local: 一時データ
-- 機密情報保存禁止: パスワード、トークンなどは保存しない
+- chrome.storage.sync: 同期したいユーザー設定（1 item 8,192 bytes 上限。`QUOTA_BYTES_PER_ITEM`）
+- chrome.storage.local: API トークンとデバイスローカルなデータ
+- API トークンは `chrome.storage.local` のみに保存し、`sync` へは置かない（詳細は [security.md](security.md)）
 
 ## 🧪 テスト方針
 
-### 手動テスト必須項目
+自動テストは `mise run ci`（format / lint / vitest / Storybook test / build）が正本。
+以下はその上で手動確認する項目。
+
+### 手動テスト項目
 
 1. パターン登録・削除: 正常系、異常系（重複、上限）
 2. URLマッチング: ワイルドカード、プロトコル
@@ -196,9 +160,3 @@ magick images/logo.png -fuzz 10% -transparent white -resize 128x128 images/icon1
 - [Chrome Extension APIs](https://developer.chrome.com/docs/extensions/reference/)
 - [Web Accessible Resources](https://developer.chrome.com/docs/extensions/mv3/manifest/web_accessible_resources/)
 
-## 📝 変更履歴
-
-### 2024-12-11
-
-- 初版作成
-- 基本的な開発ルールとガイドラインを定義

@@ -116,20 +116,11 @@ cell.textContent = value;
 
 ### ⚠️ 要注意箇所
 
-#### テキストテンプレート貼り付け（src/content/template-paste.ts）
+#### テキスト挿入（src/content/template-paste.ts, src/background/context_menu_gemini.ts）
 
-```typescript
-// ⚠️ 現在は安全だが、将来の変更に注意
-document.execCommand("insertText", false, template.content);
-```
-
-推奨: コメントで注意喚起
-
-```typescript
-// SECURITY: Do NOT replace with innerHTML or insertAdjacentHTML
-// execCommand('insertText') is safe as it inserts plain text only
-document.execCommand("insertText", false, template.content);
-```
+いずれもプレーンテキストしか挿入しない経路（`element.value` への代入、
+contenteditable への `execCommand("insertText")`）で現状は安全。
+`innerHTML` / `insertAdjacentHTML` へ置き換えないこと。
 
 ## 🛡️ その他のセキュリティベストプラクティス
 
@@ -233,17 +224,6 @@ PRレビュー時に以下を確認してください：
 - [ ] ユーザー入力から `RegExp` を構築していないか？（件数・長さの上限と、超過時の明示エラーがあるか）
 
 ## 🔧 自動チェック
-
-### ESLint/Biomeルール（検討中）
-
-```json
-{
-  "rules": {
-    "no-unsanitized/property": "error",
-    "no-unsanitized/method": "error"
-  }
-}
-```
 
 ### 定期的なセキュリティ監査
 
