@@ -15,8 +15,8 @@ import { handleCopyTitleLinkFailureOnPopupOpen } from "@/popup/copy-title-link-f
 import { replaceHashSafely } from "@/popup/hash";
 import { navigationItems } from "@/popup/navigation-items";
 import {
+  canSurfaceRender,
   coercePaneId,
-  getPaneSurface,
   type PaneId,
   type PaneNavigator,
   type PaneSurface,
@@ -78,7 +78,7 @@ export function PopupApp({
 
   const navigate = useCallback<PaneNavigator>(
     (paneId, options) => {
-      if (getPaneSurface(paneId) === surface) {
+      if (canSurfaceRender(surface, paneId)) {
         setTabValue(paneId);
         if (options?.focus === "token") {
           focusTokenInput();
@@ -122,7 +122,7 @@ export function PopupApp({
   });
   syncFromHashRef.current = () => {
     const next = parsePaneHash(window.location.hash).paneId;
-    if (!next || getPaneSurface(next) !== surface) {
+    if (!(next && canSurfaceRender(surface, next))) {
       return;
     }
     setTabValue(next);
@@ -190,41 +190,38 @@ export function PopupApp({
           </PopupContentHeader>
 
           <PopupContentBody>
-            {surface === "popup" ? (
-              <>
-                <TabsPanel value="pane-actions">
-                  <ActionsPane
-                    navigate={navigate}
-                    notify={notifications.notify}
-                    runtime={runtime}
-                  />
-                </TabsPanel>
-                <TabsPanel value="pane-calendar">
-                  <CalendarPane
-                    navigate={navigate}
-                    notify={notifications.notify}
-                    runtime={runtime}
-                  />
-                </TabsPanel>
-                <TabsPanel value="pane-table">
-                  <TablePane notify={notifications.notify} runtime={runtime} />
-                </TabsPanel>
-                <TabsPanel value="pane-create-link">
-                  <CreateLinkPane
-                    initialFormat={createLinkInitial?.format}
-                    initialLink={createLinkInitial?.link}
-                    notify={notifications.notify}
-                    runtime={runtime}
-                  />
-                </TabsPanel>
-                <TabsPanel value="pane-search-blocklist">
-                  <SearchBlocklistPane
-                    notify={notifications.notify}
-                    runtime={runtime}
-                  />
-                </TabsPanel>
-              </>
-            ) : (
+            <TabsPanel value="pane-actions">
+              <ActionsPane
+                navigate={navigate}
+                notify={notifications.notify}
+                runtime={runtime}
+              />
+            </TabsPanel>
+            <TabsPanel value="pane-calendar">
+              <CalendarPane
+                navigate={navigate}
+                notify={notifications.notify}
+                runtime={runtime}
+              />
+            </TabsPanel>
+            <TabsPanel value="pane-table">
+              <TablePane notify={notifications.notify} runtime={runtime} />
+            </TabsPanel>
+            <TabsPanel value="pane-create-link">
+              <CreateLinkPane
+                initialFormat={createLinkInitial?.format}
+                initialLink={createLinkInitial?.link}
+                notify={notifications.notify}
+                runtime={runtime}
+              />
+            </TabsPanel>
+            <TabsPanel value="pane-search-blocklist">
+              <SearchBlocklistPane
+                notify={notifications.notify}
+                runtime={runtime}
+              />
+            </TabsPanel>
+            {surface === "options" ? (
               <>
                 <TabsPanel value="pane-search-engines">
                   <SearchEnginesPane
@@ -258,7 +255,7 @@ export function PopupApp({
                   />
                 </TabsPanel>
               </>
-            )}
+            ) : null}
           </PopupContentBody>
         </PopupContent>
 

@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import { PopupApp, type PopupAppProps } from "./App";
+import { navigationItems } from "./navigation-items";
 
 function PopupAppStory(props: PopupAppProps): React.JSX.Element {
   return <PopupApp {...props} />;
@@ -29,6 +30,9 @@ export const Options: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
+
+    expect(canvas.getAllByRole("tab")).toHaveLength(navigationItems.length);
+    expect(canvas.getByRole("tab", { name: "アクション" })).toBeTruthy();
 
     await userEvent.click(canvas.getByRole("tab", { name: "設定" }));
     await waitFor(() => {

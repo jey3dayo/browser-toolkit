@@ -4,8 +4,11 @@ import { Icon } from "@/components/icon";
 import { Button } from "@/components/shared/Button";
 import { TabsList, TabsTab } from "@/components/shared/Tabs";
 import { i18n } from "@/i18n";
-import { getNavigationItems } from "@/popup/navigation-items";
-import type { PaneSurface } from "@/popup/panes";
+import {
+  getNavigationItems,
+  type NavigationItem,
+} from "@/popup/navigation-items";
+import { getPaneSurface, type PaneSurface } from "@/popup/panes";
 
 export type SidebarProps = {
   surface: PaneSurface;
@@ -18,6 +21,29 @@ export function Sidebar({
 }: SidebarProps): React.JSX.Element {
   const { t } = useTranslation(undefined, { i18n });
   const items = getNavigationItems(surface);
+  const dailyItems = items.filter(
+    (item) => getPaneSurface(item.id) === "popup"
+  );
+  const manageItems = items.filter(
+    (item) => getPaneSurface(item.id) === "options"
+  );
+
+  const showGroupSeparator = dailyItems.length > 0 && manageItems.length > 0;
+
+  const renderItem = (item: NavigationItem): React.JSX.Element => (
+    <TabsTab
+      aria-label={t(item.ariaLabelKey)}
+      data-value={item.id}
+      key={item.id}
+      value={item.id}
+      variant="nav"
+    >
+      <span aria-hidden="true" className="nav-icon">
+        <Icon aria-hidden="true" name={item.icon} />
+      </span>
+      <span className="nav-label">{t(item.labelKey)}</span>
+    </TabsTab>
+  );
 
   return (
     <aside aria-label={t("sidebar.menu")} className="sidebar">
@@ -25,20 +51,11 @@ export function Sidebar({
         <img alt={APP_NAME} height={28} src="images/icon48.png" width={28} />
       </div>
       <TabsList className="nav-list">
-        {items.map((item) => (
-          <TabsTab
-            aria-label={t(item.ariaLabelKey)}
-            data-value={item.id}
-            key={item.id}
-            value={item.id}
-            variant="nav"
-          >
-            <span aria-hidden="true" className="nav-icon">
-              <Icon aria-hidden="true" name={item.icon} />
-            </span>
-            <span className="nav-label">{t(item.labelKey)}</span>
-          </TabsTab>
-        ))}
+        {dailyItems.map(renderItem)}
+        {showGroupSeparator ? (
+          <div aria-hidden="true" className="nav-group-separator" />
+        ) : null}
+        {manageItems.map(renderItem)}
       </TabsList>
       {surface === "popup" ? (
         <>

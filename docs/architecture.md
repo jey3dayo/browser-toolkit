@@ -112,17 +112,18 @@ Browser Toolkitは4つの独立した実行環境（ランタイム境界）を�
 
 どちらも `src/popup/App.tsx` の `PopupApp` を `surface` prop 付きでレンダリングし、
 `src/popup/bootstrap.ts` が共通の初期化（テーマ、スタイル、React root）を行います。
-`src/popup/panes.ts` が pane ごとの surface を決め、レールには自分の surface の
-pane だけが並びます。他 surface の hash はその surface の既定 pane
-（popup: `pane-actions` / options: `pane-settings`）へフォールバックします。
-popup から管理系 pane へ遷移するときは `PopupRuntime.openOptionsPane` が
-`options.html#<pane>` を別タブで開き、popup を閉じます。
+`src/popup/panes.ts` の `getPaneSurface` が pane の home surface（popup または options）を決め、
+`canSurfaceRender` がその pane を描画できる surface を決めます。popup は日常操作の pane だけを、
+options ページは全 pane を描画します。popup で描画できない pane の hash は popup の既定 pane
+（`pane-actions`）へフォールバックします（options 側は全 pane を受け付けるため、
+`options.html#pane-actions` も有効です）。popup から管理系 pane へ遷移するときは
+`PopupRuntime.openOptionsPane` が `options.html#<pane>` を別タブで開き、popup を閉じます。
 
 #### 主な機能
 
 - popup: コンテキストアクション実行、カレンダー登録、リンク作成、検索結果ブロック、サイト別機能
-- options: 設定管理（APIトークン、プロバイダー選択、モデル選択）、カスタムアクション、
-  テキストテンプレート、検索エンジングループ、履歴、デバッグ
+- options: popup の日常操作機能一式に加え、設定管理（APIトークン、プロバイダー選択、
+  モデル選択）、カスタムアクション、テキストテンプレート、検索エンジングループ、履歴、デバッグ
 
 #### アクセス可能なAPI
 

@@ -1,6 +1,6 @@
 import type { IconName } from "@/components/icon";
 import type { TranslationKey } from "@/i18n";
-import { getPaneSurface, type PaneId, type PaneSurface } from "@/popup/panes";
+import { canSurfaceRender, type PaneId, type PaneSurface } from "@/popup/panes";
 
 export type NavigationItem = {
   id: PaneId;
@@ -73,5 +73,5 @@ export const navigationItems: NavigationItem[] = [
 ];
 
 export function getNavigationItems(surface: PaneSurface): NavigationItem[] {
-  return navigationItems.filter((item) => getPaneSurface(item.id) === surface);
+  return navigationItems.filter((item) => canSurfaceRender(surface, item.id));
 }

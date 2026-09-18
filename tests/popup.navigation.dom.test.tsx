@@ -113,6 +113,105 @@ describe("popup navigation (React + Base UI Tabs)", () => {
     });
   });
 
+  it("lists every pane on the options rail with a group break", async () => {
+    vi.unstubAllGlobals();
+    mountDom("chrome-extension://test/options.html#pane-settings");
+
+    const rootEl = dom.window.document.getElementById("root");
+    if (!rootEl) {
+      throw new Error("missing #root");
+    }
+
+    const root = createRoot(rootEl);
+    await act(async () => {
+      root.render(<PopupApp surface="options" />);
+      await flush(dom.window);
+    });
+
+    const railTabs = dom.window.document.querySelectorAll(
+      'aside.sidebar [role="tab"]'
+    );
+    expect(railTabs.length).toBe(navigationItems.length);
+    expect(
+      dom.window.document.querySelector(
+        'aside.sidebar [role="tab"][data-value="pane-actions"]'
+      )
+    ).not.toBeNull();
+    expect(
+      dom.window.document.querySelectorAll("aside.sidebar .nav-group-separator")
+        .length
+    ).toBe(1);
+
+    act(() => {
+      root.unmount();
+    });
+  });
+
+  it("moves the rail focus across the daily/manage group break", async () => {
+    vi.unstubAllGlobals();
+    mountDom("chrome-extension://test/options.html#pane-table");
+
+    const rootEl = dom.window.document.getElementById("root");
+    if (!rootEl) {
+      throw new Error("missing #root");
+    }
+
+    const root = createRoot(rootEl);
+    await act(async () => {
+      root.render(<PopupApp surface="options" />);
+      await flush(dom.window);
+    });
+
+    const tableTab = dom.window.document.querySelector<HTMLElement>(
+      'aside.sidebar [role="tab"][data-value="pane-table"]'
+    );
+    await act(async () => {
+      tableTab?.focus();
+      tableTab?.dispatchEvent(
+        new dom.window.KeyboardEvent("keydown", {
+          bubbles: true,
+          key: "ArrowRight",
+        })
+      );
+      await flush(dom.window);
+    });
+
+    expect(dom.window.document.activeElement?.getAttribute("data-value")).toBe(
+      "pane-search-engines"
+    );
+
+    act(() => {
+      root.unmount();
+    });
+  });
+
+  it("keeps the popup rail limited to the daily panes", async () => {
+    const rootEl = dom.window.document.getElementById("root");
+    if (!rootEl) {
+      throw new Error("missing #root");
+    }
+
+    const root = createRoot(rootEl);
+    await act(async () => {
+      root.render(<PopupApp />);
+      await flush(dom.window);
+    });
+
+    const railTabs = dom.window.document.querySelectorAll(
+      'aside.sidebar [role="tab"]'
+    );
+    expect(railTabs.length).toBe(getNavigationItems("popup").length);
+    expect(
+      dom.window.document.querySelector(
+        'aside.sidebar [role="tab"][data-value="pane-settings"]'
+      )
+    ).toBeNull();
+
+    act(() => {
+      root.unmount();
+    });
+  });
+
   it.each(
     (["popup", "options"] as const).flatMap((surface) =>
       getNavigationItems(surface).map((item) => ({

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  canSurfaceRender,
   coercePaneId,
   getDefaultPane,
   getPaneSurface,
@@ -35,6 +36,26 @@ describe("pane surfaces", () => {
   });
 });
 
+describe("surface rendering scope", () => {
+  it("keeps the popup limited to the daily panes", () => {
+    expect(canSurfaceRender("popup", "pane-actions")).toBe(true);
+    expect(canSurfaceRender("popup", "pane-table")).toBe(true);
+
+    expect(canSurfaceRender("popup", "pane-settings")).toBe(false);
+    expect(canSurfaceRender("popup", "pane-history")).toBe(false);
+    expect(canSurfaceRender("popup", "pane-templates")).toBe(false);
+  });
+
+  it("lets the options page render every pane", () => {
+    expect(canSurfaceRender("options", "pane-actions")).toBe(true);
+    expect(canSurfaceRender("options", "pane-calendar")).toBe(true);
+    expect(canSurfaceRender("options", "pane-create-link")).toBe(true);
+    expect(canSurfaceRender("options", "pane-search-blocklist")).toBe(true);
+    expect(canSurfaceRender("options", "pane-table")).toBe(true);
+    expect(canSurfaceRender("options", "pane-settings")).toBe(true);
+  });
+});
+
 describe("pane hash parsing", () => {
   it("reads the pane id and the token focus flag", () => {
     expect(parsePaneHash("#pane-settings?focus=token")).toEqual({
@@ -60,19 +81,19 @@ describe("pane hash parsing", () => {
 });
 
 describe("pane resolution per surface", () => {
-  it("keeps a pane that belongs to the surface", () => {
+  it("keeps a pane the surface can render", () => {
     expect(resolvePaneIdForSurface("pane-table", "popup")).toBe("pane-table");
     expect(resolvePaneIdForSurface("pane-history", "options")).toBe(
       "pane-history"
     );
-  });
-
-  it("falls back to the surface default for a pane of the other surface", () => {
-    expect(resolvePaneIdForSurface("pane-settings", "popup")).toBe(
+    expect(resolvePaneIdForSurface("pane-actions", "options")).toBe(
       "pane-actions"
     );
-    expect(resolvePaneIdForSurface("pane-actions", "options")).toBe(
-      "pane-settings"
+  });
+
+  it("falls back to the popup default for a manage pane", () => {
+    expect(resolvePaneIdForSurface("pane-settings", "popup")).toBe(
+      "pane-actions"
     );
   });
 
