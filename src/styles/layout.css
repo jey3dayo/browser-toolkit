@@ -66,6 +66,7 @@
   text-align: center;
   text-decoration: none;
   cursor: pointer;
+  user-select: none;
   background-color: transparent;
   border: none;
   border-radius: var(--radius-sm);
