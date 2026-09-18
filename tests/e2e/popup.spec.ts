@@ -65,6 +65,17 @@ test.describe("Popup UI", () => {
     expect(persistedTheme).toBe(newTheme);
 
     await newPage.close();
+
+    const popupPage = await page.context().newPage();
+    await popupPage.goto(`chrome-extension://${extensionId}/popup.html`);
+    await expect(popupPage.locator("h1")).toHaveText("アクション");
+    expect(newTheme).not.toBeNull();
+    await expect(popupPage.locator("html")).toHaveAttribute(
+      "data-theme",
+      newTheme ?? ""
+    );
+
+    await popupPage.close();
   });
 
   test("should display settings correctly", async ({ page, extensionId }) => {

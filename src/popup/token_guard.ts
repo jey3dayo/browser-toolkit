@@ -28,6 +28,21 @@ export type EnsureOpenAiTokenConfiguredError =
   | "missing-token"
   | "storage-error";
 
+function notifyLoadFailed(deps: TokenGuardDeps): void {
+  deps.showNotification(
+    {
+      action: {
+        label: t("popup.tokenGuard.openSettings"),
+        onClick: () => {
+          deps.navigate("pane-settings", { focus: "token" });
+        },
+      },
+      message: t("popup.tokenGuard.loadFailed"),
+    },
+    "error"
+  );
+}
+
 export async function ensureOpenAiTokenConfigured(
   deps: TokenGuardDeps
 ): Result.ResultAsync<void, EnsureOpenAiTokenConfiguredError> {
@@ -40,13 +55,11 @@ export async function ensureOpenAiTokenConfigured(
       "zaiApiToken",
     ]);
   } catch {
-    deps.showNotification(t("popup.tokenGuard.loadFailed"), "error");
-    deps.navigate("pane-settings", { focus: "token" });
+    notifyLoadFailed(deps);
     return Result.fail("storage-error");
   }
   if (Result.isFailure(loaded)) {
-    deps.showNotification(t("popup.tokenGuard.loadFailed"), "error");
-    deps.navigate("pane-settings", { focus: "token" });
+    notifyLoadFailed(deps);
     return Result.fail("storage-error");
   }
 

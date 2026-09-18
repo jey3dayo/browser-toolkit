@@ -334,10 +334,12 @@ browser-toolkit/
 │   └── e2e-test-checklist.md  # E2E テストチェックリスト
 ├── manifest.json              # 拡張機能マニフェスト（MV3）
 ├── popup.html                 # ポップアップのエントリ（popup_bootstrap.js 経由で dist/popup.js を読む）
+├── options.html               # オプションページのエントリ（options_bootstrap.js 経由で dist/options.js を読む）
 ├── src/
 │   ├── background.ts          # service worker エントリ
 │   ├── content.ts             # content script エントリ
 │   ├── popup.ts               # ポップアップ（React root）
+│   ├── options.ts             # オプションページ（React root）
 │   ├── ai/                    # AI アダプター（OpenAI / Anthropic / z.ai）と共通設定
 │   ├── background/            # service worker モジュール（contextMenus / runtime / storage）
 │   ├── content/               # content script モジュール（overlay / table-sort / template-paste）

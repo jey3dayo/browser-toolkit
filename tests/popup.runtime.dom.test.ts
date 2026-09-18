@@ -106,6 +106,28 @@ describe("createPopupRuntime", () => {
       }
     });
 
+    it("opens the surface page that hosts the requested pane", async () => {
+      const runtime = createPopupRuntime();
+      const result = await runtime.openOptionsPane("pane-settings", {
+        focus: "token",
+      });
+
+      expect(Result.isSuccess(result)).toBe(true);
+      expect(chromeStub.runtime.getURL).toHaveBeenCalledWith(
+        "options.html#pane-settings?focus=token"
+      );
+      expect(chromeStub.tabs.create).toHaveBeenCalledWith(
+        { url: "options.html#pane-settings?focus=token" },
+        expect.any(Function)
+      );
+
+      const popupResult = await runtime.openOptionsPane("pane-actions");
+      expect(Result.isSuccess(popupResult)).toBe(true);
+      expect(chromeStub.runtime.getURL).toHaveBeenCalledWith(
+        "popup.html#pane-actions"
+      );
+    });
+
     it("returns a failure when Chrome storage remove reports lastError", async () => {
       chromeStub.storage.local.remove.mockImplementation(
         (_keys: unknown, callback?: () => void) => {

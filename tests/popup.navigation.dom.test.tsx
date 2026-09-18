@@ -113,23 +113,45 @@ describe("popup navigation (React + Base UI Tabs)", () => {
     });
   });
 
-  it("splits navigation into the daily and manage groups", () => {
-    const groups = navigationItems.map((item) => item.group);
-    const firstManageIndex = groups.indexOf("manage");
+  it.each(
+    (["popup", "options"] as const).flatMap((surface) =>
+      getNavigationItems(surface).map((item) => ({
+        page: surface === "popup" ? "popup.html" : "options.html",
+        paneId: item.id,
+        surface,
+      }))
+    )
+  )(
+    "renders the $paneId pane for its rail item on the $surface surface",
+    async ({ page, paneId, surface }) => {
+      vi.unstubAllGlobals();
+      mountDom(`chrome-extension://test/${page}#${paneId}`);
 
-    expect(groups.slice(0, firstManageIndex).every((g) => g === "daily")).toBe(
-      true
-    );
-    expect(groups.slice(firstManageIndex).every((g) => g === "manage")).toBe(
-      true
-    );
-    expect(getNavigationItems("popup").map((item) => item.group)).toEqual(
-      groups.filter((group) => group === "daily")
-    );
-    expect(getNavigationItems("options").map((item) => item.group)).toEqual(
-      groups.filter((group) => group === "manage")
-    );
-  });
+      const rootEl = dom.window.document.getElementById("root");
+      if (!rootEl) {
+        throw new Error("missing #root");
+      }
+
+      const root = createRoot(rootEl);
+      await act(async () => {
+        root.render(<PopupApp surface={surface} />);
+        await flush(dom.window);
+      });
+
+      expect(
+        dom.window.document.querySelector(
+          `[role="tab"][data-value="${paneId}"]`
+        )
+      ).not.toBeNull();
+      expect(
+        dom.window.document.querySelector(`[data-pane="${paneId}"]`)
+      ).not.toBeNull();
+
+      act(() => {
+        root.unmount();
+      });
+    }
+  );
 
   it("keeps navigation metadata as translation keys for render-time resolution", () => {
     expect(navigationItems[0]).toMatchObject({

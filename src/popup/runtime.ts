@@ -1,6 +1,10 @@
 import { Result } from "@praha/byethrow";
 import type { SummaryTarget } from "@/background/types";
-import type { PaneId, PaneNavigateOptions } from "@/popup/panes";
+import {
+  getPaneSurfacePage,
+  type PaneId,
+  type PaneNavigateOptions,
+} from "@/popup/panes";
 import type { LocalStorageData, SyncStorageData } from "@/storage/types";
 import { toErrorMessage } from "@/utils/errors";
 import { matchesAnyPattern } from "@/utils/url-pattern";
@@ -467,9 +471,10 @@ export function createPopupRuntime(): PopupRuntime {
     }
 
     const focusQuery = options?.focus === "token" ? "?focus=token" : "";
+    const page = getPaneSurfacePage(paneId);
     return await wrapChromeApi<void>((resolve, reject) => {
       chrome.tabs.create(
-        { url: chrome.runtime.getURL(`options.html#${paneId}${focusQuery}`) },
+        { url: chrome.runtime.getURL(`${page}#${paneId}${focusQuery}`) },
         () => {
           const err = chrome.runtime.lastError;
           if (err) {

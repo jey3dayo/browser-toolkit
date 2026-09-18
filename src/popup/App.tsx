@@ -142,11 +142,6 @@ export function PopupApp({
   }, [tabValue]);
 
   useEffect(() => {
-    document.title =
-      surface === "options" ? `${APP_NAME} ${t("settings.title")}` : APP_NAME;
-  }, [surface, t]);
-
-  useEffect(() => {
     if (surface !== "options" || !initialHash.focusToken) {
       return;
     }
@@ -159,6 +154,11 @@ export function PopupApp({
   const currentPaneLabel = currentNavigationItem
     ? t(currentNavigationItem.labelKey)
     : APP_NAME;
+
+  useEffect(() => {
+    document.title =
+      surface === "options" ? `${currentPaneLabel} - ${APP_NAME}` : APP_NAME;
+  }, [currentPaneLabel, surface]);
 
   useEffect(() => {
     if (surface !== "popup") {

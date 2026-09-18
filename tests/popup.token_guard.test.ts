@@ -82,7 +82,7 @@ describe("ensureOpenAiTokenConfigured", () => {
     });
   });
 
-  it("treats storage errors as missing token", async () => {
+  it("offers a settings action instead of navigating when storage fails", async () => {
     const storageLocalGet = vi.fn(async () => Result.fail("storage failed"));
     const showNotification = vi.fn();
     const navigate = vi.fn();
@@ -97,7 +97,50 @@ describe("ensureOpenAiTokenConfigured", () => {
       expect(result.error).toBe("storage-error");
     }
 
-    expect(showNotification).toHaveBeenCalled();
+    expect(showNotification).toHaveBeenCalledWith(
+      {
+        action: {
+          label: "→ 設定を開く",
+          onClick: expect.any(Function),
+        },
+        message: expect.any(String),
+      },
+      "error"
+    );
+    expect(navigate).not.toHaveBeenCalled();
+
+    const [[callArgs]] = showNotification.mock.calls;
+    if (typeof callArgs !== "string" && callArgs.action) {
+      callArgs.action.onClick();
+    }
+    expect(navigate).toHaveBeenCalledWith("pane-settings", {
+      focus: "token",
+    });
+  });
+
+  it("offers a settings action instead of navigating when storage throws", async () => {
+    const storageLocalGet = vi.fn(() => {
+      throw new Error("storage threw");
+    });
+    const showNotification = vi.fn();
+    const navigate = vi.fn();
+
+    const result = await ensureOpenAiTokenConfigured({
+      navigate,
+      showNotification,
+      storageLocalGet,
+    });
+    expect(Result.isFailure(result)).toBe(true);
+    if (Result.isFailure(result)) {
+      expect(result.error).toBe("storage-error");
+    }
+
+    expect(navigate).not.toHaveBeenCalled();
+
+    const [[callArgs]] = showNotification.mock.calls;
+    if (typeof callArgs !== "string" && callArgs.action) {
+      callArgs.action.onClick();
+    }
     expect(navigate).toHaveBeenCalledWith("pane-settings", {
       focus: "token",
     });

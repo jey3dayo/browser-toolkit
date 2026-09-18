@@ -3,6 +3,7 @@ import { vi } from "vitest";
 export type PopupChromeStub = {
   runtime: {
     lastError: { message: string } | null;
+    getURL: ReturnType<typeof vi.fn>;
     sendMessage: ReturnType<typeof vi.fn>;
   };
   storage: {
@@ -29,6 +30,7 @@ export type PopupChromeStub = {
 
 export function createPopupChromeStub(): PopupChromeStub {
   const runtime = {
+    getURL: vi.fn((path: string) => path),
     lastError: null as { message: string } | null,
     sendMessage: vi.fn(
       (_message: unknown, callback?: (resp: unknown) => void) => {

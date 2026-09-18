@@ -53,7 +53,7 @@ function resolvePaneId(value: string): PaneId | null {
   if (known) {
     return known;
   }
-  return LEGACY_PANE_IDS[value] ?? null;
+  return Object.hasOwn(LEGACY_PANE_IDS, value) ? LEGACY_PANE_IDS[value] : null;
 }
 
 export function getPaneSurface(paneId: PaneId): PaneSurface {

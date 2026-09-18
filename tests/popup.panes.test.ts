@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { navigationItems } from "@/popup/navigation-items";
 import {
   coercePaneId,
   getDefaultPane,
@@ -23,13 +22,6 @@ describe("pane surfaces", () => {
     expect(getPaneSurface("pane-templates")).toBe("options");
     expect(getPaneSurface("pane-history")).toBe("options");
     expect(getPaneSurface("pane-settings")).toBe("options");
-  });
-
-  it("keeps the navigation group in sync with the pane surface", () => {
-    for (const item of navigationItems) {
-      const expected = item.group === "daily" ? "popup" : "options";
-      expect(getPaneSurface(item.id)).toBe(expected);
-    }
   });
 
   it("exposes the page that hosts each surface", () => {
@@ -62,6 +54,7 @@ describe("pane hash parsing", () => {
 
   it("rejects unknown panes and keeps the legacy debug hash", () => {
     expect(getPaneIdFromHash("#pane-unknown")).toBeNull();
+    expect(getPaneIdFromHash("#toString")).toBeNull();
     expect(getPaneIdFromHash("#pane-debug")).toBe("pane-settings");
     expect(coercePaneId("pane-debug")).toBe("pane-settings");
   });
