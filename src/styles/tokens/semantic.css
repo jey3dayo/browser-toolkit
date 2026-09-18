@@ -7,7 +7,7 @@
   /* Layout sizing */
   --layout-popup-width: 800px;
   --layout-popup-height: 600px;
-  --layout-rail: 88px;
+  --layout-rail: 96px;
   --layout-options-width: 1040px;
 
   /* Spacing semantics */
@@ -42,7 +42,7 @@
 :host {
   --layout-popup-width: 800px;
   --layout-popup-height: 600px;
-  --layout-rail: 88px;
+  --layout-rail: 96px;
   --layout-options-width: 1040px;
 
   --spacing-xs: var(--primitive-space-2);

@@ -152,6 +152,10 @@ Popup UI should keep navigation, pane content, and action rows visually separate
 
 Overlay UI should fit within `min(560px, calc(100vw - 32px))`, cap height to the viewport, and keep header, body, and footer zones stable while content scrolls.
 
+### Navigation rail
+
+Popup and options share one navigation rail whose width is `--layout-rail` (96px). Each item stacks a 20px icon over an 11px label and holds a fixed `min-height`, so every single-line item renders the same pill height; the label clamps at two lines as an overflow guard. Nav labels must therefore fit one line at 11px inside the rail — at most six full-width characters — and must match the pane header text they open. The selected state is the single accent-tinted pill described under Elevation & Depth, with no added ring, shadow, or indicator bar. Item groups are divided by a 1px `--color-border-subtle` rule, and the brand mark is non-interactive and separated from the nav by `--spacing-lg`.
+
 ## Elevation & Depth
 
 A selected or active state gets exactly one visual treatment, not several saying the same thing. Do not stack a tinted background, a ring, a shadow, a filled icon chip and an indicator bar on the same element — pick the single strongest one.

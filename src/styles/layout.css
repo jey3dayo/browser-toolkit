@@ -13,7 +13,7 @@
   z-index: 900;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--spacing-xs);
   align-items: center;
   width: var(--rail);
   min-height: 0;
@@ -28,7 +28,7 @@
   place-items: center;
   width: 28px;
   height: 28px;
-  margin-bottom: var(--spacing-xs);
+  margin-bottom: var(--spacing-lg);
 }
 
 .sidebar-brand img {
@@ -37,21 +37,30 @@
   object-fit: contain;
 }
 
+.nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  width: 100%;
+}
+
 .nav-group-separator {
   flex-shrink: 0;
   width: 100%;
   height: 1px;
-  margin: var(--spacing-xs) 0;
+  margin: var(--spacing-md) 0;
   background: var(--color-border-subtle);
 }
 
 .nav-item {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--primitive-space-1);
   align-items: center;
+  justify-content: center;
   width: 100%;
-  padding: 4px 2px;
+  min-height: 56px;
+  padding: var(--spacing-sm) var(--spacing-xs);
   font: inherit;
   color: var(--text-sub);
   text-align: center;
@@ -83,8 +92,12 @@
 }
 
 .nav-item .nav-label {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
   font-size: var(--font-size-xs);
-  line-height: 1.2;
+  line-height: 1.25;
   text-wrap: balance;
   overflow-wrap: anywhere;
 }
