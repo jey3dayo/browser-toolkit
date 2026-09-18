@@ -32,11 +32,11 @@ jobs:
 
           # 除外パターン（ignore設定）
           additional_exclude_patterns: |
-            src/components/Form/Schedule/Event.tsx
-            src/components/Form/Schedule/Room.tsx
-            src/stores/AppStore.tsx
+            src/i18n/resources.ts
             src/styles/tokens/components/popup-misc.css
+            docs/**
+            plans/**
             **/*.generated.ts
             __snapshots__/**
-            test/fixtures/**
+            tests/e2e/fixtures/**
           language: 'ja'
