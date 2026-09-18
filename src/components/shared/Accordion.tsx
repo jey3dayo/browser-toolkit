@@ -109,7 +109,7 @@ export function AccordionText({
   return (
     <Textarea
       className={accordionTextVariants({ className })}
-      variant="pattern"
+      variant="summary"
       {...props}
     />
   );
