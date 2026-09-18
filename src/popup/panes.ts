@@ -97,10 +97,6 @@ export function parsePaneHash(hash: string): PaneHash {
   };
 }
 
-export function getPaneIdFromHash(hash: string): PaneId | null {
-  return parsePaneHash(hash).paneId;
-}
-
 export function resolvePaneIdForSurface(
   paneId: PaneId | null,
   surface: PaneSurface

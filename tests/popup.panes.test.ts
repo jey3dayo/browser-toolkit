@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   coercePaneId,
   getDefaultPane,
-  getPaneIdFromHash,
   getPaneSurface,
   getPaneSurfacePage,
   parsePaneHash,
@@ -53,9 +52,9 @@ describe("pane hash parsing", () => {
   });
 
   it("rejects unknown panes and keeps the legacy debug hash", () => {
-    expect(getPaneIdFromHash("#pane-unknown")).toBeNull();
-    expect(getPaneIdFromHash("#toString")).toBeNull();
-    expect(getPaneIdFromHash("#pane-debug")).toBe("pane-settings");
+    expect(parsePaneHash("#pane-unknown").paneId).toBeNull();
+    expect(parsePaneHash("#toString").paneId).toBeNull();
+    expect(parsePaneHash("#pane-debug").paneId).toBe("pane-settings");
     expect(coercePaneId("pane-debug")).toBe("pane-settings");
   });
 });
