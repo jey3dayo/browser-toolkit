@@ -295,7 +295,7 @@ export const resources = {
         createLink: "リンク作成",
         history: "履歴",
         historyAria: "アクション履歴",
-        searchBlocklist: "検索結果ブロック",
+        searchBlocklist: "検索ブロック",
         searchEngines: "検索エンジン",
         searchGroups: "まとめて検索",
         settings: "設定",

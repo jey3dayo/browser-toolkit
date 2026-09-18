@@ -128,7 +128,10 @@ function SortableItem({ id, children }: SortableItemProps) {
 
   return (
     <li ref={setNodeRef} style={style} {...attributes}>
-      <div className={SORTABLE_LIST_CLASS_NAMES.item}>
+      <div
+        className={SORTABLE_LIST_CLASS_NAMES.item}
+        data-dragging={isDragging || undefined}
+      >
         <Button
           type="button"
           variant="dragHandle"

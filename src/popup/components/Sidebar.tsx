@@ -24,7 +24,7 @@ export function Sidebar({
       <div className="sidebar-brand">
         <img alt={APP_NAME} height={28} src="images/icon48.png" width={28} />
       </div>
-      <TabsList>
+      <TabsList className="nav-list">
         {items.map((item) => (
           <TabsTab
             aria-label={t(item.ariaLabelKey)}
