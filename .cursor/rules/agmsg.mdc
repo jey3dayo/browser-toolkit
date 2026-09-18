@@ -1,0 +1,8 @@
+---
+alwaysApply: true
+---
+# agmsg Integration Rule
+
+## PostToolUse
+After each tool call, automatically check the agmsg inbox for unread messages.
+- Command: '/Users/t00114/.agents/skills/agmsg/scripts/check-inbox.sh' 'cursor' '/Users/t00114/src/github.com/jey3dayo/browser-toolkit'
