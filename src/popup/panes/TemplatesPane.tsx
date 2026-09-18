@@ -89,8 +89,6 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
       </section>
 
       <section className="settings-pane-card">
-        <Hint as="div">{t("templatesPane.hiddenDescription")}</Hint>
-
         {editingId ? (
           <TemplateEditForm
             contentInput={contentInput}
@@ -102,9 +100,7 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
           />
         ) : (
           <RowBetween>
-            <span className="settings-section-label">
-              {t("templatesPane.title")}
-            </span>
+            <Hint as="div">{t("templatesPane.hiddenDescription")}</Hint>
             <Button
               data-testid="add-template"
               onClick={startNew}

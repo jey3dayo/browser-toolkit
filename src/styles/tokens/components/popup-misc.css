@@ -593,6 +593,13 @@ input[type="checkbox"] {
   margin-top: 8px;
 }
 
+.sortable-item .search-engine-item {
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+}
+
 .search-engine-content {
   display: flex;
   flex: 1;

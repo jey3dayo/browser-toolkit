@@ -457,24 +457,6 @@
   border: 1px solid transparent;
 }
 
-.actions-page .sortable-item {
-  padding: 8px 9px;
-  margin-bottom: 7px;
-  background: var(--actions-surface);
-  border-color: var(--actions-line);
-  border-radius: var(--radius-sm);
-  box-shadow: none;
-}
-
-.actions-page .sortable-item:hover {
-  border-color: color-mix(
-    in oklab,
-    var(--actions-accent) 18%,
-    var(--actions-line)
-  );
-  box-shadow: 0 4px 12px var(--primitive-alpha-black-06);
-}
-
 .actions-page .action-kind-badge {
   color: var(--actions-accent);
   background: color-mix(in oklab, var(--actions-accent) 8%, transparent);
