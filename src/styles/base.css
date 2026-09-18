@@ -43,9 +43,12 @@ body.is-extension {
   min-height: 0;
 }
 
+/* body の height は固定値のまま保つ（viewport 依存にすると Chrome の popup
+   サイズ決定が循環し最小化する）。clamp は #root 側に置く——`#root > *` の
+   specificity が .app-shell 側の height を上書きするため。 */
 .is-extension #root {
   width: 100%;
-  height: 100%;
+  height: min(var(--layout-popup-height), 100vh);
 }
 
 body.is-options {
