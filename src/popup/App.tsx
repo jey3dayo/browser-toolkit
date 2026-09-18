@@ -97,8 +97,10 @@ export function PopupApp({
             window.close();
           }
         })
-        .catch(() => {
-          // no-op
+        .catch((error: unknown) => {
+          notifications.notify.error(
+            error instanceof Error ? error.message : String(error)
+          );
         });
     },
     [focusTokenInput, notifications.notify, runtime, surface]

@@ -56,8 +56,8 @@ export function bootstrapSurface(surface: PaneSurface): void {
 
     ensurePopupUiBaseStyles(document);
     applyTheme("auto", document);
-    initTheme().catch(() => {
-      // no-op
+    initTheme().catch((error: unknown) => {
+      console.error("Failed to initialize theme", error);
     });
 
     applySurfaceBodyClass(surface);
