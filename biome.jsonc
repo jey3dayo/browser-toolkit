@@ -41,7 +41,7 @@
     },
     {
       // Playwright transpiles these specs to CommonJS; import.meta is unavailable
-      "includes": ["tests/e2e/**"],
+      "includes": ["tests/e2e/**/*.ts"],
       "linter": {
         "rules": {
           "correctness": {
