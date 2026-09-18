@@ -114,6 +114,8 @@ const SEARCH_RESULT_TAB_MATCH_PATTERNS = [
   "*://www.google.co.jp/search*",
 ];
 
+const WEB_PAGE_URL_PREFIXES = ["http://", "https://"];
+
 const FALLBACK_STORAGE_PREFIX = "mbu:popup:";
 type StorageAreaName = "sync" | "local";
 type StorageHandlerParams = {
@@ -211,7 +213,9 @@ async function wrapChromeApi<T>(
   });
 }
 
-function pickMostRecentlyAccessedTabId(tabs: chrome.tabs.Tab[]): number | null {
+function pickMostRecentlyAccessedTab(
+  tabs: chrome.tabs.Tab[]
+): chrome.tabs.Tab | null {
   let picked: chrome.tabs.Tab | null = null;
   for (const tab of tabs) {
     if (tab.id === undefined) {
@@ -230,7 +234,18 @@ function pickMostRecentlyAccessedTabId(tabs: chrome.tabs.Tab[]): number | null {
       picked = tab;
     }
   }
-  return picked?.id ?? null;
+  return picked;
+}
+
+function pickMostRecentlyAccessedTabId(tabs: chrome.tabs.Tab[]): number | null {
+  return pickMostRecentlyAccessedTab(tabs)?.id ?? null;
+}
+
+function isWebPageUrl(url: string | undefined): url is string {
+  return (
+    url !== undefined &&
+    WEB_PAGE_URL_PREFIXES.some((prefix) => url.startsWith(prefix))
+  );
 }
 
 function getStorageArea(area: StorageAreaName): chrome.storage.StorageArea {
@@ -345,7 +360,28 @@ export function createPopupRuntime(): PopupRuntime {
     if (!hasChromeApi(isExtensionPage, "tabs")) {
       return Result.succeed(null);
     }
+    const extensionUrlPrefix = chrome.runtime.getURL("");
     return await wrapChromeApi<ActiveTabInfo | null>((resolve, reject) => {
+      // options.html is itself the active tab; target the last web tab instead
+      const resolveFromWebTabs = (): void => {
+        chrome.tabs.query({ currentWindow: true }, (tabs) => {
+          const fallbackErr = chrome.runtime.lastError;
+          if (fallbackErr) {
+            reject(new Error(fallbackErr.message));
+            return;
+          }
+          const picked = pickMostRecentlyAccessedTab(
+            tabs.filter((tab) => isWebPageUrl(tab.url))
+          );
+          const pickedId = picked?.id;
+          if (pickedId === undefined) {
+            resolve(null);
+            return;
+          }
+          resolve({ id: pickedId, title: picked?.title, url: picked?.url });
+        });
+      };
+
       chrome.tabs.query(
         {
           active: true,
@@ -363,7 +399,16 @@ export function createPopupRuntime(): PopupRuntime {
             resolve(null);
             return;
           }
-          resolve({ id, title: tab?.title, url: tab?.url });
+          const url = tab?.url;
+          if (
+            url === undefined ||
+            url.startsWith(extensionUrlPrefix) ||
+            url.startsWith("chrome://")
+          ) {
+            resolveFromWebTabs();
+            return;
+          }
+          resolve({ id, title: tab?.title, url });
         }
       );
     }, "タブ情報の取得に失敗しました");

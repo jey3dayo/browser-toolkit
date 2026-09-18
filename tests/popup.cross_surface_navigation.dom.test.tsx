@@ -90,6 +90,47 @@ describe("popup cross-surface navigation", () => {
     });
   });
 
+  it("selects a daily pane in place on the options page", async () => {
+    vi.unstubAllGlobals();
+    dom = createPopupDom("chrome-extension://test/options.html#pane-settings");
+    chromeStub = createPopupChromeStub();
+    vi.stubGlobal("window", dom.window);
+    vi.stubGlobal("document", dom.window.document);
+    vi.stubGlobal("navigator", dom.window.navigator);
+    vi.stubGlobal("chrome", chromeStub);
+
+    const rootEl = dom.window.document.getElementById("root");
+    if (!rootEl) {
+      throw new Error("missing #root");
+    }
+
+    const root = createRoot(rootEl);
+    await act(async () => {
+      root.render(<PopupApp surface="options" />);
+      await flush(dom.window);
+    });
+
+    const actionsTab = dom.window.document.querySelector<HTMLButtonElement>(
+      'aside.sidebar [role="tab"][data-value="pane-actions"]'
+    );
+    expect(actionsTab).not.toBeNull();
+
+    await act(async () => {
+      actionsTab?.click();
+      await flush(dom.window);
+    });
+
+    expect(mocks.openOptionsPane).not.toHaveBeenCalled();
+    expect(dom.window.location.hash).toBe("#pane-actions");
+    expect(
+      dom.window.document.querySelector('[data-pane="pane-actions"]')
+    ).not.toBeNull();
+
+    act(() => {
+      root.unmount();
+    });
+  });
+
   it("does not render a cross-surface rail item on the options page", async () => {
     const rootEl = dom.window.document.getElementById("root");
     if (!rootEl) {

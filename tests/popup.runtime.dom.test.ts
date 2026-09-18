@@ -117,7 +117,9 @@ describe("createPopupRuntime", () => {
         "options.html#pane-settings?focus=token"
       );
       expect(chromeStub.tabs.create).toHaveBeenCalledWith(
-        { url: "options.html#pane-settings?focus=token" },
+        {
+          url: "chrome-extension://test/options.html#pane-settings?focus=token",
+        },
         expect.any(Function)
       );
 
@@ -196,6 +198,106 @@ describe("createPopupRuntime", () => {
       expect(Result.isFailure(result)).toBe(true);
       if (Result.isFailure(result)) {
         expect(result.error).toBe("query failed");
+      }
+    });
+
+    it("falls back to the most recently accessed web tab when the options page is active", async () => {
+      chromeStub.tabs.query.mockImplementation(
+        (queryInfo: unknown, callback?: (tabs: unknown[]) => void) => {
+          chromeStub.runtime.lastError = null;
+          const info = queryInfo as { active?: boolean };
+          if (info.active) {
+            callback?.([
+              {
+                id: 1,
+                title: "設定",
+                url: "chrome-extension://test/options.html#pane-actions",
+              },
+            ]);
+            return;
+          }
+          callback?.([
+            {
+              id: 1,
+              url: "chrome-extension://test/options.html#pane-actions",
+            },
+            {
+              id: 2,
+              lastAccessed: 100,
+              title: "old",
+              url: "https://example.com/old",
+            },
+            {
+              id: 3,
+              lastAccessed: 300,
+              title: "recent",
+              url: "https://example.com/recent",
+            },
+          ]);
+        }
+      );
+
+      const runtime = createPopupRuntime();
+      const result = await runtime.getActiveTab();
+
+      expect(Result.isSuccess(result)).toBe(true);
+      if (Result.isSuccess(result)) {
+        expect(result.value).toEqual({
+          id: 3,
+          title: "recent",
+          url: "https://example.com/recent",
+        });
+      }
+    });
+
+    it("keeps the active tab when it is already a web page", async () => {
+      chromeStub.tabs.query.mockImplementation(
+        (_queryInfo: unknown, callback?: (tabs: unknown[]) => void) => {
+          chromeStub.runtime.lastError = null;
+          callback?.([
+            { id: 7, title: "page", url: "https://example.com/page" },
+          ]);
+        }
+      );
+
+      const runtime = createPopupRuntime();
+      const result = await runtime.getActiveTab();
+
+      expect(chromeStub.tabs.query).toHaveBeenCalledTimes(1);
+      expect(Result.isSuccess(result)).toBe(true);
+      if (Result.isSuccess(result)) {
+        expect(result.value).toEqual({
+          id: 7,
+          title: "page",
+          url: "https://example.com/page",
+        });
+      }
+    });
+
+    it("returns null when the options page is active and no web tab is open", async () => {
+      chromeStub.tabs.query.mockImplementation(
+        (queryInfo: unknown, callback?: (tabs: unknown[]) => void) => {
+          chromeStub.runtime.lastError = null;
+          const info = queryInfo as { active?: boolean };
+          if (info.active) {
+            callback?.([
+              { id: 1, url: "chrome-extension://test/options.html" },
+            ]);
+            return;
+          }
+          callback?.([
+            { id: 1, url: "chrome-extension://test/options.html" },
+            { id: 4, url: "chrome://extensions" },
+          ]);
+        }
+      );
+
+      const runtime = createPopupRuntime();
+      const result = await runtime.getActiveTab();
+
+      expect(Result.isSuccess(result)).toBe(true);
+      if (Result.isSuccess(result)) {
+        expect(result.value).toBeNull();
       }
     });
 

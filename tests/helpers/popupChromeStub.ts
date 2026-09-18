@@ -30,7 +30,7 @@ export type PopupChromeStub = {
 
 export function createPopupChromeStub(): PopupChromeStub {
   const runtime = {
-    getURL: vi.fn((path: string) => path),
+    getURL: vi.fn((path: string) => `chrome-extension://test/${path}`),
     lastError: null as { message: string } | null,
     sendMessage: vi.fn(
       (_message: unknown, callback?: (resp: unknown) => void) => {

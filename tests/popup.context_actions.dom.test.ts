@@ -63,7 +63,7 @@ describe("popup context actions (React UI)", () => {
     chromeStub.tabs.query.mockImplementation(
       (_queryInfo: unknown, callback: (tabs: unknown[]) => void) => {
         chromeStub.runtime.lastError = null;
-        callback([{ id: 1 }]);
+        callback([{ id: 1, title: "Example", url: "https://example.com/" }]);
       }
     );
 
