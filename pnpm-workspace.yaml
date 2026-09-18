@@ -4,9 +4,9 @@ allowBuilds:
   lefthook: true
   unrs-resolver: true
 minimumReleaseAge: 10080
-# Keep pnpm-lock.yaml a single YAML document. pnpm 12 otherwise writes
-# packageManagerDependencies as a second document when package.json has
-# packageManager (https://github.com/pnpm/pnpm/issues/13805).
+# pnpm does not enforce the pinned packageManager version; mise owns it.
+# Side effect: pnpm-lock.yaml stays a single YAML document
+# (https://github.com/pnpm/pnpm/issues/13805).
 pmOnFail: ignore
 trustPolicy: no-downgrade
 trustPolicyExclude:
