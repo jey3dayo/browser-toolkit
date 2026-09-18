@@ -30,7 +30,8 @@ jobs:
           pr_additions_limit: '5000'
           pr_files_limit: '50'
 
-          # 除外パターン（ignore設定）
+          # 除外は行数チェックだけでなく size / risk ラベルの算出にも効く。
+          # 文言カタログ・token CSS・ドキュメントは変更規模に数えない方針で除外している。
           additional_exclude_patterns: |
             src/i18n/resources.ts
             src/styles/tokens/components/popup-misc.css
