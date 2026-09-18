@@ -32,6 +32,19 @@ function applySurfaceBodyClass(surface: PaneSurface): void {
   }
 }
 
+// Base UI の ResizeObserver 再入で出る無害な警告だけを抑制する。
+// 他も消すとコンソールが空に見え、実際の不具合の手がかりを失う。
+const BENIGN_RESIZE_OBSERVER_MESSAGES = [
+  "ResizeObserver loop completed with undelivered notifications",
+  "ResizeObserver loop limit exceeded",
+] as const;
+
+function isBenignResizeObserverError(message: string): boolean {
+  return BENIGN_RESIZE_OBSERVER_MESSAGES.some((benign) =>
+    message.includes(benign)
+  );
+}
+
 export function bootstrapSurface(surface: PaneSurface): void {
   const testHooks = (
     globalThis as unknown as { __MBU_TEST_HOOKS__?: SurfaceTestHooks }
@@ -46,9 +59,8 @@ export function bootstrapSurface(surface: PaneSurface): void {
     }
     started = true;
 
-    // Base UI の ResizeObserver 警告は機能に影響しないため抑制する
     window.addEventListener("error", (event) => {
-      if (event.message.includes("ResizeObserver")) {
+      if (isBenignResizeObserverError(event.message)) {
         event.preventDefault();
         event.stopImmediatePropagation();
       }
