@@ -18,8 +18,10 @@ function buildRuntime(overrides: Partial<PopupRuntime> = {}): PopupRuntime {
       }),
     getActiveTab: async () => Result.succeed(null),
     getActiveTabId: async () => Result.succeed(1),
+    getSearchResultTabId: async () => Result.succeed(1),
     isExtensionPage: true,
     matchesFocusOverridePatterns: () => false,
+    openOptionsPane: async () => Result.succeed(),
     openUrl: () => {
       // no-op
     },
@@ -64,7 +66,7 @@ describe("DebugPane search blocklist diagnostics", () => {
     document.body.innerHTML = "";
   });
 
-  it("queries the active tab and shows counts for a valid response", async () => {
+  it("queries the search result tab and shows counts for a valid response", async () => {
     const sendMessageToTab = vi.fn(async () =>
       Result.succeed({
         available: true,
@@ -85,6 +87,29 @@ describe("DebugPane search blocklist diagnostics", () => {
     expect(container.textContent).toContain("google");
   });
 
+  it("reports no search tab without messaging the active tab", async () => {
+    const sendMessageToTab = vi.fn(async () => Result.succeed({}));
+    const runtime = buildRuntime({
+      getSearchResultTabId: async () => Result.succeed(null),
+      sendMessageToTab,
+    });
+    const container = await renderDebugPane(buildProps(runtime));
+
+    expect(sendMessageToTab).not.toHaveBeenCalled();
+    expect(container.textContent).toContain(
+      "Google 検索結果のタブが開いていません"
+    );
+  });
+
+  it("shows the unavailable state when the search tab lookup fails", async () => {
+    const runtime = buildRuntime({
+      getSearchResultTabId: async () => Result.fail("query failed"),
+    });
+    const container = await renderDebugPane(buildProps(runtime));
+
+    expect(container.textContent).toContain("取得できませんでした");
+  });
+
   it("shows the not-a-search-page state when the tab reports unavailable", async () => {
     const runtime = buildRuntime({
       sendMessageToTab: async () => Result.succeed({ available: false }),
@@ -92,7 +117,7 @@ describe("DebugPane search blocklist diagnostics", () => {
     const container = await renderDebugPane(buildProps(runtime));
 
     expect(container.textContent).toContain(
-      "アクティブなタブは検索結果ページではありません"
+      "対象のタブでは検索結果ブロックが動作していません"
     );
   });
 

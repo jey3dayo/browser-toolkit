@@ -143,6 +143,7 @@ describe("popup create link pane", () => {
         }),
       getActiveTab,
       getActiveTabId: async () => Result.succeed(2),
+      getSearchResultTabId: async () => Result.succeed(null),
       isExtensionPage: true,
       matchesFocusOverridePatterns: () => false,
       openUrl: () => {

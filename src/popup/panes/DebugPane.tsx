@@ -13,7 +13,6 @@ import type {
 import { t } from "@/i18n";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { sendBackgroundResult } from "@/popup/utils/background_result";
-import { resolveActiveTabId } from "@/popup/utils/summary_target";
 import type { LocalStorageData } from "@/storage/types";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
@@ -24,6 +23,7 @@ export type DebugPaneProps = PopupPaneBaseProps;
 type SearchBlocklistDiagnosticsPanelState =
   | { status: "loading" }
   | { status: "unavailable" }
+  | { status: "noSearchTab" }
   | { status: "error" }
   | {
       status: "ready";
@@ -130,20 +130,22 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const tabId = await resolveActiveTabId({
-        onError: () => undefined,
-        runtime: props.runtime,
-      });
-      if (tabId === null) {
-        if (!cancelled) {
-          setSearchBlocklistDiagnostics({ status: "error" });
-        }
+      const tabId = await props.runtime.getSearchResultTabId();
+      if (cancelled) {
+        return;
+      }
+      if (Result.isFailure(tabId)) {
+        setSearchBlocklistDiagnostics({ status: "error" });
+        return;
+      }
+      if (tabId.value === null) {
+        setSearchBlocklistDiagnostics({ status: "noSearchTab" });
         return;
       }
       const response = await props.runtime.sendMessageToTab<
         GetSearchBlocklistDiagnosticsMessage,
         SearchBlocklistDiagnosticsResponse
-      >(tabId, { action: "getSearchBlocklistDiagnostics" });
+      >(tabId.value, { action: "getSearchBlocklistDiagnostics" });
       if (cancelled) {
         return;
       }
@@ -343,6 +345,9 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
           )}
           {searchBlocklistDiagnostics.status === "unavailable" && (
             <Hint>{t("debug.searchBlocklist.empty")}</Hint>
+          )}
+          {searchBlocklistDiagnostics.status === "noSearchTab" && (
+            <Hint>{t("debug.searchBlocklist.noSearchTab")}</Hint>
           )}
           {searchBlocklistDiagnostics.status === "loading" && (
             <Hint>{t("debug.searchBlocklist.loading")}</Hint>

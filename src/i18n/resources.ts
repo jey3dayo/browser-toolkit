@@ -250,9 +250,10 @@ export const resources = {
         searchBlocklist: {
           blockedCount: "ブロック件数",
           detectedCount: "検出件数",
-          empty: "アクティブなタブは検索結果ページではありません",
+          empty: "対象のタブでは検索結果ブロックが動作していません",
           engineId: "エンジン",
           loading: "確認中です…",
+          noSearchTab: "Google 検索結果のタブが開いていません",
           ruleRevision: "ルール世代",
           title: "検索結果ブロック診断",
           unavailable: "取得できませんでした",
