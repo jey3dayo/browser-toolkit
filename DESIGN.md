@@ -154,7 +154,7 @@ Overlay UI should fit within `min(560px, calc(100vw - 32px))`, cap height to the
 
 ### Navigation rail
 
-Popup and options share one navigation rail whose width is `--layout-rail` (96px). Each item stacks a 20px icon over an 11px label and holds a fixed `min-height`, so every single-line item renders the same pill height; the label clamps at two lines as an overflow guard. Nav labels must therefore fit one line at 11px inside the rail — at most six full-width characters — and must match the pane header text they open. The selected state is the single accent-tinted pill described under Elevation & Depth, with no added ring, shadow, or indicator bar. Item groups are divided by a 1px `--color-border-subtle` rule, and the brand mark is non-interactive and separated from the nav by `--spacing-lg`.
+Popup and options share one navigation rail whose width is `--layout-rail` (96px). Each item stacks a 20px icon over an 11px label and holds a fixed `min-height`, so every single-line item renders the same pill height; the label clamps at two lines as an overflow guard. Nav labels must therefore fit one line at 11px inside the rail — at most six full-width characters — and must match the pane header text they open. The selected state is the single accent-tinted pill described under Elevation & Depth, with no added ring, shadow, or indicator bar. Item groups are divided by a 1px `--color-border-subtle` rule, and the brand mark is non-interactive and separated from the nav by `--spacing-lg`. Rail items are controls, not text: their labels are not selectable (`user-select: none`).
 
 ## Elevation & Depth
 
