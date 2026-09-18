@@ -2,15 +2,10 @@ import { Result } from "@praha/byethrow";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/shared/Button";
 import { Fieldset } from "@/components/shared/Fieldset";
-import {
-  ButtonRow,
-  PaneCard,
-  RowBetween,
-  Stack,
-} from "@/components/shared/Layout";
+import { ButtonRow, RowBetween, Stack } from "@/components/shared/Layout";
 import { SwitchField } from "@/components/shared/SwitchField";
 import { TextOutput } from "@/components/shared/TextOutput";
-import { Hint, PaneTitle } from "@/components/shared/Typography";
+import { Hint } from "@/components/shared/Typography";
 import type {
   GetSearchBlocklistDiagnosticsMessage,
   SearchBlocklistDiagnosticsResponse,
@@ -18,7 +13,6 @@ import type {
 import { t } from "@/i18n";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { sendBackgroundResult } from "@/popup/utils/background_result";
-import { resolveActiveTabId } from "@/popup/utils/summary_target";
 import type { LocalStorageData } from "@/storage/types";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
@@ -29,6 +23,7 @@ export type DebugPaneProps = PopupPaneBaseProps;
 type SearchBlocklistDiagnosticsPanelState =
   | { status: "loading" }
   | { status: "unavailable" }
+  | { status: "noSearchTab" }
   | { status: "error" }
   | {
       status: "ready";
@@ -135,20 +130,22 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const tabId = await resolveActiveTabId({
-        onError: () => undefined,
-        runtime: props.runtime,
-      });
-      if (tabId === null) {
-        if (!cancelled) {
-          setSearchBlocklistDiagnostics({ status: "error" });
-        }
+      const tabId = await props.runtime.getSearchResultTabId();
+      if (cancelled) {
+        return;
+      }
+      if (Result.isFailure(tabId)) {
+        setSearchBlocklistDiagnostics({ status: "error" });
+        return;
+      }
+      if (tabId.value === null) {
+        setSearchBlocklistDiagnostics({ status: "noSearchTab" });
         return;
       }
       const response = await props.runtime.sendMessageToTab<
         GetSearchBlocklistDiagnosticsMessage,
         SearchBlocklistDiagnosticsResponse
-      >(tabId, { action: "getSearchBlocklistDiagnostics" });
+      >(tabId.value, { action: "getSearchBlocklistDiagnostics" });
       if (cancelled) {
         return;
       }
@@ -295,16 +292,11 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
   }, []);
 
   return (
-    <PaneCard className="settings-surface debug-settings-pane">
-      <section className="settings-pane-overview">
-        <Stack spacing="small">
-          <PaneTitle>{t("debug.title")}</PaneTitle>
-          <Hint>{t("debug.description")}</Hint>
-        </Stack>
-      </section>
+    <Stack className="settings-surface debug-settings-pane">
+      <Hint as="div">{t("debug.description")}</Hint>
 
       {/* デバッグモード設定 */}
-      <section className="card settings-card settings-pane-card">
+      <section className="settings-pane-card">
         <Fieldset legend={t("debug.mode")} spacing="stack">
           <SwitchField
             checked={debugMode}
@@ -329,7 +321,7 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
       </section>
 
       {/* 検索結果ブロック診断 */}
-      <section className="card settings-card settings-pane-card">
+      <section className="settings-pane-card">
         <Fieldset legend={t("debug.searchBlocklist.title")} spacing="stack">
           {searchBlocklistDiagnostics.status === "ready" && (
             <Stack spacing="small">
@@ -354,6 +346,9 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
           {searchBlocklistDiagnostics.status === "unavailable" && (
             <Hint>{t("debug.searchBlocklist.empty")}</Hint>
           )}
+          {searchBlocklistDiagnostics.status === "noSearchTab" && (
+            <Hint>{t("debug.searchBlocklist.noSearchTab")}</Hint>
+          )}
           {searchBlocklistDiagnostics.status === "loading" && (
             <Hint>{t("debug.searchBlocklist.loading")}</Hint>
           )}
@@ -366,7 +361,7 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
       {debugMode && (
         <>
           {/* ログ操作 */}
-          <section className="card settings-card settings-pane-card">
+          <section className="settings-pane-card">
             <Fieldset legend={t("debug.logActions")} spacing="stack">
               <ButtonRow>
                 <Button
@@ -419,6 +414,6 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
           </section>
         </>
       )}
-    </PaneCard>
+    </Stack>
   );
 }

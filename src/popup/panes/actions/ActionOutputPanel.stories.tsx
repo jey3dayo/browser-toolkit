@@ -90,8 +90,8 @@ export const EmptyValue: Story = {
   },
   play: ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const textarea = canvas.getByTestId("action-output");
-    expect((textarea as HTMLTextAreaElement).value).toBe("");
+    expect(canvas.queryByTestId("action-output")).toBeNull();
+    expect(canvas.getByTestId("action-output-empty")).toBeTruthy();
 
     const copyButton = canvas.getByTestId("copy-output");
     expect(copyButton).toBeDisabled();

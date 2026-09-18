@@ -8,6 +8,7 @@ import { persistWithRollback } from "@/popup/utils/persist";
 
 export type UseDomainPatternsResult = {
   patterns: DomainPatternConfig[];
+  addError: string | null;
   patternInput: string;
   setPatternInput: (value: string) => void;
   setPatterns: (patterns: DomainPatternConfig[]) => void;
@@ -21,7 +22,13 @@ export function useDomainPatterns(
   props: PopupPaneBaseProps
 ): UseDomainPatternsResult {
   const [patterns, setPatterns] = useState<DomainPatternConfig[]>([]);
-  const [patternInput, setPatternInput] = useState("");
+  const [patternInput, setPatternInputValue] = useState("");
+  const [addError, setAddError] = useState<string | null>(null);
+
+  const setPatternInput = (value: string): void => {
+    setPatternInputValue(value);
+    setAddError(null);
+  };
 
   const enableNow = async (): Promise<void> => {
     const tabIdResult = await props.runtime.getActiveTabId();
@@ -74,7 +81,7 @@ export function useDomainPatterns(
   const parsePatternInput = (): string | null => {
     const raw = patternInput.trim();
     if (!raw) {
-      props.notify.error(t("tablePane.errors.patternRequired"));
+      setAddError(t("tablePane.errors.patternRequired"));
       return null;
     }
     return raw;
@@ -82,8 +89,7 @@ export function useDomainPatterns(
 
   const buildNextPatterns = (pattern: string): DomainPatternConfig[] | null => {
     if (patterns.some((config) => config.pattern === pattern)) {
-      props.notify.info(t("tablePane.info.duplicate"));
-      setPatternInput("");
+      setAddError(t("tablePane.info.duplicate"));
       return null;
     }
     return [...patterns, { enableRowFilter: false, pattern }];
@@ -138,6 +144,7 @@ export function useDomainPatterns(
   };
 
   return {
+    addError,
     addPattern,
     enableNow,
     patternInput,

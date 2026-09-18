@@ -27,7 +27,7 @@ describe("popup Settings pane", () => {
   beforeEach(async () => {
     vi.resetModules();
 
-    dom = createPopupDom("chrome-extension://test/popup.html#pane-settings");
+    dom = createPopupDom("chrome-extension://test/options.html#pane-settings");
     chromeStub = createPopupChromeStub();
 
     chromeStub.storage.local.get.mockImplementation(
@@ -67,7 +67,7 @@ describe("popup Settings pane", () => {
     registerPopupTestHooks();
 
     await act(async () => {
-      await import("@/popup.ts");
+      await import("@/options.ts");
       await flush(dom.window);
     });
   }, POPUP_IMPORT_HOOK_TIMEOUT_MS);
@@ -172,10 +172,13 @@ describe("popup Settings pane", () => {
     expect(primaryActions).not.toBeNull();
     expect(
       Array.from(
-        primaryActions?.querySelectorAll<HTMLButtonElement>("button") ?? []
+        primaryActions?.querySelectorAll<HTMLButtonElement>(
+          ":scope > button"
+        ) ?? []
       ).map((button) => button.dataset.testid)
     ).toEqual(["token-save", "token-test"]);
     expect(dangerActions).not.toBeNull();
+    expect(dangerActions?.parentElement).toBe(primaryActions);
     expect(
       Array.from(
         dangerActions?.querySelectorAll<HTMLButtonElement>("button") ?? []

@@ -36,7 +36,7 @@ import type {
 } from "@/background/types";
 import type { ContextAction } from "@/context_actions";
 import { t } from "@/i18n";
-import { coercePaneId } from "@/popup/panes";
+import { coercePaneId, getPaneSurfacePage } from "@/popup/panes";
 import { searchBlocklistMutationFailureMessage } from "@/search-blocklist/mutation_failure_message";
 import {
   applySearchBlocklistRuleMutation,
@@ -388,9 +388,10 @@ function handleOpenPopupPaneRequest(
   request: OpenPopupPaneRequest,
   sendResponse: RuntimeSendResponse
 ): boolean {
+  const paneId = coercePaneId(request.paneId);
   chrome.tabs
     .create({
-      url: chrome.runtime.getURL(`popup.html#${coercePaneId(request.paneId)}`),
+      url: chrome.runtime.getURL(`${getPaneSurfacePage(paneId)}#${paneId}`),
     })
     .then(() => {
       sendResponse({ ok: true });

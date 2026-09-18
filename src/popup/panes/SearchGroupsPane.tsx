@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 import { Button } from "@/components/shared/Button";
-import { PaneCard, RowBetween, Stack } from "@/components/shared/Layout";
+import { ButtonRow, PaneCard, Stack } from "@/components/shared/Layout";
 import { PatternAddForm } from "@/components/shared/PatternAddForm";
-import { Hint, PaneTitle } from "@/components/shared/Typography";
+import { Hint } from "@/components/shared/Typography";
 import { t } from "@/i18n";
 import { SearchGroupsList } from "@/popup/panes/SearchGroupsList";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
@@ -21,6 +21,7 @@ export function SearchGroupsPane(
     editingNameGroupId,
     editingNameValue,
     newGroupNameInput,
+    newGroupNameError,
     setEditingNameValue,
     setNewGroupNameInput,
     toggleGroupExpand,
@@ -47,8 +48,7 @@ export function SearchGroupsPane(
 
   return (
     <PaneCard>
-      <RowBetween>
-        <PaneTitle>{t("searchGroups.title")}</PaneTitle>
+      <ButtonRow>
         <Button
           data-testid="reset-search-groups"
           onClick={handleResetToDefaults}
@@ -58,7 +58,7 @@ export function SearchGroupsPane(
         >
           {t("common.resetToDefaults")}
         </Button>
-      </RowBetween>
+      </ButtonRow>
 
       <Stack>
         <Hint as="div">{t("searchGroups.description")}</Hint>
@@ -67,6 +67,8 @@ export function SearchGroupsPane(
         <PatternAddForm
           buttonTestId="add-search-group"
           disabled={engines.length === 0}
+          errorMessage={newGroupNameError ?? undefined}
+          errorTestId="new-group-name-error"
           inputTestId="new-group-name"
           onSubmit={addNewGroup}
           onSubmitError={handleSubmitError}

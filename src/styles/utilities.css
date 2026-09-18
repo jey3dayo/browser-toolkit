@@ -50,14 +50,14 @@
   align-items: center;
   padding: 8px;
   margin-bottom: 8px;
-  background: var(--color-surface, #ffffff);
-  border: 1px solid var(--color-border, #e0e0e0);
-  border-radius: 4px;
-  transition: box-shadow 0.2s;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  transition: box-shadow var(--motion-duration) ease;
 }
 
 .sortable-item:hover {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 3px var(--primitive-alpha-black-12);
 }
 
 .sortable-item-content {
@@ -68,9 +68,9 @@
 .drag-handle {
   flex-shrink: 0;
   padding: 4px;
-  font-size: 18px;
+  font-size: var(--font-size-xl);
   line-height: 1;
-  color: var(--color-text-secondary, #666);
+  color: var(--color-text-muted);
   cursor: grab;
   user-select: none;
   background: transparent;
@@ -82,9 +82,9 @@
 }
 
 .drag-handle:focus-visible {
-  outline: 2px solid var(--color-focus, #4285f4);
+  outline: var(--focus-ring);
   outline-offset: 2px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
 }
 
 /* Action Item in Sortable List */
@@ -106,9 +106,13 @@
 
 .action-kind-badge {
   padding: 2px 8px;
-  font-size: 12px;
-  color: var(--color-primary, #4285f4);
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
   white-space: nowrap;
-  background: var(--color-primary-light, #e3f2fd);
-  border-radius: 3px;
+  background: color-mix(
+    in oklab,
+    var(--color-primary) var(--accent-mix-14),
+    transparent
+  );
+  border-radius: var(--radius-sm);
 }

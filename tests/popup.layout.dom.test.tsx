@@ -2,8 +2,9 @@ import type { JSDOM } from "jsdom";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { i18n } from "@/i18n";
 import { PopupApp } from "@/popup/App";
-import { navigationItems } from "@/popup/navigation-items";
+import { getNavigationItems } from "@/popup/navigation-items";
 import { flush } from "./helpers/async";
 import { createPopupDom } from "./helpers/popupDom";
 
@@ -26,7 +27,7 @@ describe("popup layout structure", () => {
     vi.unstubAllGlobals();
   });
 
-  it("renders the hero logo column before the title text (prevents narrow title wrapping)", async () => {
+  it("renders the current pane label as the header heading", async () => {
     const rootEl = dom.window.document.getElementById("root");
     if (!rootEl) {
       throw new Error("missing #root");
@@ -38,12 +39,11 @@ describe("popup layout structure", () => {
       await flush(dom.window);
     });
 
-    const titleBlock =
-      dom.window.document.querySelector<HTMLDivElement>(".title-block");
-    expect(titleBlock).not.toBeNull();
-    const children = Array.from(titleBlock?.children ?? []);
-    expect(children[0]?.classList.contains("hero-logo-wrap")).toBe(true);
-    expect(children[1]?.classList.contains("title-text")).toBe(true);
+    const heading =
+      dom.window.document.querySelector<HTMLHeadingElement>(
+        ".content-header h1"
+      );
+    expect(heading?.textContent).toBe(i18n.t("navigation.actions"));
 
     act(() => {
       root.unmount();
@@ -67,54 +67,13 @@ describe("popup layout structure", () => {
         'aside.sidebar [role="tab"]'
       )
     );
-    expect(tabButtons.length).toBe(navigationItems.length);
+    expect(tabButtons.length).toBe(getNavigationItems("popup").length);
 
     for (const tab of tabButtons) {
       expect(tab.classList.contains("nav-item")).toBe(true);
       expect(tab.querySelector(".nav-icon")).not.toBeNull();
       expect(tab.querySelector(".nav-label")).not.toBeNull();
     }
-
-    act(() => {
-      root.unmount();
-    });
-  });
-
-  it("keeps the active drawer menu item class stable", async () => {
-    const rootEl = dom.window.document.getElementById("root");
-    if (!rootEl) {
-      throw new Error("missing #root");
-    }
-
-    const root = createRoot(rootEl);
-    await act(async () => {
-      root.render(<PopupApp />);
-      await flush(dom.window);
-    });
-
-    const menuTrigger =
-      dom.window.document.querySelector<HTMLButtonElement>(".sidebar-brand");
-    if (!menuTrigger) {
-      throw new Error("missing menu trigger");
-    }
-
-    await act(async () => {
-      menuTrigger.click();
-      await flush(dom.window);
-    });
-
-    const activeMenuItem = dom.window.document.querySelector<HTMLButtonElement>(
-      '.menu-drawer-nav [aria-current="page"]'
-    );
-    expect(activeMenuItem).not.toBeNull();
-    expect(activeMenuItem?.className).toBe("menu-item active");
-
-    const inactiveMenuItem =
-      dom.window.document.querySelector<HTMLButtonElement>(
-        ".menu-drawer-nav .menu-item:not(.active)"
-      );
-    expect(inactiveMenuItem).not.toBeNull();
-    expect(inactiveMenuItem?.className).toBe("menu-item");
 
     act(() => {
       root.unmount();

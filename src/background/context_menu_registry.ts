@@ -49,6 +49,7 @@ import {
   ensureTextTemplatesInitialized,
 } from "@/background/context_menu_storage";
 import { t } from "@/i18n";
+import { getPaneSurfacePage } from "@/popup/panes";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
 import {
@@ -143,7 +144,9 @@ function handleExactMenuItemClick(
   if (menuItemId === CONTEXT_MENU_SETTINGS_ID) {
     chrome.tabs
       .create({
-        url: chrome.runtime.getURL("popup.html#pane-settings"),
+        url: chrome.runtime.getURL(
+          `${getPaneSurfacePage("pane-settings")}#pane-settings`
+        ),
       })
       .catch(() => {
         // no-op

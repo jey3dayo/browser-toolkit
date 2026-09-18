@@ -1,5 +1,10 @@
 import { Result } from "@praha/byethrow";
 import type { SummaryTarget } from "@/background/types";
+import {
+  getPaneSurfacePage,
+  type PaneId,
+  type PaneNavigateOptions,
+} from "@/popup/panes";
 import type { LocalStorageData, SyncStorageData } from "@/storage/types";
 import { toErrorMessage } from "@/utils/errors";
 import { matchesAnyPattern } from "@/utils/url-pattern";
@@ -84,6 +89,7 @@ export type PopupRuntime = {
   ) => Result.ResultAsync<void, string>;
   getActiveTab: () => Result.ResultAsync<ActiveTabInfo | null, string>;
   getActiveTabId: () => Result.ResultAsync<number | null, string>;
+  getSearchResultTabId: () => Result.ResultAsync<number | null, string>;
   matchesFocusOverridePatterns: (patterns: string[], url: string) => boolean;
   diagnoseFocusOverride: (
     tabId: number
@@ -97,7 +103,16 @@ export type PopupRuntime = {
     message: TRequest
   ) => Result.ResultAsync<TResponse, string>;
   openUrl: (url: string) => void;
+  openOptionsPane: (
+    paneId: PaneId,
+    options?: PaneNavigateOptions
+  ) => Result.ResultAsync<void, string>;
 };
+
+const SEARCH_RESULT_TAB_MATCH_PATTERNS = [
+  "*://www.google.com/search*",
+  "*://www.google.co.jp/search*",
+];
 
 const FALLBACK_STORAGE_PREFIX = "mbu:popup:";
 type StorageAreaName = "sync" | "local";
@@ -194,6 +209,28 @@ async function wrapChromeApi<T>(
         operation(resolve, reject);
       }),
   });
+}
+
+function pickMostRecentlyAccessedTabId(tabs: chrome.tabs.Tab[]): number | null {
+  let picked: chrome.tabs.Tab | null = null;
+  for (const tab of tabs) {
+    if (tab.id === undefined) {
+      continue;
+    }
+    if (picked === null) {
+      picked = tab;
+      continue;
+    }
+    const candidate: number | undefined = tab.lastAccessed;
+    const current: number | undefined = picked.lastAccessed;
+    if (typeof candidate !== "number") {
+      continue;
+    }
+    if (typeof current !== "number" || candidate > current) {
+      picked = tab;
+    }
+  }
+  return picked?.id ?? null;
 }
 
 function getStorageArea(area: StorageAreaName): chrome.storage.StorageArea {
@@ -340,6 +377,26 @@ export function createPopupRuntime(): PopupRuntime {
     return Result.succeed(activeTab.value?.id ?? null);
   };
 
+  const getSearchResultTabId: PopupRuntime["getSearchResultTabId"] =
+    async () => {
+      if (!hasChromeApi(isExtensionPage, "tabs")) {
+        return Result.succeed(null);
+      }
+      return await wrapChromeApi<number | null>((resolve, reject) => {
+        chrome.tabs.query(
+          { url: SEARCH_RESULT_TAB_MATCH_PATTERNS },
+          (result) => {
+            const err = chrome.runtime.lastError;
+            if (err) {
+              reject(new Error(err.message));
+              return;
+            }
+            resolve(pickMostRecentlyAccessedTabId(result));
+          }
+        );
+      }, "検索結果タブの取得に失敗しました");
+    };
+
   const matchesFocusOverridePatterns: PopupRuntime["matchesFocusOverridePatterns"] =
     (patterns, url) => {
       if (!url.trim()) {
@@ -451,6 +508,33 @@ export function createPopupRuntime(): PopupRuntime {
     }, "タブへのメッセージ送信に失敗しました");
   };
 
+  const openOptionsPane: PopupRuntime["openOptionsPane"] = async (
+    paneId,
+    options
+  ) => {
+    if (!hasChromeApi(isExtensionPage, "tabs")) {
+      return Result.fail(
+        "拡張機能として開いてください（chrome-extension://...）"
+      );
+    }
+
+    const focusQuery = options?.focus === "token" ? "?focus=token" : "";
+    const page = getPaneSurfacePage(paneId);
+    return await wrapChromeApi<void>((resolve, reject) => {
+      chrome.tabs.create(
+        { url: chrome.runtime.getURL(`${page}#${paneId}${focusQuery}`) },
+        () => {
+          const err = chrome.runtime.lastError;
+          if (err) {
+            reject(new Error(err.message));
+            return;
+          }
+          resolve();
+        }
+      );
+    }, "設定ページを開けませんでした");
+  };
+
   const openUrl: PopupRuntime["openUrl"] = (url) => {
     const trimmed = url.trim();
     if (!trimmed) {
@@ -467,8 +551,10 @@ export function createPopupRuntime(): PopupRuntime {
     diagnoseFocusOverride,
     getActiveTab,
     getActiveTabId,
+    getSearchResultTabId,
     isExtensionPage,
     matchesFocusOverridePatterns,
+    openOptionsPane,
     openUrl,
     reloadTab,
     sendMessageToBackground,

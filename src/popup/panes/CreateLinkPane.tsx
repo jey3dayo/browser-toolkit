@@ -15,7 +15,7 @@ import {
 } from "@/components/shared/Layout";
 import { Select } from "@/components/shared/Select";
 import { Textarea } from "@/components/shared/Textarea";
-import { Hint, MetaTitle, PaneTitle } from "@/components/shared/Typography";
+import { Hint, MetaTitle } from "@/components/shared/Typography";
 import { i18n, type TranslationKey } from "@/i18n";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import type { PopupRuntime } from "@/popup/runtime";
@@ -242,32 +242,29 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
 
   return (
     <PaneCard>
-      <RowBetween>
-        <PaneTitle>{t("createLink.title")}</PaneTitle>
-        <ButtonRow>
-          <Button
-            data-testid="create-link-qr"
-            disabled={!url.trim()}
-            onClick={handleToggleQr}
-            size="small"
-            title={t("createLink.qrCode")}
-            type="button"
-            variant="ghost"
-          >
-            <Icon aria-hidden="true" name="qr-code" size={16} />
-          </Button>
-          <Button
-            data-testid="create-link-copy"
-            disabled={!canCopy}
-            onClick={handleCopyClick}
-            size="small"
-            type="button"
-            variant="primary"
-          >
-            {t("createLink.copy")}
-          </Button>
-        </ButtonRow>
-      </RowBetween>
+      <ButtonRow>
+        <Button
+          data-testid="create-link-qr"
+          disabled={!url.trim()}
+          onClick={handleToggleQr}
+          size="small"
+          title={t("createLink.qrCode")}
+          type="button"
+          variant="ghost"
+        >
+          <Icon aria-hidden="true" name="qr-code" size={16} />
+        </Button>
+        <Button
+          data-testid="create-link-copy"
+          disabled={!canCopy}
+          onClick={handleCopyClick}
+          size="small"
+          type="button"
+          variant="primary"
+        >
+          {t("createLink.copy")}
+        </Button>
+      </ButtonRow>
 
       <Hint>{t("createLink.description")}</Hint>
 

@@ -107,6 +107,10 @@ export function AccordionText({
   ...props
 }: TextareaProps): React.JSX.Element {
   return (
-    <Textarea className={accordionTextVariants({ className })} {...props} />
+    <Textarea
+      className={accordionTextVariants({ className })}
+      variant="summary"
+      {...props}
+    />
   );
 }

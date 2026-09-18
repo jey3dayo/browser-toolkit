@@ -11,7 +11,6 @@ import {
   EmptyMessage,
   Hint,
   PaneSubtitle,
-  PaneTitle,
 } from "@/components/shared/Typography";
 import { t } from "@/i18n";
 import { FocusDiagnosticPanel } from "@/popup/panes/table/FocusDiagnosticPanel";
@@ -21,7 +20,7 @@ import {
   TablePaneHeading,
   TablePaneSection,
   TablePaneSectionHeading,
-  TablePaneSummaryCard,
+  TablePaneStatus,
 } from "@/popup/panes/table/TablePaneLayout";
 import { useDomainPatterns } from "@/popup/panes/table/useDomainPatterns";
 import { useFocusDiagnostic } from "@/popup/panes/table/useFocusDiagnostic";
@@ -62,6 +61,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
 
   const {
     patterns,
+    addError,
     patternInput,
     setPatternInput,
     setPatterns,
@@ -86,6 +86,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
   } = useFocusDiagnostic(props, focusPatterns);
 
   const {
+    focusPatternAddError,
     focusPatternInput,
     setFocusPatternInput,
     addFocusPattern,
@@ -98,21 +99,11 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
     syncFocusPatternsRef,
   });
 
-  const summaryFocusStatusLabel =
-    focusDiagnostic?.label ?? t("tablePane.summary.pending");
-  const summaryFocusDescription = focusDiagnostic
-    ? focusDiagnostic.description
-    : t("tablePane.summary.focusDescription");
-  const urlPatternSummaryLabel =
-    patterns.length === 0
-      ? t("tablePane.summary.notRegistered")
-      : t("tablePane.summary.registeredCount", { count: patterns.length });
-  const focusPatternSummaryLabel =
-    focusPatterns.length === 0
-      ? t("tablePane.summary.notRegistered")
-      : t("tablePane.summary.registeredCount", {
-          count: focusPatterns.length,
-        });
+  const statusLabel = [
+    t("tablePane.status.urlPatterns", { count: patterns.length }),
+    t("tablePane.status.focus", { count: focusPatterns.length }),
+    focusDiagnostic?.label ?? t("tablePane.diagnostic.pending"),
+  ].join(" · ");
 
   const handleEnableNow = useCallback(() => {
     enableNow().catch(() => {
@@ -140,7 +131,6 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
     <PaneCard className="table-pane">
       <TablePaneHeader>
         <TablePaneHeading>
-          <PaneTitle>{t("tablePane.title")}</PaneTitle>
           <Button
             data-testid="enable-table-sort"
             onClick={handleEnableNow}
@@ -151,13 +141,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
           </Button>
         </TablePaneHeading>
 
-        <TablePaneSummaryCard
-          focusDiagnosticBadgeVariant={focusDiagnosticBadgeVariant}
-          focusPatternSummaryLabel={focusPatternSummaryLabel}
-          summaryFocusDescription={summaryFocusDescription}
-          summaryFocusStatusLabel={summaryFocusStatusLabel}
-          urlPatternSummaryLabel={urlPatternSummaryLabel}
-        />
+        <TablePaneStatus>{statusLabel}</TablePaneStatus>
       </TablePaneHeader>
 
       <TablePaneSection data-section="url-patterns">
@@ -167,6 +151,8 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
         </TablePaneSectionHeading>
         <PatternAddForm
           buttonTestId="pattern-add"
+          errorMessage={addError ?? undefined}
+          errorTestId="pattern-error"
           inputTestId="pattern-input"
           onSubmit={addPattern}
           onSubmitError={handlePatternSubmitError}
@@ -212,6 +198,8 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
         <Hint as="div">{t("tablePane.focus.reloadHint")}</Hint>
         <PatternAddForm
           buttonTestId="focus-pattern-add"
+          errorMessage={focusPatternAddError ?? undefined}
+          errorTestId="focus-pattern-error"
           inputTestId="focus-pattern-input"
           onSubmit={addFocusPattern}
           onSubmitError={handlePatternSubmitError}

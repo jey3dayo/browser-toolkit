@@ -4,7 +4,7 @@ import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { i18n } from "@/i18n";
 import { PopupApp } from "@/popup/App";
-import { navigationItems } from "@/popup/navigation-items";
+import { getNavigationItems, navigationItems } from "@/popup/navigation-items";
 import { flush } from "./helpers/async";
 import {
   createPopupChromeStub,
@@ -20,15 +20,18 @@ describe("popup navigation (React + Base UI Tabs)", () => {
   let dom: JSDOM;
   let chromeStub: PopupChromeStub;
 
-  beforeEach(() => {
-    vi.resetModules();
-
-    dom = createPopupDom("chrome-extension://test/popup.html#pane-settings");
+  const mountDom = (url: string): void => {
+    dom = createPopupDom(url);
     chromeStub = createPopupChromeStub();
     vi.stubGlobal("window", dom.window);
     vi.stubGlobal("document", dom.window.document);
     vi.stubGlobal("navigator", dom.window.navigator);
     vi.stubGlobal("chrome", chromeStub);
+  };
+
+  beforeEach(() => {
+    vi.resetModules();
+    mountDom("chrome-extension://test/popup.html#pane-table");
   });
 
   afterEach(() => {
@@ -47,9 +50,9 @@ describe("popup navigation (React + Base UI Tabs)", () => {
       await flush(dom.window);
     });
 
-    expect(dom.window.location.hash).toBe("#pane-settings");
+    expect(dom.window.location.hash).toBe("#pane-table");
     expect(
-      dom.window.document.querySelector('[data-pane="pane-settings"]')
+      dom.window.document.querySelector('[data-pane="pane-table"]')
     ).not.toBeNull();
     expect(
       dom.window.document.querySelector('[data-pane="pane-actions"]')
@@ -59,6 +62,96 @@ describe("popup navigation (React + Base UI Tabs)", () => {
       root.unmount();
     });
   });
+
+  it("falls back to the surface default when the hash names a pane of the other surface", async () => {
+    vi.unstubAllGlobals();
+    mountDom("chrome-extension://test/popup.html#pane-settings");
+
+    const rootEl = dom.window.document.getElementById("root");
+    if (!rootEl) {
+      throw new Error("missing #root");
+    }
+
+    const root = createRoot(rootEl);
+    await act(async () => {
+      root.render(<PopupApp />);
+      await flush(dom.window);
+    });
+
+    expect(dom.window.location.hash).toBe("#pane-actions");
+    expect(
+      dom.window.document.querySelector('[data-pane="pane-settings"]')
+    ).toBeNull();
+
+    act(() => {
+      root.unmount();
+    });
+  });
+
+  it("opens the manage panes on the options surface", async () => {
+    vi.unstubAllGlobals();
+    mountDom("chrome-extension://test/options.html#pane-settings");
+
+    const rootEl = dom.window.document.getElementById("root");
+    if (!rootEl) {
+      throw new Error("missing #root");
+    }
+
+    const root = createRoot(rootEl);
+    await act(async () => {
+      root.render(<PopupApp surface="options" />);
+      await flush(dom.window);
+    });
+
+    expect(dom.window.location.hash).toBe("#pane-settings");
+    expect(
+      dom.window.document.querySelector('[data-pane="pane-settings"]')
+    ).not.toBeNull();
+
+    act(() => {
+      root.unmount();
+    });
+  });
+
+  it.each(
+    (["popup", "options"] as const).flatMap((surface) =>
+      getNavigationItems(surface).map((item) => ({
+        page: surface === "popup" ? "popup.html" : "options.html",
+        paneId: item.id,
+        surface,
+      }))
+    )
+  )(
+    "renders the $paneId pane for its rail item on the $surface surface",
+    async ({ page, paneId, surface }) => {
+      vi.unstubAllGlobals();
+      mountDom(`chrome-extension://test/${page}#${paneId}`);
+
+      const rootEl = dom.window.document.getElementById("root");
+      if (!rootEl) {
+        throw new Error("missing #root");
+      }
+
+      const root = createRoot(rootEl);
+      await act(async () => {
+        root.render(<PopupApp surface={surface} />);
+        await flush(dom.window);
+      });
+
+      expect(
+        dom.window.document.querySelector(
+          `[role="tab"][data-value="${paneId}"]`
+        )
+      ).not.toBeNull();
+      expect(
+        dom.window.document.querySelector(`[data-pane="${paneId}"]`)
+      ).not.toBeNull();
+
+      act(() => {
+        root.unmount();
+      });
+    }
+  );
 
   it("keeps navigation metadata as translation keys for render-time resolution", () => {
     expect(navigationItems[0]).toMatchObject({
@@ -86,78 +179,18 @@ describe("popup navigation (React + Base UI Tabs)", () => {
       await flush(dom.window);
     });
 
-    const tableTab = dom.window.document.querySelector<HTMLButtonElement>(
-      '[role="tab"][data-value="pane-table"]'
+    const createLinkTab = dom.window.document.querySelector<HTMLButtonElement>(
+      '[role="tab"][data-value="pane-create-link"]'
     );
     await act(async () => {
-      tableTab?.click();
+      createLinkTab?.click();
       await flush(dom.window);
     });
 
-    expect(dom.window.location.hash).toBe("#pane-table");
+    expect(dom.window.location.hash).toBe("#pane-create-link");
     expect(
-      dom.window.document.querySelector('[data-pane="pane-table"]')
+      dom.window.document.querySelector('[data-pane="pane-create-link"]')
     ).not.toBeNull();
-
-    act(() => {
-      root.unmount();
-    });
-  });
-
-  it("opens and closes the menu drawer (scrim + Escape)", async () => {
-    const rootEl = dom.window.document.getElementById("root");
-    if (!rootEl) {
-      throw new Error("missing #root");
-    }
-
-    const root = createRoot(rootEl);
-    await act(async () => {
-      root.render(<PopupApp />);
-      await flush(dom.window);
-    });
-
-    const openButton = dom.window.document.querySelector<HTMLButtonElement>(
-      'button[aria-label="メニュー"]'
-    );
-    await act(async () => {
-      openButton?.click();
-      await flush(dom.window);
-    });
-
-    expect(dom.window.document.querySelector('[role="dialog"]')).not.toBeNull();
-
-    const backdrop = dom.window.document.querySelector<HTMLElement>(
-      ".mbu-drawer-backdrop"
-    );
-    await act(async () => {
-      backdrop?.dispatchEvent(
-        new dom.window.PointerEvent("pointerdown", { bubbles: true })
-      );
-      backdrop?.dispatchEvent(
-        new dom.window.PointerEvent("pointerup", { bubbles: true })
-      );
-      backdrop?.dispatchEvent(new dom.window.Event("click", { bubbles: true }));
-      await flush(dom.window);
-    });
-
-    expect(dom.window.document.querySelector('[role="dialog"]')).toBeNull();
-
-    await act(async () => {
-      openButton?.click();
-      await flush(dom.window);
-    });
-    expect(dom.window.document.querySelector('[role="dialog"]')).not.toBeNull();
-
-    await act(async () => {
-      dom.window.document.dispatchEvent(
-        new dom.window.KeyboardEvent("keydown", {
-          bubbles: true,
-          key: "Escape",
-        })
-      );
-      await flush(dom.window);
-    });
-    expect(dom.window.document.querySelector('[role="dialog"]')).toBeNull();
 
     act(() => {
       root.unmount();

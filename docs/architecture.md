@@ -106,16 +106,23 @@ Browser Toolkitは4つの独立した実行環境（ランタイム境界）を�
 - ❌ `chrome.contextMenus`（アクセス不可）
 - ❌ CORS制限なしのfetch（アクセス不可）
 
-### 3. Popup UI (`src/popup.ts`)
+### 3. Popup UI (`src/popup.ts`) と Options UI (`src/options.ts`)
 
-役割: 設定画面とユーザーインターフェース
+役割: 日常操作（popup）と管理操作（options ページ）のユーザーインターフェース
+
+どちらも `src/popup/App.tsx` の `PopupApp` を `surface` prop 付きでレンダリングし、
+`src/popup/bootstrap.ts` が共通の初期化（テーマ、スタイル、React root）を行います。
+`src/popup/panes.ts` が pane ごとの surface を決め、レールには自分の surface の
+pane だけが並びます。他 surface の hash はその surface の既定 pane
+（popup: `pane-actions` / options: `pane-settings`）へフォールバックします。
+popup から管理系 pane へ遷移するときは `PopupRuntime.openOptionsPane` が
+`options.html#<pane>` を別タブで開き、popup を閉じます。
 
 #### 主な機能
 
-- 設定管理（APIトークン、プロバイダー選択、モデル選択）
-- カスタムアクションの作成/編集
-- テキストテンプレート管理
-- 検索エンジングループ管理
+- popup: コンテキストアクション実行、カレンダー登録、リンク作成、検索結果ブロック、サイト別機能
+- options: 設定管理（APIトークン、プロバイダー選択、モデル選択）、カスタムアクション、
+  テキストテンプレート、検索エンジングループ、履歴、デバッグ
 
 #### アクセス可能なAPI
 

@@ -5,7 +5,6 @@ import { Field } from "@/components/shared/Field";
 import { Fieldset } from "@/components/shared/Fieldset";
 import { Form } from "@/components/shared/Form";
 import { Input, InputWithIcon } from "@/components/shared/Input";
-import { Stack } from "@/components/shared/Layout";
 import { Toggle } from "@/components/shared/Toggle";
 import { t } from "@/i18n";
 import {
@@ -104,30 +103,28 @@ export function SettingsTokenSection({
           </Field>
         </Fieldset>
 
-        <Stack spacing="small">
-          <SettingsTokenActionRow
-            data-testid="token-primary-actions"
-            tone="primary"
+        <SettingsTokenActionRow
+          data-testid="token-primary-actions"
+          tone="primary"
+        >
+          <Button
+            data-testid="token-save"
+            onClick={handleSaveToken}
+            size="small"
+            type="button"
+            variant="primary"
           >
-            <Button
-              data-testid="token-save"
-              onClick={handleSaveToken}
-              size="small"
-              type="button"
-              variant="primary"
-            >
-              {t("common.save")}
-            </Button>
-            <Button
-              data-testid="token-test"
-              onClick={handleTestToken}
-              size="small"
-              type="button"
-              variant="ghost"
-            >
-              {t("settings.testToken")}
-            </Button>
-          </SettingsTokenActionRow>
+            {t("common.save")}
+          </Button>
+          <Button
+            data-testid="token-test"
+            onClick={handleTestToken}
+            size="small"
+            type="button"
+            variant="ghost"
+          >
+            {t("settings.testToken")}
+          </Button>
           <SettingsTokenActionRow
             data-testid="token-danger-actions"
             tone="danger"
@@ -135,13 +132,14 @@ export function SettingsTokenSection({
             <Button
               data-testid="token-clear"
               onClick={handleClearToken}
+              size="small"
               type="button"
               variant="danger"
             >
               {t("common.delete")}
             </Button>
           </SettingsTokenActionRow>
-        </Stack>
+        </SettingsTokenActionRow>
       </Form>
     </SettingsPaneCard>
   );

@@ -106,6 +106,99 @@ describe("createPopupRuntime", () => {
       }
     });
 
+    it("opens the surface page that hosts the requested pane", async () => {
+      const runtime = createPopupRuntime();
+      const result = await runtime.openOptionsPane("pane-settings", {
+        focus: "token",
+      });
+
+      expect(Result.isSuccess(result)).toBe(true);
+      expect(chromeStub.runtime.getURL).toHaveBeenCalledWith(
+        "options.html#pane-settings?focus=token"
+      );
+      expect(chromeStub.tabs.create).toHaveBeenCalledWith(
+        { url: "options.html#pane-settings?focus=token" },
+        expect.any(Function)
+      );
+
+      const popupResult = await runtime.openOptionsPane("pane-actions");
+      expect(Result.isSuccess(popupResult)).toBe(true);
+      expect(chromeStub.runtime.getURL).toHaveBeenCalledWith(
+        "popup.html#pane-actions"
+      );
+    });
+
+    it("queries search result tabs and picks the most recently accessed one", async () => {
+      chromeStub.tabs.query.mockImplementation(
+        (_queryInfo: unknown, callback?: (tabs: unknown[]) => void) => {
+          chromeStub.runtime.lastError = null;
+          callback?.([
+            { id: 11, lastAccessed: 100 },
+            { id: 12, lastAccessed: 300 },
+            { id: 13, lastAccessed: 200 },
+          ]);
+        }
+      );
+
+      const runtime = createPopupRuntime();
+      const result = await runtime.getSearchResultTabId();
+
+      expect(chromeStub.tabs.query).toHaveBeenCalledWith(
+        {
+          url: ["*://www.google.com/search*", "*://www.google.co.jp/search*"],
+        },
+        expect.any(Function)
+      );
+      expect(Result.isSuccess(result)).toBe(true);
+      if (Result.isSuccess(result)) {
+        expect(result.value).toBe(12);
+      }
+    });
+
+    it("falls back to the first search result tab when lastAccessed is missing", async () => {
+      chromeStub.tabs.query.mockImplementation(
+        (_queryInfo: unknown, callback?: (tabs: unknown[]) => void) => {
+          chromeStub.runtime.lastError = null;
+          callback?.([{ id: 21 }, { id: 22 }]);
+        }
+      );
+
+      const runtime = createPopupRuntime();
+      const result = await runtime.getSearchResultTabId();
+
+      expect(Result.isSuccess(result)).toBe(true);
+      if (Result.isSuccess(result)) {
+        expect(result.value).toBe(21);
+      }
+    });
+
+    it("returns null when no search result tab is open", async () => {
+      const runtime = createPopupRuntime();
+      const result = await runtime.getSearchResultTabId();
+
+      expect(Result.isSuccess(result)).toBe(true);
+      if (Result.isSuccess(result)) {
+        expect(result.value).toBeNull();
+      }
+    });
+
+    it("returns a failure when the search result tab query reports lastError", async () => {
+      chromeStub.tabs.query.mockImplementation(
+        (_queryInfo: unknown, callback?: (tabs: unknown[]) => void) => {
+          chromeStub.runtime.lastError = { message: "query failed" };
+          callback?.([]);
+        }
+      );
+
+      const runtime = createPopupRuntime();
+      const result = await runtime.getSearchResultTabId();
+
+      expect(Result.isFailure(result)).toBe(true);
+      if (Result.isFailure(result)) {
+        expect(result.error).toBe("query failed");
+      }
+    });
+
     it("returns a failure when Chrome storage remove reports lastError", async () => {
       chromeStub.storage.local.remove.mockImplementation(
         (_keys: unknown, callback?: () => void) => {

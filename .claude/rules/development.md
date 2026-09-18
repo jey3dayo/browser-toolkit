@@ -17,10 +17,13 @@ browser-toolkit/
 ├── content.css         # コンテンツスクリプト用スタイル
 ├── popup.html          # ポップアップUI
 ├── popup_bootstrap.js  # popup読み込み（dist未生成時のガード含む）
+├── options.html        # オプションページUI
+├── options_bootstrap.js # options読み込み（dist未生成時のガード含む）
 └── src/                # TypeScriptソース
     ├── background.ts
     ├── content.ts
     ├── popup.ts
+    ├── options.ts
     └── styles/         # ポップアップ/共通UIスタイル（Design Tokens）
         ├── base.css
         ├── layout.css

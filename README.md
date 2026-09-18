@@ -155,7 +155,11 @@
 
 ## 設定
 
-ポップアップ → **設定** タブ:
+設定を含む管理系の画面は拡張機能の **オプションページ**（`options.html`）に分離されています。
+ポップアップのレール下部にある「設定」を押すか、`chrome://extensions` の「拡張機能のオプション」から開きます。
+ポップアップ側には日常的に使う機能だけが残ります。
+
+オプションページ → **設定**:
 
 - AI プロバイダー: OpenAI / Anthropic / z.ai を切り替え
 - API Token: 選択中のプロバイダーのトークンを保存（`chrome.storage.local` に保存。同期されません）
@@ -170,15 +174,17 @@
 
 - アクション: AI コンテキストアクションの実行と結果表示
 - カレンダー登録: ページからイベント抽出 → Google カレンダー / iCal 出力
-- サイト別機能: テーブルソートの URL パターン管理
 - リンク作成: タイトル + URL コピー
+- 検索ブロックリスト: 検索結果ブロックリストのルール編集
+- サイト別機能: テーブルソートの URL パターン管理
+
+### オプションページのタブ
+
 - 検索エンジン: 検索エンジン一覧の編集
 - まとめて検索: 検索エンジングループの編集
 - テンプレート: テキストテンプレートの編集
-- 検索ブロックリスト: 検索結果ブロックリストのルール編集
 - 履歴: 直近のアクション実行結果
-- デバッグ: ストレージ/ランタイムの診断
-- 設定: AI プロバイダー・テーマ等
+- 設定: AI プロバイダー・テーマ等（デバッグ診断も含む）
 
 ## 開発
 
@@ -328,10 +334,12 @@ browser-toolkit/
 │   └── e2e-test-checklist.md  # E2E テストチェックリスト
 ├── manifest.json              # 拡張機能マニフェスト（MV3）
 ├── popup.html                 # ポップアップのエントリ（popup_bootstrap.js 経由で dist/popup.js を読む）
+├── options.html               # オプションページのエントリ（options_bootstrap.js 経由で dist/options.js を読む）
 ├── src/
 │   ├── background.ts          # service worker エントリ
 │   ├── content.ts             # content script エントリ
 │   ├── popup.ts               # ポップアップ（React root）
+│   ├── options.ts             # オプションページ（React root）
 │   ├── ai/                    # AI アダプター（OpenAI / Anthropic / z.ai）と共通設定
 │   ├── background/            # service worker モジュール（contextMenus / runtime / storage）
 │   ├── content/               # content script モジュール（overlay / table-sort / template-paste）

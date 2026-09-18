@@ -1,5 +1,6 @@
 import { cva } from "class-variance-authority";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import { ButtonRow } from "@/components/shared/Layout";
 
 const patternListVariants = cva("pattern-list-inner");
 
@@ -37,7 +38,7 @@ export function PatternListItem({
     >
       <code className="pattern-text">{pattern}</code>
       {toggle}
-      {action}
+      <ButtonRow>{action}</ButtonRow>
     </li>
   );
 }

@@ -30,6 +30,7 @@ export const resources = {
         output: {
           copy: "コピー",
           defaultTitle: "出力",
+          empty: "アクションを実行すると結果がここに表示されます",
           running: "実行中...",
         },
         reorder: {
@@ -56,7 +57,6 @@ export const resources = {
           truncated: "長文のため先頭4,000文字のみ表示",
         },
         templateVars: "テンプレ変数:",
-        title: "Context Actions",
       },
       background: {
         actionExecutor: {
@@ -158,7 +158,6 @@ export const resources = {
           saved: "保存しました",
         },
         target: "登録先",
-        title: "カレンダー登録",
       },
       clipboard: {
         errors: {
@@ -251,9 +250,10 @@ export const resources = {
         searchBlocklist: {
           blockedCount: "ブロック件数",
           detectedCount: "検出件数",
-          empty: "アクティブなタブは検索結果ページではありません",
+          empty: "対象のタブでは検索結果ブロックが動作していません",
           engineId: "エンジン",
           loading: "確認中です…",
+          noSearchTab: "Google 検索結果のタブが開いていません",
           ruleRevision: "ルール世代",
           title: "検索結果ブロック診断",
           unavailable: "取得できませんでした",
@@ -266,7 +266,6 @@ export const resources = {
           downloaded: "ダウンロードしました",
           saved: "保存しました",
         },
-        title: "デバッグ",
       },
       history: {
         clearAll: "全削除",
@@ -292,9 +291,8 @@ export const resources = {
       },
       navigation: {
         actions: "アクション",
-        calendar: "カレンダー登録",
+        calendar: "カレンダー",
         createLink: "リンク作成",
-        debug: "デバッグ",
         history: "履歴",
         historyAria: "アクション履歴",
         searchBlocklist: "検索結果ブロック",
@@ -444,7 +442,6 @@ export const resources = {
           deleted: "削除しました",
           updated: "更新しました",
         },
-        title: "検索結果ブロック",
       },
       searchEngines: {
         description: "選択したテキストを検索エンジンで検索できます。",
@@ -516,6 +513,7 @@ export const resources = {
         apiToken: "{{provider}} API トークン",
         customPrompt: "追加指示",
         customPromptLegend: "追加指示（オプション）",
+        debugSection: "デバッグ",
         description: "AI設定はこの端末のみ（同期されません）",
         errors: {
           deleteFailed: "削除に失敗しました",
@@ -533,7 +531,6 @@ export const resources = {
         },
         testToken: "トークン確認",
         theme: "テーマ",
-        title: "設定",
         token: "トークン",
       },
       sidebar: {
@@ -566,6 +563,7 @@ export const resources = {
             notConfigured: "現在のタブはフォーカス維持の対象外です",
             reloadRequired: "現在のタブでは再読み込みで反映されます",
           },
+          pending: "診断待ち",
           pendingUrl: "現在のURLを確認しています",
           refresh: "再診断",
           reload: "このタブを再読み込み",
@@ -597,6 +595,10 @@ export const resources = {
           aria: "{{pattern}}の行フィルタリング",
           tooltip: "0円・ハイフン・空白・N/A の行を非表示にします",
         },
+        status: {
+          focus: "フォーカス維持 {{count}} 件",
+          urlPatterns: "自動ソート {{count}} 件",
+        },
         success: {
           added: "追加しました",
           addedReload: "追加しました。このタブでは再読み込みで反映されます",
@@ -604,20 +606,6 @@ export const resources = {
           enabled: "テーブルソートを有効化しました",
           reloaded: "このタブを再読み込みしました",
         },
-        summary: {
-          description:
-            "自動ソート対象サイトごとの行フィルタと、フォーカス維持の一致状況をこの画面で管理します。",
-          focus: "フォーカス維持",
-          focusDescription:
-            "現在のタブを確認するとフォーカス維持の一致状況を表示します",
-          notRegistered: "まだ登録されていません",
-          pending: "診断待ち",
-          registeredCount: "{{count}}件を登録済み",
-          title: "このタブに必要な設定をまとめて確認できます",
-          urlPatterns: "自動ソート対象サイト",
-          urlPatternsMeta: "* ワイルドカード対応 / protocolは無視",
-        },
-        title: "サイト別機能",
         urlPatterns: {
           description:
             "テーブルの自動ソートを有効にしたいサイトを URL パターンで登録できます。行フィルタはサイトごとに有効化できます。",

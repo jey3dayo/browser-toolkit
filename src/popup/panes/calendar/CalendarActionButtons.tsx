@@ -12,7 +12,7 @@ type Props = {
   onCopy: () => void;
   onOpenCalendar: () => void;
   onDownloadIcs: () => void;
-  copyState: CalendarActionButtonState;
+  copyState: { enabled: boolean };
   googleState: CalendarActionButtonState;
   icsState: CalendarActionButtonState;
 };

@@ -1,10 +1,7 @@
 import { useCallback } from "react";
 import { RadioFieldset } from "@/components/shared/RadioFieldset";
 import { t } from "@/i18n";
-import {
-  SettingsPaneCard,
-  settingsThemeOptionGroupVariants,
-} from "@/popup/panes/settings/SettingsPaneLayout";
+import { SettingsPaneCard } from "@/popup/panes/settings/SettingsPaneLayout";
 import { applyTheme, isTheme, type Theme } from "@/ui/theme";
 
 export type SettingsThemeSectionProps = {
@@ -37,9 +34,6 @@ export function SettingsThemeSection({
       <RadioFieldset
         groups={[
           {
-            className: settingsThemeOptionGroupVariants({
-              variant: "primary",
-            }),
             options: [
               { label: t("theme.dark"), value: "dark" },
               { label: t("theme.light"), value: "light" },
@@ -47,9 +41,6 @@ export function SettingsThemeSection({
             testId: "theme-primary-options",
           },
           {
-            className: settingsThemeOptionGroupVariants({
-              variant: "auto",
-            }),
             options: [{ label: t("theme.auto"), value: "auto" }],
             testId: "theme-auto-option",
           },

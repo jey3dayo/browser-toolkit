@@ -45,8 +45,8 @@ const directFieldClassPattern =
 const directLayoutWrapperPattern =
   /<div\s+className=["'](?:action-buttons|action-item|button-row|action-row|row-between|stack|stack-sm|pattern-input-row)["']/;
 const directCvaLayoutWrapperPattern =
-  /cva\(\s*["'](?:action-buttons|action-item|button-row|action-row|row-between|pattern-input-row|card card-stack|output-panel|editor-panel)["']/;
-const directPaneCardPattern = /className=["'][^"']*card card-stack/;
+  /cva\(\s*["'](?:action-buttons|action-item|button-row|action-row|row-between|pattern-input-row|pane-surface card-stack|output-panel|editor-panel)["']/;
+const directPaneCardPattern = /className=["'][^"']*pane-surface card-stack/;
 const directTypographyClassPattern =
   /className=["'][^"']*(?:action-title|editor-title|hint|empty-message|pane-title|pane-subtitle|meta-title)(?:\s|["'])/;
 const directPanelSectionClassPattern =
@@ -69,8 +69,7 @@ const directListItemRowTextClassPattern =
   /className=["'][^"']*(?:search-engine-name|search-engine-url)(?:\s|["'])/;
 const directAccordionPreviewClassPattern =
   /className=["'][^"']*mbu-accordion-(?:meta|note|text-wrapper|text)(?:\s|["'])/;
-const sharedDialogPopupClassPattern =
-  /(?:sidebar-brand|menu-scrim|menu-drawer|mbu-drawer-backdrop)/;
+const sharedDialogPopupClassPattern = /(?:sidebar-brand|mbu-drawer-backdrop)/;
 const directPatternAddFormClassPattern =
   /<Form[\s\S]*variant=["']patternGroup["'][\s\S]*<Input[\s\S]*variant=["']pattern["'][\s\S]*<Button[\s\S]*type=["']submit["']/;
 const lucideImportPattern = /from\s+["']lucide-react["']/;

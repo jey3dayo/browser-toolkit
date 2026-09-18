@@ -4,35 +4,51 @@
    * ====================================== */
 
   /* Color palette */
-  --primitive-color-slate-950: #0f1724;
-  --primitive-color-slate-900: #1b2334;
-  --primitive-color-slate-850: #232d42;
-  --primitive-color-slate-800: #263147;
-  --primitive-color-slate-100: #f6f7fb;
-  --primitive-color-slate-200: #c8d0e5;
+  --primitive-color-neutral-950: #0c0d10;
+  --primitive-color-neutral-900: #15171c;
+  --primitive-color-neutral-850: #1c1f26;
+  --primitive-color-neutral-800: #262a33;
+  --primitive-color-neutral-100: #ececef;
+  --primitive-color-neutral-300: #9aa0ac;
 
-  --primitive-color-gray-50: #ffffff;
-  --primitive-color-gray-100: #f3f4f6;
-  --primitive-color-gray-900: #111827;
+  --primitive-color-neutral-50: #f6f6f8;
+  --primitive-color-neutral-0: #ffffff;
+  --primitive-color-neutral-150: #f0f1f4;
+  --primitive-color-neutral-200: #e2e4ea;
+  --primitive-color-neutral-900-light: #16181d;
+  --primitive-color-neutral-600: #6b7080;
 
-  --primitive-color-green-500: #3ecf8e;
-  --primitive-color-cyan-300: #7bdcf7;
-  --primitive-color-blue-500: #4285f4;
-  --primitive-color-blue-600: #1b64da;
-  --primitive-color-red-400: #e57373;
-  --primitive-color-red-600: #e53935;
+  --primitive-color-accent-500: #7c8cff;
+  --primitive-color-accent-600: #6674f5;
+  --primitive-color-accent-700: #4f5fe0;
+  --primitive-color-accent-800: #3f4dc7;
+
+  --primitive-color-danger-500: #f07178;
+  --primitive-color-danger-600: #d64545;
 
   /* Alpha helpers */
+  --primitive-alpha-white-03: rgba(255, 255, 255, 0.03);
   --primitive-alpha-white-04: rgba(255, 255, 255, 0.04);
   --primitive-alpha-white-06: rgba(255, 255, 255, 0.06);
   --primitive-alpha-white-08: rgba(255, 255, 255, 0.08);
   --primitive-alpha-white-10: rgba(255, 255, 255, 0.1);
   --primitive-alpha-white-12: rgba(255, 255, 255, 0.12);
+  --primitive-alpha-white-38: rgba(255, 255, 255, 0.38);
+  --primitive-alpha-white-42: rgba(255, 255, 255, 0.42);
+  --primitive-alpha-white-45: rgba(255, 255, 255, 0.45);
 
+  --primitive-alpha-black-06: rgba(0, 0, 0, 0.06);
   --primitive-alpha-black-08: rgba(0, 0, 0, 0.08);
   --primitive-alpha-black-12: rgba(0, 0, 0, 0.12);
+  --primitive-alpha-black-22: rgba(0, 0, 0, 0.22);
+  --primitive-alpha-black-24: rgba(0, 0, 0, 0.24);
+  --primitive-alpha-black-25: rgba(0, 0, 0, 0.25);
   --primitive-alpha-black-28: rgba(0, 0, 0, 0.28);
+  --primitive-alpha-black-30: rgba(0, 0, 0, 0.3);
   --primitive-alpha-black-35: rgba(0, 0, 0, 0.35);
+
+  --primitive-alpha-ink-06: rgba(16, 18, 24, 0.06);
+  --primitive-alpha-ink-12: rgba(16, 18, 24, 0.12);
 
   /* Spacing scale */
   --primitive-space-0: 0;
@@ -60,41 +76,53 @@
 
   /* Typography */
   --primitive-font-sans: "Segoe UI", "Helvetica Neue", system-ui, sans-serif;
-  --primitive-font-size-12: 12px;
-  --primitive-font-size-13: 13px;
-  --primitive-font-size-14: 14px;
-  --primitive-font-size-16: 16px;
 }
 
 :host {
-  --primitive-color-slate-950: #0f1724;
-  --primitive-color-slate-900: #1b2334;
-  --primitive-color-slate-850: #232d42;
-  --primitive-color-slate-800: #263147;
-  --primitive-color-slate-100: #f6f7fb;
-  --primitive-color-slate-200: #c8d0e5;
+  --primitive-color-neutral-950: #0c0d10;
+  --primitive-color-neutral-900: #15171c;
+  --primitive-color-neutral-850: #1c1f26;
+  --primitive-color-neutral-800: #262a33;
+  --primitive-color-neutral-100: #ececef;
+  --primitive-color-neutral-300: #9aa0ac;
 
-  --primitive-color-gray-50: #ffffff;
-  --primitive-color-gray-100: #f3f4f6;
-  --primitive-color-gray-900: #111827;
+  --primitive-color-neutral-50: #f6f6f8;
+  --primitive-color-neutral-0: #ffffff;
+  --primitive-color-neutral-150: #f0f1f4;
+  --primitive-color-neutral-200: #e2e4ea;
+  --primitive-color-neutral-900-light: #16181d;
+  --primitive-color-neutral-600: #6b7080;
 
-  --primitive-color-green-500: #3ecf8e;
-  --primitive-color-cyan-300: #7bdcf7;
-  --primitive-color-blue-500: #4285f4;
-  --primitive-color-blue-600: #1b64da;
-  --primitive-color-red-400: #e57373;
-  --primitive-color-red-600: #e53935;
+  --primitive-color-accent-500: #7c8cff;
+  --primitive-color-accent-600: #6674f5;
+  --primitive-color-accent-700: #4f5fe0;
+  --primitive-color-accent-800: #3f4dc7;
 
+  --primitive-color-danger-500: #f07178;
+  --primitive-color-danger-600: #d64545;
+
+  --primitive-alpha-white-03: rgba(255, 255, 255, 0.03);
   --primitive-alpha-white-04: rgba(255, 255, 255, 0.04);
   --primitive-alpha-white-06: rgba(255, 255, 255, 0.06);
   --primitive-alpha-white-08: rgba(255, 255, 255, 0.08);
   --primitive-alpha-white-10: rgba(255, 255, 255, 0.1);
   --primitive-alpha-white-12: rgba(255, 255, 255, 0.12);
+  --primitive-alpha-white-38: rgba(255, 255, 255, 0.38);
+  --primitive-alpha-white-42: rgba(255, 255, 255, 0.42);
+  --primitive-alpha-white-45: rgba(255, 255, 255, 0.45);
 
+  --primitive-alpha-black-06: rgba(0, 0, 0, 0.06);
   --primitive-alpha-black-08: rgba(0, 0, 0, 0.08);
   --primitive-alpha-black-12: rgba(0, 0, 0, 0.12);
+  --primitive-alpha-black-22: rgba(0, 0, 0, 0.22);
+  --primitive-alpha-black-24: rgba(0, 0, 0, 0.24);
+  --primitive-alpha-black-25: rgba(0, 0, 0, 0.25);
   --primitive-alpha-black-28: rgba(0, 0, 0, 0.28);
+  --primitive-alpha-black-30: rgba(0, 0, 0, 0.3);
   --primitive-alpha-black-35: rgba(0, 0, 0, 0.35);
+
+  --primitive-alpha-ink-06: rgba(16, 18, 24, 0.06);
+  --primitive-alpha-ink-12: rgba(16, 18, 24, 0.12);
 
   --primitive-space-0: 0;
   --primitive-space-1: 4px;
@@ -118,8 +146,4 @@
   --primitive-shadow-popover: 0 22px 60px rgba(0, 0, 0, 0.42);
 
   --primitive-font-sans: "Segoe UI", "Helvetica Neue", system-ui, sans-serif;
-  --primitive-font-size-12: 12px;
-  --primitive-font-size-13: 13px;
-  --primitive-font-size-14: 14px;
-  --primitive-font-size-16: 16px;
 }

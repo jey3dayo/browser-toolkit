@@ -1,8 +1,8 @@
 import type { IconName } from "@/components/icon";
 import type { TranslationKey } from "@/i18n";
-import type { PaneId } from "@/popup/panes";
+import { getPaneSurface, type PaneId, type PaneSurface } from "@/popup/panes";
 
-type NavigationItem = {
+export type NavigationItem = {
   id: PaneId;
   labelKey: TranslationKey;
   icon: IconName;
@@ -23,16 +23,22 @@ export const navigationItems: NavigationItem[] = [
     labelKey: "navigation.calendar",
   },
   {
-    ariaLabelKey: "navigation.table",
-    icon: "table",
-    id: "pane-table",
-    labelKey: "navigation.table",
-  },
-  {
     ariaLabelKey: "navigation.createLink",
     icon: "link",
     id: "pane-create-link",
     labelKey: "navigation.createLink",
+  },
+  {
+    ariaLabelKey: "navigation.searchBlocklist",
+    icon: "circle-slash",
+    id: "pane-search-blocklist",
+    labelKey: "navigation.searchBlocklist",
+  },
+  {
+    ariaLabelKey: "navigation.table",
+    icon: "table",
+    id: "pane-table",
+    labelKey: "navigation.table",
   },
   {
     ariaLabelKey: "navigation.searchEngines",
@@ -47,12 +53,6 @@ export const navigationItems: NavigationItem[] = [
     labelKey: "navigation.searchGroups",
   },
   {
-    ariaLabelKey: "navigation.searchBlocklist",
-    icon: "circle-slash",
-    id: "pane-search-blocklist",
-    labelKey: "navigation.searchBlocklist",
-  },
-  {
     ariaLabelKey: "navigation.templates",
     icon: "file-text",
     id: "pane-templates",
@@ -65,15 +65,13 @@ export const navigationItems: NavigationItem[] = [
     labelKey: "navigation.history",
   },
   {
-    ariaLabelKey: "navigation.debug",
-    icon: "bug",
-    id: "pane-debug",
-    labelKey: "navigation.debug",
-  },
-  {
     ariaLabelKey: "navigation.settings",
     icon: "settings",
     id: "pane-settings",
     labelKey: "navigation.settings",
   },
 ];
+
+export function getNavigationItems(surface: PaneSurface): NavigationItem[] {
+  return navigationItems.filter((item) => getPaneSurface(item.id) === surface);
+}

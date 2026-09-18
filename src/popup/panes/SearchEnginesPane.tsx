@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 import { SortableList } from "@/components/SortableList";
 import { Button } from "@/components/shared/Button";
-import { PaneCard, RowBetween, Stack } from "@/components/shared/Layout";
-import { EmptyMessage, Hint, PaneTitle } from "@/components/shared/Typography";
+import { ButtonRow, PaneCard, Stack } from "@/components/shared/Layout";
+import { EmptyMessage, Hint } from "@/components/shared/Typography";
 import { t } from "@/i18n";
 import { SearchEngineAddForm } from "@/popup/panes/search-engines/SearchEngineAddForm";
 import { SearchEngineListItem } from "@/popup/panes/search-engines/SearchEngineListItem";
@@ -34,8 +34,7 @@ export function SearchEnginesPane(
 
   return (
     <PaneCard>
-      <RowBetween>
-        <PaneTitle>{t("searchEngines.title")}</PaneTitle>
+      <ButtonRow>
         <Button
           data-testid="reset-search-engines"
           onClick={handleReset}
@@ -45,7 +44,7 @@ export function SearchEnginesPane(
         >
           {t("common.resetToDefaults")}
         </Button>
-      </RowBetween>
+      </ButtonRow>
 
       <Stack>
         <Hint as="div">{t("searchEngines.description")}</Hint>

@@ -12,8 +12,7 @@ function ActionsPaneStory(props: ActionsPaneProps): React.JSX.Element {
 
 const meta = {
   argTypes: {
-    focusTokenInput: { control: false },
-    navigateToPane: { control: false },
+    navigate: { control: false },
     notify: { control: false },
     runtime: { control: false },
   },
@@ -27,8 +26,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Basic: Story = {
   args: {
-    focusTokenInput: fn(),
-    navigateToPane: fn(),
+    navigate: fn(),
     notify: { error: fn(), info: fn(), success: fn() },
     runtime: createStoryPopupRuntime({
       background: {

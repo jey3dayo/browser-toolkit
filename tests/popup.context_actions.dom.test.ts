@@ -224,6 +224,9 @@ describe("popup context actions (React UI)", () => {
     const output = dom.window.document.querySelector<HTMLTextAreaElement>(
       '[data-testid="action-output"]'
     );
-    expect(output?.value).toBe("");
+    expect(output).toBeNull();
+    expect(
+      dom.window.document.querySelector('[data-testid="action-output-empty"]')
+    ).not.toBeNull();
   });
 });

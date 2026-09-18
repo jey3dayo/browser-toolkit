@@ -1,9 +1,16 @@
 .table-pane {
-  gap: 18px;
+  gap: var(--spacing-sm);
 }
 
 .table-pane-header {
-  gap: 14px;
+  gap: var(--spacing-xs);
+}
+
+.table-pane-status {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  color: var(--text-sub);
 }
 
 .table-pane-heading {
@@ -11,113 +18,15 @@
   align-items: flex-start;
 }
 
-.table-pane-heading .pane-title {
-  flex: 1;
-  min-width: 0;
-}
-
-.table-pane-summary {
-  display: grid;
-  gap: 14px;
-  padding: 16px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in oklab, var(--color-primary) 18%, transparent),
-    color-mix(in oklab, var(--color-primary-2) 14%, transparent)
-  );
-  border: 1px solid color-mix(in oklab, var(--color-primary-2) 18%, var(--line));
-  border-radius: 16px;
-}
-
-.table-pane-summary-heading {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: flex-start;
-  justify-content: space-between;
-}
-
-.table-pane-summary-heading > .stack-sm {
-  flex: 1;
-  min-width: 0;
-}
-
-.table-pane-summary-title,
-.table-pane-summary-copy,
-.table-pane-summary-label,
-.table-pane-summary-value,
-.table-pane-summary-meta {
-  margin: 0;
-}
-
-.table-pane-summary-title {
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1.5;
-  color: var(--text);
-}
-
-.table-pane-summary-copy {
-  font-size: 12px;
-  line-height: 1.55;
-  color: var(--text-sub);
-}
-
-.table-pane-summary-status {
-  align-self: start;
-}
-
-.table-pane-summary-grid {
-  display: grid;
-  gap: 10px;
-}
-
-.table-pane-summary-item {
-  display: grid;
-  gap: 6px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
-}
-
-.table-pane-summary-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-sub);
-  text-transform: uppercase;
-  letter-spacing: 0.7px;
-}
-
-.table-pane-summary-value {
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1.4;
-  color: var(--text);
-}
-
-.table-pane-summary-meta {
-  font-size: 12px;
-  line-height: 1.55;
-  color: var(--text-sub);
-}
-
-.table-pane-summary-meta code {
-  padding: 1px 6px;
-  font-size: 11px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-}
-
 .table-pane-section {
   display: grid;
-  gap: 12px;
-  padding: 16px;
-  background: color-mix(in oklab, var(--panel-soft) 92%, transparent);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  gap: var(--spacing-sm);
+  padding: 0;
+}
+
+.table-pane-section + .table-pane-section {
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 .table-pane-section-heading {
@@ -139,12 +48,8 @@
 .pattern-list {
   position: relative;
   max-height: 320px;
-  padding: 8px;
+  padding: 0;
   margin: 0;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px dashed var(--line);
-  border-radius: 14px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .pattern-scrollarea {
@@ -163,10 +68,10 @@
   width: 0.35rem;
   margin: 0.5rem;
   pointer-events: none;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 999px;
+  background: var(--primitive-alpha-white-08);
+  border-radius: var(--radius-pill);
   opacity: 0;
-  transition: opacity 150ms;
+  transition: opacity var(--motion-duration-fast);
 }
 
 .pattern-scrollbar[data-state="hidden"] {
@@ -185,20 +90,17 @@
 
 .pattern-thumb {
   width: 100%;
-  background: rgba(255, 255, 255, 0.38);
+  background: var(--primitive-alpha-white-38);
   border-radius: inherit;
 }
 
 .pattern-item {
   display: grid;
-  gap: 10px;
+  gap: var(--spacing-sm);
   align-items: center;
   min-height: 48px;
-  padding: 10px 12px;
-  margin-bottom: 8px;
-  background: color-mix(in oklab, var(--panel) 92%, transparent);
-  border: 1px solid color-mix(in oklab, var(--line) 92%, transparent);
-  border-radius: 12px;
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .pattern-item--with-toggle {
@@ -210,14 +112,14 @@
 }
 
 .pattern-item:last-child {
-  margin-bottom: 0;
+  border-bottom: none;
 }
 
 .pattern-text {
   flex: 1;
   min-width: 0;
   padding-right: 0;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   line-height: 1.4;
   word-break: break-all;
   overflow-wrap: anywhere;
@@ -285,7 +187,7 @@
   min-height: 110px;
   padding: 12px;
   font: inherit;
-  font-size: 13px;
+  font-size: var(--font-size-md);
   line-height: 1.5;
   color: var(--input-text);
   resize: vertical;
@@ -303,7 +205,7 @@
   min-height: 160px;
   padding: 12px;
   font: inherit;
-  font-size: 13px;
+  font-size: var(--font-size-md);
   line-height: 1.5;
   color: var(--input-text);
   resize: vertical;
@@ -324,13 +226,13 @@
   max-height: 400px;
   padding: 12px;
   overflow: auto;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   line-height: 1.5;
   word-break: break-word;
   white-space: pre-wrap;
   background: color-mix(in oklab, var(--panel-soft) 88%, transparent);
   border: 1px solid color-mix(in oklab, var(--line) 90%, transparent);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
 }
 
 .field-label {
@@ -342,7 +244,7 @@
 
 .hint {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   line-height: 1.5;
   color: var(--text-sub);
 }
@@ -358,12 +260,12 @@ input[type="checkbox"] {
 .empty-message {
   padding: 14px;
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   line-height: 1.55;
   color: var(--text-sub);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--primitive-alpha-white-03);
   border: 1px dashed var(--line);
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
 }
 
 .focus-diagnostic-panel {
@@ -376,7 +278,7 @@ input[type="checkbox"] {
     color-mix(in oklab, var(--panel-soft) 92%, transparent)
   );
   border: 1px solid color-mix(in oklab, var(--line) 96%, transparent);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
 }
 
 .focus-diagnostic-panel > .row-between {
@@ -386,7 +288,7 @@ input[type="checkbox"] {
 
 .focus-diagnostic-eyebrow {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--text-sub);
   text-transform: uppercase;
   letter-spacing: 0.6px;
@@ -402,10 +304,10 @@ input[type="checkbox"] {
   align-items: center;
   width: fit-content;
   padding: 4px 10px;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-weight: 700;
   line-height: 1.2;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .focus-diagnostic-status--neutral {
@@ -440,9 +342,9 @@ input[type="checkbox"] {
   line-height: 1.5;
   word-break: break-all;
   overflow-wrap: anywhere;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--primitive-alpha-white-04);
   border: 1px dashed color-mix(in oklab, var(--line) 90%, transparent);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
 }
 
 .focus-diagnostic-actions {
@@ -453,7 +355,7 @@ input[type="checkbox"] {
 .focus-diagnostic-meta,
 .focus-diagnostic-loading {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   line-height: 1.55;
 }
 
@@ -467,14 +369,7 @@ input[type="checkbox"] {
 }
 
 .settings-surface {
-  gap: 16px;
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--panel) 98%, transparent),
-      color-mix(in oklab, var(--panel-soft) 82%, transparent)
-    ),
-    var(--panel);
+  gap: var(--spacing-md);
 }
 
 .settings-surface-heading {
@@ -490,7 +385,7 @@ input[type="checkbox"] {
 .settings-section-label {
   align-self: center;
   min-width: 0;
-  font-size: 13px;
+  font-size: var(--font-size-md);
   font-weight: 700;
   line-height: 1.4;
   color: var(--text);
@@ -503,20 +398,20 @@ input[type="checkbox"] {
   padding: 14px;
   background: color-mix(in oklab, var(--panel) 94%, transparent);
   border: 1px solid color-mix(in oklab, var(--line) 92%, transparent);
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
 }
 
 .settings-status-note {
   width: fit-content;
   padding: 8px 10px;
-  color: color-mix(in oklab, var(--color-primary-2) 70%, var(--text));
+  color: color-mix(in oklab, var(--color-primary) 70%, var(--text));
   background: color-mix(
     in oklab,
-    var(--color-primary-2) var(--accent-mix-12),
+    var(--color-primary) var(--accent-mix-12),
     transparent
   );
-  border: 1px solid color-mix(in oklab, var(--color-primary-2) 26%, var(--line));
-  border-radius: 10px;
+  border: 1px solid color-mix(in oklab, var(--color-primary) 26%, var(--line));
+  border-radius: var(--radius-sm);
 }
 
 /* Pane heading, not a hero card: no surface of its own so the first real
@@ -530,11 +425,6 @@ input[type="checkbox"] {
   box-shadow: none;
 }
 
-.settings-pane-overview .pane-title {
-  font-size: 15px;
-  line-height: 1.4;
-}
-
 .settings-pane-overview .hint {
   max-width: 48ch;
   color: color-mix(in oklab, var(--text-sub) 92%, var(--text));
@@ -542,12 +432,17 @@ input[type="checkbox"] {
 
 .settings-pane-card {
   display: grid;
-  gap: 12px;
-  padding: var(--card-padding);
-  background: color-mix(in oklab, var(--panel) 96%, transparent);
-  border: 1px solid color-mix(in oklab, var(--line) 92%, transparent);
-  border-radius: var(--radius-lg);
+  gap: var(--spacing-sm);
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
   box-shadow: none;
+}
+
+.settings-pane-card + .settings-pane-card {
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 .settings-pane-card > .field,
@@ -557,7 +452,7 @@ input[type="checkbox"] {
 }
 
 .settings-pane-card .mbu-fieldset-legend {
-  font-size: 13px;
+  font-size: var(--font-size-md);
   font-weight: 700;
   color: var(--text);
   opacity: 1;
@@ -569,7 +464,7 @@ input[type="checkbox"] {
 
 .settings-pane-card .hint {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   line-height: 1.55;
 }
 
@@ -607,12 +502,19 @@ input[type="checkbox"] {
   color: var(--text);
 }
 
-.settings-pane-card[data-section="provider"] .mbu-radio-group--horizontal {
-  gap: 8px;
+.settings-pane-card .mbu-radio-group--horizontal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm) var(--spacing-lg);
+  align-items: center;
+}
+
+.settings-pane-card .mbu-radio-group--horizontal > .mbu-fieldset-legend {
+  flex-basis: 100%;
 }
 
 .settings-pane-card[data-section="token"] {
-  gap: 14px;
+  gap: var(--spacing-md);
 }
 
 /* Buttons size to their label. Stretching 保存 across half the card made the
@@ -626,49 +528,21 @@ input[type="checkbox"] {
 
 .settings-pane-card .settings-token-danger-actions {
   display: flex;
-  justify-content: flex-start;
+  margin-left: auto;
 }
 
 .settings-pane-card[data-section="prompt"] {
-  gap: 14px;
+  gap: var(--spacing-md);
 }
 
 .settings-pane-card[data-section="theme"] {
-  gap: 14px;
-}
-
-.settings-pane-card[data-section="theme"] .mbu-radio-group--horizontal {
-  grid-template-columns: minmax(0, 1fr);
-  grid-auto-flow: row;
-  gap: 10px;
-}
-
-.settings-pane-card .settings-theme-primary-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 20px;
-}
-
-.settings-pane-card .settings-theme-auto-option {
-  display: grid;
-  gap: 8px;
-  padding-top: 2px;
-}
-
-.settings-pane-card[data-section="theme"] .mbu-radio-label {
-  align-items: flex-start;
+  gap: var(--spacing-md);
 }
 
 .calendar-settings-pane .settings-pane-card,
 .debug-settings-pane .settings-pane-card,
 .templates-settings-pane .settings-pane-card {
-  gap: 14px;
-}
-
-.calendar-settings-pane .button-row,
-.debug-settings-pane .button-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(108px, 1fr));
+  gap: var(--spacing-md);
 }
 
 .templates-settings-pane .sortable-list {
@@ -683,12 +557,6 @@ input[type="checkbox"] {
   flex-shrink: 0;
 }
 
-@media (min-width: 720px) {
-  .table-pane-summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 .mbu-build-error {
   position: fixed;
   right: 12px;
@@ -696,12 +564,12 @@ input[type="checkbox"] {
   left: 12px;
   z-index: 2147483647;
   padding: 10px 12px;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-weight: 700;
-  color: #fff;
-  background: rgba(229, 57, 53, 0.92);
-  border-radius: 12px;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+  color: var(--primitive-color-neutral-0);
+  background: color-mix(in oklab, var(--color-danger) 92%, transparent);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 24px var(--primitive-alpha-black-30);
 }
 
 /* Search Engine Settings UI */
@@ -718,7 +586,7 @@ input[type="checkbox"] {
   padding: 8px 12px;
   background: var(--color-surface);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 
 .search-engine-item + .search-engine-item {
@@ -746,7 +614,7 @@ input[type="checkbox"] {
   gap: 6px;
   align-items: center;
   /* Align engine name and encoding badge */
-  font-size: 14px;
+  font-size: var(--font-size-md);
   font-weight: 500;
   line-height: 1.4;
   color: var(--text);
@@ -755,10 +623,10 @@ input[type="checkbox"] {
 .badge {
   display: inline-block;
   padding: 1px 6px;
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   line-height: 1.4;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .badge-info {
@@ -772,9 +640,9 @@ input[type="checkbox"] {
 
 .search-engine-url {
   font-family: "Consolas", "Monaco", "Courier New", monospace;
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   line-height: 1.4;
-  color: var(--text-secondary);
+  color: var(--text-sub);
   word-break: break-all;
 }
 
@@ -828,7 +696,7 @@ input[type="checkbox"] {
   margin-top: -1px;
   background: color-mix(in oklab, var(--color-surface) 85%, transparent);
   border-top: 1px solid var(--line);
-  border-radius: 0 0 8px 8px;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
 }
 
 .group-engine-item {
@@ -843,7 +711,7 @@ input[type="checkbox"] {
 }
 
 .group-engine-name {
-  font-size: 13px;
+  font-size: var(--font-size-md);
   color: var(--text);
 }
 

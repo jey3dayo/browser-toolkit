@@ -31,7 +31,7 @@ describe("background: search blocklist runtime requests", () => {
     vi.unstubAllGlobals();
   });
 
-  it("opens popup.html at the requested pane for a valid pane id", async () => {
+  it("opens the surface page that hosts the requested pane", async () => {
     const chromeStub = stubChromeWithTabsCreate(listeners);
     const { registerRuntimeMessageHandlers } = await import(
       "@/background/runtime"
@@ -49,7 +49,7 @@ describe("background: search blocklist runtime requests", () => {
     await Promise.resolve();
 
     expect(chromeStub.tabs.create).toHaveBeenCalledWith({
-      url: "popup.html#pane-history",
+      url: "options.html#pane-history",
     });
     expect(sendResponse).toHaveBeenCalledWith({ ok: true });
   });
@@ -91,7 +91,7 @@ describe("background: search blocklist runtime requests", () => {
     await Promise.resolve();
 
     expect(chromeStub.tabs.create).toHaveBeenCalledWith({
-      url: "popup.html#pane-settings",
+      url: "options.html#pane-settings",
     });
     expect(sendResponse).toHaveBeenCalledWith({ ok: true });
   });

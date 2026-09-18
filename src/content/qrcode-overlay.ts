@@ -31,15 +31,10 @@ function removeCurrentOverlay(): void {
 function createCloseButton(onClose: () => void): HTMLButtonElement {
   const btn = document.createElement("button");
   btn.textContent = t("qrCodeOverlay.close");
+  btn.className = "btn btn-primary";
   btn.style.cssText = [
-    "margin-top: 12px",
-    "padding: 6px 20px",
-    "border: none",
-    "border-radius: 6px",
-    "background: var(--color-primary, #4285f4)",
-    "color: #fff",
-    "font-size: 14px",
-    "cursor: pointer",
+    "margin-top: var(--spacing-sm)",
+    "font-size: var(--font-size-md)",
   ].join(";");
   btn.addEventListener("click", onClose);
   return btn;
@@ -51,7 +46,7 @@ function createDialog(url: string, onClose: () => void): HTMLDivElement {
   backdrop.style.cssText = [
     "position: fixed",
     "inset: 0",
-    "background: rgba(0,0,0,0.5)",
+    "background: var(--color-scrim)",
     "display: flex",
     "align-items: center",
     "justify-content: center",
@@ -68,15 +63,16 @@ function createDialog(url: string, onClose: () => void): HTMLDivElement {
   card.setAttribute("aria-modal", "true");
   card.setAttribute("role", "dialog");
   card.style.cssText = [
-    "background: var(--color-bg-base, #fff)",
-    "color: var(--color-text-primary, #333)",
-    "border-radius: 12px",
-    "padding: 24px",
+    "background: var(--mbu-surface)",
+    "color: var(--mbu-text)",
+    "border: 1px solid var(--mbu-border)",
+    "border-radius: var(--radius-md)",
+    "padding: var(--spacing-lg)",
     "display: flex",
     "flex-direction: column",
     "align-items: center",
-    "gap: 12px",
-    "box-shadow: 0 8px 32px rgba(0,0,0,0.24)",
+    "gap: var(--spacing-sm)",
+    "box-shadow: var(--mbu-shadow)",
     "max-width: 320px",
     "width: 100%",
   ].join(";");
@@ -84,7 +80,8 @@ function createDialog(url: string, onClose: () => void): HTMLDivElement {
   const title = document.createElement("p");
   title.id = titleId;
   title.textContent = t("qrCodeOverlay.title");
-  title.style.cssText = "margin: 0; font-size: 16px; font-weight: bold;";
+  title.style.cssText =
+    "margin: 0; font-size: var(--font-size-lg); font-weight: bold;";
 
   const canvas = document.createElement("canvas");
 
@@ -92,11 +89,11 @@ function createDialog(url: string, onClose: () => void): HTMLDivElement {
   urlText.textContent = url;
   urlText.style.cssText = [
     "margin: 0",
-    "font-size: 11px",
+    "font-size: var(--font-size-xs)",
+    "color: var(--mbu-text-muted)",
     "word-break: break-all",
     "max-width: 240px",
     "text-align: center",
-    "opacity: 0.7",
   ].join(";");
 
   const closeBtn = createCloseButton(onClose);
@@ -110,7 +107,7 @@ function createDialog(url: string, onClose: () => void): HTMLDivElement {
   QRCode.toCanvas(canvas, url, { margin: 2, width: 200 }).catch(() => {
     const errorMsg = document.createElement("p");
     errorMsg.textContent = t("qrCodeOverlay.errors.generation");
-    errorMsg.style.cssText = "margin: 0; color: var(--color-error, #e53935);";
+    errorMsg.style.cssText = "margin: 0; color: var(--mbu-danger);";
     canvas.replaceWith(errorMsg);
   });
 

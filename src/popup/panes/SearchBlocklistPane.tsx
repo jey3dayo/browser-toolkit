@@ -3,7 +3,7 @@ import { PaneCard } from "@/components/shared/Layout";
 import { PatternAddForm } from "@/components/shared/PatternAddForm";
 import { PatternList } from "@/components/shared/PatternListItem";
 import { ScrollArea } from "@/components/shared/ScrollArea";
-import { EmptyMessage, Hint, PaneTitle } from "@/components/shared/Typography";
+import { EmptyMessage, Hint } from "@/components/shared/Typography";
 import { t } from "@/i18n";
 import { SearchBlocklistListItem } from "@/popup/panes/search-blocklist/SearchBlocklistListItem";
 import { useSearchBlocklistRules } from "@/popup/panes/search-blocklist/useSearchBlocklistRules";
@@ -18,6 +18,7 @@ export function SearchBlocklistPane(
     rules,
     corrupted,
     corruptedCount,
+    addError,
     patternInput,
     setPatternInput,
     addRule,
@@ -36,7 +37,6 @@ export function SearchBlocklistPane(
 
   return (
     <PaneCard className="search-blocklist-pane">
-      <PaneTitle>{t("searchBlocklist.title")}</PaneTitle>
       <Hint as="div">{t("searchBlocklist.description")}</Hint>
 
       {corrupted ? (
@@ -51,6 +51,8 @@ export function SearchBlocklistPane(
 
       <PatternAddForm
         buttonTestId="search-blocklist-add"
+        errorMessage={addError ?? undefined}
+        errorTestId="search-blocklist-error"
         inputTestId="search-blocklist-input"
         onSubmit={addRule}
         onSubmitError={handleSubmitError}
