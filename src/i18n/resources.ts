@@ -530,7 +530,6 @@ export const resources = {
         },
         testToken: "トークン確認",
         theme: "テーマ",
-        title: "設定",
         token: "トークン",
       },
       sidebar: {
