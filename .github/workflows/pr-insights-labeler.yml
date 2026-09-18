@@ -35,6 +35,7 @@ jobs:
             src/components/Form/Schedule/Event.tsx
             src/components/Form/Schedule/Room.tsx
             src/stores/AppStore.tsx
+            src/styles/tokens/components/popup-misc.css
             **/*.generated.ts
             __snapshots__/**
             test/fixtures/**
