@@ -22,6 +22,7 @@ const buildOptions = {
     "src/background.ts",
     "src/content.ts",
     "src/popup.ts",
+    "src/options.ts",
     "src/focus-override.ts",
     "src/search-blocklist.ts",
   ],

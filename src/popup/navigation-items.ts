@@ -1,10 +1,10 @@
 import type { IconName } from "@/components/icon";
 import type { TranslationKey } from "@/i18n";
-import type { PaneId } from "@/popup/panes";
+import type { PaneId, PaneSurface } from "@/popup/panes";
 
 export type NavigationGroup = "daily" | "manage";
 
-type NavigationItem = {
+export type NavigationItem = {
   id: PaneId;
   labelKey: TranslationKey;
   icon: IconName;
@@ -84,3 +84,13 @@ export const navigationItems: NavigationItem[] = [
     labelKey: "navigation.settings",
   },
 ];
+
+const GROUP_BY_SURFACE: Record<PaneSurface, NavigationGroup> = {
+  options: "manage",
+  popup: "daily",
+};
+
+export function getNavigationItems(surface: PaneSurface): NavigationItem[] {
+  const group = GROUP_BY_SURFACE[surface];
+  return navigationItems.filter((item) => item.group === group);
+}

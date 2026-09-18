@@ -14,7 +14,7 @@ import {
 } from "@/components/shared/Typography";
 import type { ContextAction } from "@/context_actions";
 import { t } from "@/i18n";
-import type { PaneId } from "@/popup/panes";
+import type { PaneNavigator } from "@/popup/panes";
 import { ActionButtons } from "@/popup/panes/actions/ActionButtons";
 import { ActionEditorPanel } from "@/popup/panes/actions/ActionEditorPanel";
 import { ActionOutputPanel } from "@/popup/panes/actions/ActionOutputPanel";
@@ -28,8 +28,7 @@ import type { Notifier } from "@/ui/toast";
 export type ActionsPaneProps = {
   runtime: PopupRuntime;
   notify: Notifier;
-  navigateToPane: (paneId: PaneId) => void;
-  focusTokenInput: () => void;
+  navigate: PaneNavigator;
 };
 
 export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
@@ -62,8 +61,7 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
     targetSourceLabel,
   } = useActionRunner({
     actionsById,
-    focusTokenInput: props.focusTokenInput,
-    navigateToPane: props.navigateToPane,
+    navigate: props.navigate,
     notify: props.notify,
     runtime: props.runtime,
   });

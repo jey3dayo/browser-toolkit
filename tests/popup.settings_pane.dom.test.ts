@@ -27,7 +27,7 @@ describe("popup Settings pane", () => {
   beforeEach(async () => {
     vi.resetModules();
 
-    dom = createPopupDom("chrome-extension://test/popup.html#pane-settings");
+    dom = createPopupDom("chrome-extension://test/options.html#pane-settings");
     chromeStub = createPopupChromeStub();
 
     chromeStub.storage.local.get.mockImplementation(
@@ -67,7 +67,7 @@ describe("popup Settings pane", () => {
     registerPopupTestHooks();
 
     await act(async () => {
-      await import("@/popup.ts");
+      await import("@/options.ts");
       await flush(dom.window);
     });
   }, POPUP_IMPORT_HOOK_TIMEOUT_MS);

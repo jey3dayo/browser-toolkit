@@ -1,5 +1,6 @@
 import { Result } from "@praha/byethrow";
 import type { SummaryTarget } from "@/background/types";
+import type { PaneId, PaneNavigateOptions } from "@/popup/panes";
 import type { LocalStorageData, SyncStorageData } from "@/storage/types";
 import { toErrorMessage } from "@/utils/errors";
 import { matchesAnyPattern } from "@/utils/url-pattern";
@@ -97,6 +98,10 @@ export type PopupRuntime = {
     message: TRequest
   ) => Result.ResultAsync<TResponse, string>;
   openUrl: (url: string) => void;
+  openOptionsPane: (
+    paneId: PaneId,
+    options?: PaneNavigateOptions
+  ) => Result.ResultAsync<void, string>;
 };
 
 const FALLBACK_STORAGE_PREFIX = "mbu:popup:";
@@ -451,6 +456,32 @@ export function createPopupRuntime(): PopupRuntime {
     }, "タブへのメッセージ送信に失敗しました");
   };
 
+  const openOptionsPane: PopupRuntime["openOptionsPane"] = async (
+    paneId,
+    options
+  ) => {
+    if (!hasChromeApi(isExtensionPage, "tabs")) {
+      return Result.fail(
+        "拡張機能として開いてください（chrome-extension://...）"
+      );
+    }
+
+    const focusQuery = options?.focus === "token" ? "?focus=token" : "";
+    return await wrapChromeApi<void>((resolve, reject) => {
+      chrome.tabs.create(
+        { url: chrome.runtime.getURL(`options.html#${paneId}${focusQuery}`) },
+        () => {
+          const err = chrome.runtime.lastError;
+          if (err) {
+            reject(new Error(err.message));
+            return;
+          }
+          resolve();
+        }
+      );
+    }, "設定ページを開けませんでした");
+  };
+
   const openUrl: PopupRuntime["openUrl"] = (url) => {
     const trimmed = url.trim();
     if (!trimmed) {
@@ -469,6 +500,7 @@ export function createPopupRuntime(): PopupRuntime {
     getActiveTabId,
     isExtensionPage,
     matchesFocusOverridePatterns,
+    openOptionsPane,
     openUrl,
     reloadTab,
     sendMessageToBackground,

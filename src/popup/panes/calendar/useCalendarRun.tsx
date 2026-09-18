@@ -3,7 +3,7 @@ import { useCallback, useMemo, useState } from "react";
 import type { SummarizeEventSuccessPayload } from "@/background/types";
 import { Button } from "@/components/shared/Button";
 import { t } from "@/i18n";
-import type { PaneId } from "@/popup/panes";
+import type { PaneNavigator } from "@/popup/panes";
 import type { PopupRuntime, SummaryTarget } from "@/popup/runtime";
 import {
   ensureOpenAiTokenConfigured,
@@ -20,8 +20,7 @@ import type { OutputState } from "./types";
 export function useCalendarRun(params: {
   runtime: PopupRuntime;
   notify: Notifier;
-  navigateToPane: (paneId: PaneId) => void;
-  focusTokenInput: () => void;
+  navigate: PaneNavigator;
   targets: CalendarRegistrationTarget[];
   hasGoogle: boolean;
   hasIcs: boolean;
@@ -37,15 +36,7 @@ export function useCalendarRun(params: {
   openCalendar: () => void;
   downloadIcs: () => void;
 } {
-  const {
-    runtime,
-    notify,
-    navigateToPane,
-    focusTokenInput,
-    targets,
-    hasGoogle,
-    hasIcs,
-  } = params;
+  const { runtime, notify, navigate, targets, hasGoogle, hasIcs } = params;
   const [output, setOutput] = useState<OutputState>({ status: "idle" });
 
   const outputTitle =
@@ -75,10 +66,7 @@ export function useCalendarRun(params: {
 
   const ensureTokenReady = async (): Promise<boolean> => {
     const tokenConfigured = await ensureOpenAiTokenConfigured({
-      focusTokenInput,
-      navigateToPane: (paneId) => {
-        navigateToPane(paneId as PaneId);
-      },
+      navigate,
       showNotification: (messageOrOptions, type) => {
         if (typeof messageOrOptions === "string") {
           const message: string = messageOrOptions;
@@ -116,9 +104,8 @@ export function useCalendarRun(params: {
   };
 
   const handleOpenSettingsClick = useCallback(() => {
-    navigateToPane("pane-settings");
-    focusTokenInput();
-  }, [navigateToPane, focusTokenInput]);
+    navigate("pane-settings", { focus: "token" });
+  }, [navigate]);
 
   const reportError = (message: string): void => {
     // トークン関連エラーの場合は「→ 設定を開く」リンク付きで表示

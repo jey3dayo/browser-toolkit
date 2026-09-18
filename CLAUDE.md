@@ -104,10 +104,12 @@ Browser Toolkitは、個人用のChrome拡張機能（Manifest V3）です。Web
 ```
 browser-toolkit/
 ├── manifest.json           # 拡張機能マニフェスト
+├── options.html            # オプションページ（管理系ペイン、タブで開く）
 ├── src/
 │   ├── background.ts       # Service worker（コンテキストメニュー、OpenAI呼び出し）
 │   ├── content.ts          # Content script（テーブルソート、オーバーレイ）
 │   ├── popup.ts            # ポップアップ（React root）
+│   ├── options.ts          # オプションページ（React root、popup と共通の App）
 │   ├── search-blocklist.ts # Content script #2（検索結果ブロック判定、document_start）
 │   ├── background/         # Background worker モジュール
 │   ├── content/            # Content script モジュール（overlay等）

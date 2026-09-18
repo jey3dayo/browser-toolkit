@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/shared/Button";
 import type { ContextAction } from "@/context_actions";
 import { t } from "@/i18n";
-import type { PaneId } from "@/popup/panes";
+import type { PaneNavigator } from "@/popup/panes";
 import type {
   PopupRuntime,
   RunContextActionRequest,
@@ -28,8 +28,7 @@ export function useActionRunner(params: {
   actionsById: Map<string, ContextAction>;
   runtime: PopupRuntime;
   notify: Notifier;
-  navigateToPane: (paneId: PaneId) => void;
-  focusTokenInput: () => void;
+  navigate: PaneNavigator;
 }): {
   output: OutputState;
   target: SummaryTarget | null;
@@ -67,10 +66,7 @@ export function useActionRunner(params: {
 
   const ensureTokenReady = async (): Promise<boolean> => {
     const tokenConfigured = await ensureOpenAiTokenConfigured({
-      focusTokenInput: params.focusTokenInput,
-      navigateToPane: (paneId) => {
-        params.navigateToPane(paneId as PaneId);
-      },
+      navigate: params.navigate,
       showNotification: (messageOrOptions, type) => {
         if (typeof messageOrOptions === "string") {
           const message: string = messageOrOptions;
@@ -109,8 +105,7 @@ export function useActionRunner(params: {
   };
 
   const baseReportError = createErrorReporter({
-    focusTokenInput: params.focusTokenInput,
-    navigateToPane: params.navigateToPane,
+    navigate: params.navigate,
     notify: params.notify,
   });
 

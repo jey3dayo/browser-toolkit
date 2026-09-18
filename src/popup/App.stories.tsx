@@ -1,12 +1,15 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, userEvent, waitFor, within } from "storybook/test";
-import { PopupApp } from "./App";
+import { PopupApp, type PopupAppProps } from "./App";
 
-function PopupAppStory(): React.JSX.Element {
-  return <PopupApp />;
+function PopupAppStory(props: PopupAppProps): React.JSX.Element {
+  return <PopupApp {...props} />;
 }
 
 const meta = {
+  args: {
+    surface: "popup",
+  },
   component: PopupAppStory,
   parameters: {
     layout: "fullscreen",
@@ -20,7 +23,10 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-export const ManageGroup: Story = {
+export const Options: Story = {
+  args: {
+    surface: "options",
+  },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
 

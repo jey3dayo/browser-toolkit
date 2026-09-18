@@ -8,6 +8,7 @@
   --layout-popup-width: 800px;
   --layout-popup-height: 600px;
   --layout-rail: 88px;
+  --layout-options-width: 1040px;
 
   /* Spacing semantics */
   --spacing-xs: var(--primitive-space-2);
@@ -42,6 +43,7 @@
   --layout-popup-width: 800px;
   --layout-popup-height: 600px;
   --layout-rail: 88px;
+  --layout-options-width: 1040px;
 
   --spacing-xs: var(--primitive-space-2);
   --spacing-sm: var(--primitive-space-3);

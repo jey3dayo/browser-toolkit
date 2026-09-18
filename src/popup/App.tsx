@@ -1,3 +1,4 @@
+import { Result } from "@praha/byethrow";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { APP_NAME } from "@/app_meta";
@@ -13,7 +14,15 @@ import { Sidebar } from "@/popup/components/Sidebar";
 import { handleCopyTitleLinkFailureOnPopupOpen } from "@/popup/copy-title-link-failure";
 import { replaceHashSafely } from "@/popup/hash";
 import { navigationItems } from "@/popup/navigation-items";
-import { coercePaneId, getPaneIdFromHash, type PaneId } from "@/popup/panes";
+import {
+  coercePaneId,
+  getPaneSurface,
+  type PaneId,
+  type PaneNavigator,
+  type PaneSurface,
+  parsePaneHash,
+  resolvePaneIdForSurface,
+} from "@/popup/panes";
 import { ActionsPane } from "@/popup/panes/ActionsPane";
 import { CalendarPane } from "@/popup/panes/CalendarPane";
 import { CreateLinkPane } from "@/popup/panes/CreateLinkPane";
@@ -36,14 +45,19 @@ type CreateLinkInitialState = {
   format: LinkFormat;
 } | null;
 
-export function PopupApp(): React.JSX.Element {
+export type PopupAppProps = {
+  surface?: PaneSurface;
+};
+
+export function PopupApp({
+  surface = "popup",
+}: PopupAppProps): React.JSX.Element {
   const { t } = useTranslation(undefined, { i18n });
 
-  const initialValue = useMemo<PaneId>(
-    () => getPaneIdFromHash(window.location.hash) ?? "pane-actions",
-    []
+  const initialHash = useMemo(() => parsePaneHash(window.location.hash), []);
+  const [tabValue, setTabValue] = useState<PaneId>(() =>
+    resolvePaneIdForSurface(initialHash.paneId, surface)
   );
-  const [tabValue, setTabValue] = useState<PaneId>(initialValue);
   const tokenInputRef = useRef<HTMLInputElement | null>(null);
 
   const runtime = useMemo(() => createPopupRuntime(), []);
@@ -62,20 +76,51 @@ export function PopupApp(): React.JSX.Element {
     }, 0);
   }, []);
 
-  const navigateToPane = useCallback((paneId: PaneId) => {
-    setTabValue(paneId);
-  }, []);
+  const navigate = useCallback<PaneNavigator>(
+    (paneId, options) => {
+      if (getPaneSurface(paneId) === surface) {
+        setTabValue(paneId);
+        if (options?.focus === "token") {
+          focusTokenInput();
+        }
+        return;
+      }
 
-  const handleTabValueChange = useCallback((value: string) => {
-    setTabValue(coercePaneId(value));
-  }, []);
+      runtime
+        .openOptionsPane(paneId, options)
+        .then((result) => {
+          if (Result.isFailure(result)) {
+            notifications.notify.error(result.error);
+            return;
+          }
+          if (surface === "popup") {
+            window.close();
+          }
+        })
+        .catch(() => {
+          // no-op
+        });
+    },
+    [focusTokenInput, notifications.notify, runtime, surface]
+  );
+
+  const openSettingsSurface = useCallback(() => {
+    navigate("pane-settings");
+  }, [navigate]);
+
+  const handleTabValueChange = useCallback(
+    (value: string) => {
+      setTabValue(resolvePaneIdForSurface(coercePaneId(value), surface));
+    },
+    [surface]
+  );
 
   const syncFromHashRef = useRef<() => void>(() => {
     // no-op until the first render assigns the current handler
   });
   syncFromHashRef.current = () => {
-    const next = getPaneIdFromHash(window.location.hash);
-    if (!next) {
+    const next = parsePaneHash(window.location.hash).paneId;
+    if (!next || getPaneSurface(next) !== surface) {
       return;
     }
     setTabValue(next);
@@ -97,8 +142,16 @@ export function PopupApp(): React.JSX.Element {
   }, [tabValue]);
 
   useEffect(() => {
-    document.title = APP_NAME;
-  }, []);
+    document.title =
+      surface === "options" ? `${APP_NAME} ${t("settings.title")}` : APP_NAME;
+  }, [surface, t]);
+
+  useEffect(() => {
+    if (surface !== "options" || !initialHash.focusToken) {
+      return;
+    }
+    focusTokenInput();
+  }, [focusTokenInput, initialHash.focusToken, surface]);
 
   const currentNavigationItem = navigationItems.find(
     (navigationItem) => navigationItem.id === tabValue
@@ -108,6 +161,9 @@ export function PopupApp(): React.JSX.Element {
     : APP_NAME;
 
   useEffect(() => {
+    if (surface !== "popup") {
+      return;
+    }
     handleCopyTitleLinkFailureOnPopupOpen({
       navigateToCreateLink: () => setTabValue("pane-create-link"),
       notify: notifications.notify,
@@ -116,7 +172,7 @@ export function PopupApp(): React.JSX.Element {
     }).catch(() => {
       // no-op
     });
-  }, [notifications.notify, runtime]);
+  }, [notifications.notify, runtime, surface]);
 
   return (
     <TabsRoot onValueChange={handleTabValueChange} value={tabValue}>
@@ -132,68 +188,79 @@ export function PopupApp(): React.JSX.Element {
           </PopupContentHeader>
 
           <PopupContentBody>
-            <TabsPanel value="pane-actions">
-              <ActionsPane
-                focusTokenInput={focusTokenInput}
-                navigateToPane={navigateToPane}
-                notify={notifications.notify}
-                runtime={runtime}
-              />
-            </TabsPanel>
-            <TabsPanel value="pane-calendar">
-              <CalendarPane
-                focusTokenInput={focusTokenInput}
-                navigateToPane={navigateToPane}
-                notify={notifications.notify}
-                runtime={runtime}
-              />
-            </TabsPanel>
-            <TabsPanel value="pane-table">
-              <TablePane notify={notifications.notify} runtime={runtime} />
-            </TabsPanel>
-            <TabsPanel value="pane-create-link">
-              <CreateLinkPane
-                initialFormat={createLinkInitial?.format}
-                initialLink={createLinkInitial?.link}
-                notify={notifications.notify}
-                runtime={runtime}
-              />
-            </TabsPanel>
-            <TabsPanel value="pane-search-engines">
-              <SearchEnginesPane
-                notify={notifications.notify}
-                runtime={runtime}
-              />
-            </TabsPanel>
-            <TabsPanel value="pane-search-groups">
-              <SearchGroupsPane
-                notify={notifications.notify}
-                runtime={runtime}
-              />
-            </TabsPanel>
-            <TabsPanel value="pane-search-blocklist">
-              <SearchBlocklistPane
-                notify={notifications.notify}
-                runtime={runtime}
-              />
-            </TabsPanel>
-            <TabsPanel value="pane-templates">
-              <TemplatesPane notify={notifications.notify} runtime={runtime} />
-            </TabsPanel>
-            <TabsPanel value="pane-history">
-              <HistoryPane notify={notifications.notify} runtime={runtime} />
-            </TabsPanel>
-            <TabsPanel value="pane-settings">
-              <SettingsPane
-                notify={notifications.notify}
-                runtime={runtime}
-                tokenInputRef={tokenInputRef}
-              />
-            </TabsPanel>
+            {surface === "popup" ? (
+              <>
+                <TabsPanel value="pane-actions">
+                  <ActionsPane
+                    navigate={navigate}
+                    notify={notifications.notify}
+                    runtime={runtime}
+                  />
+                </TabsPanel>
+                <TabsPanel value="pane-calendar">
+                  <CalendarPane
+                    navigate={navigate}
+                    notify={notifications.notify}
+                    runtime={runtime}
+                  />
+                </TabsPanel>
+                <TabsPanel value="pane-table">
+                  <TablePane notify={notifications.notify} runtime={runtime} />
+                </TabsPanel>
+                <TabsPanel value="pane-create-link">
+                  <CreateLinkPane
+                    initialFormat={createLinkInitial?.format}
+                    initialLink={createLinkInitial?.link}
+                    notify={notifications.notify}
+                    runtime={runtime}
+                  />
+                </TabsPanel>
+                <TabsPanel value="pane-search-blocklist">
+                  <SearchBlocklistPane
+                    notify={notifications.notify}
+                    runtime={runtime}
+                  />
+                </TabsPanel>
+              </>
+            ) : (
+              <>
+                <TabsPanel value="pane-search-engines">
+                  <SearchEnginesPane
+                    notify={notifications.notify}
+                    runtime={runtime}
+                  />
+                </TabsPanel>
+                <TabsPanel value="pane-search-groups">
+                  <SearchGroupsPane
+                    notify={notifications.notify}
+                    runtime={runtime}
+                  />
+                </TabsPanel>
+                <TabsPanel value="pane-templates">
+                  <TemplatesPane
+                    notify={notifications.notify}
+                    runtime={runtime}
+                  />
+                </TabsPanel>
+                <TabsPanel value="pane-history">
+                  <HistoryPane
+                    notify={notifications.notify}
+                    runtime={runtime}
+                  />
+                </TabsPanel>
+                <TabsPanel value="pane-settings">
+                  <SettingsPane
+                    notify={notifications.notify}
+                    runtime={runtime}
+                    tokenInputRef={tokenInputRef}
+                  />
+                </TabsPanel>
+              </>
+            )}
           </PopupContentBody>
         </PopupContent>
 
-        <Sidebar />
+        <Sidebar onOpenOptions={openSettingsSurface} surface={surface} />
       </PopupShell>
     </TabsRoot>
   );

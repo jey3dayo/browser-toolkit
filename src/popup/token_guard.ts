@@ -1,6 +1,7 @@
 import { Result } from "@praha/byethrow";
 import { getAiProviderToken } from "@/ai/provider-token";
 import { t } from "@/i18n";
+import type { PaneNavigator } from "@/popup/panes";
 import { safeParseAiProvider } from "@/schemas/provider";
 import type { LocalStorageData } from "@/storage/types";
 
@@ -20,8 +21,7 @@ export type TokenGuardDeps = {
     messageOrOptions: string | NotificationOptions,
     type?: "info" | "error"
   ) => void;
-  navigateToPane: (paneId: string) => void;
-  focusTokenInput: () => void;
+  navigate: PaneNavigator;
 };
 
 export type EnsureOpenAiTokenConfiguredError =
@@ -41,14 +41,12 @@ export async function ensureOpenAiTokenConfigured(
     ]);
   } catch {
     deps.showNotification(t("popup.tokenGuard.loadFailed"), "error");
-    deps.navigateToPane("pane-settings");
-    deps.focusTokenInput();
+    deps.navigate("pane-settings", { focus: "token" });
     return Result.fail("storage-error");
   }
   if (Result.isFailure(loaded)) {
     deps.showNotification(t("popup.tokenGuard.loadFailed"), "error");
-    deps.navigateToPane("pane-settings");
-    deps.focusTokenInput();
+    deps.navigate("pane-settings", { focus: "token" });
     return Result.fail("storage-error");
   }
 
@@ -65,8 +63,7 @@ export async function ensureOpenAiTokenConfigured(
         action: {
           label: t("popup.tokenGuard.openSettings"),
           onClick: () => {
-            deps.navigateToPane("pane-settings");
-            deps.focusTokenInput();
+            deps.navigate("pane-settings", { focus: "token" });
           },
         },
         message: t("popup.tokenGuard.missingToken"),

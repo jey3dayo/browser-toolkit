@@ -15,6 +15,7 @@ const buttonVariants = cva("", {
       expandIndicator: "expand-indicator",
       ghost: "btn btn-ghost",
       groupExpand: "group-expand-button",
+      nav: "nav-item",
       overlay: "mbu-overlay-action",
       overlayCopy:
         "mbu-overlay-action mbu-overlay-icon-button mbu-overlay-copy",

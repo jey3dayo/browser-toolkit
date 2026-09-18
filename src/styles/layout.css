@@ -146,3 +146,23 @@
   font-size: var(--font-size-lg);
   line-height: 1.25;
 }
+
+.is-options .app-shell {
+  height: auto;
+  min-height: 100vh;
+  overflow: visible;
+}
+
+.is-options .sidebar {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  max-height: 100vh;
+}
+
+.is-options .content {
+  width: 100%;
+  max-width: var(--layout-options-width);
+  padding: 0 var(--spacing-xl);
+  margin: 0 auto;
+}

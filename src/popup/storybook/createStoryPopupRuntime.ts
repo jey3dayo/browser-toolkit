@@ -183,6 +183,7 @@ export function createStoryPopupRuntime(options: Options = {}): PopupRuntime {
     isExtensionPage: false,
     matchesFocusOverridePatterns: (patterns, url) =>
       matchesAnyPattern(patterns, url),
+    openOptionsPane: async () => Result.succeed(),
     openUrl: (url) => {
       try {
         const trimmed = url.trim();

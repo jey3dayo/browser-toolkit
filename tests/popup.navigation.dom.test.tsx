@@ -4,8 +4,7 @@ import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { i18n } from "@/i18n";
 import { PopupApp } from "@/popup/App";
-import { navigationItems } from "@/popup/navigation-items";
-import { coercePaneId, getPaneIdFromHash } from "@/popup/panes";
+import { getNavigationItems, navigationItems } from "@/popup/navigation-items";
 import { flush } from "./helpers/async";
 import {
   createPopupChromeStub,
@@ -21,15 +20,18 @@ describe("popup navigation (React + Base UI Tabs)", () => {
   let dom: JSDOM;
   let chromeStub: PopupChromeStub;
 
-  beforeEach(() => {
-    vi.resetModules();
-
-    dom = createPopupDom("chrome-extension://test/popup.html#pane-settings");
+  const mountDom = (url: string): void => {
+    dom = createPopupDom(url);
     chromeStub = createPopupChromeStub();
     vi.stubGlobal("window", dom.window);
     vi.stubGlobal("document", dom.window.document);
     vi.stubGlobal("navigator", dom.window.navigator);
     vi.stubGlobal("chrome", chromeStub);
+  };
+
+  beforeEach(() => {
+    vi.resetModules();
+    mountDom("chrome-extension://test/popup.html#pane-table");
   });
 
   afterEach(() => {
@@ -48,9 +50,9 @@ describe("popup navigation (React + Base UI Tabs)", () => {
       await flush(dom.window);
     });
 
-    expect(dom.window.location.hash).toBe("#pane-settings");
+    expect(dom.window.location.hash).toBe("#pane-table");
     expect(
-      dom.window.document.querySelector('[data-pane="pane-settings"]')
+      dom.window.document.querySelector('[data-pane="pane-table"]')
     ).not.toBeNull();
     expect(
       dom.window.document.querySelector('[data-pane="pane-actions"]')
@@ -61,13 +63,54 @@ describe("popup navigation (React + Base UI Tabs)", () => {
     });
   });
 
-  it("maps the legacy debug hash onto the settings pane", () => {
-    expect(getPaneIdFromHash("#pane-debug")).toBe("pane-settings");
-    expect(coercePaneId("pane-debug")).toBe("pane-settings");
-    expect(getPaneIdFromHash("#pane-unknown")).toBeNull();
-    expect(navigationItems.some((item) => item.id === "pane-settings")).toBe(
-      true
-    );
+  it("falls back to the surface default when the hash names a pane of the other surface", async () => {
+    vi.unstubAllGlobals();
+    mountDom("chrome-extension://test/popup.html#pane-settings");
+
+    const rootEl = dom.window.document.getElementById("root");
+    if (!rootEl) {
+      throw new Error("missing #root");
+    }
+
+    const root = createRoot(rootEl);
+    await act(async () => {
+      root.render(<PopupApp />);
+      await flush(dom.window);
+    });
+
+    expect(dom.window.location.hash).toBe("#pane-actions");
+    expect(
+      dom.window.document.querySelector('[data-pane="pane-settings"]')
+    ).toBeNull();
+
+    act(() => {
+      root.unmount();
+    });
+  });
+
+  it("opens the manage panes on the options surface", async () => {
+    vi.unstubAllGlobals();
+    mountDom("chrome-extension://test/options.html#pane-settings");
+
+    const rootEl = dom.window.document.getElementById("root");
+    if (!rootEl) {
+      throw new Error("missing #root");
+    }
+
+    const root = createRoot(rootEl);
+    await act(async () => {
+      root.render(<PopupApp surface="options" />);
+      await flush(dom.window);
+    });
+
+    expect(dom.window.location.hash).toBe("#pane-settings");
+    expect(
+      dom.window.document.querySelector('[data-pane="pane-settings"]')
+    ).not.toBeNull();
+
+    act(() => {
+      root.unmount();
+    });
   });
 
   it("splits navigation into the daily and manage groups", () => {
@@ -79,6 +122,12 @@ describe("popup navigation (React + Base UI Tabs)", () => {
     );
     expect(groups.slice(firstManageIndex).every((g) => g === "manage")).toBe(
       true
+    );
+    expect(getNavigationItems("popup").map((item) => item.group)).toEqual(
+      groups.filter((group) => group === "daily")
+    );
+    expect(getNavigationItems("options").map((item) => item.group)).toEqual(
+      groups.filter((group) => group === "manage")
     );
   });
 
@@ -108,17 +157,17 @@ describe("popup navigation (React + Base UI Tabs)", () => {
       await flush(dom.window);
     });
 
-    const tableTab = dom.window.document.querySelector<HTMLButtonElement>(
-      '[role="tab"][data-value="pane-table"]'
+    const createLinkTab = dom.window.document.querySelector<HTMLButtonElement>(
+      '[role="tab"][data-value="pane-create-link"]'
     );
     await act(async () => {
-      tableTab?.click();
+      createLinkTab?.click();
       await flush(dom.window);
     });
 
-    expect(dom.window.location.hash).toBe("#pane-table");
+    expect(dom.window.location.hash).toBe("#pane-create-link");
     expect(
-      dom.window.document.querySelector('[data-pane="pane-table"]')
+      dom.window.document.querySelector('[data-pane="pane-create-link"]')
     ).not.toBeNull();
 
     act(() => {

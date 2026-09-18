@@ -8,10 +8,6 @@ test.describe("Popup UI", () => {
     // it from src/popup/navigation-items.ts); panes no longer repeat it.
     await expect(page.locator("h1")).toHaveText("アクション");
 
-    // Navigate to Settings
-    await page.click('button[aria-label="設定"]');
-    await expect(page.locator("h1")).toHaveText("設定");
-
     // Navigate to site-specific features
     await page.click('button[aria-label="サイト別機能"]');
     await expect(page.locator("h1")).toHaveText("サイト別機能");
@@ -23,17 +19,20 @@ test.describe("Popup UI", () => {
     // Navigate back to Actions
     await page.click('button[aria-label="アクション"]');
     await expect(page.locator("h1")).toHaveText("アクション");
+
+    const [optionsPage] = await Promise.all([
+      page.context().waitForEvent("page"),
+      page.click('button[aria-label="設定"]'),
+    ]);
+    await expect(optionsPage.locator("h1")).toHaveText("設定");
+    await optionsPage.close();
   });
 
   test("should persist theme selection", async ({ page, extensionId }) => {
-    await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    await page.goto(
+      `chrome-extension://${extensionId}/options.html#pane-settings`
+    );
 
-    // The popup no longer exposes a single theme-cycle button (that concept
-    // now lives only in the content-script overlay, see
-    // src/components/ThemeCycleButton.tsx). Popup theme selection is a radio
-    // group in the Settings pane (src/popup/panes/settings/SettingsThemeSection.tsx),
-    // with labels sourced from src/i18n/resources.ts `theme.light` / `theme.dark`.
-    await page.click('button[aria-label="設定"]');
     await expect(page.locator("h1")).toHaveText("設定");
 
     // Get initial theme
@@ -55,7 +54,9 @@ test.describe("Popup UI", () => {
     // Close and reopen popup
     await page.close();
     const newPage = await page.context().newPage();
-    await newPage.goto(`chrome-extension://${extensionId}/popup.html`);
+    await newPage.goto(
+      `chrome-extension://${extensionId}/options.html#pane-settings`
+    );
 
     // Verify theme persisted
     const persistedTheme = await newPage
@@ -67,10 +68,9 @@ test.describe("Popup UI", () => {
   });
 
   test("should display settings correctly", async ({ page, extensionId }) => {
-    await page.goto(`chrome-extension://${extensionId}/popup.html`);
-
-    // Navigate to Settings
-    await page.click('button[aria-label="設定"]');
+    await page.goto(
+      `chrome-extension://${extensionId}/options.html#pane-settings`
+    );
     await expect(page.locator("h1")).toHaveText("設定");
 
     // Verify settings sections exist. The token fieldset legend is

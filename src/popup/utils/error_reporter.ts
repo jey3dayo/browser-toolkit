@@ -1,13 +1,12 @@
 import React from "react";
 import { Button } from "@/components/shared/Button";
 import { t } from "@/i18n";
-import type { PaneId } from "@/popup/panes";
+import type { PaneNavigator } from "@/popup/panes";
 import type { Notifier } from "@/ui/toast";
 
 export type ErrorReporterOptions = {
   notify: Notifier;
-  navigateToPane?: (paneId: PaneId) => void;
-  focusTokenInput?: () => void;
+  navigate?: PaneNavigator;
 };
 
 /**
@@ -26,16 +25,15 @@ function isTokenRelatedError(message: string): boolean {
  * エラーメッセージを表示し、トークン関連エラーの場合は設定画面への誘導を追加
  */
 function reportError(message: string, options: ErrorReporterOptions): void {
-  const { notify, navigateToPane, focusTokenInput } = options;
+  const { notify, navigate } = options;
 
-  if (isTokenRelatedError(message) && navigateToPane && focusTokenInput) {
+  if (isTokenRelatedError(message) && navigate) {
     notify.error({
       description: React.createElement(
         Button,
         {
           onClick: () => {
-            navigateToPane("pane-settings");
-            focusTokenInput();
+            navigate("pane-settings", { focus: "token" });
           },
           type: "button",
           variant: "toastActionLink",

@@ -3,7 +3,7 @@ import { Badge } from "@/components/shared/Badge";
 import { PaneCard, RowBetween, Stack } from "@/components/shared/Layout";
 import { Hint } from "@/components/shared/Typography";
 import { t } from "@/i18n";
-import type { PaneId } from "@/popup/panes";
+import type { PaneNavigator } from "@/popup/panes";
 import { CalendarActionButtons } from "@/popup/panes/calendar/CalendarActionButtons";
 import { CalendarOutputPanel } from "@/popup/panes/calendar/CalendarOutputPanel";
 import { CalendarTargetsField } from "@/popup/panes/calendar/CalendarTargetsField";
@@ -12,12 +12,11 @@ import { useCalendarTargets } from "@/popup/panes/calendar/useCalendarTargets";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 
 export type CalendarPaneProps = PopupPaneBaseProps & {
-  navigateToPane: (paneId: PaneId) => void;
-  focusTokenInput: () => void;
+  navigate: PaneNavigator;
 };
 
 export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
-  const { focusTokenInput, navigateToPane, notify, runtime } = props;
+  const { navigate, notify, runtime } = props;
 
   const googleId = useId();
   const icsId = useId();
@@ -39,10 +38,9 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
     openCalendar,
     downloadIcs,
   } = useCalendarRun({
-    focusTokenInput,
     hasGoogle,
     hasIcs,
-    navigateToPane,
+    navigate,
     notify,
     runtime,
     targets,
