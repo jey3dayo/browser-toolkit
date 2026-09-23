@@ -2,7 +2,7 @@
 
 このドキュメントは、Claudeがこのプロジェクトを理解し、適切なコード変更を行うための包括的なガイドです。
 
-## 📋 プロジェクト概要
+## プロジェクト概要
 
 Browser Toolkitは、個人用のChrome拡張機能（Manifest V3）です。Webページに便利な機能を追加し、日常的な作業を効率化します。
 
@@ -12,7 +12,7 @@ Browser Toolkitは、個人用のChrome拡張機能（Manifest V3）です。Web
 - Context Actions: OpenAI連携で選択テキストの要約・翻訳・カレンダー抽出
 - リンクユーティリティ: タブのタイトル+URLを簡単にコピー
 
-## 🎯 開発前に必読
+## 開発前に必読
 
 プロジェクトの詳細な仕様・設計は `docs/`、`.claude/rules/`、`DESIGN.md` に整理されています。**コード変更前に必ず関連する正本を参照してください**:
 
@@ -71,7 +71,7 @@ Browser Toolkitは、個人用のChrome拡張機能（Manifest V3）です。Web
   `*://www.google.co.jp/search*` に限定して `document_start` で注入されます。`<all_urls>` の
   host_permissions はこの2本目のために広げたものではなく、上記の既存記述のまま変わりません。
 
-## 🛠️ 技術スタック（概要）
+## 技術スタック（概要）
 
 - プラットフォーム: Chrome Extension (Manifest V3)
 - 言語: TypeScript (strict mode)
@@ -82,48 +82,7 @@ Browser Toolkitは、個人用のChrome拡張機能（Manifest V3）です。Web
 
 詳細: [docs/architecture.md](docs/architecture.md) を参照
 
-## 🎨 プロダクト理解（概要）
-
-### プロジェクトの目的
-
-小さな、高レバレッジなユーティリティを提供し、最小限のセットアップで日常のブラウジングを効率化します。
-
-### UX原則
-
-- その場で機能: ポップアップとコンテキストメニューから機能にアクセス
-- 日本語ファースト: UI文字列とデフォルトプロンプトは日本語
-- テーマ一貫性: ライト/ダークテーマをポップアップとページ内UIで統一
-- 明確なエラー表示: 失敗時は明確なメッセージを表示
-
-詳細: [README.md](README.md) と [docs/context-actions.md](docs/context-actions.md) を参照
-
-## 📁 コードベース構造（概要）
-
-### ディレクトリ構成
-
-```
-browser-toolkit/
-├── manifest.json           # 拡張機能マニフェスト
-├── options.html            # オプションページ（管理系ペイン、タブで開く）
-├── src/
-│   ├── background.ts       # Service worker（コンテキストメニュー、OpenAI呼び出し）
-│   ├── content.ts          # Content script（テーブルソート、オーバーレイ）
-│   ├── popup.ts            # ポップアップ（React root）
-│   ├── options.ts          # オプションページ（React root、popup と共通の App）
-│   ├── search-blocklist.ts # Content script #2（検索結果ブロック判定、document_start）
-│   ├── background/         # Background worker モジュール
-│   ├── content/            # Content script モジュール（overlay等）
-│   │   └── search-blocklist-ui/ # 検索結果ブロックリストのUI（浮動ボタン/ダイアログ/件数バー）
-│   ├── popup/              # ポップアップ UI（pane-based）
-│   ├── components/         # 共有 React コンポーネント
-│   ├── ui/                 # テーマ、スタイル、toast
-│   ├── openai/             # OpenAI設定
-│   ├── storage/            # Storageスキーマ型定義
-│   ├── search-blocklist/   # 検索結果ブロックリストの判定ロジック（ルール構文、engine adapter）
-│   └── prompts/            # 組み込みアクションプロンプト（TOML）
-├── docs/                   # architecture / feature / setup references
-└── .claude/rules/          # 開発ルール（日本語）
-```
+## コードベース構造（概要）
 
 ### ランタイム境界
 
@@ -133,16 +92,7 @@ browser-toolkit/
 
 詳細: [docs/architecture.md](docs/architecture.md) を参照
 
-## ⚠️ 開発時の重要な注意点
-
-### セキュリティ
-
-重要: 詳細なセキュリティガイドラインは [.claude/rules/security.md](.claude/rules/security.md) を参照してください。
-
-- XSS対策必須: ユーザー入力をDOMに挿入する前に必ずエスケープ
-- innerHTML禁止: `textContent` または `createElement` を使用
-- 入力検証: 長さ、文字種、形式をチェック
-- 機密情報: パスワード、トークンは `chrome.storage.local` に保存（同期しない）
+## 開発時の重要な注意点
 
 ### Chrome Extension特有の制約
 
@@ -161,34 +111,18 @@ browser-toolkit/
 
 詳細な開発ルール: [.claude/rules/development.md](.claude/rules/development.md) を参照
 
-## 📚 関連ドキュメント
-
-### ユーザー向け
-
-- [README.md](README.md): インストール、使い方、開発セットアップ
-
-### 開発者向け
-
-- [docs/context-actions.md](docs/context-actions.md): Context Actions の詳細ガイド
-- [docs/icon-setup.md](docs/icon-setup.md): アイコン作成手順
-- [docs/style-management.md](docs/style-management.md): Design Tokens とテーマ管理
-
-### 開発ルール
-
-- [.claude/rules/development.md](.claude/rules/development.md): コーディング規約、セキュリティガイドライン、リリースフロー
-
-## 🔍 コード変更時のチェックリスト
+## コード変更時のチェックリスト
 
 1. 理解: 該当する source of truth ドキュメントを読んだか？
 2. 設計: 既存のパターン・アーキテクチャに従っているか？
 3. セキュリティ: XSS対策、入力検証を実装したか？
 4. テスト: ユニットテストを書いたか？手動テストを行ったか？
-5. 品質: `mise run ci` を実行したか（format + lint + test + storybook test + build）？
+5. 品質: 並行セッションがあるときは `mise run ci`（ツリー全体を format し直す）を避け、個別の lint/test と差分に限った format で確認したか？ 単独で作業しているなら `mise run ci`
 6. ドキュメント: 必要に応じてドキュメントを更新したか？
 
 UI、popup、overlay、design token、shared component を変更した場合は、PR 前に `mise run test:storybook` も必須確認として扱ってください。GitHub Actions では Storybook/browser checks が merge queue / manual に寄っているため、PR 時点の UI 回帰はローカル確認で補います。
 
-## 📝 開発フロー
+## 開発フロー
 
 ```bash
 # 1. 依存関係インストール
@@ -206,13 +140,6 @@ mise run ci
 # 5. ビルド（リリース前）
 mise run build
 ```
-
-## 🎯 このドキュメントの使い方
-
-1. 最初に読む: プロジェクト全体像を理解
-2. コード変更前: Source Of Truth 表から関連ドキュメントを参照
-3. 実装中: `.claude/rules/development.md` でコーディング規約を確認
-4. テスト/リリース: チェックリストを活用
 
 ---
 
