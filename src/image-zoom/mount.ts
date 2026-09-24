@@ -1,10 +1,8 @@
+import { ensureShadowHost, type ShadowHost } from "@/ui/shadow-host";
 import { ensureShadowTokenStyles } from "@/ui/styles-tokens";
 import { applyTheme, type Theme } from "@/ui/theme";
 
-export type ViewerShadowMount = {
-  host: HTMLDivElement;
-  shadow: ShadowRoot;
-};
+export type ViewerShadowMount = ShadowHost;
 
 type ViewerShadowMountParams = {
   hostId: string;
@@ -16,17 +14,7 @@ type ViewerShadowMountParams = {
 export function ensureViewerShadowMount(
   params: ViewerShadowMountParams
 ): ViewerShadowMount {
-  const existing = document.getElementById(params.hostId);
-  const host =
-    existing instanceof window.HTMLDivElement
-      ? existing
-      : document.createElement("div");
-  host.id = params.hostId;
-
-  const shadow = host.shadowRoot ?? host.attachShadow({ mode: "open" });
-  if (!host.isConnected) {
-    (document.documentElement ?? document.body ?? document).appendChild(host);
-  }
+  const { host, shadow } = ensureShadowHost(params.hostId);
   ensureShadowTokenStyles(shadow, params.extraCssId, params.extraCss);
   applyTheme(params.theme, shadow);
 
