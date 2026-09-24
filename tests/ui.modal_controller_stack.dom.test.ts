@@ -51,6 +51,19 @@ describe("modal stack across the viewer and QR overlay bundles", () => {
     expect(getViewerHost()).toBeNull();
   });
 
+  it("restores focus to the viewer's focused button after closing the QR stacked on top", () => {
+    openImageViewer(VIEWER_URL, "light");
+    const viewerShadow = getViewerHost()?.shadowRoot;
+    const viewerFocused = viewerShadow?.activeElement;
+    expect(viewerFocused).toBeInstanceOf(window.HTMLButtonElement);
+
+    showQrCodeOverlay("https://example.com", "light");
+    dispatchKeydown("Escape");
+
+    expect(getQrHost()).toBeNull();
+    expect(viewerShadow?.activeElement).toBe(viewerFocused);
+  });
+
   it("Tab while both are open cycles focus only within the topmost modal (QR)", () => {
     openImageViewer(VIEWER_URL, "light");
     showQrCodeOverlay("https://example.com", "light");

@@ -62,10 +62,11 @@ export function activateModal(options: ActivateModalOptions): DeactivateModal {
   const token = Symbol("modal");
   getModalStack().push(token);
 
+  const pageActive = document.activeElement;
+  // A stacked modal sits under its own shadow host; restore the control inside it.
+  const innerActive = pageActive?.shadowRoot?.activeElement ?? pageActive;
   const previousActiveElement =
-    document.activeElement instanceof window.HTMLElement
-      ? document.activeElement
-      : null;
+    innerActive instanceof window.HTMLElement ? innerActive : null;
 
   function handleKeyDown(e: KeyboardEvent): void {
     if (!isTopModal(token)) {
