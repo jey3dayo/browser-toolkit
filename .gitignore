@@ -16,3 +16,6 @@ test-results/
 # Visual regression test snapshots
 __snapshots__/
 __image_snapshots__/
+
+# Machine-local Claude Code settings
+.claude/settings.local.json
