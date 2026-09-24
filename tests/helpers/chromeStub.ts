@@ -1,6 +1,9 @@
 import { vi } from "vitest";
 
 export type ChromeStub = {
+  downloads: {
+    download: ReturnType<typeof vi.fn>;
+  };
   runtime: {
     lastError: { message: string } | null;
     onInstalled: { addListener: ReturnType<typeof vi.fn> };
@@ -101,6 +104,9 @@ export function createChromeStub(options: Options = {}): ChromeStub {
           callback?.();
         }
       ),
+    },
+    downloads: {
+      download: vi.fn(async () => 1),
     },
     runtime,
     scripting: {

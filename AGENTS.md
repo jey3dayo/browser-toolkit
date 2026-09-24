@@ -66,10 +66,13 @@ Browser Toolkitは、個人用のChrome拡張機能（Manifest V3）です。Web
 - `scripting` は active tab への機能注入、`downloads` は `.ics` などのファイル出力、`notifications` はユーザー向け通知、`alarms` は Manifest V3 service worker の復帰補助に使います。未使用に見える権限を削る前に、対応する runtime path を `src/background.ts`、`src/content.ts`、`src/popup/` から確認してください。
 - AI provider の endpoint を追加・変更するときは、`src/constants/api-endpoints.ts`、`manifest.json` の `host_permissions`、`content_security_policy.connect-src` を同じ差分で揃えてください。
 - Chrome Web Store など外部配布に進む前は、強い権限の理由をリリース説明に転記できる粒度で残してください。
-- `content_scripts` は2エントリあります。既存 `dist/content.js`（全ページ、`document_idle`）に加え、
+- `content_scripts` は3エントリあります。既存 `dist/content.js`（全ページ、`document_idle`）に加え、
   検索結果ブロックリスト用の `dist/search-blocklist.js` が `*://www.google.com/search*` /
   `*://www.google.co.jp/search*` に限定して `document_start` で注入されます。`<all_urls>` の
   host_permissions はこの2本目のために広げたものではなく、上記の既存記述のまま変わりません。
+- 3エントリ目は画像ズーム用の `dist/image-zoom.js` で、`*://x.com/*` / `*://twitter.com/*` に限定して
+  既定の `document_idle` で注入されます。元画像の保存は既存の `downloads` 権限を使い、
+  background が `https://pbs.twimg.com/media/` 以外の URL を拒否します。新しい権限は追加していません。
 
 ## 技術スタック（概要）
 

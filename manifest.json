@@ -57,6 +57,10 @@
       "matches": ["*://www.google.com/search*", "*://www.google.co.jp/search*"],
       "js": ["dist/search-blocklist.js"],
       "run_at": "document_start"
+    },
+    {
+      "matches": ["*://x.com/*", "*://twitter.com/*"],
+      "js": ["dist/image-zoom.js"]
     }
   ],
   "icons": {

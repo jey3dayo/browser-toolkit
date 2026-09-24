@@ -6,6 +6,7 @@ import type {
   SummarizeEventResponse,
   SummaryTarget,
 } from "@/background/types";
+import type { DownloadImagePayload } from "@/image-zoom/download-url";
 import type { SearchBlocklistRuleMutation } from "@/search-blocklist/rules";
 import type { SearchBlocklistRule } from "@/search-blocklist/types";
 
@@ -36,6 +37,13 @@ export type SearchBlocklistMutateResponse = Result.Result<
   string
 >;
 
+export type DownloadImageRequest = DownloadImagePayload;
+
+export type DownloadImageResponse = Result.Result<
+  Record<string, never>,
+  string
+>;
+
 export type RuntimeRequest =
   | BackgroundRequest
   | { action: "summarizeText"; target: SummaryTarget }
@@ -44,6 +52,7 @@ export type RuntimeRequest =
   | { action: "openPopupSettings" }
   | OpenPopupPaneRequest
   | SearchBlocklistMutateRequest
+  | DownloadImageRequest
   | { action: "downloadDebugLogs" }
   | { action: "clearDebugLogs" }
   | { action: "getDebugLogStats" }
@@ -63,6 +72,7 @@ type RuntimeResponse =
   | ClearDebugLogsResponse
   | ChatFollowUpResponse
   | SearchBlocklistMutateResponse
+  | DownloadImageResponse
   | { ok: true }
   | { ok: false; error: string }
   | {

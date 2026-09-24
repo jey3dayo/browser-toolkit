@@ -6,8 +6,8 @@ export function isTheme(value: unknown): value is Theme {
 
 export function applyTheme(theme: Theme, target: Document | ShadowRoot): void {
   const root =
-    target instanceof Document ? target.documentElement : target.host;
-  if (!(root instanceof HTMLElement)) {
+    target instanceof window.Document ? target.documentElement : target.host;
+  if (!(root instanceof window.HTMLElement)) {
     return;
   }
   if (theme === "auto") {
