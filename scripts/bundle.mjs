@@ -25,6 +25,7 @@ const buildOptions = {
     "src/options.ts",
     "src/focus-override.ts",
     "src/search-blocklist.ts",
+    "src/image-zoom.ts",
   ],
   format: "iife",
   jsx: "automatic",

@@ -19,6 +19,7 @@ import {
 import { debugRuntimeHandlers } from "@/background/runtime_debug_handlers";
 import type {
   ChatFollowUpRequest,
+  DownloadImageRequest,
   OpenPopupPaneRequest,
   RuntimeSendResponse,
   SearchBlocklistMutateRequest,
@@ -36,6 +37,10 @@ import type {
 } from "@/background/types";
 import type { ContextAction } from "@/context_actions";
 import { t } from "@/i18n";
+import {
+  parseDownloadImageRequest,
+  validateTwimgMediaUrl,
+} from "@/image-zoom/download-url";
 import { coercePaneId, getPaneSurfacePage } from "@/popup/panes";
 import { searchBlocklistMutationFailureMessage } from "@/search-blocklist/mutation_failure_message";
 import {
@@ -473,8 +478,51 @@ function handleChatFollowUpRequest(
   return true;
 }
 
+function handleDownloadImageRequest(
+  request: DownloadImageRequest,
+  sendResponse: RuntimeSendResponse
+): boolean {
+  (async () => {
+    const parsed = parseDownloadImageRequest(request);
+    if (!parsed) {
+      sendResponse(Result.fail(t("background.runtime.downloadImageFailed")));
+      return;
+    }
+
+    const validated = validateTwimgMediaUrl(parsed.url);
+    if (Result.isFailure(validated)) {
+      sendResponse(validated);
+      return;
+    }
+
+    try {
+      await chrome.downloads.download({
+        filename: validated.value.filename,
+        url: validated.value.originalUrl,
+      });
+      sendResponse(Result.succeed({}));
+    } catch (error) {
+      await debugLog(
+        "handleDownloadImageRequest",
+        "Failed to download image",
+        { error, request },
+        "error"
+      );
+      sendResponse(
+        Result.fail(
+          error instanceof Error
+            ? error.message
+            : t("background.runtime.downloadImageFailed")
+        )
+      );
+    }
+  })();
+  return true;
+}
+
 export const runtimeHandlers = {
   chatFollowUp: handleChatFollowUpRequest,
+  downloadImage: handleDownloadImageRequest,
   openPopupPane: handleOpenPopupPaneRequest,
   openPopupSettings: handleOpenPopupSettingsRequest,
   runContextAction: handleRunContextActionRequest,

@@ -59,6 +59,11 @@ Browser Toolkitは、Chrome Extension（Manifest V3）として構築された�
 │  │  (src/search-blocklist.ts, document_start, no UI) │      │
 │  └──────────────────────────────────────────────────┘      │
 │                                                              │
+│  ┌──────────────────────────────────────────────────┐      │
+│  │  Image Zoom (Content Script #3)                   │      │
+│  │  (src/image-zoom.ts, x.com / twitter.com only)    │      │
+│  └──────────────────────────────────────────────────┘      │
+│                                                              │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -153,6 +158,19 @@ code splitting をサポートしないため、UI コンポーネントを同�
 - ✅ `chrome.storage.local`
 - ❌ `chrome.contextMenus`（アクセス不可）
 - ❌ CORS制限なしのfetch（アクセス不可）
+
+### 5. Image Zoom Content Script (`src/image-zoom.ts`)
+
+役割: X（x.com / twitter.com）の画像ビューアでのズーム表示と元画像ダウンロード
+
+`content_scripts` の 3 本目のエントリとして、X にだけ既定の `document_idle` で注入されます。
+X の写真表示（`/status/<id>/photo/<n>`）で画像をクリックすると、Shadow DOM の全画面ビューアを
+開きます。ビューア本体は `src/image-zoom/` にサイト非依存で置き、対象画像の判定と元画像 URL
+への変換は X 用 adapter に分けています。
+
+ダウンロードは content script から `downloadImage` メッセージで background に依頼します。
+URL はページが制御できる値なので、background 側で `https://pbs.twimg.com/media/` だけを許可し、
+ファイル名は media id と許可リストの拡張子から組み立てます。
 
 ### メッセージパッシング
 
