@@ -63,9 +63,11 @@ export function activateModal(options: ActivateModalOptions): DeactivateModal {
   getModalStack().push(token);
 
   const pageActive = document.activeElement;
+  const hostFocus =
+    pageActive instanceof window.HTMLElement ? pageActive : null;
   // A stacked modal sits under its own shadow host; restore the control inside it.
-  const innerActive = pageActive?.shadowRoot?.activeElement ?? pageActive;
-  const previousActiveElement =
+  const innerActive = pageActive?.shadowRoot?.activeElement;
+  const innerFocus =
     innerActive instanceof window.HTMLElement ? innerActive : null;
 
   function handleKeyDown(e: KeyboardEvent): void {
@@ -113,6 +115,6 @@ export function activateModal(options: ActivateModalOptions): DeactivateModal {
     window.removeEventListener("keydown", handleKeyDown, true);
     window.removeEventListener("keyup", handleKeyUp, true);
     window.removeEventListener("keypress", handleKeyPress, true);
-    previousActiveElement?.focus();
+    (innerFocus?.isConnected ? innerFocus : hostFocus)?.focus();
   };
 }

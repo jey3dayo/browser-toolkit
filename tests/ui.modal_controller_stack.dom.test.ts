@@ -64,6 +64,22 @@ describe("modal stack across the viewer and QR overlay bundles", () => {
     expect(viewerShadow?.activeElement).toBe(viewerFocused);
   });
 
+  it("falls back to the shadow host when the inner focused control was removed while the modal was open", () => {
+    const pageHost = document.createElement("div");
+    pageHost.tabIndex = 0;
+    document.body.appendChild(pageHost);
+    const pageShadow = pageHost.attachShadow({ mode: "open" });
+    const pageButton = document.createElement("button");
+    pageShadow.appendChild(pageButton);
+    pageButton.focus();
+
+    showQrCodeOverlay("https://example.com", "light");
+    pageButton.remove();
+    dispatchKeydown("Escape");
+
+    expect(document.activeElement).toBe(pageHost);
+  });
+
   it("Tab while both are open cycles focus only within the topmost modal (QR)", () => {
     openImageViewer(VIEWER_URL, "light");
     showQrCodeOverlay("https://example.com", "light");
