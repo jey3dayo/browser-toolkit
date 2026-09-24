@@ -295,29 +295,36 @@ describe("image-zoom viewer", () => {
     expect(getHost()).toBeNull();
   });
 
-  it("recomputes bounds and clamps scale on resize", () => {
+  it("recomputes bounds and raises scale to the new min on resize", () => {
     openImageViewer(URL, "light");
     fireImageLoad(4000, 3000);
-
-    Object.defineProperty(window, "innerWidth", {
-      configurable: true,
-      value: 400,
-    });
-    Object.defineProperty(window, "innerHeight", {
-      configurable: true,
-      value: 300,
-    });
-    window.dispatchEvent(new Event("resize"));
 
     const img = getDialog().querySelector("img");
     if (!img) {
       throw new Error("viewer image not found");
     }
-    const newBounds = computeZoomBounds(4000, 3000, 400, 300);
+    const initialScale = Number(img.style.transform.match(SCALE_PATTERN)?.[1]);
+
+    // Enlarging (not shrinking) the viewport raises bounds.min above the
+    // current scale, so only an actual resize-time clamp can move it up;
+    // a no-op handleResize would leave the initial scale unchanged.
+    Object.defineProperty(window, "innerWidth", {
+      configurable: true,
+      value: 2048,
+    });
+    Object.defineProperty(window, "innerHeight", {
+      configurable: true,
+      value: 1536,
+    });
+    window.dispatchEvent(new Event("resize"));
+
+    const newBounds = computeZoomBounds(4000, 3000, 2048, 1536);
+    expect(newBounds.min).toBeGreaterThan(initialScale);
+
     const scaleAfterResize = Number(
       img.style.transform.match(SCALE_PATTERN)?.[1]
     );
-    expect(scaleAfterResize).toBeGreaterThanOrEqual(newBounds.min);
+    expect(scaleAfterResize).toBeCloseTo(newBounds.min);
 
     Object.defineProperty(window, "innerWidth", {
       configurable: true,
