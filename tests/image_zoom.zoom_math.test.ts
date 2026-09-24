@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  clampPan,
   clampScale,
   computeFitScale,
   computeInitialTransform,
@@ -38,9 +39,43 @@ describe("image-zoom zoom-math: clampScale", () => {
 });
 
 describe("image-zoom zoom-math: computeInitialTransform", () => {
-  it("centers the image at scale 1", () => {
+  it("centers a small image at scale 1 (fitScale above 1 is capped)", () => {
     const transform = computeInitialTransform(200, 100, 1000, 800);
     expect(transform).toEqual({ scale: 1, x: 400, y: 350 });
+  });
+
+  it("centers a large image at min(fitScale, 1) instead of 1", () => {
+    const transform = computeInitialTransform(4000, 3000, 1000, 800);
+    const fitScale = Math.min(1000 / 4000, 800 / 3000);
+    expect(transform.scale).toBeCloseTo(fitScale);
+    expect(transform.scale).toBeLessThan(1);
+    expect(transform.x).toBeCloseTo((1000 - 4000 * fitScale) / 2);
+    expect(transform.y).toBeCloseTo((800 - 3000 * fitScale) / 2);
+  });
+});
+
+describe("image-zoom zoom-math: clampPan", () => {
+  it("keeps at least min(80px, scaled size) of the image inside the viewport when panned far off-screen", () => {
+    const transform = { scale: 1, x: -100_000, y: -100_000 };
+    const clamped = clampPan(transform, 500, 400, 1000, 800);
+
+    expect(clamped.x + 500).toBeGreaterThanOrEqual(80);
+    expect(clamped.x).toBeLessThanOrEqual(1000 - 80);
+    expect(clamped.y + 400).toBeGreaterThanOrEqual(80);
+    expect(clamped.y).toBeLessThanOrEqual(800 - 80);
+  });
+
+  it("does not move a transform that already keeps the image visible", () => {
+    const transform = { scale: 1, x: 100, y: 50 };
+    const clamped = clampPan(transform, 500, 400, 1000, 800);
+    expect(clamped).toEqual(transform);
+  });
+
+  it("uses the scaled size as the minimum when it is smaller than 80px", () => {
+    const transform = { scale: 1, x: -1000, y: -1000 };
+    const clamped = clampPan(transform, 50, 40, 1000, 800);
+    expect(clamped.x + 50).toBeGreaterThanOrEqual(50);
+    expect(clamped.y + 40).toBeGreaterThanOrEqual(40);
   });
 });
 

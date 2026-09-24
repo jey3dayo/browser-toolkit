@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { closeImageViewer, openImageViewer } from "@/image-zoom/viewer";
+import { t } from "@/i18n";
+import {
+  closeImageViewer,
+  isImageViewerOpen,
+  openImageViewer,
+  setImageViewerTheme,
+} from "@/image-zoom/viewer";
 import { computeZoomBounds } from "@/image-zoom/zoom-math";
 
 const HOST_ID = "browser-toolkit-image-zoom";
@@ -19,12 +25,23 @@ function getDialog(): HTMLDivElement {
   return dialog;
 }
 
-function getDownloadButton(): HTMLButtonElement {
-  const button = getHost()?.shadowRoot?.querySelector("button");
+function findButtonByLabel(label: string): HTMLButtonElement {
+  const buttons = getHost()?.shadowRoot?.querySelectorAll("button");
+  const button = buttons
+    ? Array.from(buttons).find((candidate) => candidate.textContent === label)
+    : undefined;
   if (!(button instanceof window.HTMLButtonElement)) {
-    throw new Error("download button not found");
+    throw new Error(`button "${label}" not found`);
   }
   return button;
+}
+
+function getDownloadButton(): HTMLButtonElement {
+  return findButtonByLabel(t("imageZoom.download"));
+}
+
+function getCloseButton(): HTMLButtonElement {
+  return findButtonByLabel(t("imageZoom.close"));
 }
 
 function getErrorText(): HTMLElement {
@@ -66,11 +83,36 @@ describe("image-zoom viewer", () => {
     const host = getHost();
     const shadow = host?.shadowRoot;
     const dialog = shadow?.querySelector('[role="dialog"]');
-    const downloadButton = shadow?.querySelector("button");
 
     expect(dialog?.getAttribute("aria-modal")).toBe("true");
     expect(dialog?.getAttribute("aria-label")).toBeTruthy();
-    expect(downloadButton).toBe(shadow?.activeElement);
+    expect(getDownloadButton()).toBe(shadow?.activeElement);
+  });
+
+  it("has a real, accessibly named close button next to download", () => {
+    openImageViewer(URL, "light");
+    const closeButton = getCloseButton();
+    expect(closeButton.tagName).toBe("BUTTON");
+    expect(closeButton.textContent).toBe(t("imageZoom.close"));
+  });
+
+  it("initial scale is min(fitScale, 1) for a large image", () => {
+    openImageViewer(URL, "light");
+    fireImageLoad(4000, 3000);
+
+    const img = getDialog().querySelector("img");
+    if (!img) {
+      throw new Error("viewer image not found");
+    }
+    const bounds = computeZoomBounds(
+      4000,
+      3000,
+      window.innerWidth,
+      window.innerHeight
+    );
+    const initialScale = Number(img.style.transform.match(SCALE_PATTERN)?.[1]);
+    expect(initialScale).toBeCloseTo(bounds.min);
+    expect(initialScale).toBeLessThan(1);
   });
 
   it("changes scale on wheel within [min(fitScale,1), 10] bounds", () => {
@@ -83,7 +125,14 @@ describe("image-zoom viewer", () => {
       throw new Error("viewer image not found");
     }
 
-    expect(img.style.transform).toContain("scale(1)");
+    const bounds = computeZoomBounds(
+      2000,
+      1000,
+      window.innerWidth,
+      window.innerHeight
+    );
+    const initialScale = Number(img.style.transform.match(SCALE_PATTERN)?.[1]);
+    expect(initialScale).toBeCloseTo(bounds.min);
 
     backdrop.dispatchEvent(
       new WheelEvent("wheel", {
@@ -96,7 +145,7 @@ describe("image-zoom viewer", () => {
     const scaleAfterZoomIn = Number(
       img.style.transform.match(SCALE_PATTERN)?.[1]
     );
-    expect(scaleAfterZoomIn).toBeGreaterThan(1);
+    expect(scaleAfterZoomIn).toBeGreaterThan(initialScale);
 
     backdrop.dispatchEvent(
       new WheelEvent("wheel", {
@@ -108,12 +157,6 @@ describe("image-zoom viewer", () => {
     );
     const scaleAfterZoomOut = Number(
       img.style.transform.match(SCALE_PATTERN)?.[1]
-    );
-    const bounds = computeZoomBounds(
-      2000,
-      1000,
-      window.innerWidth,
-      window.innerHeight
     );
     expect(scaleAfterZoomOut).toBeCloseTo(bounds.min);
     expect(scaleAfterZoomOut).toBeLessThanOrEqual(scaleAfterZoomIn);
@@ -180,6 +223,12 @@ describe("image-zoom viewer", () => {
     expect(getHost()).toBeNull();
   });
 
+  it("closes via the close button without requiring a drag/click sequence", () => {
+    openImageViewer(URL, "light");
+    getCloseButton().click();
+    expect(getHost()).toBeNull();
+  });
+
   it("closes on Escape and does not let it reach page listeners", () => {
     const pageListener = vi.fn();
     window.addEventListener("keydown", pageListener);
@@ -193,6 +242,106 @@ describe("image-zoom viewer", () => {
     expect(pageListener).not.toHaveBeenCalled();
 
     window.removeEventListener("keydown", pageListener);
+  });
+
+  it("stops a single-key shortcut (l) from reaching a page listener", () => {
+    const pageListener = vi.fn();
+    window.addEventListener("keydown", pageListener);
+
+    openImageViewer(URL, "light");
+    window.dispatchEvent(
+      new KeyboardEvent("keydown", { cancelable: true, key: "l" })
+    );
+
+    expect(pageListener).not.toHaveBeenCalled();
+    expect(getHost()).not.toBeNull();
+
+    window.removeEventListener("keydown", pageListener);
+  });
+
+  it("traps Tab between close and download, keeping focus in the shadow tree", () => {
+    openImageViewer(URL, "light");
+    const shadow = getHost()?.shadowRoot;
+    expect(getDownloadButton()).toBe(shadow?.activeElement);
+
+    window.dispatchEvent(
+      new KeyboardEvent("keydown", { cancelable: true, key: "Tab" })
+    );
+    expect(getCloseButton()).toBe(shadow?.activeElement);
+
+    window.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        cancelable: true,
+        key: "Tab",
+        shiftKey: true,
+      })
+    );
+    expect(getDownloadButton()).toBe(shadow?.activeElement);
+  });
+
+  it("shows a load-failure message on img error and stays closable", () => {
+    openImageViewer(URL, "light");
+    const img = getDialog().querySelector("img");
+    if (!img) {
+      throw new Error("viewer image not found");
+    }
+    img.dispatchEvent(new Event("error"));
+
+    const errorText = getErrorText();
+    expect(errorText.style.display).toBe("block");
+    expect(errorText.textContent).toBe(t("imageZoom.errors.loadFailed"));
+
+    getCloseButton().click();
+    expect(getHost()).toBeNull();
+  });
+
+  it("recomputes bounds and clamps scale on resize", () => {
+    openImageViewer(URL, "light");
+    fireImageLoad(4000, 3000);
+
+    Object.defineProperty(window, "innerWidth", {
+      configurable: true,
+      value: 400,
+    });
+    Object.defineProperty(window, "innerHeight", {
+      configurable: true,
+      value: 300,
+    });
+    window.dispatchEvent(new Event("resize"));
+
+    const img = getDialog().querySelector("img");
+    if (!img) {
+      throw new Error("viewer image not found");
+    }
+    const newBounds = computeZoomBounds(4000, 3000, 400, 300);
+    const scaleAfterResize = Number(
+      img.style.transform.match(SCALE_PATTERN)?.[1]
+    );
+    expect(scaleAfterResize).toBeGreaterThanOrEqual(newBounds.min);
+
+    Object.defineProperty(window, "innerWidth", {
+      configurable: true,
+      value: 1024,
+    });
+    Object.defineProperty(window, "innerHeight", {
+      configurable: true,
+      value: 768,
+    });
+  });
+
+  it("applies a theme change to the open viewer via setImageViewerTheme", () => {
+    openImageViewer(URL, "light");
+    const shadow = getHost()?.shadowRoot;
+    const shadowHost = shadow?.host;
+
+    setImageViewerTheme("dark");
+
+    expect(shadowHost?.getAttribute("data-theme")).toBe("dark");
+  });
+
+  it("does nothing when setImageViewerTheme is called while closed", () => {
+    expect(isImageViewerOpen()).toBe(false);
+    expect(() => setImageViewerTheme("dark")).not.toThrow();
   });
 
   it("sends a download request on button click without closing, and shows a failure message", async () => {

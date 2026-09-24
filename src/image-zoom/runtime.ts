@@ -1,7 +1,11 @@
-import { isImageViewerOpen, openImageViewer } from "@/image-zoom/viewer";
+import {
+  isImageViewerOpen,
+  openImageViewer,
+  setImageViewerTheme,
+} from "@/image-zoom/viewer";
 import {
   isLightboxRoute,
-  isTargetImage,
+  pickTargetImage,
   toOriginalUrl,
 } from "@/image-zoom/x-adapter";
 import type { Theme } from "@/ui/theme";
@@ -10,27 +14,23 @@ import { loadStoredTheme, normalizeTheme } from "@/ui/themeStorage";
 let started = false;
 let currentTheme: Theme = "auto";
 
-function findTargetImage(
-  clientX: number,
-  clientY: number
-): HTMLImageElement | null {
-  const elements = document.elementsFromPoint(clientX, clientY);
-  for (const el of elements) {
-    if (isTargetImage(el)) {
-      return el;
-    }
-  }
-  return null;
-}
-
 function handleClick(e: MouseEvent): void {
   if (isImageViewerOpen()) {
     return;
   }
-  if (e.button !== 0 || !isLightboxRoute(window.location.pathname)) {
+  if (
+    e.button !== 0 ||
+    e.metaKey ||
+    e.ctrlKey ||
+    e.shiftKey ||
+    e.altKey ||
+    !isLightboxRoute(window.location.pathname)
+  ) {
     return;
   }
-  const target = findTargetImage(e.clientX, e.clientY);
+  const target = pickTargetImage(
+    document.elementsFromPoint(e.clientX, e.clientY)
+  );
   if (!target) {
     return;
   }
@@ -52,6 +52,7 @@ function setupThemeSync(): void {
       return;
     }
     currentTheme = normalizeTheme(changes.theme?.newValue);
+    setImageViewerTheme(currentTheme);
   });
 }
 

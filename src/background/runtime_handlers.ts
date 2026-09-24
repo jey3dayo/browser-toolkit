@@ -485,7 +485,7 @@ function handleDownloadImageRequest(
   (async () => {
     const parsed = parseDownloadImageRequest(request);
     if (!parsed) {
-      sendResponse(Result.fail(t("background.runtime.downloadImageFailed")));
+      sendResponse(Result.fail(t("imageZoom.errors.downloadFailed")));
       return;
     }
 
@@ -512,7 +512,7 @@ function handleDownloadImageRequest(
         Result.fail(
           error instanceof Error
             ? error.message
-            : t("background.runtime.downloadImageFailed")
+            : t("imageZoom.errors.downloadFailed")
         )
       );
     }

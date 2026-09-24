@@ -116,7 +116,6 @@ export const resources = {
           actionMissing:
             "アクションが見つかりません（ポップアップで再保存してください）",
           chatFailed: "チャット応答に失敗しました",
-          downloadImageFailed: "画像のダウンロードに失敗しました",
           eventSummaryFailed: "イベント要約に失敗しました",
           openSettingsFailed: "設定画面を開けませんでした",
           summarizeFailed: "要約に失敗しました",
@@ -283,11 +282,13 @@ export const resources = {
         title: "アクション履歴",
       },
       imageZoom: {
+        close: "閉じる",
         dialogLabel: "画像ビューア",
         download: "元画像をダウンロード",
         errors: {
           downloadFailed: "画像のダウンロードに失敗しました",
           downloadInvalidUrl: "この画像はダウンロードできません",
+          loadFailed: "画像を読み込めませんでした",
         },
       },
       linkFormat: {

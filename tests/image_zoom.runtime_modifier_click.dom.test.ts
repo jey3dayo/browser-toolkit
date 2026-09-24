@@ -10,7 +10,7 @@ function getHost(): HTMLDivElement | null {
   return el instanceof window.HTMLDivElement ? el : null;
 }
 
-describe("image-zoom runtime: reopen-on-close regression", () => {
+describe("image-zoom runtime: modifier-click guard", () => {
   afterEach(() => {
     closeImageViewer();
     document.body.innerHTML = "";
@@ -18,7 +18,7 @@ describe("image-zoom runtime: reopen-on-close regression", () => {
     vi.unstubAllGlobals();
   });
 
-  it("closes on a backdrop click and does not immediately reopen", async () => {
+  it("does not open the viewer when the click carries a modifier key", async () => {
     vi.stubGlobal("chrome", {
       runtime: { lastError: null },
       storage: {
@@ -39,12 +39,22 @@ describe("image-zoom runtime: reopen-on-close regression", () => {
     modal.appendChild(pageImg);
     document.body.appendChild(modal);
 
-    document.elementsFromPoint = vi.fn(() => {
-      const host = getHost();
-      return host ? [host, pageImg] : [pageImg];
-    });
+    document.elementsFromPoint = vi.fn(() => [pageImg]);
 
     await startImageZoomRuntime();
+
+    window.dispatchEvent(
+      new MouseEvent("click", {
+        bubbles: true,
+        button: 0,
+        cancelable: true,
+        clientX: 100,
+        clientY: 100,
+        ctrlKey: true,
+      })
+    );
+
+    expect(getHost()).toBeNull();
 
     window.dispatchEvent(
       new MouseEvent("click", {
@@ -56,22 +66,6 @@ describe("image-zoom runtime: reopen-on-close regression", () => {
       })
     );
 
-    const host = getHost();
-    expect(host).not.toBeNull();
-
-    const backdrop = host?.shadowRoot?.querySelector('[role="dialog"]');
-    expect(backdrop).toBeTruthy();
-    backdrop?.dispatchEvent(
-      new MouseEvent("click", {
-        bubbles: true,
-        button: 0,
-        cancelable: true,
-        clientX: 100,
-        clientY: 100,
-        composed: true,
-      })
-    );
-
-    expect(getHost()).toBeNull();
+    expect(getHost()).not.toBeNull();
   });
 });

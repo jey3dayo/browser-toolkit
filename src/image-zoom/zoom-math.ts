@@ -49,10 +49,40 @@ export function computeInitialTransform(
   viewportWidth: number,
   viewportHeight: number
 ): Transform {
+  const scale = Math.min(
+    computeFitScale(imageWidth, imageHeight, viewportWidth, viewportHeight),
+    1
+  );
   return {
-    scale: 1,
-    x: (viewportWidth - imageWidth) / 2,
-    y: (viewportHeight - imageHeight) / 2,
+    scale,
+    x: (viewportWidth - imageWidth * scale) / 2,
+    y: (viewportHeight - imageHeight * scale) / 2,
+  };
+}
+
+const MIN_VISIBLE_PX = 80;
+
+export function clampPan(
+  transform: Transform,
+  imageWidth: number,
+  imageHeight: number,
+  viewportWidth: number,
+  viewportHeight: number
+): Transform {
+  const scaledWidth = imageWidth * transform.scale;
+  const scaledHeight = imageHeight * transform.scale;
+  const minVisibleX = Math.min(MIN_VISIBLE_PX, scaledWidth);
+  const minVisibleY = Math.min(MIN_VISIBLE_PX, scaledHeight);
+  return {
+    scale: transform.scale,
+    x: Math.min(
+      Math.max(transform.x, minVisibleX - scaledWidth),
+      viewportWidth - minVisibleX
+    ),
+    y: Math.min(
+      Math.max(transform.y, minVisibleY - scaledHeight),
+      viewportHeight - minVisibleY
+    ),
   };
 }
 

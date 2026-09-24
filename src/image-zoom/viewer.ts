@@ -3,6 +3,8 @@ import { ensureShadowMount } from "@/content/shadow_mount";
 import { t } from "@/i18n";
 import { requestImageDownload } from "@/image-zoom/download-request";
 import {
+  clampPan,
+  clampScale,
   computeInitialTransform,
   computeZoomBounds,
   exceedsDragThreshold,
@@ -12,7 +14,7 @@ import {
   type ZoomBounds,
   zoomAroundPoint,
 } from "@/image-zoom/zoom-math";
-import type { Theme } from "@/ui/theme";
+import { applyTheme, type Theme } from "@/ui/theme";
 
 const HOST_ID = "browser-toolkit-image-zoom";
 const ROOT_ID = "mbu-image-zoom-root";
@@ -20,11 +22,18 @@ const ROOT_ID = "mbu-image-zoom-root";
 type ViewerCleanup = () => void;
 
 let currentHost: HTMLDivElement | null = null;
+let currentShadow: ShadowRoot | null = null;
 let currentCleanup: ViewerCleanup | null = null;
 let previousActiveElement: HTMLElement | null = null;
 
 export function isImageViewerOpen(): boolean {
   return currentHost !== null;
+}
+
+export function setImageViewerTheme(theme: Theme): void {
+  if (currentShadow) {
+    applyTheme(theme, currentShadow);
+  }
 }
 
 export function closeImageViewer(): void {
@@ -36,6 +45,7 @@ export function closeImageViewer(): void {
     currentHost.remove();
     currentHost = null;
   }
+  currentShadow = null;
   previousActiveElement?.focus();
   previousActiveElement = null;
 }
@@ -61,6 +71,7 @@ export function openImageViewer(url: string, theme: Theme): void {
 
   const mount = ensureShadowMount({ hostId: HOST_ID, rootId: ROOT_ID, theme });
   currentHost = mount.host;
+  currentShadow = mount.shadow;
 
   const backdrop = document.createElement("div");
   backdrop.setAttribute("role", "dialog");
@@ -69,7 +80,7 @@ export function openImageViewer(url: string, theme: Theme): void {
   backdrop.style.cssText = [
     "position: fixed",
     "inset: 0",
-    "background: rgba(0, 0, 0, 0.92)",
+    "background: var(--color-scrim-strong)",
     "overflow: hidden",
     "z-index: 2147483647",
     "cursor: grab",
@@ -86,16 +97,28 @@ export function openImageViewer(url: string, theme: Theme): void {
     "user-select: none",
   ].join(";");
 
+  const controls = document.createElement("div");
+  controls.style.cssText = [
+    "position: fixed",
+    "top: var(--spacing-md)",
+    "right: var(--spacing-md)",
+    "display: flex",
+    "gap: var(--spacing-sm)",
+    "z-index: 2147483647",
+  ].join(";");
+
+  const closeButton = document.createElement("button");
+  closeButton.type = "button";
+  closeButton.textContent = t("imageZoom.close");
+  closeButton.className = "btn btn-primary";
+
   const downloadButton = document.createElement("button");
   downloadButton.type = "button";
   downloadButton.textContent = t("imageZoom.download");
   downloadButton.className = "btn btn-primary";
-  downloadButton.style.cssText = [
-    "position: fixed",
-    "top: var(--spacing-md)",
-    "right: var(--spacing-md)",
-    "z-index: 2147483647",
-  ].join(";");
+
+  controls.appendChild(closeButton);
+  controls.appendChild(downloadButton);
 
   const errorText = document.createElement("p");
   errorText.setAttribute("role", "alert");
@@ -113,7 +136,7 @@ export function openImageViewer(url: string, theme: Theme): void {
   ].join(";");
 
   backdrop.appendChild(img);
-  backdrop.appendChild(downloadButton);
+  backdrop.appendChild(controls);
   backdrop.appendChild(errorText);
   mount.shadow.appendChild(backdrop);
 
@@ -121,12 +144,24 @@ export function openImageViewer(url: string, theme: Theme): void {
   let bounds: ZoomBounds = { max: 10, min: 1 };
   let dragState: DragState | null = null;
   let pendingClickWasDrag = false;
+  let imageLoaded = false;
 
   function applyTransform(): void {
     img.style.transform = `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`;
   }
 
+  function clampCurrentPan(): void {
+    transform = clampPan(
+      transform,
+      img.naturalWidth,
+      img.naturalHeight,
+      window.innerWidth,
+      window.innerHeight
+    );
+  }
+
   function initTransformFromImage(): void {
+    imageLoaded = true;
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
     img.style.width = `${img.naturalWidth}px`;
@@ -143,7 +178,13 @@ export function openImageViewer(url: string, theme: Theme): void {
       viewportWidth,
       viewportHeight
     );
+    clampCurrentPan();
     applyTransform();
+  }
+
+  function handleImageError(): void {
+    errorText.textContent = t("imageZoom.errors.loadFailed");
+    errorText.style.display = "block";
   }
 
   function handleWheel(e: WheelEvent): void {
@@ -154,11 +195,27 @@ export function openImageViewer(url: string, theme: Theme): void {
       wheelScaleDelta(e.deltaY),
       bounds
     );
+    clampCurrentPan();
+    applyTransform();
+  }
+
+  function handleResize(): void {
+    if (!imageLoaded) {
+      return;
+    }
+    bounds = computeZoomBounds(
+      img.naturalWidth,
+      img.naturalHeight,
+      window.innerWidth,
+      window.innerHeight
+    );
+    transform = { ...transform, scale: clampScale(transform.scale, bounds) };
+    clampCurrentPan();
     applyTransform();
   }
 
   function handlePointerDown(e: PointerEvent): void {
-    if (e.button !== 0 || isWithinElement(e.target, downloadButton)) {
+    if (e.button !== 0 || isWithinElement(e.target, controls)) {
       return;
     }
     dragState = {
@@ -181,6 +238,7 @@ export function openImageViewer(url: string, theme: Theme): void {
       dragState.moved = true;
     }
     transform = panBy(dragState.startTransform, deltaX, deltaY);
+    clampCurrentPan();
     applyTransform();
   }
 
@@ -193,7 +251,7 @@ export function openImageViewer(url: string, theme: Theme): void {
   }
 
   function handleBackdropClick(e: MouseEvent): void {
-    if (isWithinElement(e.target, downloadButton)) {
+    if (isWithinElement(e.target, controls)) {
       return;
     }
     e.preventDefault();
@@ -205,17 +263,43 @@ export function openImageViewer(url: string, theme: Theme): void {
     }
   }
 
+  function focusOtherControl(): void {
+    if (mount.shadow.activeElement === downloadButton) {
+      closeButton.focus();
+    } else {
+      downloadButton.focus();
+    }
+  }
+
   function handleKeyDown(e: KeyboardEvent): void {
+    e.stopPropagation();
     if (e.key === "Escape") {
       e.preventDefault();
-      e.stopPropagation();
       closeImageViewer();
       return;
     }
     if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
       e.preventDefault();
-      e.stopPropagation();
+      return;
     }
+    if (e.key === "Tab") {
+      e.preventDefault();
+      focusOtherControl();
+    }
+  }
+
+  function handleKeyUp(e: KeyboardEvent): void {
+    e.stopPropagation();
+  }
+
+  function handleKeyPress(e: KeyboardEvent): void {
+    e.stopPropagation();
+  }
+
+  function handleCloseClick(e: MouseEvent): void {
+    e.preventDefault();
+    e.stopPropagation();
+    closeImageViewer();
   }
 
   function handleDownloadClick(e: MouseEvent): void {
@@ -236,22 +320,32 @@ export function openImageViewer(url: string, theme: Theme): void {
   }
 
   img.addEventListener("load", initTransformFromImage, { once: true });
+  img.addEventListener("error", handleImageError);
   backdrop.addEventListener("wheel", handleWheel, { passive: false });
   backdrop.addEventListener("pointerdown", handlePointerDown);
   backdrop.addEventListener("pointermove", handlePointerMove);
   backdrop.addEventListener("pointerup", handlePointerUp);
   backdrop.addEventListener("click", handleBackdropClick);
   window.addEventListener("keydown", handleKeyDown, true);
+  window.addEventListener("keyup", handleKeyUp, true);
+  window.addEventListener("keypress", handleKeyPress, true);
+  window.addEventListener("resize", handleResize);
+  closeButton.addEventListener("click", handleCloseClick);
   downloadButton.addEventListener("click", handleDownloadClick);
 
   currentCleanup = () => {
     img.removeEventListener("load", initTransformFromImage);
+    img.removeEventListener("error", handleImageError);
     backdrop.removeEventListener("wheel", handleWheel);
     backdrop.removeEventListener("pointerdown", handlePointerDown);
     backdrop.removeEventListener("pointermove", handlePointerMove);
     backdrop.removeEventListener("pointerup", handlePointerUp);
     backdrop.removeEventListener("click", handleBackdropClick);
     window.removeEventListener("keydown", handleKeyDown, true);
+    window.removeEventListener("keyup", handleKeyUp, true);
+    window.removeEventListener("keypress", handleKeyPress, true);
+    window.removeEventListener("resize", handleResize);
+    closeButton.removeEventListener("click", handleCloseClick);
     downloadButton.removeEventListener("click", handleDownloadClick);
   };
 
