@@ -37,6 +37,32 @@ export const cssRawPlugin = {
   },
 };
 
+export const sharedBuildOptions = {
+  alias: {
+    "@": "./src",
+  },
+  bundle: true,
+  charset: "utf8",
+  define: {
+    "process.env.GA4_API_SECRET": JSON.stringify(
+      process.env.GA4_API_SECRET || ""
+    ),
+    "process.env.GA4_MEASUREMENT_ID": JSON.stringify(
+      process.env.GA4_MEASUREMENT_ID || ""
+    ),
+    "process.env.NODE_ENV": '"production"',
+  },
+  format: "iife",
+  jsx: "automatic",
+  loader: {
+    ".css": "css",
+    ".toml": "text",
+  },
+  platform: "browser",
+  plugins: [cssRawPlugin],
+  target: "es2020",
+};
+
 export async function copyStyles() {
   await fsp.mkdir(stylesDest, { recursive: true });
   await fsp.cp(stylesSrc, stylesDest, { recursive: true });

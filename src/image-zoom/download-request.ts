@@ -1,5 +1,5 @@
 import { Result } from "@praha/byethrow";
-import { t } from "@/i18n";
+import { t } from "@/i18n/lite";
 import type { DownloadImagePayload } from "@/image-zoom/download-url";
 import { isRecord } from "@/utils/guards";
 

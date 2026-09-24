@@ -1,5 +1,6 @@
 import componentAccordionCss from "@/styles/tokens/components/accordion.css?raw";
 import componentBaseCss from "@/styles/tokens/components/base-ui.css?raw";
+import componentButtonCss from "@/styles/tokens/components/button.css?raw";
 import componentOverlayContentCss from "@/styles/tokens/components/overlay-content.css?raw";
 import componentOverlayShellCss from "@/styles/tokens/components/overlay-shell.css?raw";
 import componentPopupCss from "@/styles/tokens/components/popup.css?raw";
@@ -10,9 +11,15 @@ import componentToastCss from "@/styles/tokens/components/toast.css?raw";
 import componentTokensCss from "@/styles/tokens/components/tokens.css?raw";
 import primitivesCss from "@/styles/tokens/primitives.css?raw";
 import semanticCss from "@/styles/tokens/semantic.css?raw";
+import {
+  ensureShadowFallbackTokens,
+  ensureShadowStyleText,
+  primitiveSemanticSheets,
+  shadowHasTokens,
+  TOKEN_PRIMITIVES_ID,
+  TOKEN_SEMANTIC_ID,
+} from "@/ui/styles-tokens";
 
-const TOKEN_PRIMITIVES_ID = "mbu-ui-token-primitives";
-const TOKEN_SEMANTIC_ID = "mbu-ui-token-semantic";
 const STYLE_ID = "mbu-ui-base-styles";
 
 const TOKEN_PRIMITIVES_PATH = "tokens/primitives.css";
@@ -46,6 +53,7 @@ const componentsCss = [
   componentPopupCss,
   componentAccordionCss,
   componentPopupLayoutCss,
+  componentButtonCss,
   componentPopupControlsCss,
   componentPopupMiscCss,
 ].join("\n");
@@ -86,20 +94,13 @@ type ConstructableSheets = {
 };
 
 function createConstructableSheets(): ConstructableSheets | null {
-  if (typeof CSSStyleSheet === "undefined") {
-    return null;
-  }
-  if (!("replaceSync" in CSSStyleSheet.prototype)) {
+  if (!primitiveSemanticSheets) {
     return null;
   }
   try {
-    const primitives = new CSSStyleSheet();
-    primitives.replaceSync(primitivesCss);
-    const semantic = new CSSStyleSheet();
-    semantic.replaceSync(semanticCss);
     const components = new CSSStyleSheet();
     components.replaceSync(componentsCss);
-    return { components, primitives, semantic };
+    return { components, ...primitiveSemanticSheets };
   } catch {
     return null;
   }
@@ -130,58 +131,6 @@ function ensureDocumentStylesheet(
   (doc.head ?? doc.documentElement).appendChild(link);
 }
 
-function ensureShadowStyleText(
-  shadowRoot: ShadowRoot,
-  id: string,
-  cssText: string
-): void {
-  if (shadowRoot.querySelector(`#${id}`)) {
-    return;
-  }
-  const style = shadowRoot.ownerDocument.createElement("style");
-  style.id = id;
-  style.textContent = cssText;
-  shadowRoot.appendChild(style);
-}
-
-const FALLBACK_MBU_TOKENS: Record<string, string> = {
-  "--mbu-accent": "var(--color-primary, #7c8cff)",
-  "--mbu-bg": "var(--color-bg, #0c0d10)",
-  "--mbu-border": "var(--color-border-ui, rgba(255, 255, 255, 0.12))",
-  "--mbu-danger": "var(--color-danger, #f07178)",
-  "--mbu-focus-ring": "var(--focus-ring, 2px solid rgba(124, 140, 255, 0.55))",
-  "--mbu-focus-ring-offset": "var(--focus-ring-offset, 2px)",
-  "--mbu-radius": "var(--radius-lg, 14px)",
-  "--mbu-shadow": "var(--shadow-elevation, 0 12px 40px rgba(0, 0, 0, 0.35))",
-  "--mbu-surface": "var(--color-surface, #15171c)",
-  "--mbu-surface-2": "var(--color-surface-2, #1c1f26)",
-  "--mbu-text": "var(--color-text, #ececef)",
-  "--mbu-text-muted": "var(--color-text-muted, #9aa0ac)",
-  "--mbu-toast-screen-inset": "var(--toast-screen-inset, 12px 12px auto auto)",
-  "--mbu-toast-surface-inset":
-    "var(--toast-surface-inset, 12px 12px auto auto)",
-};
-
-function ensureShadowFallbackTokens(shadowRoot: ShadowRoot): void {
-  const { host } = shadowRoot;
-  if (!(host instanceof HTMLElement)) {
-    return;
-  }
-  const computed =
-    shadowRoot.ownerDocument.defaultView?.getComputedStyle?.(host) ?? null;
-  if (!computed) {
-    return;
-  }
-  const surface = computed.getPropertyValue("--mbu-surface").trim();
-  if (surface) {
-    return;
-  }
-  for (const [name, value] of Object.entries(FALLBACK_MBU_TOKENS)) {
-    if (!host.style.getPropertyValue(name)) {
-      host.style.setProperty(name, value);
-    }
-  }
-}
 export function ensurePopupUiBaseStyles(doc: Document): void {
   for (const entry of POPUP_STYLE_LINKS) {
     ensureDocumentStylesheet(
@@ -193,22 +142,6 @@ export function ensurePopupUiBaseStyles(doc: Document): void {
 }
 
 export function ensureShadowUiBaseStyles(shadowRoot: ShadowRoot): void {
-  const hasShadowTokens = (): boolean => {
-    if (typeof getComputedStyle !== "function") {
-      return true;
-    }
-    const { host } = shadowRoot;
-    if (!(host instanceof HTMLElement)) {
-      return true;
-    }
-    if (!host.isConnected) {
-      return true;
-    }
-    const value = getComputedStyle(host)
-      .getPropertyValue("--mbu-surface")
-      .trim();
-    return value.length > 0;
-  };
   if (
     shadowConstructedSheets &&
     "adoptedStyleSheets" in shadowRoot &&
@@ -231,7 +164,7 @@ export function ensureShadowUiBaseStyles(shadowRoot: ShadowRoot): void {
     if (changed) {
       shadowRoot.adoptedStyleSheets = next;
     }
-    if (hasShadowTokens()) {
+    if (shadowHasTokens(shadowRoot)) {
       return;
     }
   }

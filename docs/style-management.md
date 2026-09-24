@@ -63,9 +63,10 @@ Shared component styles (used by both popup and ShadowRoot) live in:
 
 ShadowRoot UIs load the same token/stylesheets via:
 
-- `src/ui/styles.ts` (`ensureShadowUiBaseStyles`)
+- `src/ui/styles.ts` (`ensureShadowUiBaseStyles`): primitives + semantic + all component CSS, for overlay/toast/popup-style ShadowRoot UIs.
+- `src/ui/styles-tokens.ts` (`ensureShadowTokenStyles`): primitives + semantic only, plus a caller-supplied `extraCss`/id. Used where the full component CSS would bloat the bundle (e.g. `src/image-zoom/mount.ts`).
 
-This attaches `<link rel="stylesheet">` tags to the ShadowRoot so the overlay/toast UI remains CSP-friendly and consistent with the popup theme/tokens.
+Both adopt a constructed `CSSStyleSheet` per shadow root (`adoptedStyleSheets`) when supported, and fall back to inline `<style>` tags when constructed stylesheets are unavailable (e.g. jsdom). Neither attaches `<link rel="stylesheet">` tags — that mechanism is only used by the document-level popup/options path (`ensurePopupUiBaseStyles`).
 
 Base UI's `Portal` renders to `document.body` by default, which escapes the ShadowRoot and
 loses styling. Any Base UI component with a portal (`Dialog`, `Toast`, etc.) rendered inside a
