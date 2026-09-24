@@ -285,18 +285,14 @@ export const FormInteraction = {
 export const SelectAction = {
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     const canvas = within(canvasElement);
-    const doc = canvasElement.ownerDocument;
 
-    const selectTrigger = canvas.getByTestId("action-editor-select");
-    await userEvent.click(selectTrigger);
-
-    await waitFor(() => {
-      const selectPopup = doc.body.querySelector(".mbu-select-popup");
-      expect(selectPopup).toBeTruthy();
-    });
-
-    const actionOption = within(doc.body).getByText("要約");
-    await userEvent.click(actionOption);
+    await userEvent.click(canvas.getByTestId("action-editor-select"));
+    const listbox = await within(canvasElement.ownerDocument.body).findByRole(
+      "listbox"
+    );
+    await userEvent.click(
+      within(listbox).getByRole("option", { name: "要約" })
+    );
 
     await waitFor(() => {
       const titleInput = canvas.getByTestId("action-editor-title");
