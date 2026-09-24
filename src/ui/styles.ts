@@ -97,12 +97,6 @@ function createConstructableSheets(): ConstructableSheets | null {
   if (!primitiveSemanticSheets) {
     return null;
   }
-  if (typeof CSSStyleSheet === "undefined") {
-    return null;
-  }
-  if (!("replaceSync" in CSSStyleSheet.prototype)) {
-    return null;
-  }
   try {
     const components = new CSSStyleSheet();
     components.replaceSync(componentsCss);

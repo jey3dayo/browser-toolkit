@@ -19,6 +19,7 @@ import componentTokensCss from "@/styles/tokens/components/tokens.css?raw";
 import { applyTheme, type Theme } from "@/ui/theme";
 
 const HOST_ID = "browser-toolkit-image-zoom";
+const VIEWER_TOKEN_CSS_ID = "mbu-image-zoom-token-extra";
 const VIEWER_TOKEN_CSS = [componentTokensCss, componentButtonCss].join("\n");
 
 type ViewerCleanup = () => void;
@@ -73,6 +74,7 @@ export function openImageViewer(url: string, theme: Theme): void {
 
   const mount = ensureViewerShadowMount({
     extraCss: VIEWER_TOKEN_CSS,
+    extraCssId: VIEWER_TOKEN_CSS_ID,
     hostId: HOST_ID,
     theme,
   });

@@ -9,6 +9,7 @@ export type ViewerShadowMount = {
 type ViewerShadowMountParams = {
   hostId: string;
   theme: Theme;
+  extraCssId: string;
   extraCss: string;
 };
 
@@ -26,7 +27,7 @@ export function ensureViewerShadowMount(
   if (!host.isConnected) {
     (document.documentElement ?? document.body ?? document).appendChild(host);
   }
-  ensureShadowTokenStyles(shadow, params.extraCss);
+  ensureShadowTokenStyles(shadow, params.extraCssId, params.extraCss);
   applyTheme(params.theme, shadow);
 
   return { host, shadow };

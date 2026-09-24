@@ -3,7 +3,6 @@ import semanticCss from "@/styles/tokens/semantic.css?raw";
 
 export const TOKEN_PRIMITIVES_ID = "mbu-ui-token-primitives";
 export const TOKEN_SEMANTIC_ID = "mbu-ui-token-semantic";
-const TOKEN_EXTRA_ID = "mbu-ui-token-extra";
 
 type PrimitiveSemanticSheets = {
   primitives: CSSStyleSheet;
@@ -39,14 +38,14 @@ export const primitiveSemanticSheets = createPrimitiveSemanticSheets();
 
 const tokenExtraSheetCache = new Map<string, CSSStyleSheet>();
 
-function getTokenExtraSheet(css: string): CSSStyleSheet | null {
-  const cached = tokenExtraSheetCache.get(css);
+function getTokenExtraSheet(id: string, css: string): CSSStyleSheet | null {
+  const cached = tokenExtraSheetCache.get(id);
   if (cached) {
     return cached;
   }
   const sheet = createConstructableStyleSheet(css);
   if (sheet) {
-    tokenExtraSheetCache.set(css, sheet);
+    tokenExtraSheetCache.set(id, sheet);
   }
   return sheet;
 }
@@ -121,9 +120,10 @@ export function shadowHasTokens(shadowRoot: ShadowRoot): boolean {
 
 export function ensureShadowTokenStyles(
   shadowRoot: ShadowRoot,
+  extraCssId: string,
   extraCss: string
 ): void {
-  const extraSheet = getTokenExtraSheet(extraCss);
+  const extraSheet = getTokenExtraSheet(extraCssId, extraCss);
   if (
     primitiveSemanticSheets &&
     extraSheet &&
@@ -154,7 +154,7 @@ export function ensureShadowTokenStyles(
 
   ensureShadowStyleText(shadowRoot, TOKEN_PRIMITIVES_ID, primitivesCss);
   ensureShadowStyleText(shadowRoot, TOKEN_SEMANTIC_ID, semanticCss);
-  ensureShadowStyleText(shadowRoot, TOKEN_EXTRA_ID, extraCss);
+  ensureShadowStyleText(shadowRoot, extraCssId, extraCss);
 
   ensureShadowFallbackTokens(shadowRoot);
 }
