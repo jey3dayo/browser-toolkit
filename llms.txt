@@ -25,7 +25,7 @@
 ## Docs
 
 - [README](README.md): 機能概要・インストール・開発コマンド・プライバシー方針
-- [CLAUDE.md](CLAUDE.md): Claude / AI エージェント向け開発ガイド。Source Of Truth 表が各対象の正本を定める
+- [AGENTS.md](AGENTS.md): Claude / AI エージェント向け開発ガイド。Source Of Truth 表が各対象の正本を定める
 - [docs/architecture.md](docs/architecture.md): アーキテクチャ設計（ランタイム境界、AI 統一 I/F、Result 型）
 - [docs/context-actions.md](docs/context-actions.md): Context Actions の詳細
 - [docs/style-management.md](docs/style-management.md): Design Tokens / テーマ管理

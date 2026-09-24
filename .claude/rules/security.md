@@ -152,7 +152,7 @@ manifest.jsonのCSPを厳格化（Issue #143）：
 }
 ```
 
-`connect-src` は拡張機能ページが `fetch`/`XMLHttpRequest` で接続できるホストを制限する、このCSPの中核的な制約です。AIプロバイダのエンドポイントを追加・変更する場合は、`src/constants/api-endpoints.ts` の `ALLOWED_API_ORIGINS`、`manifest.json` の `host_permissions`、`content_security_policy.connect-src` を必ず同じ差分で揃えてください（詳細は `CLAUDE.md` の「Release / Permission Review」を参照）。
+`connect-src` は拡張機能ページが `fetch`/`XMLHttpRequest` で接続できるホストを制限する、このCSPの中核的な制約です。AIプロバイダのエンドポイントを追加・変更する場合は、`src/constants/api-endpoints.ts` の `ALLOWED_API_ORIGINS`、`manifest.json` の `host_permissions`、`content_security_policy.connect-src` を必ず同じ差分で揃えてください（詳細は `AGENTS.md` の「Release / Permission Review」を参照）。
 
 ### 3. 入力検証
 
