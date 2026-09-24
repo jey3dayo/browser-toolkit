@@ -1,7 +1,7 @@
 import { Result } from "@praha/byethrow";
-import { ensureShadowMount } from "@/content/shadow_mount";
-import { t } from "@/i18n";
+import { t } from "@/i18n/lite";
 import { requestImageDownload } from "@/image-zoom/download-request";
+import { ensureViewerShadowMount } from "@/image-zoom/mount";
 import {
   clampPan,
   clampScale,
@@ -14,10 +14,12 @@ import {
   type ZoomBounds,
   zoomAroundPoint,
 } from "@/image-zoom/zoom-math";
+import componentButtonCss from "@/styles/tokens/components/button.css?raw";
+import componentTokensCss from "@/styles/tokens/components/tokens.css?raw";
 import { applyTheme, type Theme } from "@/ui/theme";
 
 const HOST_ID = "browser-toolkit-image-zoom";
-const ROOT_ID = "mbu-image-zoom-root";
+const VIEWER_TOKEN_CSS = [componentTokensCss, componentButtonCss].join("\n");
 
 type ViewerCleanup = () => void;
 
@@ -69,7 +71,11 @@ export function openImageViewer(url: string, theme: Theme): void {
       ? document.activeElement
       : null;
 
-  const mount = ensureShadowMount({ hostId: HOST_ID, rootId: ROOT_ID, theme });
+  const mount = ensureViewerShadowMount({
+    extraCss: VIEWER_TOKEN_CSS,
+    hostId: HOST_ID,
+    theme,
+  });
   currentHost = mount.host;
   currentShadow = mount.shadow;
 
