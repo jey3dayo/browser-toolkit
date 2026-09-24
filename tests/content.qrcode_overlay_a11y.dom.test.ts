@@ -30,4 +30,82 @@ describe("QR code overlay accessibility", () => {
     expect(dialog?.getAttribute("aria-labelledby")).toBeTruthy();
     expect(closeButton).toBe(shadow?.activeElement);
   });
+
+  it("traps Tab on the close button and keeps it from reaching the page", () => {
+    const pageListener = vi.fn();
+    window.addEventListener("keydown", pageListener);
+
+    showQrCodeOverlay("https://example.com", "light");
+    const shadow = document.getElementById(
+      "browser-toolkit-qrcode"
+    )?.shadowRoot;
+    const closeButton = shadow?.querySelector("button");
+    expect(closeButton).toBe(shadow?.activeElement);
+
+    const tabEvent = new KeyboardEvent("keydown", {
+      cancelable: true,
+      key: "Tab",
+    });
+    window.dispatchEvent(tabEvent);
+    expect(closeButton).toBe(shadow?.activeElement);
+    expect(tabEvent.defaultPrevented).toBe(true);
+    expect(pageListener).not.toHaveBeenCalled();
+
+    const shiftTabEvent = new KeyboardEvent("keydown", {
+      cancelable: true,
+      key: "Tab",
+      shiftKey: true,
+    });
+    window.dispatchEvent(shiftTabEvent);
+    expect(closeButton).toBe(shadow?.activeElement);
+    expect(shiftTabEvent.defaultPrevented).toBe(true);
+
+    window.removeEventListener("keydown", pageListener);
+  });
+
+  it("isolates page key listeners while open", () => {
+    const pageListener = vi.fn();
+    window.addEventListener("keydown", pageListener);
+
+    showQrCodeOverlay("https://example.com", "light");
+    window.dispatchEvent(
+      new KeyboardEvent("keydown", { cancelable: true, key: "l" })
+    );
+
+    expect(pageListener).not.toHaveBeenCalled();
+    expect(document.getElementById("browser-toolkit-qrcode")).not.toBeNull();
+
+    window.removeEventListener("keydown", pageListener);
+  });
+
+  it("closes on Escape and does not let it reach page listeners", () => {
+    const pageListener = vi.fn();
+    window.addEventListener("keydown", pageListener);
+
+    showQrCodeOverlay("https://example.com", "light");
+    window.dispatchEvent(
+      new KeyboardEvent("keydown", { cancelable: true, key: "Escape" })
+    );
+
+    expect(document.getElementById("browser-toolkit-qrcode")).toBeNull();
+    expect(pageListener).not.toHaveBeenCalled();
+
+    window.removeEventListener("keydown", pageListener);
+  });
+
+  it("restores focus to the trigger on close", () => {
+    const trigger = document.createElement("button");
+    trigger.textContent = "open";
+    document.body.appendChild(trigger);
+    trigger.focus();
+
+    showQrCodeOverlay("https://example.com", "light");
+    expect(document.activeElement).not.toBe(trigger);
+
+    window.dispatchEvent(
+      new KeyboardEvent("keydown", { cancelable: true, key: "Escape" })
+    );
+
+    expect(document.activeElement).toBe(trigger);
+  });
 });

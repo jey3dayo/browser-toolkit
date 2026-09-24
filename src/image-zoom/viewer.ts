@@ -16,18 +16,20 @@ import {
 } from "@/image-zoom/zoom-math";
 import componentButtonCss from "@/styles/tokens/components/button.css?raw";
 import componentTokensCss from "@/styles/tokens/components/tokens.css?raw";
+import { activateModal, type DeactivateModal } from "@/ui/modal-controller";
 import { applyTheme, type Theme } from "@/ui/theme";
 
 const HOST_ID = "browser-toolkit-image-zoom";
 const VIEWER_TOKEN_CSS_ID = "mbu-image-zoom-token-extra";
 const VIEWER_TOKEN_CSS = [componentTokensCss, componentButtonCss].join("\n");
+const VIEWER_ARROW_KEYS = ["ArrowLeft", "ArrowRight"];
 
 type ViewerCleanup = () => void;
 
 let currentHost: HTMLDivElement | null = null;
 let currentShadow: ShadowRoot | null = null;
 let currentCleanup: ViewerCleanup | null = null;
-let previousActiveElement: HTMLElement | null = null;
+let currentDeactivateModal: DeactivateModal | null = null;
 
 export function isImageViewerOpen(): boolean {
   return currentHost !== null;
@@ -49,8 +51,10 @@ export function closeImageViewer(): void {
     currentHost = null;
   }
   currentShadow = null;
-  previousActiveElement?.focus();
-  previousActiveElement = null;
+  if (currentDeactivateModal) {
+    currentDeactivateModal();
+    currentDeactivateModal = null;
+  }
 }
 
 type DragState = {
@@ -67,10 +71,6 @@ function isWithinElement(target: EventTarget | null, el: Element): boolean {
 
 export function openImageViewer(url: string, theme: Theme): void {
   closeImageViewer();
-  previousActiveElement =
-    document.activeElement instanceof window.HTMLElement
-      ? document.activeElement
-      : null;
 
   const mount = ensureViewerShadowMount({
     extraCss: VIEWER_TOKEN_CSS,
@@ -271,39 +271,6 @@ export function openImageViewer(url: string, theme: Theme): void {
     }
   }
 
-  function focusOtherControl(): void {
-    if (mount.shadow.activeElement === downloadButton) {
-      closeButton.focus();
-    } else {
-      downloadButton.focus();
-    }
-  }
-
-  function handleKeyDown(e: KeyboardEvent): void {
-    e.stopPropagation();
-    if (e.key === "Escape") {
-      e.preventDefault();
-      closeImageViewer();
-      return;
-    }
-    if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-      e.preventDefault();
-      return;
-    }
-    if (e.key === "Tab") {
-      e.preventDefault();
-      focusOtherControl();
-    }
-  }
-
-  function handleKeyUp(e: KeyboardEvent): void {
-    e.stopPropagation();
-  }
-
-  function handleKeyPress(e: KeyboardEvent): void {
-    e.stopPropagation();
-  }
-
   function handleCloseClick(e: MouseEvent): void {
     e.preventDefault();
     e.stopPropagation();
@@ -334,12 +301,16 @@ export function openImageViewer(url: string, theme: Theme): void {
   backdrop.addEventListener("pointermove", handlePointerMove);
   backdrop.addEventListener("pointerup", handlePointerUp);
   backdrop.addEventListener("click", handleBackdropClick);
-  window.addEventListener("keydown", handleKeyDown, true);
-  window.addEventListener("keyup", handleKeyUp, true);
-  window.addEventListener("keypress", handleKeyPress, true);
   window.addEventListener("resize", handleResize);
   closeButton.addEventListener("click", handleCloseClick);
   downloadButton.addEventListener("click", handleDownloadClick);
+
+  currentDeactivateModal = activateModal({
+    getActiveElement: () => mount.shadow.activeElement,
+    getFocusables: () => [downloadButton, closeButton],
+    onClose: closeImageViewer,
+    preventDefaultKeys: VIEWER_ARROW_KEYS,
+  });
 
   currentCleanup = () => {
     img.removeEventListener("load", initTransformFromImage);
@@ -349,9 +320,6 @@ export function openImageViewer(url: string, theme: Theme): void {
     backdrop.removeEventListener("pointermove", handlePointerMove);
     backdrop.removeEventListener("pointerup", handlePointerUp);
     backdrop.removeEventListener("click", handleBackdropClick);
-    window.removeEventListener("keydown", handleKeyDown, true);
-    window.removeEventListener("keyup", handleKeyUp, true);
-    window.removeEventListener("keypress", handleKeyPress, true);
     window.removeEventListener("resize", handleResize);
     closeButton.removeEventListener("click", handleCloseClick);
     downloadButton.removeEventListener("click", handleDownloadClick);

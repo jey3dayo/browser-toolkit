@@ -2,30 +2,28 @@
 import QRCode from "qrcode";
 import { ensureShadowMount } from "@/content/shadow_mount";
 import { t } from "@/i18n";
+import { activateModal, type DeactivateModal } from "@/ui/modal-controller";
 import type { Theme } from "@/ui/theme";
 
 const QR_HOST_ID = "browser-toolkit-qrcode";
 const QR_ROOT_ID = "mtk-qrcode-root";
 
 let currentQrHost: HTMLDivElement | null = null;
-let currentHandleKeyDown: ((e: KeyboardEvent) => void) | null = null;
-let previousActiveElement: HTMLElement | null = null;
+let currentDeactivateModal: DeactivateModal | null = null;
 
 function removeCurrentOverlay(): void {
-  if (currentHandleKeyDown) {
-    document.removeEventListener("keydown", currentHandleKeyDown);
-    currentHandleKeyDown = null;
-  }
   if (currentQrHost) {
     currentQrHost.remove();
     currentQrHost = null;
   }
-  const existing = document.getElementById(QR_HOST_ID) as HTMLDivElement | null;
-  if (existing) {
+  const existing = document.getElementById(QR_HOST_ID);
+  if (existing instanceof window.HTMLDivElement) {
     existing.remove();
   }
-  previousActiveElement?.focus();
-  previousActiveElement = null;
+  if (currentDeactivateModal) {
+    currentDeactivateModal();
+    currentDeactivateModal = null;
+  }
 }
 
 function createCloseButton(onClose: () => void): HTMLButtonElement {
@@ -40,7 +38,12 @@ function createCloseButton(onClose: () => void): HTMLButtonElement {
   return btn;
 }
 
-function createDialog(url: string, onClose: () => void): HTMLDivElement {
+type Dialog = {
+  backdrop: HTMLDivElement;
+  closeButton: HTMLButtonElement;
+};
+
+function createDialog(url: string, onClose: () => void): Dialog {
   const titleId = "mtk-qrcode-title";
   const backdrop = document.createElement("div");
   backdrop.style.cssText = [
@@ -96,12 +99,12 @@ function createDialog(url: string, onClose: () => void): HTMLDivElement {
     "text-align: center",
   ].join(";");
 
-  const closeBtn = createCloseButton(onClose);
+  const closeButton = createCloseButton(onClose);
 
   card.appendChild(title);
   card.appendChild(canvas);
   card.appendChild(urlText);
-  card.appendChild(closeBtn);
+  card.appendChild(closeButton);
   backdrop.appendChild(card);
 
   QRCode.toCanvas(canvas, url, { margin: 2, width: 200 }).catch(() => {
@@ -111,15 +114,11 @@ function createDialog(url: string, onClose: () => void): HTMLDivElement {
     canvas.replaceWith(errorMsg);
   });
 
-  return backdrop;
+  return { backdrop, closeButton };
 }
 
 export function showQrCodeOverlay(url: string, theme: Theme): void {
   removeCurrentOverlay();
-  previousActiveElement =
-    document.activeElement instanceof HTMLElement
-      ? document.activeElement
-      : null;
 
   const onClose = (): void => {
     removeCurrentOverlay();
@@ -132,15 +131,14 @@ export function showQrCodeOverlay(url: string, theme: Theme): void {
   });
   currentQrHost = mount.host;
 
-  const dialog = createDialog(url, onClose);
-  mount.shadow.appendChild(dialog);
-  dialog.querySelector("button")?.focus();
+  const { backdrop, closeButton } = createDialog(url, onClose);
+  mount.shadow.appendChild(backdrop);
 
-  const handleKeyDown = (e: KeyboardEvent): void => {
-    if (e.key === "Escape") {
-      onClose();
-    }
-  };
-  currentHandleKeyDown = handleKeyDown;
-  document.addEventListener("keydown", handleKeyDown);
+  currentDeactivateModal = activateModal({
+    getActiveElement: () => mount.shadow.activeElement,
+    getFocusables: () => [closeButton],
+    onClose,
+  });
+
+  closeButton.focus();
 }
