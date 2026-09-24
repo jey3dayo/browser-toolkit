@@ -29,7 +29,8 @@ function handleClick(e: MouseEvent): void {
     return;
   }
   const target = pickTargetImage(
-    document.elementsFromPoint(e.clientX, e.clientY)
+    document.elementsFromPoint(e.clientX, e.clientY),
+    { x: e.clientX, y: e.clientY }
   );
   if (!target) {
     return;

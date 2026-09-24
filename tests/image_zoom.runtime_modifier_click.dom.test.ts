@@ -36,10 +36,23 @@ describe("image-zoom runtime: modifier-click guard", () => {
     modal.setAttribute("aria-modal", "true");
     const pageImg = document.createElement("img");
     pageImg.src = MEDIA_URL;
+    pageImg.getBoundingClientRect = () => ({
+      bottom: 200,
+      height: 200,
+      left: 0,
+      right: 200,
+      toJSON() {
+        return this;
+      },
+      top: 0,
+      width: 200,
+      x: 0,
+      y: 0,
+    });
     modal.appendChild(pageImg);
     document.body.appendChild(modal);
 
-    document.elementsFromPoint = vi.fn(() => [pageImg]);
+    document.elementsFromPoint = vi.fn(() => [modal]);
 
     await startImageZoomRuntime();
 

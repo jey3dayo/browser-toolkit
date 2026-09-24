@@ -48,31 +48,51 @@ export function toOriginalUrl(rawUrl: string): string | null {
   return url.toString();
 }
 
-function isAcceptedMediaImage(
-  img: Element,
-  topmost: Element | undefined
+function pointInsideRect(
+  point: { x: number; y: number },
+  rect: DOMRect
 ): boolean {
-  const modal = img.closest(LIGHTBOX_MODAL_SELECTOR);
-  if (!modal || img.closest("a")) {
-    return false;
+  return (
+    point.x >= rect.left &&
+    point.x <= rect.right &&
+    point.y >= rect.top &&
+    point.y <= rect.bottom
+  );
+}
+
+function findVisibleMediaImage(
+  modal: Element,
+  point: { x: number; y: number }
+): HTMLImageElement | null {
+  for (const img of modal.querySelectorAll("img")) {
+    if (!isTargetImage(img) || img.closest("a")) {
+      continue;
+    }
+    if (pointInsideRect(point, img.getBoundingClientRect())) {
+      return img;
+    }
   }
-  return topmost !== undefined && modal.contains(topmost);
+  return null;
 }
 
 export function pickTargetImage(
-  elements: readonly Element[]
+  stack: readonly Element[],
+  point: { x: number; y: number }
 ): HTMLImageElement | null {
-  const [topmost] = elements;
-  for (const el of elements) {
-    if (isTargetImage(el)) {
-      if (isAcceptedMediaImage(el, topmost)) {
-        return el;
-      }
-      continue;
+  const [top] = stack;
+  const modal = top?.closest(LIGHTBOX_MODAL_SELECTOR);
+  if (!modal) {
+    return null;
+  }
+
+  for (const el of stack) {
+    if (!modal.contains(el)) {
+      break;
     }
     if (el.matches(INTERACTIVE_SELECTOR)) {
       return null;
     }
   }
-  return null;
+
+  return findVisibleMediaImage(modal, point);
 }
