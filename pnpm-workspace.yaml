@@ -4,7 +4,8 @@ allowBuilds:
   lefthook: true
   unrs-resolver: true
 minimumReleaseAge: 10080
-# pnpm does not enforce the pinned packageManager version; mise owns it.
+# pnpm does not enforce the pinned packageManager version; mise reads it from
+# package.json's packageManager field and supplies that pnpm version.
 # Side effect: pnpm-lock.yaml stays a single YAML document
 # (https://github.com/pnpm/pnpm/issues/13805).
 pmOnFail: ignore
