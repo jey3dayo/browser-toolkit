@@ -11,6 +11,18 @@ import { computeZoomBounds } from "@/image-zoom/zoom-math";
 const HOST_ID = "browser-toolkit-image-zoom";
 const URL = "https://pbs.twimg.com/media/AbCdEfGh?format=webp&name=orig";
 const SCALE_PATTERN = /scale\(([\d.]+)\)/;
+const DEFAULT_VIEWPORT = { height: 768, width: 1024 };
+
+function setViewportSize(width: number, height: number): void {
+  Object.defineProperty(window, "innerWidth", {
+    configurable: true,
+    value: width,
+  });
+  Object.defineProperty(window, "innerHeight", {
+    configurable: true,
+    value: height,
+  });
+}
 
 function getHost(): HTMLDivElement | null {
   const el = document.getElementById(HOST_ID);
@@ -75,6 +87,7 @@ describe("image-zoom viewer", () => {
     document.body.innerHTML = "";
     document.documentElement.innerHTML = "<head></head><body></body>";
     vi.unstubAllGlobals();
+    setViewportSize(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height);
   });
 
   it("opens as a labelled modal dialog and focuses the download button", () => {
@@ -296,6 +309,7 @@ describe("image-zoom viewer", () => {
   });
 
   it("recomputes bounds and raises scale to the new min on resize", () => {
+    setViewportSize(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height);
     openImageViewer(URL, "light");
     fireImageLoad(4000, 3000);
 
@@ -305,17 +319,7 @@ describe("image-zoom viewer", () => {
     }
     const initialScale = Number(img.style.transform.match(SCALE_PATTERN)?.[1]);
 
-    // Enlarging (not shrinking) the viewport raises bounds.min above the
-    // current scale, so only an actual resize-time clamp can move it up;
-    // a no-op handleResize would leave the initial scale unchanged.
-    Object.defineProperty(window, "innerWidth", {
-      configurable: true,
-      value: 2048,
-    });
-    Object.defineProperty(window, "innerHeight", {
-      configurable: true,
-      value: 1536,
-    });
+    setViewportSize(2048, 1536);
     window.dispatchEvent(new Event("resize"));
 
     const newBounds = computeZoomBounds(4000, 3000, 2048, 1536);
@@ -325,15 +329,6 @@ describe("image-zoom viewer", () => {
       img.style.transform.match(SCALE_PATTERN)?.[1]
     );
     expect(scaleAfterResize).toBeCloseTo(newBounds.min);
-
-    Object.defineProperty(window, "innerWidth", {
-      configurable: true,
-      value: 1024,
-    });
-    Object.defineProperty(window, "innerHeight", {
-      configurable: true,
-      value: 768,
-    });
   });
 
   it("applies a theme change to the open viewer via setImageViewerTheme", () => {

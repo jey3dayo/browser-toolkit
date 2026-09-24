@@ -4,14 +4,10 @@ export function isTheme(value: unknown): value is Theme {
   return value === "auto" || value === "dark" || value === "light";
 }
 
-function isStyleableElement(value: Element): value is HTMLElement {
-  return value.nodeType === 1 && "style" in value;
-}
-
 export function applyTheme(theme: Theme, target: Document | ShadowRoot): void {
-  const root =
+  const root: Element | null =
     "documentElement" in target ? target.documentElement : target.host;
-  if (!isStyleableElement(root)) {
+  if (!root) {
     return;
   }
   if (theme === "auto") {
