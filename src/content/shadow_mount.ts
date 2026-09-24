@@ -1,3 +1,4 @@
+import { ensureShadowHost } from "@/ui/shadow-host";
 import { ensureShadowUiBaseStyles } from "@/ui/styles";
 import { applyTheme, type Theme } from "@/ui/theme";
 
@@ -14,22 +15,16 @@ type ShadowMountParams = {
 };
 
 export function ensureShadowMount(params: ShadowMountParams): ShadowMount {
-  const existing = document.getElementById(
-    params.hostId
-  ) as HTMLDivElement | null;
-  const host = existing || document.createElement("div");
-  host.id = params.hostId;
-
-  const shadow = host.shadowRoot ?? host.attachShadow({ mode: "open" });
-  if (!host.isConnected) {
-    (document.documentElement ?? document.body ?? document).appendChild(host);
-  }
+  const { host, shadow } = ensureShadowHost(params.hostId);
   ensureShadowUiBaseStyles(shadow);
   applyTheme(params.theme, shadow);
 
-  let rootEl = shadow.getElementById(params.rootId) as HTMLDivElement | null;
-  if (!rootEl) {
-    rootEl = document.createElement("div");
+  const existingRoot = shadow.getElementById(params.rootId);
+  const rootEl =
+    existingRoot instanceof window.HTMLDivElement
+      ? existingRoot
+      : document.createElement("div");
+  if (rootEl !== existingRoot) {
     rootEl.id = params.rootId;
     shadow.appendChild(rootEl);
   }
