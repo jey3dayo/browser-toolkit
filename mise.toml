@@ -47,7 +47,7 @@ run = "pnpm run test:storybook"
 
 [tasks.build]
 description = "ビルドをRTK経由でコンパクトに実行"
-run = "rtk err pnpm run build"
+run = "pnpm run build"
 
 [tasks.clean]
 description = "ビルド成果物を削除"
