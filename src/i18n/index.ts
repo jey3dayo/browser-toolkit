@@ -1,17 +1,9 @@
 import i18next from "i18next";
+import type { TranslationKey } from "@/i18n/keys";
 import { resources } from "@/i18n/resources";
 
-type LeafTranslationKeys<T> = {
-  [K in keyof T & string]: T[K] extends string
-    ? K
-    : T[K] extends Record<string, unknown>
-      ? `${K}.${LeafTranslationKeys<T[K]>}`
-      : never;
-}[keyof T & string];
+export type { TranslationKey } from "@/i18n/keys";
 
-export type TranslationKey = LeafTranslationKeys<
-  (typeof resources)["ja"]["translation"]
->;
 type TranslationOptions = Record<string, string | number>;
 
 export const i18n = i18next.createInstance();
