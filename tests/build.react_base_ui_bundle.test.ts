@@ -14,14 +14,18 @@ describe("React/Base UI bundling", () => {
 
     const bundleScript = pkg.scripts?.bundle ?? "";
     if (bundleScript.includes("scripts/bundle.mjs")) {
-      const scriptPath = path.join(
+      const scriptsDir = path.join(
         path.dirname(fileURLToPath(import.meta.url)),
         "..",
-        "scripts",
-        "bundle.mjs"
+        "scripts"
       );
-      const scriptContents = await fs.readFile(scriptPath, "utf-8");
-      expect(scriptContents).toContain("process.env.NODE_ENV");
+      const [bundleContents, buildSharedContents] = await Promise.all([
+        fs.readFile(path.join(scriptsDir, "bundle.mjs"), "utf-8"),
+        fs.readFile(path.join(scriptsDir, "build-shared.mjs"), "utf-8"),
+      ]);
+      expect(bundleContents + buildSharedContents).toContain(
+        "process.env.NODE_ENV"
+      );
     } else {
       expect(bundleScript).toContain("--define:process.env.NODE_ENV=");
     }
