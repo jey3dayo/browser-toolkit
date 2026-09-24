@@ -11,7 +11,7 @@ const QR_ROOT_ID = "mtk-qrcode-root";
 let currentQrHost: HTMLDivElement | null = null;
 let currentDeactivateModal: DeactivateModal | null = null;
 
-function removeCurrentOverlay(): void {
+export function closeQrCodeOverlay(): void {
   if (currentQrHost) {
     currentQrHost.remove();
     currentQrHost = null;
@@ -118,10 +118,10 @@ function createDialog(url: string, onClose: () => void): Dialog {
 }
 
 export function showQrCodeOverlay(url: string, theme: Theme): void {
-  removeCurrentOverlay();
+  closeQrCodeOverlay();
 
   const onClose = (): void => {
-    removeCurrentOverlay();
+    closeQrCodeOverlay();
   };
 
   const mount = ensureShadowMount({

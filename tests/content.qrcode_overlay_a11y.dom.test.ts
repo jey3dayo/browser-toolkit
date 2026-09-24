@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { showQrCodeOverlay } from "@/content/qrcode-overlay";
+import {
+  closeQrCodeOverlay,
+  showQrCodeOverlay,
+} from "@/content/qrcode-overlay";
 
 vi.mock("qrcode", () => ({
   default: {
@@ -9,6 +12,9 @@ vi.mock("qrcode", () => ({
 
 describe("QR code overlay accessibility", () => {
   afterEach(() => {
+    // Wiping the DOM alone leaves the modal's window-capture key listeners
+    // and its stack token attached, so close it explicitly first.
+    closeQrCodeOverlay();
     document.body.innerHTML = "";
     document.documentElement.innerHTML = "<head></head><body></body>";
   });
