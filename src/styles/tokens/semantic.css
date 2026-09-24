@@ -37,6 +37,13 @@
   /* Toast insets (override per-surface when needed) */
   --toast-screen-inset: 12px 12px auto auto;
   --toast-surface-inset: 12px 12px auto auto;
+
+  /* Theme-independent: the viewer stays dark regardless of light/dark theme */
+  --color-scrim-strong: color-mix(
+    in oklab,
+    var(--primitive-color-neutral-950) 92%,
+    transparent
+  );
 }
 
 :host {
@@ -67,6 +74,12 @@
 
   --toast-screen-inset: 12px 12px auto auto;
   --toast-surface-inset: 12px 12px auto auto;
+
+  --color-scrim-strong: color-mix(
+    in oklab,
+    var(--primitive-color-neutral-950) 92%,
+    transparent
+  );
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -108,11 +121,6 @@
     var(--primitive-color-neutral-950) 68%,
     transparent
   );
-  --color-scrim-strong: color-mix(
-    in oklab,
-    var(--primitive-color-neutral-950) 92%,
-    transparent
-  );
 
   color-scheme: dark;
 }
@@ -146,11 +154,6 @@
   --color-scrim: color-mix(
     in oklab,
     var(--primitive-color-neutral-950) 68%,
-    transparent
-  );
-  --color-scrim-strong: color-mix(
-    in oklab,
-    var(--primitive-color-neutral-950) 92%,
     transparent
   );
 
@@ -187,11 +190,6 @@
     var(--primitive-color-neutral-950) 35%,
     transparent
   );
-  --color-scrim-strong: color-mix(
-    in oklab,
-    var(--primitive-color-neutral-950) 92%,
-    transparent
-  );
 
   color-scheme: light;
 }
@@ -224,11 +222,6 @@
   --color-scrim: color-mix(
     in oklab,
     var(--primitive-color-neutral-950) 35%,
-    transparent
-  );
-  --color-scrim-strong: color-mix(
-    in oklab,
-    var(--primitive-color-neutral-950) 92%,
     transparent
   );
 
@@ -266,11 +259,6 @@
       var(--primitive-color-neutral-950) 35%,
       transparent
     );
-    --color-scrim-strong: color-mix(
-      in oklab,
-      var(--primitive-color-neutral-950) 92%,
-      transparent
-    );
 
     color-scheme: light;
   }
@@ -303,11 +291,6 @@
     --color-scrim: color-mix(
       in oklab,
       var(--primitive-color-neutral-950) 35%,
-      transparent
-    );
-    --color-scrim-strong: color-mix(
-      in oklab,
-      var(--primitive-color-neutral-950) 92%,
       transparent
     );
 

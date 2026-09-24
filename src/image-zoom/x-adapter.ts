@@ -3,7 +3,7 @@ const MEDIA_HOST = "pbs.twimg.com";
 const MEDIA_PATH_PREFIX = "/media/";
 
 const INTERACTIVE_SELECTOR =
-  'button, a, input, select, textarea, [role="button"], [role="link"], [tabindex]:not([tabindex="-1"])';
+  'button, a, input, select, textarea, label, summary, video, [contenteditable]:not([contenteditable="false"]), [role="button"], [role="link"], [role="textbox"], [role="menuitem"], [role="tab"], [role="checkbox"], [role="switch"], [role="option"], [tabindex]:not([tabindex="-1"])';
 const LIGHTBOX_MODAL_SELECTOR = '[aria-modal="true"]';
 
 export function isLightboxRoute(pathname: string): boolean {
@@ -60,11 +60,15 @@ function pointInsideRect(
   );
 }
 
+function isCurrentlyVisible(img: HTMLImageElement): boolean {
+  return img.checkVisibility?.({ visibilityProperty: true }) ?? true;
+}
+
 function isAcceptedMediaImageAt(
   img: Element,
   point: { x: number; y: number }
 ): img is HTMLImageElement {
-  if (!isTargetImage(img) || img.closest("a")) {
+  if (!isTargetImage(img) || img.closest("a") || !isCurrentlyVisible(img)) {
     return false;
   }
   return pointInsideRect(point, img.getBoundingClientRect());

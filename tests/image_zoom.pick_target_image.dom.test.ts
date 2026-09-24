@@ -96,6 +96,17 @@ describe("image-zoom x-adapter: pickTargetImage", () => {
     expect(pickTargetImage([button, ...stack], POINT_INSIDE_RECT)).toBeNull();
   });
 
+  it("returns null when the top of the stack is a role=menuitem element inside the modal", () => {
+    const modal = buildModal();
+    const img = buildMediaImg();
+    const stack = buildSwipeStack(modal, img);
+    const menuItem = document.createElement("div");
+    menuItem.setAttribute("role", "menuitem");
+    modal.appendChild(menuItem);
+
+    expect(pickTargetImage([menuItem, ...stack], POINT_INSIDE_RECT)).toBeNull();
+  });
+
   it("returns null when the top of the stack has no aria-modal ancestor", () => {
     const outside = document.createElement("div");
     document.body.appendChild(outside);
@@ -143,5 +154,24 @@ describe("image-zoom x-adapter: pickTargetImage", () => {
     const stack = [wrapperB, modal];
 
     expect(pickTargetImage(stack, POINT_INSIDE_RECT)).toBe(photoB);
+  });
+
+  it("skips an image reported as not visible via checkVisibility and returns the next match", () => {
+    const modal = buildModal();
+    const wrapper = document.createElement("div");
+    wrapper.setAttribute("data-testid", "carousel-item");
+    const hiddenPhoto = buildMediaImg();
+    const visiblePhoto = buildMediaImg();
+    wrapper.appendChild(hiddenPhoto);
+    wrapper.appendChild(visiblePhoto);
+    modal.appendChild(wrapper);
+
+    hiddenPhoto.checkVisibility = () => false;
+
+    expect(modal.querySelectorAll("img")[0]).toBe(hiddenPhoto);
+
+    const stack = [wrapper, modal];
+
+    expect(pickTargetImage(stack, POINT_INSIDE_RECT)).toBe(visiblePhoto);
   });
 });
