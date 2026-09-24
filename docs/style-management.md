@@ -86,7 +86,14 @@ popup/options path (`ensurePopupUiBaseStyles`).
 Keyboard/focus behavior for modal ShadowRoot UIs (Tab trap, Escape-to-close, page key
 isolation, focus restore on close) is centralized in `src/ui/modal-controller.ts`
 (`activateModal`), used by both `src/content/qrcode-overlay.ts` and
-`src/image-zoom/viewer.ts`.
+`src/image-zoom/viewer.ts`. Since those two files ship in separate bundles
+(`content.js` / `image-zoom.js`) that still run in the same extension isolated
+world, `activateModal` tracks which modal is topmost via a `globalThis` stack
+(`__MBU_MODAL_STACK__`, declared in `src/types/globals.d.ts`) rather than
+module-scope state. Key isolation covers document/element listeners and any
+window-capture listener registered after the modal opened; a window-capture
+listener registered before the modal opened still receives the event first
+and is not isolated.
 
 Base UI's `Portal` renders to `document.body` by default, which escapes the ShadowRoot and
 loses styling. Any Base UI component with a portal (`Dialog`, `Toast`, etc.) rendered inside a
