@@ -60,15 +60,25 @@ function pointInsideRect(
   );
 }
 
-function findVisibleMediaImage(
-  modal: Element,
+function isAcceptedMediaImageAt(
+  img: Element,
+  point: { x: number; y: number }
+): img is HTMLImageElement {
+  if (!isTargetImage(img) || img.closest("a")) {
+    return false;
+  }
+  return pointInsideRect(point, img.getBoundingClientRect());
+}
+
+function findMediaImageWithin(
+  el: Element,
   point: { x: number; y: number }
 ): HTMLImageElement | null {
-  for (const img of modal.querySelectorAll("img")) {
-    if (!isTargetImage(img) || img.closest("a")) {
-      continue;
-    }
-    if (pointInsideRect(point, img.getBoundingClientRect())) {
+  if (isAcceptedMediaImageAt(el, point)) {
+    return el;
+  }
+  for (const img of el.querySelectorAll("img")) {
+    if (isAcceptedMediaImageAt(img, point)) {
       return img;
     }
   }
@@ -92,7 +102,11 @@ export function pickTargetImage(
     if (el.matches(INTERACTIVE_SELECTOR)) {
       return null;
     }
+    const found = findMediaImageWithin(el, point);
+    if (found) {
+      return found;
+    }
   }
 
-  return findVisibleMediaImage(modal, point);
+  return null;
 }

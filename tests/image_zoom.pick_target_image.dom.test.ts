@@ -122,4 +122,26 @@ describe("image-zoom x-adapter: pickTargetImage", () => {
 
     expect(pickTargetImage(stack, POINT_INSIDE_RECT)).toBeNull();
   });
+
+  it("prefers the image under the topmost stack layer when two photos overlap (carousel)", () => {
+    const modal = buildModal();
+
+    const wrapperA = document.createElement("div");
+    wrapperA.setAttribute("data-testid", "carousel-item-a");
+    const photoA = buildMediaImg();
+    wrapperA.appendChild(photoA);
+    modal.appendChild(wrapperA);
+
+    const wrapperB = document.createElement("div");
+    wrapperB.setAttribute("data-testid", "carousel-item-b");
+    const photoB = buildMediaImg();
+    wrapperB.appendChild(photoB);
+    modal.appendChild(wrapperB);
+
+    expect(modal.querySelectorAll("img")[0]).toBe(photoA);
+
+    const stack = [wrapperB, modal];
+
+    expect(pickTargetImage(stack, POINT_INSIDE_RECT)).toBe(photoB);
+  });
 });
