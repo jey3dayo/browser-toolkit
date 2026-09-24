@@ -172,11 +172,14 @@ X の写真表示（`/status/<id>/photo/<n>`）で画像をクリックすると
 URL はページが制御できる値なので、background 側で `https://pbs.twimg.com/media/` だけを許可し、
 ファイル名は media id と許可リストの拡張子から組み立てます。
 
-X の全ページ読み込みで注入されるため parse コストを抑える必要があり、`src/image-zoom/**` は
-`@/i18n`（i18next）・`@/ui/styles`（全 component CSS）・`@/content/*` を import してはいけません。
-代わりに `@/i18n/lite` と `@/ui/styles-tokens` を使います。この制約は
-`tests/build.image_zoom_bundle.test.ts` が metafile の inputs を denylist で検証し、
-minify 後サイズ 90KB 以下の budget と合わせて自動的にガードします。
+X の全ページ読み込みで注入されるため parse コストを抑える必要があり、
+`dist/image-zoom.js` の bundle graph に入るモジュールは `@/i18n`（i18next）・
+`@/ui/styles`（全 component CSS）・`@/content/*` を import してはいけません。
+代わりに `@/i18n/lite` と `@/ui/styles-tokens` を使います。`src/image-zoom/download-url.ts`
+は background と共有するモジュールで、そちらの経路では `@/i18n` を使うため例外です
+（image-zoom 側からは型のみ import し、実装は background 専用のメッセージハンドラからしか
+呼ばれません）。この制約は `tests/build.image_zoom_bundle.test.ts` が metafile の inputs を
+denylist で検証し、minify 後サイズ 90KB 以下の budget と合わせて自動的にガードします。
 
 ### メッセージパッシング
 
