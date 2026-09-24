@@ -14,8 +14,13 @@ const DENYLISTED_INPUT_SEGMENTS = [
   "/node_modules/.pnpm/react@",
 ];
 
-function normalizeInputPath(inputPath: string): string {
-  return `/${inputPath.split(path.sep).join("/")}`;
+// Some metafile inputs are absolute; strip projectRoot so the denylist can't
+// match a segment of the checkout directory itself.
+function normalizeInputPath(inputPath: string, projectRoot: string): string {
+  const relative = path.isAbsolute(inputPath)
+    ? path.relative(projectRoot, inputPath)
+    : inputPath;
+  return `/${relative.split(path.sep).join("/")}`;
 }
 
 describe("image-zoom bundle size budget", () => {
@@ -27,6 +32,7 @@ describe("image-zoom bundle size budget", () => {
 
     const result = await build({
       ...sharedBuildOptions,
+      absWorkingDir: projectRoot,
       entryPoints: [path.join(projectRoot, "src/image-zoom.ts")],
       metafile: true,
       minify: true,
@@ -34,7 +40,7 @@ describe("image-zoom bundle size budget", () => {
     });
 
     const inputPaths = Object.keys(result.metafile?.inputs ?? {}).map(
-      normalizeInputPath
+      (inputPath) => normalizeInputPath(inputPath, projectRoot)
     );
     for (const segment of DENYLISTED_INPUT_SEGMENTS) {
       const offenders = inputPaths.filter((inputPath) =>

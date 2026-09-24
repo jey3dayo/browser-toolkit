@@ -1,34 +1,52 @@
+import fs from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 import { describe, expect, it } from "vitest";
+import { isRecord } from "@/utils/guards";
+
+const scriptsDir = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+  "scripts"
+);
+
+async function readBundleScript(): Promise<string> {
+  const pkg: unknown = JSON.parse(
+    await fs.readFile(new URL("../package.json", import.meta.url), "utf-8")
+  );
+  if (!(isRecord(pkg) && isRecord(pkg.scripts))) {
+    return "";
+  }
+  const { bundle } = pkg.scripts;
+  return typeof bundle === "string" ? bundle : "";
+}
 
 describe("React/Base UI bundling", () => {
-  it("defines process.env.NODE_ENV in the bundle script", async () => {
-    const { default: fs } = await import("node:fs/promises");
-    const { default: path } = await import("node:path");
-    const { fileURLToPath } = await import("node:url");
-    const pkg = JSON.parse(
-      await fs.readFile(new URL("../package.json", import.meta.url), "utf-8")
-    ) as {
-      scripts?: Record<string, string>;
-    };
-
-    const bundleScript = pkg.scripts?.bundle ?? "";
-    if (bundleScript.includes("scripts/bundle.mjs")) {
-      const scriptsDir = path.join(
-        path.dirname(fileURLToPath(import.meta.url)),
-        "..",
-        "scripts"
-      );
-      const [bundleContents, buildSharedContents] = await Promise.all([
-        fs.readFile(path.join(scriptsDir, "bundle.mjs"), "utf-8"),
-        fs.readFile(path.join(scriptsDir, "build-shared.mjs"), "utf-8"),
-      ]);
-      expect(bundleContents + buildSharedContents).toContain(
-        "process.env.NODE_ENV"
-      );
-    } else {
+  it("build-shared.mjs defines process.env.NODE_ENV in sharedBuildOptions", async () => {
+    const bundleScript = await readBundleScript();
+    if (!bundleScript.includes("scripts/bundle.mjs")) {
       expect(bundleScript).toContain("--define:process.env.NODE_ENV=");
+      return;
     }
+
+    const { sharedBuildOptions } = await import("../scripts/build-shared.mjs");
+    expect(sharedBuildOptions.define?.["process.env.NODE_ENV"]).toBe(
+      '"production"'
+    );
+  });
+
+  it("bundle.mjs spreads sharedBuildOptions instead of redefining build options", async () => {
+    const bundleScript = await readBundleScript();
+    if (!bundleScript.includes("scripts/bundle.mjs")) {
+      return;
+    }
+
+    const bundleContents = await fs.readFile(
+      path.join(scriptsDir, "bundle.mjs"),
+      "utf-8"
+    );
+    expect(bundleContents).toContain("...sharedBuildOptions");
   });
 
   it("bundles React, ReactDOM, Base UI, and shadcn MessageScroller for MV3 targets", async () => {
