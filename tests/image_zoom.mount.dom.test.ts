@@ -2,13 +2,13 @@ import fs from "node:fs";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { ensureViewerShadowMount } from "@/image-zoom/mount";
+import { TOKEN_PRIMITIVES_ID, TOKEN_SEMANTIC_ID } from "@/ui/styles-tokens";
 
 const HOST_ID = "browser-toolkit-image-zoom-mount-test";
 const EXTRA_CSS_ID = "mbu-image-zoom-token-extra-test";
 
-// Read the real files from disk instead of via `?raw` imports: Vitest's CSS
-// handling resolves `.css?raw` imports to an empty string in this project's
-// test environment, which would make every marker check below vacuous.
+// `?raw` CSS imports resolve empty under Vitest, so read the real files to
+// keep the marker checks below meaningful.
 function readStyleFile(relativePath: string): string {
   return fs.readFileSync(path.join(process.cwd(), relativePath), "utf8");
 }
@@ -42,7 +42,7 @@ describe("image-zoom viewer shadow mount styles", () => {
     removeHost();
   });
 
-  it("fallback <style> path installs both the token and button CSS", () => {
+  it("fallback <style> path installs primitives, semantic, and the extra (token+button) CSS", () => {
     const { shadow } = ensureViewerShadowMount({
       extraCss: EXTRA_CSS,
       extraCssId: EXTRA_CSS_ID,
@@ -52,12 +52,16 @@ describe("image-zoom viewer shadow mount styles", () => {
 
     expect("adoptedStyleSheets" in shadow).toBe(false);
 
+    expect(shadow.querySelector(`#${TOKEN_PRIMITIVES_ID}`)).not.toBeNull();
+    expect(shadow.querySelector(`#${TOKEN_SEMANTIC_ID}`)).not.toBeNull();
+    expect(shadow.querySelector(`#${EXTRA_CSS_ID}`)).not.toBeNull();
+
     const cssText = collectStyleTagCssText(shadow);
     expect(cssText).toContain(TOKEN_MARKER);
     expect(cssText).toContain(BUTTON_MARKER);
   });
 
-  it("constructed-stylesheet path installs both the token and button CSS", () => {
+  it("constructed-stylesheet path adopts exactly 3 sheets (primitives, semantic, extra) with the token and button CSS", () => {
     const host = document.createElement("div");
     host.id = HOST_ID;
     document.body.appendChild(host);
@@ -75,7 +79,7 @@ describe("image-zoom viewer shadow mount styles", () => {
       theme: "auto",
     });
 
-    expect(shadow.adoptedStyleSheets.length).toBeGreaterThan(0);
+    expect(shadow.adoptedStyleSheets.length).toBe(3);
 
     const cssText = collectAdoptedSheetCssText(shadow);
     expect(cssText).toContain(TOKEN_MARKER);
