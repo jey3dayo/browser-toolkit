@@ -66,15 +66,15 @@ export function ensureShadowStyleText(
 
 const FALLBACK_MBU_TOKENS: Record<string, string> = {
   "--mbu-accent": "var(--color-primary, #7c8cff)",
-  "--mbu-bg": "var(--color-bg, #0c0d10)",
+  "--mbu-bg": "var(--color-bg, #141518)",
   "--mbu-border": "var(--color-border-ui, rgba(255, 255, 255, 0.12))",
   "--mbu-danger": "var(--color-danger, #f07178)",
   "--mbu-focus-ring": "var(--focus-ring, 2px solid rgba(124, 140, 255, 0.55))",
   "--mbu-focus-ring-offset": "var(--focus-ring-offset, 2px)",
   "--mbu-radius": "var(--radius-lg, 14px)",
   "--mbu-shadow": "var(--shadow-elevation, 0 12px 40px rgba(0, 0, 0, 0.35))",
-  "--mbu-surface": "var(--color-surface, #15171c)",
-  "--mbu-surface-2": "var(--color-surface-2, #1c1f26)",
+  "--mbu-surface": "var(--color-surface, #1e1f24)",
+  "--mbu-surface-2": "var(--color-surface-2, #2a2b31)",
   "--mbu-text": "var(--color-text, #ececef)",
   "--mbu-text-muted": "var(--color-text-muted, #9aa0ac)",
   "--mbu-toast-screen-inset": "var(--toast-screen-inset, 12px 12px auto auto)",

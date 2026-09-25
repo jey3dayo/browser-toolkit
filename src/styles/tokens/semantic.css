@@ -42,7 +42,7 @@
   /* Theme-independent: the viewer stays dark regardless of light/dark theme */
   --color-scrim-strong: color-mix(
     in oklab,
-    var(--primitive-color-neutral-950) 92%,
+    var(--primitive-color-scrim-base) 92%,
     transparent
   );
 }
@@ -85,7 +85,7 @@
   --focus-ring-offset: 2px;
   --color-scrim: color-mix(
     in oklab,
-    var(--primitive-color-neutral-950) 68%,
+    var(--primitive-color-scrim-base) 68%,
     transparent
   );
 
@@ -120,7 +120,7 @@
   --focus-ring-offset: 2px;
   --color-scrim: color-mix(
     in oklab,
-    var(--primitive-color-neutral-950) 35%,
+    var(--primitive-color-scrim-base) 35%,
     transparent
   );
 
@@ -156,7 +156,7 @@
     --focus-ring-offset: 2px;
     --color-scrim: color-mix(
       in oklab,
-      var(--primitive-color-neutral-950) 35%,
+      var(--primitive-color-scrim-base) 35%,
       transparent
     );
 

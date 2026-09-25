@@ -5,10 +5,10 @@
    * ====================================== */
 
   /* Color palette */
-  --primitive-color-neutral-950: #0c0d10;
-  --primitive-color-neutral-900: #15171c;
-  --primitive-color-neutral-850: #1c1f26;
-  --primitive-color-neutral-800: #262a33;
+  --primitive-color-neutral-950: #141518;
+  --primitive-color-neutral-900: #1e1f24;
+  --primitive-color-neutral-850: #2a2b31;
+  --primitive-color-neutral-800: #34363d;
   --primitive-color-neutral-100: #ececef;
   --primitive-color-neutral-300: #9aa0ac;
 
@@ -26,6 +26,10 @@
 
   --primitive-color-danger-500: #f07178;
   --primitive-color-danger-600: #d64545;
+
+  /* Scrims stay pinned to the original dark neutral so overlays keep the
+     same darkness as the palette lifts. */
+  --primitive-color-scrim-base: #0c0d10;
 
   /* Alpha helpers */
   --primitive-alpha-white-03: rgba(255, 255, 255, 0.03);
