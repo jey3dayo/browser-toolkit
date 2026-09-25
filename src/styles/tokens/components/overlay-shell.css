@@ -465,7 +465,7 @@
 }
 
 .mbu-overlay-chat-input:focus-visible {
-  outline: none;
+  outline: 2px solid transparent;
 }
 
 .mbu-overlay-chat-input:disabled {
