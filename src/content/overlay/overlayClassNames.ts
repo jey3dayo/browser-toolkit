@@ -6,6 +6,7 @@ export const overlayClassNames = {
   body: "mbu-overlay-body",
   bodyActions: "mbu-overlay-body-actions",
   chat: "mbu-overlay-chat",
+  chatComposerActions: "mbu-overlay-chat-composer-actions",
   chatInputRow: "mbu-overlay-chat-input-row",
   chatMessage: (role: "assistant" | "user") =>
     `mbu-overlay-chat-message mbu-overlay-chat-message--${role}`,
@@ -36,4 +37,5 @@ export const overlayClassNames = {
   statusShimmer: "mbu-overlay-status-shimmer",
   surface: "mbu-overlay-surface",
   title: "mbu-overlay-title",
+  visuallyHidden: "mbu-visually-hidden",
 } as const;

@@ -83,6 +83,25 @@ function OverlayElapsed(): React.JSX.Element {
   );
 }
 
+type OverlayProgressStatusProps = {
+  label: string;
+};
+
+/**
+ * Loader grid, shimmering label and elapsed time, shared by the primary status row and chat "thinking" row
+ */
+function OverlayProgressStatus(
+  props: OverlayProgressStatusProps
+): React.JSX.Element {
+  return (
+    <>
+      <OverlayLoaderGrid />
+      <span className={overlayClassNames.statusShimmer}>{props.label}</span>
+      <OverlayElapsed />
+    </>
+  );
+}
+
 /**
  * Copy button component
  */
@@ -272,13 +291,7 @@ function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {
       {props.statusLabel ? (
         <div className={overlayClassNames.status} role="status">
           {props.status === "loading" ? (
-            <>
-              <OverlayLoaderGrid />
-              <span className={overlayClassNames.statusShimmer}>
-                {props.statusLabel}
-              </span>
-              <OverlayElapsed />
-            </>
+            <OverlayProgressStatus label={props.statusLabel} />
           ) : (
             props.statusLabel
           )}
@@ -595,7 +608,16 @@ export function OverlayChatInput(
                     <div
                       className={overlayClassNames.chatMessage(message.role)}
                     >
-                      <span className={overlayClassNames.chatRole}>
+                      <span
+                        className={
+                          message.role === "user"
+                            ? [
+                                overlayClassNames.chatRole,
+                                overlayClassNames.visuallyHidden,
+                              ].join(" ")
+                            : overlayClassNames.chatRole
+                        }
+                      >
                         {message.role === "user"
                           ? t("overlay.chat.user")
                           : t("overlay.chat.assistant")}
@@ -615,9 +637,11 @@ export function OverlayChatInput(
                       <span className={overlayClassNames.chatRole}>
                         {t("overlay.chat.assistant")}
                       </span>
-                      <span className={overlayClassNames.status}>
-                        {t("overlay.chat.thinking")}
-                      </span>
+                      <div className={overlayClassNames.status} role="status">
+                        <OverlayProgressStatus
+                          label={t("overlay.chat.thinking")}
+                        />
+                      </div>
                     </div>
                   </MessageScroller.Item>
                 ) : null}
@@ -645,16 +669,18 @@ export function OverlayChatInput(
           value={input}
           variant="overlayChat"
         />
-        <Button
-          aria-label={t("overlay.chat.send")}
-          disabled={!input.trim() || props.isChatting}
-          onClick={handleSend}
-          title={t("overlay.chat.send")}
-          type="button"
-          variant="overlayIcon"
-        >
-          <Icon aria-hidden="true" name="message-square" size={16} />
-        </Button>
+        <div className={overlayClassNames.chatComposerActions}>
+          <Button
+            aria-label={t("overlay.chat.send")}
+            disabled={!input.trim() || props.isChatting}
+            onClick={handleSend}
+            title={t("overlay.chat.send")}
+            type="button"
+            variant="overlayIcon"
+          >
+            <Icon aria-hidden="true" name="arrow-up" size={16} />
+          </Button>
+        </div>
       </div>
     </div>
   );

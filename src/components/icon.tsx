@@ -1,4 +1,5 @@
 import {
+  ArrowUp,
   Bug,
   Calendar,
   Check,
@@ -29,6 +30,7 @@ import {
 } from "lucide-react";
 
 export type IconName =
+  | "arrow-up"
   | "bug"
   | "calendar"
   | "check"
@@ -57,6 +59,7 @@ export type IconName =
   | "zap";
 
 const icons: Record<IconName, React.ComponentType<LucideProps>> = {
+  "arrow-up": ArrowUp,
   bug: Bug,
   calendar: Calendar,
   check: Check,

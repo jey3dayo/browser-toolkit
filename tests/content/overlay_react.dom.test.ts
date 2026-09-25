@@ -600,12 +600,18 @@ describe("content overlay (React + Shadow DOM)", () => {
     );
     expect(userItem?.getAttribute("data-scroll-anchor")).toBe("true");
     expect(userItem?.textContent).toContain("追加質問");
+    const userRoleLabel = userItem?.querySelector(".mbu-overlay-chat-role");
+    expect(userRoleLabel?.classList.contains("mbu-visually-hidden")).toBe(true);
+    expect(userRoleLabel?.textContent).toBe("あなた");
 
     const thinkingItem = shadow?.querySelector<HTMLElement>(
       '[data-message-id="overlay-chat-thinking"]'
     );
     expect(thinkingItem?.getAttribute("data-scroll-anchor")).toBe("false");
     expect(thinkingItem?.textContent).toContain("考え中...");
+    expect(
+      thinkingItem?.querySelectorAll(".mbu-overlay-loader-grid").length
+    ).toBe(1);
 
     const jumpButton = shadow?.querySelector<HTMLButtonElement>(
       ".mbu-overlay-chat-scroller-button"

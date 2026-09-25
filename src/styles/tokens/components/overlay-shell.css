@@ -259,6 +259,15 @@
   justify-content: flex-end;
 }
 
+.mbu-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
 /* Chat section */
 .mbu-overlay-chat {
   display: flex;
@@ -335,16 +344,49 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  animation: mbu-overlay-fade-up 400ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+@keyframes mbu-overlay-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mbu-overlay-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mbu-overlay-chat-message {
+    animation: mbu-overlay-fade-in 400ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+}
+
+.mbu-overlay-chat-message--user {
+  align-self: flex-end;
+  max-width: 85%;
+  padding: 6px 12px;
+  background: var(--mbu-surface-2);
+  border-radius: var(--radius-md);
 }
 
 .mbu-overlay-chat-role {
   font-size: var(--font-size-xs);
   font-weight: 700;
   color: var(--mbu-text-muted);
-}
-
-.mbu-overlay-chat-message--user .mbu-overlay-chat-role {
-  color: var(--mbu-accent);
 }
 
 .mbu-overlay-chat-text {
@@ -359,44 +401,70 @@
 
 .mbu-overlay-chat-input-row {
   display: flex;
-  gap: 8px;
-  align-items: stretch;
-}
-
-.mbu-overlay-chat-input-row .mbu-overlay-icon-button {
-  width: 40px;
-  height: auto;
-  min-height: 42px;
-  border-radius: var(--radius-sm);
-}
-
-.mbu-overlay-chat-input-row .mbu-overlay-icon-button:disabled {
-  background: transparent;
-}
-
-.mbu-overlay-chat-input {
-  box-sizing: border-box;
-  flex: 1;
-  height: 42px;
-  min-height: 42px;
-  padding: 11px 10px;
-  font-family: inherit;
-  font-size: var(--font-size-sm);
-  line-height: 18px;
-  color: var(--mbu-text);
-  resize: none;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
   background: var(--mbu-surface);
   border: 1px solid var(--mbu-border);
   border-radius: var(--radius-sm);
 }
 
-.mbu-overlay-chat-input:focus {
+.mbu-overlay-chat-input-row:focus-within {
   border-color: color-mix(in oklab, var(--mbu-accent) 60%, var(--mbu-border));
 }
 
-.mbu-overlay-chat-input:focus-visible {
+.mbu-overlay-chat-input-row:has(.mbu-overlay-chat-input:focus-visible) {
   outline: var(--focus-ring);
   outline-offset: var(--focus-ring-offset);
+}
+
+.mbu-overlay-chat-composer-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mbu-overlay-chat-input-row .mbu-overlay-icon-button {
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  color: var(--mbu-text);
+  background: color-mix(in oklab, var(--mbu-accent) 18%, var(--mbu-surface));
+  border-color: color-mix(in oklab, var(--mbu-accent) 42%, transparent);
+  border-radius: var(--radius-sm);
+  transition:
+    transform 100ms ease-out,
+    background-color var(--motion-duration) ease;
+}
+
+.mbu-overlay-chat-input-row .mbu-overlay-icon-button:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--mbu-accent) 28%, var(--mbu-surface));
+}
+
+.mbu-overlay-chat-input-row .mbu-overlay-icon-button:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.mbu-overlay-chat-input-row .mbu-overlay-icon-button:disabled {
+  background: transparent;
+  border-color: transparent;
+}
+
+.mbu-overlay-chat-input {
+  box-sizing: border-box;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  line-height: 18px;
+  color: var(--mbu-text);
+  resize: none;
+  background: transparent;
+  border: none;
+}
+
+.mbu-overlay-chat-input:focus-visible {
+  outline: none;
 }
 
 .mbu-overlay-chat-input:disabled {
