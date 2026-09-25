@@ -122,7 +122,7 @@
 
   @media (prefers-color-scheme: light) {
     :where(:root:not([data-theme])),
-    :where(:host:not([data-theme])) {
+    :where(:host(:not([data-theme]))) {
       --bg: #f6f6f8;
       --bg-2: #f0f1f4;
       --panel: #ffffff;
@@ -159,7 +159,7 @@
   display: block;
 }
 
-:host:not([data-theme]),
+:host(:not([data-theme])),
 :host([data-theme="dark"]) {
   color-scheme: dark;
 }
@@ -169,7 +169,7 @@
 }
 
 @media (prefers-color-scheme: light) {
-  :host:not([data-theme]) {
+  :host(:not([data-theme])) {
     color-scheme: light;
   }
 }
