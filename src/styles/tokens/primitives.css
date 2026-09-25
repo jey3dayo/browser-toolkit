@@ -27,8 +27,7 @@
   --primitive-color-danger-500: #f07178;
   --primitive-color-danger-600: #d64545;
 
-  /* Scrims stay pinned to the original dark neutral so overlays keep the
-     same darkness as the palette lifts. */
+  /* Scrims keep their own base so they stay darker than every neutral surface. */
   --primitive-color-scrim-base: #0c0d10;
 
   /* Alpha helpers */
