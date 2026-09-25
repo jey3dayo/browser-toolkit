@@ -1,4 +1,5 @@
-:root {
+:root,
+:host {
   /* ========================================
    * Semantic Tokens (meaning-based)
    * - When data-theme is absent, prefers-color-scheme is used (dark fallback)
@@ -46,42 +47,6 @@
   );
 }
 
-:host {
-  --layout-popup-width: 800px;
-  --layout-popup-height: 600px;
-  --layout-rail: 96px;
-  --layout-options-width: 1040px;
-
-  --spacing-xs: var(--primitive-space-2);
-  --spacing-sm: var(--primitive-space-3);
-  --spacing-md: var(--primitive-space-4);
-  --spacing-lg: var(--primitive-space-6);
-  --spacing-xl: var(--primitive-space-8);
-
-  --radius-sm: var(--primitive-radius-10);
-  --radius-md: var(--primitive-radius-12);
-  --radius-lg: var(--primitive-radius-14);
-  --radius-pill: var(--primitive-radius-999);
-
-  --font-size-xs: 11px;
-  --font-size-sm: 12px;
-  --font-size-md: 13px;
-  --font-size-lg: 16px;
-  --font-size-xl: 18px;
-
-  --motion-duration-fast: 120ms;
-  --motion-duration: 200ms;
-
-  --toast-screen-inset: 12px 12px auto auto;
-  --toast-surface-inset: 12px 12px auto auto;
-
-  --color-scrim-strong: color-mix(
-    in oklab,
-    var(--primitive-color-neutral-950) 92%,
-    transparent
-  );
-}
-
 @media (prefers-reduced-motion: reduce) {
   :root,
   :host {
@@ -91,40 +56,7 @@
 }
 
 :root:not([data-theme]),
-:root[data-theme="dark"] {
-  --color-bg: var(--primitive-color-neutral-950);
-  --color-surface: var(--primitive-color-neutral-900);
-  --color-surface-2: var(--primitive-color-neutral-850);
-  --color-border: var(--primitive-color-neutral-800);
-  --color-border-subtle: var(--primitive-alpha-white-06);
-  --color-border-ui: var(--primitive-alpha-white-10);
-  --color-text: var(--primitive-color-neutral-100);
-  --color-text-muted: var(--primitive-color-neutral-300);
-
-  --color-primary: var(--primitive-color-accent-500);
-  --color-primary-strong: var(--primitive-color-accent-600);
-  --color-primary-2: var(--color-primary);
-  --color-danger: var(--primitive-color-danger-500);
-  --accent-mix-8: 18%;
-  --accent-mix-12: 24%;
-  --accent-mix-14: 26%;
-  --accent-mix-15: 26%;
-  --accent-mix-18: 30%;
-  --accent-mix-22: 34%;
-
-  --shadow-elevation: var(--primitive-shadow-dark);
-  --focus-ring: 2px solid
-    color-mix(in oklab, var(--color-primary) 55%, transparent);
-  --focus-ring-offset: 2px;
-  --color-scrim: color-mix(
-    in oklab,
-    var(--primitive-color-neutral-950) 68%,
-    transparent
-  );
-
-  color-scheme: dark;
-}
-
+:root[data-theme="dark"],
 :host(:not([data-theme])),
 :host([data-theme="dark"]) {
   --color-bg: var(--primitive-color-neutral-950);
@@ -160,40 +92,7 @@
   color-scheme: dark;
 }
 
-:root[data-theme="light"] {
-  --color-bg: var(--primitive-color-neutral-50);
-  --color-surface: var(--primitive-color-neutral-0);
-  --color-surface-2: var(--primitive-color-neutral-150);
-  --color-border: var(--primitive-color-neutral-200);
-  --color-border-subtle: var(--primitive-alpha-ink-06);
-  --color-border-ui: var(--primitive-alpha-ink-12);
-  --color-text: var(--primitive-color-neutral-900-light);
-  --color-text-muted: var(--primitive-color-neutral-600);
-
-  --color-primary: var(--primitive-color-accent-700);
-  --color-primary-strong: var(--primitive-color-accent-800);
-  --color-primary-2: var(--color-primary);
-  --color-danger: var(--primitive-color-danger-600);
-  --accent-mix-8: 8%;
-  --accent-mix-12: 12%;
-  --accent-mix-14: 14%;
-  --accent-mix-15: 15%;
-  --accent-mix-18: 18%;
-  --accent-mix-22: 22%;
-
-  --shadow-elevation: var(--primitive-shadow-light);
-  --focus-ring: 2px solid
-    color-mix(in oklab, var(--color-primary) 55%, transparent);
-  --focus-ring-offset: 2px;
-  --color-scrim: color-mix(
-    in oklab,
-    var(--primitive-color-neutral-950) 35%,
-    transparent
-  );
-
-  color-scheme: light;
-}
-
+:root[data-theme="light"],
 :host([data-theme="light"]) {
   --color-bg: var(--primitive-color-neutral-50);
   --color-surface: var(--primitive-color-neutral-0);
@@ -229,40 +128,7 @@
 }
 
 @media (prefers-color-scheme: light) {
-  :root:not([data-theme]) {
-    --color-bg: var(--primitive-color-neutral-50);
-    --color-surface: var(--primitive-color-neutral-0);
-    --color-surface-2: var(--primitive-color-neutral-150);
-    --color-border: var(--primitive-color-neutral-200);
-    --color-border-subtle: var(--primitive-alpha-ink-06);
-    --color-border-ui: var(--primitive-alpha-ink-12);
-    --color-text: var(--primitive-color-neutral-900-light);
-    --color-text-muted: var(--primitive-color-neutral-600);
-
-    --color-primary: var(--primitive-color-accent-700);
-    --color-primary-strong: var(--primitive-color-accent-800);
-    --color-primary-2: var(--color-primary);
-    --color-danger: var(--primitive-color-danger-600);
-    --accent-mix-8: 8%;
-    --accent-mix-12: 12%;
-    --accent-mix-14: 14%;
-    --accent-mix-15: 15%;
-    --accent-mix-18: 18%;
-    --accent-mix-22: 22%;
-
-    --shadow-elevation: var(--primitive-shadow-light);
-    --focus-ring: 2px solid
-      color-mix(in oklab, var(--color-primary) 55%, transparent);
-    --focus-ring-offset: 2px;
-    --color-scrim: color-mix(
-      in oklab,
-      var(--primitive-color-neutral-950) 35%,
-      transparent
-    );
-
-    color-scheme: light;
-  }
-
+  :root:not([data-theme]),
   :host(:not([data-theme])) {
     --color-bg: var(--primitive-color-neutral-50);
     --color-surface: var(--primitive-color-neutral-0);
@@ -298,7 +164,8 @@
   }
 }
 
-:root {
+:root,
+:host {
   /* ========================================
    * Legacy alias tokens (migration helpers)
    * ====================================== */
@@ -322,40 +189,6 @@
   --rail: var(--layout-rail);
 
   /* ui/styles.ts legacy (Toast/Overlay) */
-  --mbu-bg: var(--color-bg);
-  --mbu-surface: var(--color-surface);
-  --mbu-surface-2: var(--color-surface-2);
-  --mbu-border: var(--color-border-ui);
-  --mbu-text: var(--color-text);
-  --mbu-text-muted: var(--color-text-muted);
-  --mbu-accent: var(--color-primary);
-  --mbu-danger: var(--color-danger);
-  --mbu-radius: var(--radius-lg);
-  --mbu-shadow: var(--shadow-elevation);
-  --mbu-focus-ring: var(--focus-ring);
-  --mbu-focus-ring-offset: var(--focus-ring-offset);
-  --mbu-toast-screen-inset: var(--toast-screen-inset);
-  --mbu-toast-surface-inset: var(--toast-surface-inset);
-}
-
-:host {
-  --bg: var(--color-bg);
-  --bg-2: color-mix(in oklab, var(--color-bg) 88%, var(--color-surface));
-  --panel: var(--color-surface);
-  --panel-soft: var(--color-surface-2);
-  --line: var(--color-border);
-  --text: var(--color-text);
-  --text-sub: var(--color-text-muted);
-  --accent: var(--color-primary);
-  --accent-2: var(--color-primary-2);
-  --danger: var(--color-danger);
-  --shadow: var(--shadow-elevation);
-  --radius: var(--radius-lg);
-
-  --popup-width: var(--layout-popup-width);
-  --popup-height: var(--layout-popup-height);
-  --rail: var(--layout-rail);
-
   --mbu-bg: var(--color-bg);
   --mbu-surface: var(--color-surface);
   --mbu-surface-2: var(--color-surface-2);
