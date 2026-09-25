@@ -8,7 +8,8 @@ import { OverlayHeader } from "./OverlayApp/OverlayHeader";
 import { useOverlayChat } from "./OverlayApp/useOverlayChat";
 import { useOverlayPositioning } from "./OverlayApp/useOverlayPositioning";
 import { useOverlayTheme } from "./OverlayApp/useOverlayTheme";
-import { OverlayBody, OverlayChatInput } from "./OverlayComponents";
+import { OverlayChatInput } from "./OverlayChatInput";
+import { OverlayBody } from "./OverlayComponents";
 import {
   copyTextToClipboard,
   downloadIcsFile,

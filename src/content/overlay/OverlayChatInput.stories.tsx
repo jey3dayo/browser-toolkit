@@ -5,7 +5,7 @@ import { expect, fn, waitFor } from "storybook/test";
 import type { ChatMessage } from "@/background/runtime_types";
 import { ensureShadowUiBaseStyles } from "@/ui/styles";
 import { applyTheme, isTheme, type Theme } from "@/ui/theme";
-import { OverlayChatInput } from "./OverlayComponents";
+import { OverlayChatInput } from "./OverlayChatInput";
 
 const HISTORY_MESSAGES: ChatMessage[] = [
   { content: "この要約をもう少し短くできますか？", role: "user" },
