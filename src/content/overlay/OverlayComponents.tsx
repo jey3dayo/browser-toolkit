@@ -1,12 +1,9 @@
-import { MessageScroller } from "@shadcn/react/message-scroller";
-import { type ReactNode, useCallback, useState } from "react";
+import type { ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import type { ChatMessage } from "@/background/runtime_types";
 import { AuxTextDisclosure } from "@/components/AuxTextDisclosure";
 import { Icon } from "@/components/icon";
 import { Button } from "@/components/shared/Button";
-import { Textarea } from "@/components/shared/Textarea";
 import { TextBlock } from "@/components/shared/TextBlock";
 import { TextOutput } from "@/components/shared/TextOutput";
 import { ThemeCycleButton } from "@/components/ThemeCycleButton";
@@ -15,6 +12,7 @@ import { t } from "@/i18n";
 import type { ExtractedEvent } from "@/shared_types";
 import type { Theme } from "@/ui/theme";
 import type { OverlayViewModel } from "./OverlayApp";
+import { OverlayProgressStatus } from "./OverlayProgressStatus";
 import { overlayClassNames } from "./overlayClassNames";
 
 /**
@@ -170,6 +168,8 @@ function OverlayEventDetails(
  */
 type OverlayTextDetailsProps = {
   mode: OverlayViewModel["mode"];
+  requestId: OverlayViewModel["requestId"];
+  requestStartedAt: OverlayViewModel["requestStartedAt"];
   status: OverlayViewModel["status"];
   statusLabel: string;
   canCopyPrimary: boolean;
@@ -203,18 +203,17 @@ function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {
     .join(" ");
   return (
     <>
-      {props.statusLabel ? (
-        <div className={overlayClassNames.status}>
-          {props.statusLabel}
-          {props.status === "loading" ? (
-            <span aria-hidden="true" className={overlayClassNames.statusDots}>
-              <span className={overlayClassNames.statusDot} />
-              <span className={overlayClassNames.statusDot} />
-              <span className={overlayClassNames.statusDot} />
-            </span>
-          ) : null}
-        </div>
-      ) : null}
+      <div className={overlayClassNames.status} role="status">
+        {props.status === "loading" ? (
+          <OverlayProgressStatus
+            key={props.requestId}
+            label={props.statusLabel}
+            startedAt={props.requestStartedAt}
+          />
+        ) : (
+          props.statusLabel || null
+        )}
+      </div>
       <div className={primaryBlockClassName}>
         {props.markdownView ? (
           <TextBlock
@@ -307,6 +306,8 @@ export function OverlayBody(props: OverlayBodyProps): React.JSX.Element {
           mode={props.mode}
           onCopyPrimary={props.onCopyPrimary}
           primary={props.primary}
+          requestId={props.requestId}
+          requestStartedAt={props.requestStartedAt}
           secondaryText={props.secondaryText}
           selectionText={props.selectionText}
           status={props.status}
@@ -435,158 +436,6 @@ export function OverlayHeaderActions(
       >
         <Icon aria-hidden="true" name="close" />
       </OverlayHeaderIconAction>
-    </div>
-  );
-}
-
-/**
- * Chat input component for inline follow-up questions
- */
-function createKeyedChatMessages(
-  messages: ChatMessage[]
-): { key: string; message: ChatMessage; messageId: string }[] {
-  const occurrenceCounts = new Map<string, number>();
-
-  return messages.map((message, index) => {
-    const signature = `${message.role}:${message.content}`;
-    const occurrence = occurrenceCounts.get(signature) ?? 0;
-    occurrenceCounts.set(signature, occurrence + 1);
-
-    return {
-      key: `${signature}:${occurrence}`,
-      message,
-      messageId: `overlay-chat-message-${index}`,
-    };
-  });
-}
-
-type OverlayChatInputProps = {
-  chatMessages: ChatMessage[];
-  isChatting: boolean;
-  onSend: (text: string) => void;
-};
-
-export function OverlayChatInput(
-  props: OverlayChatInputProps
-): React.JSX.Element {
-  const [input, setInput] = useState("");
-  const keyedChatMessages = createKeyedChatMessages(props.chatMessages);
-
-  const handleSend = useCallback((): void => {
-    const text = input.trim();
-    if (!text || props.isChatting) {
-      return;
-    }
-    props.onSend(text);
-    setInput("");
-  }, [input, props.isChatting, props.onSend]);
-
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLTextAreaElement>): void => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        handleSend();
-      }
-    },
-    [handleSend]
-  );
-
-  const handleInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>): void => {
-      setInput(e.target.value);
-    },
-    []
-  );
-
-  return (
-    <div className={overlayClassNames.chat}>
-      {props.chatMessages.length > 0 ? (
-        <MessageScroller.Provider
-          autoScroll
-          defaultScrollPosition="last-anchor"
-          scrollPreviousItemPeek={24}
-        >
-          <MessageScroller.Root className={overlayClassNames.chatScrollerRoot}>
-            <MessageScroller.Viewport
-              aria-label={t("overlay.chat.transcriptLabel")}
-              className={overlayClassNames.chatScrollerViewport}
-            >
-              <MessageScroller.Content
-                aria-busy={props.isChatting}
-                className={overlayClassNames.chatMessages}
-                spacerClassName={overlayClassNames.chatScrollerSpacer}
-              >
-                {keyedChatMessages.map(({ key, message, messageId }) => (
-                  <MessageScroller.Item
-                    className={overlayClassNames.chatScrollerItem}
-                    key={key}
-                    messageId={messageId}
-                    scrollAnchor={message.role === "user"}
-                  >
-                    <div
-                      className={overlayClassNames.chatMessage(message.role)}
-                    >
-                      <span className={overlayClassNames.chatRole}>
-                        {message.role === "user"
-                          ? t("overlay.chat.user")
-                          : t("overlay.chat.assistant")}
-                      </span>
-                      <TextOutput variant="overlayChatText">
-                        {message.content}
-                      </TextOutput>
-                    </div>
-                  </MessageScroller.Item>
-                ))}
-                {props.isChatting ? (
-                  <MessageScroller.Item
-                    className={overlayClassNames.chatScrollerItem}
-                    messageId="overlay-chat-thinking"
-                  >
-                    <div className={overlayClassNames.chatMessage("assistant")}>
-                      <span className={overlayClassNames.chatRole}>
-                        {t("overlay.chat.assistant")}
-                      </span>
-                      <span className={overlayClassNames.status}>
-                        {t("overlay.chat.thinking")}
-                      </span>
-                    </div>
-                  </MessageScroller.Item>
-                ) : null}
-              </MessageScroller.Content>
-            </MessageScroller.Viewport>
-            <MessageScroller.Button
-              aria-label={t("overlay.chat.jumpToLatest")}
-              className={overlayClassNames.chatScrollerButton}
-              direction="end"
-              title={t("overlay.chat.jumpToLatest")}
-              type="button"
-            >
-              <Icon aria-hidden="true" name="chevron-down" size={14} />
-            </MessageScroller.Button>
-          </MessageScroller.Root>
-        </MessageScroller.Provider>
-      ) : null}
-      <div className={overlayClassNames.chatInputRow}>
-        <Textarea
-          disabled={props.isChatting}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-          placeholder={t("overlay.chat.placeholder")}
-          rows={2}
-          value={input}
-          variant="overlayChat"
-        />
-        <Button
-          aria-label={t("overlay.chat.send")}
-          disabled={!input.trim() || props.isChatting}
-          onClick={handleSend}
-          title={t("overlay.chat.send")}
-          type="button"
-          variant="overlayIcon"
-        >
-          <Icon aria-hidden="true" name="message-square" size={16} />
-        </Button>
-      </div>
     </div>
   );
 }

@@ -240,6 +240,8 @@ function actionOverlayEventPayload(
 export function showActionOverlay(
   mount: OverlayMount,
   request: ActionOverlayRequest,
+  requestId: number,
+  requestStartedAt: number,
   onDismiss: () => void
 ): void {
   const primary = trimmedOrEmpty(request.primary);
@@ -259,6 +261,8 @@ export function showActionOverlay(
       mode: request.mode,
       open: true,
       primary: actionOverlayPrimaryText(request.status, primary),
+      requestId,
+      requestStartedAt,
       secondary: actionOverlaySecondaryText(request.status, secondary),
       source: request.source,
       status: request.status,
@@ -274,6 +278,8 @@ export function showActionOverlay(
 export function renderSummaryOverlayWithTitle(
   mount: OverlayMount,
   request: SummaryOverlayRequest,
+  requestId: number,
+  requestStartedAt: number,
   title: string,
   onDismiss: () => void
 ): void {
@@ -304,6 +310,8 @@ export function renderSummaryOverlayWithTitle(
       mode: "text",
       open: true,
       primary: primaryText,
+      requestId,
+      requestStartedAt,
       secondary: secondaryText,
       source: request.source,
       status: request.status,
@@ -319,18 +327,34 @@ export function renderSummaryOverlayWithTitle(
 export function showSummaryOverlay(
   mount: OverlayMount,
   request: SummaryOverlayRequest,
+  requestId: number,
+  requestStartedAt: number,
   onDismiss: () => void
 ): void {
   const fallbackTitle =
     summarizeOverlayTitleCache ?? t("overlay.summary.title");
-  renderSummaryOverlayWithTitle(mount, request, fallbackTitle, onDismiss);
+  renderSummaryOverlayWithTitle(
+    mount,
+    request,
+    requestId,
+    requestStartedAt,
+    fallbackTitle,
+    onDismiss
+  );
 
   (async () => {
     const title = await getSummarizeOverlayTitle();
     if (title === fallbackTitle) {
       return;
     }
-    renderSummaryOverlayWithTitle(mount, request, title, onDismiss);
+    renderSummaryOverlayWithTitle(
+      mount,
+      request,
+      requestId,
+      requestStartedAt,
+      title,
+      onDismiss
+    );
   })().catch(() => {
     // no-op
   });

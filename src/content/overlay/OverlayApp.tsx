@@ -8,7 +8,8 @@ import { OverlayHeader } from "./OverlayApp/OverlayHeader";
 import { useOverlayChat } from "./OverlayApp/useOverlayChat";
 import { useOverlayPositioning } from "./OverlayApp/useOverlayPositioning";
 import { useOverlayTheme } from "./OverlayApp/useOverlayTheme";
-import { OverlayBody, OverlayChatInput } from "./OverlayComponents";
+import { OverlayChatInput } from "./OverlayChatInput";
+import { OverlayBody } from "./OverlayComponents";
 import {
   copyTextToClipboard,
   downloadIcsFile,
@@ -27,6 +28,8 @@ import {
 
 export type OverlayViewModel = {
   open: boolean;
+  requestId: number;
+  requestStartedAt: number;
   status: "loading" | "ready" | "error";
   mode: "text" | "event";
   source: SummarySource;
@@ -153,6 +156,8 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
           onOpenCalendar={openCalendar}
           primary={viewModel.primary}
           readyEvent={readyEvent}
+          requestId={viewModel.requestId}
+          requestStartedAt={viewModel.requestStartedAt}
           secondaryText={secondaryText}
           selectionText={selectionText}
           status={viewModel.status}

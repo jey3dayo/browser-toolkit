@@ -34,6 +34,8 @@ type ContentRequest =
     }
   | { action: "enableTableSort" };
 
+const ELAPSED_LABEL_REGEX = /^\d+\.\d秒$/;
+
 async function dispatchMessage(
   listener: (...args: unknown[]) => unknown,
   request: ContentRequest,
@@ -78,6 +80,7 @@ describe("content overlay (React + Shadow DOM)", () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it("mounts overlay idempotently across multiple initializations", async () => {
@@ -192,6 +195,215 @@ describe("content overlay (React + Shadow DOM)", () => {
 
     expect(shadow?.textContent).toContain("処理中...");
     expect(shadow?.querySelector('[data-testid="overlay-copy"]')).toBeNull();
+  });
+
+  it("renders the spec's 3x3 pixel-grid loader (9 cells) and an elapsed indicator while loading", async () => {
+    await import("@/content.ts");
+    const [listener] = listeners;
+    if (!listener) {
+      throw new Error("missing message listener");
+    }
+
+    await dispatchMessage(
+      listener,
+      {
+        action: "showActionOverlay",
+        mode: "text",
+        source: "page",
+        status: "loading",
+        title: "Test",
+      },
+      dom.window
+    );
+
+    const host = dom.window.document.querySelector<HTMLDivElement>(
+      "#browser-toolkit-overlay"
+    );
+    const shadow = host?.shadowRoot ?? null;
+    expect(shadow).not.toBeNull();
+
+    const statusRow = shadow?.querySelector(".mbu-overlay-status");
+    expect(statusRow?.getAttribute("role")).toBe("status");
+
+    const loaderGrid = shadow?.querySelector(".mbu-overlay-loader-grid");
+    expect(loaderGrid?.getAttribute("aria-hidden")).toBe("true");
+    expect(
+      loaderGrid?.querySelectorAll(".mbu-overlay-loader-cell").length
+    ).toBe(9);
+
+    const elapsed = shadow?.querySelector(".mbu-overlay-status-elapsed");
+    expect(elapsed?.getAttribute("aria-hidden")).toBe("true");
+    expect(elapsed?.textContent).toMatch(ELAPSED_LABEL_REGEX);
+  });
+
+  it("removes the loader grid and elapsed indicator once status becomes ready", async () => {
+    await import("@/content.ts");
+    const [listener] = listeners;
+    if (!listener) {
+      throw new Error("missing message listener");
+    }
+
+    await dispatchMessage(
+      listener,
+      {
+        action: "showActionOverlay",
+        mode: "text",
+        source: "page",
+        status: "loading",
+        title: "Test",
+      },
+      dom.window
+    );
+
+    await dispatchMessage(
+      listener,
+      {
+        action: "showActionOverlay",
+        mode: "text",
+        primary: "hello",
+        source: "page",
+        status: "ready",
+        title: "Test",
+      },
+      dom.window
+    );
+
+    const host = dom.window.document.querySelector<HTMLDivElement>(
+      "#browser-toolkit-overlay"
+    );
+    const shadow = host?.shadowRoot ?? null;
+    expect(shadow?.querySelector(".mbu-overlay-loader-grid")).toBeNull();
+    expect(shadow?.querySelector(".mbu-overlay-status-elapsed")).toBeNull();
+  });
+
+  it("advances the elapsed time readout as time passes", async () => {
+    let now = 0;
+    vi.spyOn(performance, "now").mockImplementation(() => now);
+
+    await import("@/content.ts");
+    const [listener] = listeners;
+    if (!listener) {
+      throw new Error("missing message listener");
+    }
+
+    await dispatchMessage(
+      listener,
+      {
+        action: "showActionOverlay",
+        mode: "text",
+        source: "page",
+        status: "loading",
+        title: "Test",
+      },
+      dom.window
+    );
+
+    const host = dom.window.document.querySelector<HTMLDivElement>(
+      "#browser-toolkit-overlay"
+    );
+    const shadow = host?.shadowRoot ?? null;
+    const elapsedBefore = shadow?.querySelector(
+      ".mbu-overlay-status-elapsed"
+    )?.textContent;
+    expect(elapsedBefore).toBe("0.0秒");
+
+    now = 5000;
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    await flush(dom.window, 2);
+
+    const elapsedAfter = shadow?.querySelector(
+      ".mbu-overlay-status-elapsed"
+    )?.textContent;
+    expect(elapsedAfter).toBe("5.0秒");
+  });
+
+  it("resets the elapsed timer when a new loading request arrives mid-flight", async () => {
+    let now = 0;
+    vi.spyOn(performance, "now").mockImplementation(() => now);
+
+    await import("@/content.ts");
+    const [listener] = listeners;
+    if (!listener) {
+      throw new Error("missing message listener");
+    }
+
+    await dispatchMessage(
+      listener,
+      {
+        action: "showActionOverlay",
+        mode: "text",
+        source: "page",
+        status: "loading",
+        title: "Test",
+      },
+      dom.window
+    );
+
+    const host = dom.window.document.querySelector<HTMLDivElement>(
+      "#browser-toolkit-overlay"
+    );
+    const shadow = host?.shadowRoot ?? null;
+
+    now = 5000;
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    await flush(dom.window, 2);
+    expect(
+      shadow?.querySelector(".mbu-overlay-status-elapsed")?.textContent
+    ).toBe("5.0秒");
+
+    await dispatchMessage(
+      listener,
+      {
+        action: "showActionOverlay",
+        mode: "text",
+        source: "page",
+        status: "loading",
+        title: "Test",
+      },
+      dom.window
+    );
+
+    expect(
+      shadow?.querySelector(".mbu-overlay-status-elapsed")?.textContent
+    ).toBe("0.0秒");
+  });
+
+  it("starts the elapsed timer from the request time, not from when the overlay module finishes loading", async () => {
+    let now = 1000;
+    vi.spyOn(performance, "now").mockImplementation(() => now);
+
+    await import("@/content.ts");
+    const [listener] = listeners;
+    if (!listener) {
+      throw new Error("missing message listener");
+    }
+
+    const sendResponse = vi.fn();
+    listener(
+      {
+        action: "showActionOverlay",
+        mode: "text",
+        source: "page",
+        status: "loading",
+        title: "Test",
+      },
+      {},
+      sendResponse
+    );
+    now = 3000;
+    await flush(dom.window, 6);
+
+    const host = dom.window.document.querySelector<HTMLDivElement>(
+      "#browser-toolkit-overlay"
+    );
+    const shadow = host?.shadowRoot ?? null;
+
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    await flush(dom.window, 2);
+
+    expect(
+      shadow?.querySelector(".mbu-overlay-status-elapsed")?.textContent
+    ).toBe("2.0秒");
   });
 
   it("cycles overlay theme and persists it to storage", async () => {
@@ -482,12 +694,18 @@ describe("content overlay (React + Shadow DOM)", () => {
     );
     expect(userItem?.getAttribute("data-scroll-anchor")).toBe("true");
     expect(userItem?.textContent).toContain("追加質問");
+    const userRoleLabel = userItem?.querySelector(".mbu-overlay-chat-role");
+    expect(userRoleLabel?.classList.contains("mbu-visually-hidden")).toBe(true);
+    expect(userRoleLabel?.textContent).toBe("あなた");
 
     const thinkingItem = shadow?.querySelector<HTMLElement>(
       '[data-message-id="overlay-chat-thinking"]'
     );
     expect(thinkingItem?.getAttribute("data-scroll-anchor")).toBe("false");
     expect(thinkingItem?.textContent).toContain("考え中...");
+    expect(
+      thinkingItem?.querySelectorAll(".mbu-overlay-loader-grid").length
+    ).toBe(1);
 
     const jumpButton = shadow?.querySelector<HTMLButtonElement>(
       ".mbu-overlay-chat-scroller-button"

@@ -6,6 +6,7 @@ export const overlayClassNames = {
   body: "mbu-overlay-body",
   bodyActions: "mbu-overlay-body-actions",
   chat: "mbu-overlay-chat",
+  chatComposerActions: "mbu-overlay-chat-composer-actions",
   chatInputRow: "mbu-overlay-chat-input-row",
   chatMessage: (role: "assistant" | "user") =>
     `mbu-overlay-chat-message mbu-overlay-chat-message--${role}`,
@@ -20,6 +21,8 @@ export const overlayClassNames = {
   eventTable: "mbu-overlay-event-table",
   header: "mbu-overlay-header",
   headerLeft: "mbu-overlay-header-left",
+  loaderCell: "mbu-overlay-loader-cell",
+  loaderGrid: "mbu-overlay-loader-grid",
   panel: "mbu-overlay-panel",
   popover: "mbu-overlay-popover",
   popoverContent: "mbu-overlay-popover-content",
@@ -30,8 +33,9 @@ export const overlayClassNames = {
   primaryMarkdown: "mbu-overlay-primary-markdown",
   quote: "mbu-overlay-quote",
   status: "mbu-overlay-status",
-  statusDot: "mbu-overlay-status-dot",
-  statusDots: "mbu-overlay-status-dots",
+  statusElapsed: "mbu-overlay-status-elapsed",
+  statusShimmer: "mbu-overlay-status-shimmer",
   surface: "mbu-overlay-surface",
   title: "mbu-overlay-title",
+  visuallyHidden: "mbu-visually-hidden",
 } as const;

@@ -1,4 +1,5 @@
 import {
+  ArrowUp,
   Bug,
   Calendar,
   Check,
@@ -14,7 +15,6 @@ import {
   Link,
   type LucideProps,
   Menu,
-  MessageSquare,
   Monitor,
   Moon,
   Pencil,
@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 
 export type IconName =
+  | "arrow-up"
   | "bug"
   | "calendar"
   | "check"
@@ -44,7 +45,6 @@ export type IconName =
   | "layers"
   | "link"
   | "menu"
-  | "message-square"
   | "monitor"
   | "moon"
   | "pin"
@@ -57,6 +57,7 @@ export type IconName =
   | "zap";
 
 const icons: Record<IconName, React.ComponentType<LucideProps>> = {
+  "arrow-up": ArrowUp,
   bug: Bug,
   calendar: Calendar,
   check: Check,
@@ -72,7 +73,6 @@ const icons: Record<IconName, React.ComponentType<LucideProps>> = {
   layers: Layers,
   link: Link,
   menu: Menu,
-  "message-square": MessageSquare,
   monitor: Monitor,
   moon: Moon,
   pencil: Pencil,

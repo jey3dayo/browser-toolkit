@@ -9,6 +9,9 @@ const dirname =
     : import.meta.dirname;
 const projectRoot = path.join(dirname, "..", "..");
 
+const CHAT_COMPOSER_FOCUS_RING_REGEX =
+  /\.mbu-overlay-chat-input-row:has\(\.mbu-overlay-chat-input:focus-visible\)\s*\{\s*outline:\s*var\(--focus-ring\)/;
+
 type WebAccessibleEntry = { resources?: string[] };
 type Manifest = {
   host_permissions?: string[];
@@ -89,7 +92,7 @@ describe("UI styles wiring", () => {
       "utf8"
     );
 
-    expect(overlayShellCss).toContain(".mbu-overlay-chat-input:focus-visible");
+    expect(overlayShellCss).toMatch(CHAT_COMPOSER_FOCUS_RING_REGEX);
     expect(overlayShellCss).not.toContain("outline: none");
   });
 });

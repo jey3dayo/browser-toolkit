@@ -371,6 +371,8 @@ export const resources = {
           selection: "選択範囲",
         },
         status: {
+          elapsedMinutes: "{{minutes}}分{{seconds}}秒",
+          elapsedSeconds: "{{seconds}}秒",
           error: "エラー",
           loading: "処理中...",
         },
