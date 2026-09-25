@@ -134,7 +134,7 @@ CSS custom properties in `src/styles/tokens/` are the implementation source of t
 
 Both themes use neutral, low-saturation surfaces with a single indigo/blue accent hue (`--color-primary` / `--color-primary-strong`); there is no second accent color. `--color-primary-2` is kept only as a legacy alias of `--color-primary` for existing markup. Dark theme uses near-black neutrals; light theme uses off-white/white neutrals. Auto theme follows `prefers-color-scheme` when `data-theme` is absent. Muted text is a solid, non-alpha color in both themes so it holds at least 4.5:1 contrast against `--color-surface`.
 
-Primary fills are flat: a solid `--color-primary` (or `--color-primary-strong` in light theme, which keeps AA contrast under white label text). Do not use accent gradients or colored glow shadows on buttons, icon wells, or nav items — reserve gradients for the product brandmark alone, and keep that gradient a single hue (`--color-primary` to `--color-primary-strong`), never a second color. The popup body background is a flat `--color-bg`, not a radial wash.
+Primary fills are flat: a solid `--color-primary` (or `--color-primary-strong` in light theme, which keeps AA contrast under white label text). Do not use accent gradients or colored glow shadows on buttons, icon wells, or nav items — reserve gradients for the product brandmark alone, and keep that gradient a single hue (`--color-primary` to `--color-primary-strong`), never a second color. The only other exception is a neutral text shimmer (`--mbu-text-muted` to `--mbu-text`) on in-progress status labels; it never uses accent color or a second hue. The popup body background is a flat `--color-bg`, not a radial wash.
 
 Primary color is reserved for the main affirmative action, selected state, active state, and focused affordance. Danger color is reserved for destructive or failure states. Muted text is used for labels, descriptions, helper text, and secondary metadata.
 
@@ -143,6 +143,8 @@ Primary color is reserved for the main affirmative action, selected state, activ
 Use the project sans stack everywhere: `"Segoe UI", "Helvetica Neue", system-ui, sans-serif`. Use the semantic font-size tokens instead of raw px: `--font-size-xs` (11px) for the smallest labels, `--font-size-sm` (12px) for metadata and overlay utility controls, `--font-size-md` (13px) for body text, `--font-size-lg` (16px) for pane and section titles, and `--font-size-xl` (18px) for the largest headings. `.pane-title` is a single definition (`--font-size-lg` / weight 650); do not add per-pane overrides.
 
 Do not introduce viewport-scaled type. Keep letter spacing at 0 for new reusable typography rules unless an existing compact badge or legacy class already defines a small positive value.
+
+Continuously changing numbers, such as elapsed time or counters, use the existing monospace stack with `tabular-nums` so their width stays fixed, at `--font-size-sm` in muted color.
 
 ## Layout & Spacing
 
@@ -183,6 +185,8 @@ Radio, checkbox and switch options sit directly on their card surface. The contr
 Cards are for bounded tool surfaces and repeated items, not for wrapping entire page sections. Lists should keep row alignment, drag handles, expand controls, and badges stable across hover, focus, selected, disabled, empty, loading, error, and success states.
 
 Toast and overlay surfaces share the ShadowRoot token set. Overlay action buttons should preserve keyboard and pointer parity, and active or primary overlay actions should use accent-tinted backgrounds rather than new colors.
+
+For work that may take seconds, show motion that proves progress — a pixel-grid loader and a text shimmer on the status label — plus an elapsed-time readout next to it; do not use spinners or full skeletons. Animate only opacity and background-position, never layout. Under reduced motion, stop the loader and shimmer into a static muted state while the elapsed time keeps counting. Under forced colors, drop the shimmer to system text color. Announce the status with `role="status"` and mark ticking numbers and decoration `aria-hidden`.
 
 ## Storybook UI Reference
 

@@ -41,6 +41,26 @@ export function statusLabelFromStatus(
 }
 
 /**
+ * Format elapsed milliseconds as a localized "N.N秒" / "M分N.N秒" string.
+ * Floors to one decimal place so 59_990ms reads as 59.9秒, never 60.0秒.
+ */
+export function formatElapsed(ms: number): string {
+  const totalTenths = Math.floor(ms / 100);
+  const totalSeconds = totalTenths / 10;
+  if (totalSeconds < 60) {
+    return t("overlay.status.elapsedSeconds", {
+      seconds: totalSeconds.toFixed(1),
+    });
+  }
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds - minutes * 60;
+  return t("overlay.status.elapsedMinutes", {
+    minutes,
+    seconds: seconds.toFixed(1),
+  });
+}
+
+/**
  * Convert source to Japanese label
  */
 export function sourceLabelFromSource(source: SummarySource): string {

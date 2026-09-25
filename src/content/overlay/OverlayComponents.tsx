@@ -1,5 +1,11 @@
 import { MessageScroller } from "@shadcn/react/message-scroller";
-import { type ReactNode, useCallback, useState } from "react";
+import {
+  type CSSProperties,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ChatMessage } from "@/background/runtime_types";
@@ -11,11 +17,71 @@ import { TextBlock } from "@/components/shared/TextBlock";
 import { TextOutput } from "@/components/shared/TextOutput";
 import { ThemeCycleButton } from "@/components/ThemeCycleButton";
 import { CopyIcon, PinIcon } from "@/content/overlay/icons";
+import { formatElapsed } from "@/content/overlay/overlayUtils";
 import { t } from "@/i18n";
 import type { ExtractedEvent } from "@/shared_types";
 import type { Theme } from "@/ui/theme";
 import type { OverlayViewModel } from "./OverlayApp";
 import { overlayClassNames } from "./overlayClassNames";
+
+const LOADER_GRID_SIZE = 3;
+const LOADER_DELAY_STEP_MS = 90;
+const ELAPSED_TICK_MS = 100;
+
+type LoaderCellStyle = CSSProperties & { "--mbu-loader-delay": string };
+
+type LoaderCell = { key: string; style: LoaderCellStyle };
+
+const LOADER_CELLS: LoaderCell[] = Array.from(
+  { length: LOADER_GRID_SIZE * LOADER_GRID_SIZE },
+  (_, index) => {
+    const row = Math.floor(index / LOADER_GRID_SIZE);
+    const column = index % LOADER_GRID_SIZE;
+    const delay = (column + Math.abs(row - 1)) * LOADER_DELAY_STEP_MS;
+    return {
+      key: `cell-${row}-${column}`,
+      style: { "--mbu-loader-delay": `${delay}ms` } satisfies LoaderCellStyle,
+    };
+  }
+);
+
+/**
+ * 3x3 pixel-grid loading indicator
+ */
+function OverlayLoaderGrid(): React.JSX.Element {
+  return (
+    <span aria-hidden="true" className={overlayClassNames.loaderGrid}>
+      {LOADER_CELLS.map((cell) => (
+        <span
+          className={overlayClassNames.loaderCell}
+          key={cell.key}
+          style={cell.style}
+        />
+      ))}
+    </span>
+  );
+}
+
+/**
+ * Elapsed time indicator, isolated so its 100ms ticks don't re-render the parent overlay
+ */
+function OverlayElapsed(): React.JSX.Element {
+  const [elapsedMs, setElapsedMs] = useState(0);
+
+  useEffect(() => {
+    const start = performance.now();
+    const intervalId = setInterval(() => {
+      setElapsedMs(performance.now() - start);
+    }, ELAPSED_TICK_MS);
+    return () => clearInterval(intervalId);
+  }, []);
+
+  return (
+    <span aria-hidden="true" className={overlayClassNames.statusElapsed}>
+      {formatElapsed(elapsedMs)}
+    </span>
+  );
+}
 
 /**
  * Copy button component
@@ -204,15 +270,18 @@ function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {
   return (
     <>
       {props.statusLabel ? (
-        <div className={overlayClassNames.status}>
-          {props.statusLabel}
+        <div className={overlayClassNames.status} role="status">
           {props.status === "loading" ? (
-            <span aria-hidden="true" className={overlayClassNames.statusDots}>
-              <span className={overlayClassNames.statusDot} />
-              <span className={overlayClassNames.statusDot} />
-              <span className={overlayClassNames.statusDot} />
-            </span>
-          ) : null}
+            <>
+              <OverlayLoaderGrid />
+              <span className={overlayClassNames.statusShimmer}>
+                {props.statusLabel}
+              </span>
+              <OverlayElapsed />
+            </>
+          ) : (
+            props.statusLabel
+          )}
         </div>
       ) : null}
       <div className={primaryBlockClassName}>

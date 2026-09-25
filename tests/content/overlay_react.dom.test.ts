@@ -34,6 +34,8 @@ type ContentRequest =
     }
   | { action: "enableTableSort" };
 
+const ELAPSED_LABEL_REGEX = /^\d+\.\d秒$/;
+
 async function dispatchMessage(
   listener: (...args: unknown[]) => unknown,
   request: ContentRequest,
@@ -192,6 +194,122 @@ describe("content overlay (React + Shadow DOM)", () => {
 
     expect(shadow?.textContent).toContain("処理中...");
     expect(shadow?.querySelector('[data-testid="overlay-copy"]')).toBeNull();
+  });
+
+  it("renders a 3x3 loader grid and an elapsed indicator while loading", async () => {
+    await import("@/content.ts");
+    const [listener] = listeners;
+    if (!listener) {
+      throw new Error("missing message listener");
+    }
+
+    await dispatchMessage(
+      listener,
+      {
+        action: "showActionOverlay",
+        mode: "text",
+        source: "page",
+        status: "loading",
+        title: "Test",
+      },
+      dom.window
+    );
+
+    const host = dom.window.document.querySelector<HTMLDivElement>(
+      "#browser-toolkit-overlay"
+    );
+    const shadow = host?.shadowRoot ?? null;
+    expect(shadow).not.toBeNull();
+
+    const statusRow = shadow?.querySelector(".mbu-overlay-status");
+    expect(statusRow?.getAttribute("role")).toBe("status");
+
+    const loaderGrid = shadow?.querySelector(".mbu-overlay-loader-grid");
+    expect(loaderGrid?.getAttribute("aria-hidden")).toBe("true");
+    expect(
+      loaderGrid?.querySelectorAll(".mbu-overlay-loader-cell").length
+    ).toBe(9);
+
+    const elapsed = shadow?.querySelector(".mbu-overlay-status-elapsed");
+    expect(elapsed?.getAttribute("aria-hidden")).toBe("true");
+    expect(elapsed?.textContent).toMatch(ELAPSED_LABEL_REGEX);
+  });
+
+  it("removes the loader grid and elapsed indicator once status becomes ready", async () => {
+    await import("@/content.ts");
+    const [listener] = listeners;
+    if (!listener) {
+      throw new Error("missing message listener");
+    }
+
+    await dispatchMessage(
+      listener,
+      {
+        action: "showActionOverlay",
+        mode: "text",
+        source: "page",
+        status: "loading",
+        title: "Test",
+      },
+      dom.window
+    );
+
+    await dispatchMessage(
+      listener,
+      {
+        action: "showActionOverlay",
+        mode: "text",
+        primary: "hello",
+        source: "page",
+        status: "ready",
+        title: "Test",
+      },
+      dom.window
+    );
+
+    const host = dom.window.document.querySelector<HTMLDivElement>(
+      "#browser-toolkit-overlay"
+    );
+    const shadow = host?.shadowRoot ?? null;
+    expect(shadow?.querySelector(".mbu-overlay-loader-grid")).toBeNull();
+    expect(shadow?.querySelector(".mbu-overlay-status-elapsed")).toBeNull();
+  });
+
+  it("advances the elapsed time readout as time passes", async () => {
+    await import("@/content.ts");
+    const [listener] = listeners;
+    if (!listener) {
+      throw new Error("missing message listener");
+    }
+
+    await dispatchMessage(
+      listener,
+      {
+        action: "showActionOverlay",
+        mode: "text",
+        source: "page",
+        status: "loading",
+        title: "Test",
+      },
+      dom.window
+    );
+
+    const host = dom.window.document.querySelector<HTMLDivElement>(
+      "#browser-toolkit-overlay"
+    );
+    const shadow = host?.shadowRoot ?? null;
+    const elapsedBefore = shadow?.querySelector(
+      ".mbu-overlay-status-elapsed"
+    )?.textContent;
+    expect(elapsedBefore).toBe("0.0秒");
+
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    await flush(dom.window, 2);
+
+    const elapsedAfter = shadow?.querySelector(
+      ".mbu-overlay-status-elapsed"
+    )?.textContent;
+    expect(elapsedAfter).not.toBe("0.0秒");
   });
 
   it("cycles overlay theme and persists it to storage", async () => {

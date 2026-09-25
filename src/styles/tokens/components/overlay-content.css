@@ -15,46 +15,89 @@
   color: var(--mbu-text-muted);
 }
 
-.mbu-overlay-status-dots {
-  display: inline-flex;
-  gap: var(--primitive-space-1);
-  align-items: center;
+.mbu-overlay-loader-grid {
+  display: inline-grid;
+  flex-shrink: 0;
+  grid-template-columns: repeat(3, 4px);
+  gap: 1.5px;
 }
 
-.mbu-overlay-status-dot {
-  width: var(--primitive-space-1);
-  height: var(--primitive-space-1);
+.mbu-overlay-loader-cell {
+  width: 4px;
+  height: 4px;
   background: currentcolor;
-  border-radius: var(--radius-pill);
-  opacity: 0.25;
-  animation: mbu-overlay-status-dot calc(var(--motion-duration) * 6) ease-in-out
+  border-radius: 1px;
+  opacity: 0.15;
+  animation: mbu-overlay-pixel-on 650ms ease-in-out var(--mbu-loader-delay, 0ms)
     infinite;
 }
 
-.mbu-overlay-status-dot:nth-child(2) {
-  animation-delay: var(--motion-duration);
-}
-
-.mbu-overlay-status-dot:nth-child(3) {
-  animation-delay: calc(var(--motion-duration) * 2);
-}
-
-@keyframes mbu-overlay-status-dot {
+@keyframes mbu-overlay-pixel-on {
   0%,
-  80%,
   100% {
-    opacity: 0.25;
+    opacity: 0.15;
   }
 
-  40% {
+  18%,
+  42% {
     opacity: 1;
   }
+
+  62% {
+    opacity: 0.15;
+  }
+}
+
+.mbu-overlay-status-shimmer {
+  color: transparent;
+  background-image: linear-gradient(
+    90deg,
+    var(--mbu-text-muted) 35%,
+    var(--mbu-text) 50%,
+    var(--mbu-text-muted) 65%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  background-size: 200% 100%;
+  animation: mbu-overlay-shimmer 1.4s linear infinite;
+}
+
+@keyframes mbu-overlay-shimmer {
+  from {
+    background-position: 150% center;
+  }
+
+  to {
+    background-position: -50% center;
+  }
+}
+
+.mbu-overlay-status-elapsed {
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--mbu-text-muted);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mbu-overlay-status-dot {
-    opacity: 1;
+  .mbu-overlay-loader-cell {
     animation: none;
+  }
+
+  .mbu-overlay-status-shimmer {
+    color: var(--mbu-text-muted);
+    background: none;
+    animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .mbu-overlay-status-shimmer {
+    color: CanvasText;
+    background: none;
   }
 }
 
