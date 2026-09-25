@@ -101,7 +101,7 @@ describe("search-blocklist-ui/dom", () => {
       expect(position.placement).toBe("below");
     });
 
-    it("clamps both the left and top edges when the viewport is narrower than the popup plus margins", () => {
+    it("clamps the left edge and keeps the popup below the trigger when the viewport is narrower than the popup plus margins", () => {
       const narrowViewport = { height: 800, width: 340 };
       const narrowPopup = { height: 300, width: narrowViewport.width - 32 };
       const triggerRect = { bottom: 100, right: 320, top: 80 };
