@@ -1,9 +1,9 @@
 ---
 colors:
   primary: "#7c8cff"
-  bgDark: "#0c0d10"
-  surfaceDark: "#15171c"
-  surfaceDarkRaised: "#1c1f26"
+  bgDark: "#141518"
+  surfaceDark: "#1e1f24"
+  surfaceDarkRaised: "#2a2b31"
   textDark: "#ececef"
   textDarkMuted: "#9aa0ac"
   primaryDark: "#7c8cff"

@@ -43,6 +43,16 @@ function readStylesTokensFallbackHex(source: string, name: string): string {
   return match[1].toLowerCase();
 }
 
+function readDesignColorHex(source: string, name: string): string {
+  const match = source.match(
+    new RegExp(`^\\s+${name}:\\s*"(#[0-9a-f]{6})"`, "im")
+  );
+  if (!match) {
+    throw new Error(`DESIGN.md is missing the ${name} color`);
+  }
+  return match[1].toLowerCase();
+}
+
 describe("dark theme fallback tokens stay in sync with primitives", () => {
   it("keeps tokens.css @layer fallback dark values equal to the dark neutral primitives", () => {
     const primitivesCss = readSource("src/styles/tokens/primitives.css");
@@ -82,5 +92,20 @@ describe("dark theme fallback tokens stay in sync with primitives", () => {
     expect(
       readStylesTokensFallbackHex(stylesTokensSource, "--mbu-surface-2")
     ).toBe(neutral850);
+  });
+
+  it("keeps the DESIGN.md dark palette equal to the dark neutral primitives", () => {
+    const primitivesCss = readSource("src/styles/tokens/primitives.css");
+    const designDoc = readSource("DESIGN.md");
+
+    expect(readDesignColorHex(designDoc, "bgDark")).toBe(
+      readPrimitiveHex(primitivesCss, "950")
+    );
+    expect(readDesignColorHex(designDoc, "surfaceDark")).toBe(
+      readPrimitiveHex(primitivesCss, "900")
+    );
+    expect(readDesignColorHex(designDoc, "surfaceDarkRaised")).toBe(
+      readPrimitiveHex(primitivesCss, "850")
+    );
   });
 });
