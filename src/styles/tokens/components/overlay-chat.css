@@ -1,0 +1,206 @@
+/* Chat section */
+.mbu-overlay-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  background: color-mix(in oklab, var(--mbu-surface-2) 40%, transparent);
+  border-top: 1px solid var(--mbu-border);
+}
+
+.mbu-overlay-chat-scroller {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 180px;
+  overflow: hidden;
+}
+
+.mbu-overlay-chat-scroller-viewport {
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.mbu-overlay-chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mbu-overlay-chat-scroller-item {
+  contain-intrinsic-size: auto 48px;
+  content-visibility: auto;
+}
+
+.mbu-overlay-chat-scroller-spacer {
+  flex: 0 0 auto;
+}
+
+.mbu-overlay-chat-scroller-button {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  color: var(--mbu-text);
+  cursor: pointer;
+  background: color-mix(in oklab, var(--mbu-surface) 72%, transparent);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--mbu-shadow);
+  opacity: 1;
+  transition:
+    opacity var(--motion-duration) ease,
+    transform var(--motion-duration) ease;
+}
+
+.mbu-overlay-chat-scroller-button[data-active="false"] {
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+.mbu-overlay-chat-scroller-button:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.mbu-overlay-chat-message {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: mbu-overlay-fade-up 400ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+@keyframes mbu-overlay-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mbu-overlay-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mbu-overlay-chat-message {
+    animation: mbu-overlay-fade-in 400ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+}
+
+.mbu-overlay-chat-message--user {
+  width: fit-content;
+  max-width: 85%;
+  padding: var(--spacing-xs) var(--spacing-md);
+  margin-left: auto;
+  background: var(--mbu-surface-2);
+  border-radius: var(--radius-md);
+}
+
+.mbu-overlay-chat-role {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--mbu-text-muted);
+}
+
+.mbu-overlay-chat-text {
+  margin: 0;
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  color: var(--mbu-text);
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.mbu-overlay-chat-input-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--mbu-surface);
+  border: 1px solid var(--mbu-border);
+  border-radius: var(--radius-sm);
+}
+
+.mbu-overlay-chat-input-row:focus-within {
+  border-color: color-mix(in oklab, var(--mbu-accent) 60%, var(--mbu-border));
+}
+
+.mbu-overlay-chat-input-row:has(.mbu-overlay-chat-input:focus-visible) {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.mbu-overlay-chat-composer-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mbu-overlay-chat-input-row .mbu-overlay-icon-button {
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  color: var(--mbu-text);
+  background: color-mix(in oklab, var(--mbu-accent) 18%, var(--mbu-surface));
+  border-color: color-mix(in oklab, var(--mbu-accent) 42%, transparent);
+  border-radius: var(--radius-sm);
+  transition:
+    background var(--motion-duration-fast) ease,
+    color var(--motion-duration-fast) ease,
+    opacity var(--motion-duration-fast) ease,
+    transform 100ms ease-out;
+}
+
+.mbu-overlay-chat-input-row .mbu-overlay-icon-button:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--mbu-accent) 28%, var(--mbu-surface));
+}
+
+.mbu-overlay-chat-input-row .mbu-overlay-icon-button:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.mbu-overlay-chat-input-row .mbu-overlay-icon-button:disabled {
+  background: transparent;
+  border-color: transparent;
+}
+
+.mbu-overlay-chat-input {
+  box-sizing: border-box;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  line-height: 18px;
+  color: var(--mbu-text);
+  resize: none;
+  background: transparent;
+  border: none;
+}
+
+.mbu-overlay-chat-input:focus-visible {
+  outline: 2px solid transparent;
+}
+
+.mbu-overlay-chat-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}

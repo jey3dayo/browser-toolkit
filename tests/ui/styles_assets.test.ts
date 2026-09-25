@@ -87,12 +87,12 @@ describe("UI styles wiring", () => {
   });
 
   it("keeps overlay chat input keyboard focus visible", () => {
-    const overlayShellCss = fs.readFileSync(
-      path.join(projectRoot, "src/styles/tokens/components/overlay-shell.css"),
+    const overlayChatCss = fs.readFileSync(
+      path.join(projectRoot, "src/styles/tokens/components/overlay-chat.css"),
       "utf8"
     );
 
-    expect(overlayShellCss).toMatch(CHAT_COMPOSER_FOCUS_RING_REGEX);
-    expect(overlayShellCss).not.toContain("outline: none");
+    expect(overlayChatCss).toMatch(CHAT_COMPOSER_FOCUS_RING_REGEX);
+    expect(overlayChatCss).not.toContain("outline: none");
   });
 });
