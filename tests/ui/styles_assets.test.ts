@@ -86,6 +86,15 @@ describe("UI styles wiring", () => {
     expect(manifest.host_permissions ?? []).toContain("<all_urls>");
   });
 
+  it("imports the split-out overlay chat stylesheet from the popup components bundle", () => {
+    const componentsCss = fs.readFileSync(
+      path.join(projectRoot, "src/styles/tokens/components.css"),
+      "utf8"
+    );
+
+    expect(componentsCss).toContain('@import "./components/overlay-chat.css";');
+  });
+
   it("keeps overlay chat input keyboard focus visible", () => {
     const overlayChatCss = fs.readFileSync(
       path.join(projectRoot, "src/styles/tokens/components/overlay-chat.css"),
