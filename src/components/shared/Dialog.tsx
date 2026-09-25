@@ -12,7 +12,6 @@ export type DrawerDialogProps = Omit<
   React.ComponentProps<typeof BaseDialog.Root>,
   "children"
 > & {
-  backdropClassName?: string;
   children: React.ReactNode;
   initialFocus?: DrawerDialogInitialFocus;
   popupAriaLabel: string;
@@ -26,7 +25,6 @@ export type DrawerDialogProps = Omit<
 };
 
 export function DrawerDialog({
-  backdropClassName,
   children,
   initialFocus,
   popupAriaLabel,
@@ -49,7 +47,6 @@ export function DrawerDialog({
         {trigger}
       </BaseDialog.Trigger>
       <BaseDialog.Portal container={portalContainer}>
-        <BaseDialog.Backdrop className={backdropClassName} />
         <BaseDialog.Popup
           aria-label={popupAriaLabel}
           className={popupClassName}

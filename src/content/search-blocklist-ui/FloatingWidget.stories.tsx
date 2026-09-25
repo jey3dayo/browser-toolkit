@@ -89,9 +89,6 @@ export const OpensBlockDialog: Story = {
     });
 
     await waitFor(() => {
-      expect(popup.style.top).not.toBe("");
-    });
-    await waitFor(() => {
       const triggerRect = trigger.getBoundingClientRect();
       const popupRect = popup.getBoundingClientRect();
       expect(Math.abs(popupRect.right - triggerRect.right)).toBeLessThanOrEqual(
@@ -133,6 +130,50 @@ export const OpensBlockDialog: Story = {
     });
 
     await userEvent.click(cancelButton);
+    await waitFor(() => {
+      expect(
+        getWidgetShadow(canvasElement).querySelector(
+          '[aria-label="このサイトをブロック"]'
+        )
+      ).toBeNull();
+    });
+  },
+};
+
+export const OutsideClickClosesDialog: Story = {
+  args: {
+    entries: [makeStoryEntry()],
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const result = canvas.getByTestId("search-blocklist-story-result");
+
+    await userEvent.hover(result);
+    await waitFor(() => {
+      expect(
+        getWidgetShadow(canvasElement).querySelector(
+          '[aria-label="この検索結果をブロック"]'
+        )
+      ).toBeTruthy();
+    });
+    const trigger = getWidgetShadow(canvasElement).querySelector(
+      '[aria-label="この検索結果をブロック"]'
+    );
+    if (!(trigger instanceof HTMLButtonElement)) {
+      throw new Error("block trigger not found");
+    }
+    await userEvent.click(trigger);
+
+    await waitFor(() => {
+      expect(
+        getWidgetShadow(canvasElement).querySelector(
+          '[aria-label="このサイトをブロック"]'
+        )
+      ).toBeTruthy();
+    });
+
+    await userEvent.click(result);
+
     await waitFor(() => {
       expect(
         getWidgetShadow(canvasElement).querySelector(

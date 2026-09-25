@@ -74,7 +74,7 @@ export function FloatingWidget(
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const [popupEl, setPopupEl] = useState<HTMLDivElement | null>(null);
   const addTextareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const unblockButtonRef = useRef<HTMLElement | null>(null);
+  const primaryButtonRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     frozenRef.current = dialogOpen;
@@ -109,16 +109,9 @@ export function FloatingWidget(
         : new ResizeObserver(handleReposition);
     observer?.observe(popupEl);
     window.addEventListener("resize", handleReposition);
-    window.addEventListener("scroll", handleReposition, {
-      capture: true,
-      passive: true,
-    });
     return () => {
       observer?.disconnect();
       window.removeEventListener("resize", handleReposition);
-      window.removeEventListener("scroll", handleReposition, {
-        capture: true,
-      });
     };
   }, [dialogOpen, popupEl, updateDialogPosition]);
 
@@ -243,7 +236,7 @@ export function FloatingWidget(
 
   const focusInitialDialogElement = useCallback((): HTMLElement | null => {
     if (currentEntry?.blocked) {
-      return unblockButtonRef.current;
+      return primaryButtonRef.current;
     }
     return addTextareaRef.current;
   }, [currentEntry?.blocked]);
@@ -361,7 +354,7 @@ export function FloatingWidget(
             </Button>
             <Button
               onClick={handleSubmit}
-              ref={unblockButtonRef}
+              ref={primaryButtonRef}
               size="small"
               type="button"
               variant="primary"

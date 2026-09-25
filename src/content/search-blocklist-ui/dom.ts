@@ -35,7 +35,7 @@ export function computeButtonPosition(rect: DOMRect): ButtonPosition {
   };
 }
 
-export const DIALOG_VIEWPORT_MARGIN = 16;
+const DIALOG_VIEWPORT_MARGIN = 16;
 const DIALOG_TRIGGER_GAP = 8;
 
 export type DialogTriggerRect = Pick<DOMRect, "top" | "right" | "bottom">;
@@ -49,19 +49,23 @@ function clamp(value: number, min: number, max: number): number {
 export function computeDialogPosition(
   triggerRect: DialogTriggerRect,
   popupSize: Size,
-  viewport: Size,
-  margin: number = DIALOG_VIEWPORT_MARGIN
+  viewport: Size
 ): DialogPosition {
+  const margin = DIALOG_VIEWPORT_MARGIN;
   const maxLeft = Math.max(margin, viewport.width - popupSize.width - margin);
   const left = clamp(triggerRect.right - popupSize.width, margin, maxLeft);
 
   const maxTop = Math.max(margin, viewport.height - popupSize.height - margin);
   const belowTop = triggerRect.bottom + DIALOG_TRIGGER_GAP;
   const fitsBelow = belowTop + popupSize.height <= viewport.height - margin;
-  const placement: DialogPlacement = fitsBelow ? "below" : "above";
-  const idealTop = fitsBelow
-    ? belowTop
-    : triggerRect.top - DIALOG_TRIGGER_GAP - popupSize.height;
+  const spaceAbove = triggerRect.top;
+  const spaceBelow = viewport.height - triggerRect.bottom;
+  const placement: DialogPlacement =
+    fitsBelow || spaceBelow >= spaceAbove ? "below" : "above";
+  const idealTop =
+    placement === "below"
+      ? belowTop
+      : triggerRect.top - DIALOG_TRIGGER_GAP - popupSize.height;
   const top = clamp(idealTop, margin, maxTop);
 
   return { left, placement, top };

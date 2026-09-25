@@ -85,15 +85,23 @@ describe("search-blocklist-ui/dom", () => {
       expect(position.top).toBe(730 - 8 - 300);
     });
 
-    it("clamps the top edge when flipping above still overflows the viewport", () => {
+    it("prefers the side with more room and clamps the top edge when it still overflows", () => {
       const triggerRect = { bottom: 40, right: 500, top: 20 };
       const tallPopup = { height: 780, width: 360 };
       const position = computeDialogPosition(triggerRect, tallPopup, viewport);
-      expect(position.placement).toBe("above");
+      expect(position.placement).toBe("below");
       expect(position.top).toBe(16);
     });
 
-    it("clamps both edges when the viewport is narrower than the popup plus margins", () => {
+    it("places below when neither side fits but below has more room", () => {
+      const shortViewport = { height: 200, width: 1000 };
+      const popup = { height: 150, width: 360 };
+      const triggerRect = { bottom: 40, right: 500, top: 20 };
+      const position = computeDialogPosition(triggerRect, popup, shortViewport);
+      expect(position.placement).toBe("below");
+    });
+
+    it("clamps both the left and top edges when the viewport is narrower than the popup plus margins", () => {
       const narrowViewport = { height: 800, width: 340 };
       const narrowPopup = { height: 300, width: narrowViewport.width - 32 };
       const triggerRect = { bottom: 100, right: 320, top: 80 };
@@ -103,6 +111,7 @@ describe("search-blocklist-ui/dom", () => {
         narrowViewport
       );
       expect(position.left).toBe(16);
+      expect(position.top).toBe(108);
     });
   });
 

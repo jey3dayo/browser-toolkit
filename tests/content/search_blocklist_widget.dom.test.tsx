@@ -343,6 +343,7 @@ describe("FloatingWidget", () => {
     });
 
     const trigger = shadow.querySelector("button");
+    expect(trigger).not.toBeNull();
     await act(async () => {
       trigger?.dispatchEvent(
         new MouseEvent("click", { bubbles: true, cancelable: true })
@@ -350,6 +351,9 @@ describe("FloatingWidget", () => {
       await flushEffects();
     });
 
+    expect(
+      shadow.querySelector('[aria-label="このサイトをブロック"]')
+    ).not.toBeNull();
     expect(shadow.querySelector("[data-base-ui-inert]")).toBeNull();
   });
 });
