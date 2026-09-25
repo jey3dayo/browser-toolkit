@@ -40,19 +40,25 @@ function OverlayLoaderGrid(): React.JSX.Element {
   );
 }
 
+type OverlayElapsedProps = {
+  startedAt?: number;
+};
+
 /**
  * Elapsed time indicator, isolated so its 100ms ticks don't re-render the parent overlay
  */
-function OverlayElapsed(): React.JSX.Element {
-  const [elapsedMs, setElapsedMs] = useState(0);
+function OverlayElapsed(props: OverlayElapsedProps): React.JSX.Element {
+  const [startedAt] = useState(() => props.startedAt ?? performance.now());
+  const [elapsedMs, setElapsedMs] = useState(
+    () => performance.now() - startedAt
+  );
 
   useEffect(() => {
-    const start = performance.now();
     const intervalId = setInterval(() => {
-      setElapsedMs(performance.now() - start);
+      setElapsedMs(performance.now() - startedAt);
     }, ELAPSED_TICK_MS);
     return () => clearInterval(intervalId);
-  }, []);
+  }, [startedAt]);
 
   return (
     <span aria-hidden="true" className={overlayClassNames.statusElapsed}>
@@ -63,6 +69,7 @@ function OverlayElapsed(): React.JSX.Element {
 
 type OverlayProgressStatusProps = {
   label: string;
+  startedAt?: number;
 };
 
 /**
@@ -75,7 +82,7 @@ export function OverlayProgressStatus(
     <>
       <OverlayLoaderGrid />
       <span className={overlayClassNames.statusShimmer}>{props.label}</span>
-      <OverlayElapsed />
+      <OverlayElapsed startedAt={props.startedAt} />
     </>
   );
 }

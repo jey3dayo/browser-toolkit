@@ -243,6 +243,7 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
   function showActionOverlay(request: ActionOverlayRequest): void {
     overlayRequestSeq += 1;
     const requestId = overlayRequestSeq;
+    const requestStartedAt = performance.now();
     (async () => {
       const module = await loadOverlayModule();
       if (!module) {
@@ -252,7 +253,13 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
       if (!mount) {
         return;
       }
-      module.showActionOverlay(mount, request, requestId, handleCloseOverlay);
+      module.showActionOverlay(
+        mount,
+        request,
+        requestId,
+        requestStartedAt,
+        handleCloseOverlay
+      );
     })().catch(() => {
       // no-op
     });
@@ -261,6 +268,7 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
   function showSummaryOverlay(request: SummaryOverlayRequest): void {
     overlayRequestSeq += 1;
     const requestId = overlayRequestSeq;
+    const requestStartedAt = performance.now();
     (async () => {
       const module = await loadOverlayModule();
       if (!module) {
@@ -270,7 +278,13 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
       if (!mount) {
         return;
       }
-      module.showSummaryOverlay(mount, request, requestId, handleCloseOverlay);
+      module.showSummaryOverlay(
+        mount,
+        request,
+        requestId,
+        requestStartedAt,
+        handleCloseOverlay
+      );
     })().catch(() => {
       // no-op
     });

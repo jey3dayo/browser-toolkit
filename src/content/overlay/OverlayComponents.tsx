@@ -169,6 +169,7 @@ function OverlayEventDetails(
 type OverlayTextDetailsProps = {
   mode: OverlayViewModel["mode"];
   requestId: OverlayViewModel["requestId"];
+  requestStartedAt: OverlayViewModel["requestStartedAt"];
   status: OverlayViewModel["status"];
   statusLabel: string;
   canCopyPrimary: boolean;
@@ -207,6 +208,7 @@ function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {
           <OverlayProgressStatus
             key={props.requestId}
             label={props.statusLabel}
+            startedAt={props.requestStartedAt}
           />
         ) : (
           props.statusLabel || null
@@ -305,6 +307,7 @@ export function OverlayBody(props: OverlayBodyProps): React.JSX.Element {
           onCopyPrimary={props.onCopyPrimary}
           primary={props.primary}
           requestId={props.requestId}
+          requestStartedAt={props.requestStartedAt}
           secondaryText={props.secondaryText}
           selectionText={props.selectionText}
           status={props.status}

@@ -368,6 +368,44 @@ describe("content overlay (React + Shadow DOM)", () => {
     ).toBe("0.0秒");
   });
 
+  it("starts the elapsed timer from the request time, not from when the overlay module finishes loading", async () => {
+    let now = 1000;
+    vi.spyOn(performance, "now").mockImplementation(() => now);
+
+    await import("@/content.ts");
+    const [listener] = listeners;
+    if (!listener) {
+      throw new Error("missing message listener");
+    }
+
+    const sendResponse = vi.fn();
+    listener(
+      {
+        action: "showActionOverlay",
+        mode: "text",
+        source: "page",
+        status: "loading",
+        title: "Test",
+      },
+      {},
+      sendResponse
+    );
+    now = 3000;
+    await flush(dom.window, 6);
+
+    const host = dom.window.document.querySelector<HTMLDivElement>(
+      "#browser-toolkit-overlay"
+    );
+    const shadow = host?.shadowRoot ?? null;
+
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    await flush(dom.window, 2);
+
+    expect(
+      shadow?.querySelector(".mbu-overlay-status-elapsed")?.textContent
+    ).toBe("2.0秒");
+  });
+
   it("cycles overlay theme and persists it to storage", async () => {
     await import("@/content.ts");
     const [listener] = listeners;

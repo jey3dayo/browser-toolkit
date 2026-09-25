@@ -241,6 +241,7 @@ export function showActionOverlay(
   mount: OverlayMount,
   request: ActionOverlayRequest,
   requestId: number,
+  requestStartedAt: number,
   onDismiss: () => void
 ): void {
   const primary = trimmedOrEmpty(request.primary);
@@ -261,6 +262,7 @@ export function showActionOverlay(
       open: true,
       primary: actionOverlayPrimaryText(request.status, primary),
       requestId,
+      requestStartedAt,
       secondary: actionOverlaySecondaryText(request.status, secondary),
       source: request.source,
       status: request.status,
@@ -277,6 +279,7 @@ export function renderSummaryOverlayWithTitle(
   mount: OverlayMount,
   request: SummaryOverlayRequest,
   requestId: number,
+  requestStartedAt: number,
   title: string,
   onDismiss: () => void
 ): void {
@@ -308,6 +311,7 @@ export function renderSummaryOverlayWithTitle(
       open: true,
       primary: primaryText,
       requestId,
+      requestStartedAt,
       secondary: secondaryText,
       source: request.source,
       status: request.status,
@@ -324,6 +328,7 @@ export function showSummaryOverlay(
   mount: OverlayMount,
   request: SummaryOverlayRequest,
   requestId: number,
+  requestStartedAt: number,
   onDismiss: () => void
 ): void {
   const fallbackTitle =
@@ -332,6 +337,7 @@ export function showSummaryOverlay(
     mount,
     request,
     requestId,
+    requestStartedAt,
     fallbackTitle,
     onDismiss
   );
@@ -341,7 +347,14 @@ export function showSummaryOverlay(
     if (title === fallbackTitle) {
       return;
     }
-    renderSummaryOverlayWithTitle(mount, request, requestId, title, onDismiss);
+    renderSummaryOverlayWithTitle(
+      mount,
+      request,
+      requestId,
+      requestStartedAt,
+      title,
+      onDismiss
+    );
   })().catch(() => {
     // no-op
   });
