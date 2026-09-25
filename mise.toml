@@ -18,8 +18,6 @@ _.path = ["./node_modules/.bin"]
 node = "26.4.0"
 taplo = "0.10.0"
 actionlint = "latest"
-rust = "stable"
-"cargo:https://github.com/rtk-ai/rtk" = { version = "tag:v0.34.2", crate = "rtk", bin = "rtk" }
 
 # ========================================
 # コマンド（実処理タスク）
@@ -46,7 +44,7 @@ description = "Storybook(Vitest addon)を実行"
 run = "pnpm run test:storybook"
 
 [tasks.build]
-description = "ビルドをRTK経由でコンパクトに実行"
+description = "拡張機能をビルド"
 run = "pnpm run build"
 
 [tasks.clean]
@@ -54,28 +52,24 @@ description = "ビルド成果物を削除"
 run = "pnpm run clean"
 
 [tasks.lint]
-description = "型チェック + Lint をRTK経由でコンパクトに実行"
-run = ["rtk tsc --noEmit", "rtk err pnpm run lint"]
-
-[tasks.show]
-description = "RTKの導入状態を表示"
-run = "rtk init --show"
+description = "型チェック + Lint"
+run = [{ task = "lint:types" }, { task = "lint:biome" }]
 
 # ========================================
 # エイリアス（まとめ実行）
 # ========================================
 
 [tasks.check]
-description = "ローカル確認をRTK経由でコンパクトに実行"
+description = "ローカル確認（lint + test + Storybook）"
 run = [{ task = "lint" }, { task = "test" }, { task = "test:storybook" }]
 
 [tasks.ci]
-description = "RTK経由のローカルCI確認"
+description = "ローカルCI確認"
 run = [
   { task = "format" },
   { task = "lint" },
   { task = "test" },
   { task = "test:storybook" },
   { task = "build" },
-  "echo '✅ RTK CI checks completed'",
+  "echo '✅ CI checks completed'",
 ]
