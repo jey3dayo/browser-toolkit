@@ -15,6 +15,10 @@
   color: var(--mbu-text-muted);
 }
 
+.mbu-overlay-status:empty {
+  position: absolute;
+}
+
 .mbu-overlay-loader-grid {
   display: inline-grid;
   flex-shrink: 0;
@@ -84,6 +88,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .mbu-overlay-loader-cell {
+    opacity: 0.4;
     animation: none;
   }
 
@@ -98,6 +103,11 @@
   .mbu-overlay-status-shimmer {
     color: CanvasText;
     background: none;
+  }
+
+  .mbu-overlay-loader-cell {
+    forced-color-adjust: none;
+    background: CanvasText;
   }
 }
 

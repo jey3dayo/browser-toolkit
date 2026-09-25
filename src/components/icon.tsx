@@ -15,7 +15,6 @@ import {
   Link,
   type LucideProps,
   Menu,
-  MessageSquare,
   Monitor,
   Moon,
   Pencil,
@@ -46,7 +45,6 @@ export type IconName =
   | "layers"
   | "link"
   | "menu"
-  | "message-square"
   | "monitor"
   | "moon"
   | "pin"
@@ -75,7 +73,6 @@ const icons: Record<IconName, React.ComponentType<LucideProps>> = {
   layers: Layers,
   link: Link,
   menu: Menu,
-  "message-square": MessageSquare,
   monitor: Monitor,
   moon: Moon,
   pencil: Pencil,

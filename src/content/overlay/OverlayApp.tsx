@@ -27,6 +27,7 @@ import {
 
 export type OverlayViewModel = {
   open: boolean;
+  requestId: number;
   status: "loading" | "ready" | "error";
   mode: "text" | "event";
   source: SummarySource;
@@ -153,6 +154,7 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
           onOpenCalendar={openCalendar}
           primary={viewModel.primary}
           readyEvent={readyEvent}
+          requestId={viewModel.requestId}
           secondaryText={secondaryText}
           selectionText={selectionText}
           status={viewModel.status}

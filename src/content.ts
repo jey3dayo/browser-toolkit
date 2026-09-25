@@ -238,7 +238,11 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
     });
   }
 
+  let overlayRequestSeq = 0;
+
   function showActionOverlay(request: ActionOverlayRequest): void {
+    overlayRequestSeq += 1;
+    const requestId = overlayRequestSeq;
     (async () => {
       const module = await loadOverlayModule();
       if (!module) {
@@ -248,13 +252,15 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
       if (!mount) {
         return;
       }
-      module.showActionOverlay(mount, request, handleCloseOverlay);
+      module.showActionOverlay(mount, request, requestId, handleCloseOverlay);
     })().catch(() => {
       // no-op
     });
   }
 
   function showSummaryOverlay(request: SummaryOverlayRequest): void {
+    overlayRequestSeq += 1;
+    const requestId = overlayRequestSeq;
     (async () => {
       const module = await loadOverlayModule();
       if (!module) {
@@ -264,7 +270,7 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
       if (!mount) {
         return;
       }
-      module.showSummaryOverlay(mount, request, handleCloseOverlay);
+      module.showSummaryOverlay(mount, request, requestId, handleCloseOverlay);
     })().catch(() => {
       // no-op
     });

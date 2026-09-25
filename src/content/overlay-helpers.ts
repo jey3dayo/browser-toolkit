@@ -240,6 +240,7 @@ function actionOverlayEventPayload(
 export function showActionOverlay(
   mount: OverlayMount,
   request: ActionOverlayRequest,
+  requestId: number,
   onDismiss: () => void
 ): void {
   const primary = trimmedOrEmpty(request.primary);
@@ -259,6 +260,7 @@ export function showActionOverlay(
       mode: request.mode,
       open: true,
       primary: actionOverlayPrimaryText(request.status, primary),
+      requestId,
       secondary: actionOverlaySecondaryText(request.status, secondary),
       source: request.source,
       status: request.status,
@@ -274,6 +276,7 @@ export function showActionOverlay(
 export function renderSummaryOverlayWithTitle(
   mount: OverlayMount,
   request: SummaryOverlayRequest,
+  requestId: number,
   title: string,
   onDismiss: () => void
 ): void {
@@ -304,6 +307,7 @@ export function renderSummaryOverlayWithTitle(
       mode: "text",
       open: true,
       primary: primaryText,
+      requestId,
       secondary: secondaryText,
       source: request.source,
       status: request.status,
@@ -319,18 +323,25 @@ export function renderSummaryOverlayWithTitle(
 export function showSummaryOverlay(
   mount: OverlayMount,
   request: SummaryOverlayRequest,
+  requestId: number,
   onDismiss: () => void
 ): void {
   const fallbackTitle =
     summarizeOverlayTitleCache ?? t("overlay.summary.title");
-  renderSummaryOverlayWithTitle(mount, request, fallbackTitle, onDismiss);
+  renderSummaryOverlayWithTitle(
+    mount,
+    request,
+    requestId,
+    fallbackTitle,
+    onDismiss
+  );
 
   (async () => {
     const title = await getSummarizeOverlayTitle();
     if (title === fallbackTitle) {
       return;
     }
-    renderSummaryOverlayWithTitle(mount, request, title, onDismiss);
+    renderSummaryOverlayWithTitle(mount, request, requestId, title, onDismiss);
   })().catch(() => {
     // no-op
   });

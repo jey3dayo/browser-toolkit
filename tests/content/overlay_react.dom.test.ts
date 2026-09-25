@@ -80,6 +80,7 @@ describe("content overlay (React + Shadow DOM)", () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it("mounts overlay idempotently across multiple initializations", async () => {
@@ -196,7 +197,7 @@ describe("content overlay (React + Shadow DOM)", () => {
     expect(shadow?.querySelector('[data-testid="overlay-copy"]')).toBeNull();
   });
 
-  it("renders a 3x3 loader grid and an elapsed indicator while loading", async () => {
+  it("renders the spec's 3x3 pixel-grid loader (9 cells) and an elapsed indicator while loading", async () => {
     await import("@/content.ts");
     const [listener] = listeners;
     if (!listener) {
@@ -276,6 +277,9 @@ describe("content overlay (React + Shadow DOM)", () => {
   });
 
   it("advances the elapsed time readout as time passes", async () => {
+    let now = 0;
+    vi.spyOn(performance, "now").mockImplementation(() => now);
+
     await import("@/content.ts");
     const [listener] = listeners;
     if (!listener) {
@@ -303,13 +307,65 @@ describe("content overlay (React + Shadow DOM)", () => {
     )?.textContent;
     expect(elapsedBefore).toBe("0.0秒");
 
-    await new Promise((resolve) => setTimeout(resolve, 250));
+    now = 5000;
+    await new Promise((resolve) => setTimeout(resolve, 150));
     await flush(dom.window, 2);
 
     const elapsedAfter = shadow?.querySelector(
       ".mbu-overlay-status-elapsed"
     )?.textContent;
-    expect(elapsedAfter).not.toBe("0.0秒");
+    expect(elapsedAfter).toBe("5.0秒");
+  });
+
+  it("resets the elapsed timer when a new loading request arrives mid-flight", async () => {
+    let now = 0;
+    vi.spyOn(performance, "now").mockImplementation(() => now);
+
+    await import("@/content.ts");
+    const [listener] = listeners;
+    if (!listener) {
+      throw new Error("missing message listener");
+    }
+
+    await dispatchMessage(
+      listener,
+      {
+        action: "showActionOverlay",
+        mode: "text",
+        source: "page",
+        status: "loading",
+        title: "Test",
+      },
+      dom.window
+    );
+
+    const host = dom.window.document.querySelector<HTMLDivElement>(
+      "#browser-toolkit-overlay"
+    );
+    const shadow = host?.shadowRoot ?? null;
+
+    now = 5000;
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    await flush(dom.window, 2);
+    expect(
+      shadow?.querySelector(".mbu-overlay-status-elapsed")?.textContent
+    ).toBe("5.0秒");
+
+    await dispatchMessage(
+      listener,
+      {
+        action: "showActionOverlay",
+        mode: "text",
+        source: "page",
+        status: "loading",
+        title: "Test",
+      },
+      dom.window
+    );
+
+    expect(
+      shadow?.querySelector(".mbu-overlay-status-elapsed")?.textContent
+    ).toBe("0.0秒");
   });
 
   it("cycles overlay theme and persists it to storage", async () => {

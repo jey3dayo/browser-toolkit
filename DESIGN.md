@@ -144,7 +144,7 @@ Use the project sans stack everywhere: `"Segoe UI", "Helvetica Neue", system-ui,
 
 Do not introduce viewport-scaled type. Keep letter spacing at 0 for new reusable typography rules unless an existing compact badge or legacy class already defines a small positive value.
 
-Continuously changing numbers, such as elapsed time or counters, use the existing monospace stack with `tabular-nums` so their width stays fixed, at `--font-size-sm` in muted color.
+Continuously changing numbers, such as elapsed time or counters, use the monospace stack used for code in the overlay with `tabular-nums` so their width stays fixed, at `--font-size-sm` in muted color.
 
 ## Layout & Spacing
 
@@ -186,7 +186,7 @@ Cards are for bounded tool surfaces and repeated items, not for wrapping entire 
 
 Toast and overlay surfaces share the ShadowRoot token set. Overlay action buttons should preserve keyboard and pointer parity, and active or primary overlay actions should use accent-tinted backgrounds rather than new colors.
 
-For work that may take seconds, show motion that proves progress — a pixel-grid loader and a text shimmer on the status label — plus an elapsed-time readout next to it; do not use spinners or full skeletons. Animate only opacity and background-position, never layout. Under reduced motion, stop the loader and shimmer into a static muted state while the elapsed time keeps counting. Under forced colors, drop the shimmer to system text color. Announce the status with `role="status"` and mark ticking numbers and decoration `aria-hidden`.
+For work that may take seconds, show motion that proves progress — a pixel-grid loader and a text shimmer on the status label — plus an elapsed-time readout next to it; do not use spinners or full skeletons. Animate only opacity and background-position, never layout. Under reduced motion, stop the loader and shimmer into a static muted state while the elapsed time keeps counting. Under forced colors, drop the shimmer to system text color. A standalone status row announces itself with `role="status"`; inside a conversation transcript, rely on the transcript's log role and `aria-busy` instead of adding a second live region. Mark ticking numbers and decoration `aria-hidden`.
 
 Conversation views put user messages in a right-aligned bubble (`--mbu-surface-2` fill, no border, radius md) and leave assistant replies unbubbled. The speaker is shown by placement, and role labels stay available to screen readers. Composers group the input and the send action in one bordered frame that shows focus. Newly appended messages enter with a short fade-up using only opacity and transform.
 

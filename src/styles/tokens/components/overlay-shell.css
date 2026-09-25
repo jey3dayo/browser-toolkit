@@ -378,7 +378,7 @@
 .mbu-overlay-chat-message--user {
   width: fit-content;
   max-width: 85%;
-  padding: 6px 12px;
+  padding: var(--spacing-xs) var(--spacing-md);
   margin-left: auto;
   background: var(--mbu-surface-2);
   border-radius: var(--radius-md);
@@ -433,8 +433,10 @@
   border-color: color-mix(in oklab, var(--mbu-accent) 42%, transparent);
   border-radius: var(--radius-sm);
   transition:
-    transform 100ms ease-out,
-    background-color var(--motion-duration) ease;
+    background var(--motion-duration-fast) ease,
+    color var(--motion-duration-fast) ease,
+    opacity var(--motion-duration-fast) ease,
+    transform 100ms ease-out;
 }
 
 .mbu-overlay-chat-input-row .mbu-overlay-icon-button:hover:not(:disabled) {

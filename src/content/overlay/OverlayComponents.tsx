@@ -255,6 +255,7 @@ function OverlayEventDetails(
  */
 type OverlayTextDetailsProps = {
   mode: OverlayViewModel["mode"];
+  requestId: OverlayViewModel["requestId"];
   status: OverlayViewModel["status"];
   statusLabel: string;
   canCopyPrimary: boolean;
@@ -288,15 +289,16 @@ function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {
     .join(" ");
   return (
     <>
-      {props.statusLabel ? (
-        <div className={overlayClassNames.status} role="status">
-          {props.status === "loading" ? (
-            <OverlayProgressStatus label={props.statusLabel} />
-          ) : (
-            props.statusLabel
-          )}
-        </div>
-      ) : null}
+      <div className={overlayClassNames.status} role="status">
+        {props.status === "loading" ? (
+          <OverlayProgressStatus
+            key={props.requestId}
+            label={props.statusLabel}
+          />
+        ) : (
+          props.statusLabel || null
+        )}
+      </div>
       <div className={primaryBlockClassName}>
         {props.markdownView ? (
           <TextBlock
@@ -389,6 +391,7 @@ export function OverlayBody(props: OverlayBodyProps): React.JSX.Element {
           mode={props.mode}
           onCopyPrimary={props.onCopyPrimary}
           primary={props.primary}
+          requestId={props.requestId}
           secondaryText={props.secondaryText}
           selectionText={props.selectionText}
           status={props.status}
@@ -637,7 +640,7 @@ export function OverlayChatInput(
                       <span className={overlayClassNames.chatRole}>
                         {t("overlay.chat.assistant")}
                       </span>
-                      <div className={overlayClassNames.status} role="status">
+                      <div className={overlayClassNames.status}>
                         <OverlayProgressStatus
                           label={t("overlay.chat.thinking")}
                         />

@@ -44,6 +44,7 @@ describe("OverlayApp positioning", () => {
       mode: "text",
       open: true,
       primary: "結果",
+      requestId: 1,
       secondary: "",
       source: "selection",
       status: "ready",
