@@ -33,10 +33,12 @@ export type ButtonProps = Omit<
 > &
   VariantProps<typeof buttonVariants> & {
     className?: string;
+    ref?: React.Ref<HTMLElement>;
   };
 
 export function Button({
   className,
+  ref,
   size,
   variant,
   ...props
@@ -44,6 +46,7 @@ export function Button({
   return (
     <BaseButton
       className={buttonVariants({ className, size, variant })}
+      ref={ref}
       {...props}
     />
   );
