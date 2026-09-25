@@ -125,7 +125,7 @@
   color-scheme: dark;
 }
 
-:host:not([data-theme]),
+:host(:not([data-theme])),
 :host([data-theme="dark"]) {
   --color-bg: var(--primitive-color-neutral-950);
   --color-surface: var(--primitive-color-neutral-900);
@@ -263,7 +263,7 @@
     color-scheme: light;
   }
 
-  :host:not([data-theme]) {
+  :host(:not([data-theme])) {
     --color-bg: var(--primitive-color-neutral-50);
     --color-surface: var(--primitive-color-neutral-0);
     --color-surface-2: var(--primitive-color-neutral-150);
