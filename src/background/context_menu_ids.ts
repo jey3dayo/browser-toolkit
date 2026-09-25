@@ -11,6 +11,7 @@ export const CONTEXT_MENU_BATCH_SEARCH_PREFIX = "mbu-batch-search:";
 export const CONTEXT_MENU_SEARCH_SEPARATOR_ID = "mbu-separator:search";
 export const CONTEXT_MENU_BUILTIN_SEPARATOR_ID = "mbu-separator:builtins";
 export const CONTEXT_MENU_CUSTOM_SEPARATOR_ID = "mbu-separator:custom";
+export const CONTEXT_MENU_TEMPLATE_SEPARATOR_ID = "mbu-separator:templates";
 export const CONTEXT_MENU_TEMPLATE_ROOT_ID = "mbu-template-root";
 export const CONTEXT_MENU_TEMPLATE_PREFIX = "mbu-template:";
 export const CONTEXT_MENU_QR_CODE_ID = "mbu-qr-code";

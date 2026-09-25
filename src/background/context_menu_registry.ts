@@ -40,6 +40,7 @@ import {
   CONTEXT_MENU_SETTINGS_ID,
   CONTEXT_MENU_TEMPLATE_PREFIX,
   CONTEXT_MENU_TEMPLATE_ROOT_ID,
+  CONTEXT_MENU_TEMPLATE_SEPARATOR_ID,
 } from "@/background/context_menu_ids";
 import { handleQrCodeContextMenuClick } from "@/background/context_menu_qrcode";
 import {
@@ -344,27 +345,6 @@ export async function refreshContextMenus(): Promise<boolean> {
       );
     }
 
-    // Text templates section
-    const visibleTemplates = templates.filter((template) => !template.hidden);
-
-    if (visibleTemplates.length > 0) {
-      await createMenuItem({
-        contexts: ROOT_MENU_CONTEXTS,
-        id: CONTEXT_MENU_TEMPLATE_ROOT_ID,
-        parentId: CONTEXT_MENU_ROOT_ID,
-        title: t("contextMenu.templates"),
-      });
-
-      await runSequentially(visibleTemplates, (template) =>
-        createMenuItem({
-          contexts: ROOT_MENU_CONTEXTS,
-          id: `${CONTEXT_MENU_TEMPLATE_PREFIX}${template.id}`,
-          parentId: CONTEXT_MENU_TEMPLATE_ROOT_ID,
-          title: template.title,
-        })
-      );
-    }
-
     // Built-in actions
     await createMenuItem({
       contexts: ROOT_MENU_CONTEXTS,
@@ -400,6 +380,33 @@ export async function refreshContextMenus(): Promise<boolean> {
       CONTEXT_MENU_ROOT_ID,
       ROOT_MENU_CONTEXTS
     );
+
+    // Text templates section
+    const visibleTemplates = templates.filter((template) => !template.hidden);
+
+    if (visibleTemplates.length > 0) {
+      await createMenuItem({
+        contexts: ROOT_MENU_CONTEXTS,
+        id: CONTEXT_MENU_TEMPLATE_ROOT_ID,
+        parentId: CONTEXT_MENU_ROOT_ID,
+        title: t("contextMenu.templates"),
+      });
+
+      await runSequentially(visibleTemplates, (template) =>
+        createMenuItem({
+          contexts: ROOT_MENU_CONTEXTS,
+          id: `${CONTEXT_MENU_TEMPLATE_PREFIX}${template.id}`,
+          parentId: CONTEXT_MENU_TEMPLATE_ROOT_ID,
+          title: template.title,
+        })
+      );
+
+      await createSeparator(
+        CONTEXT_MENU_TEMPLATE_SEPARATOR_ID,
+        CONTEXT_MENU_ROOT_ID,
+        ROOT_MENU_CONTEXTS
+      );
+    }
 
     // Settings menu
     await createMenuItem({
