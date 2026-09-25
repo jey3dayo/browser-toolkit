@@ -85,6 +85,7 @@ browser-toolkit/
 ## 🧪 テスト方針
 
 自動テストは `mise run ci`（format / lint / vitest / Storybook test / build）が正本。
+テストはテスト対象の `src/` 上の位置を写して `tests/<dir>/` に置き（`src/` 直下のモジュールは `tests/` 直下、ビルド契約は `tests/build/`）、jsdom が要るものは `*.dom.test.ts(x)` とする。
 以下はその上で手動確認する項目。
 
 ### 手動テスト項目
