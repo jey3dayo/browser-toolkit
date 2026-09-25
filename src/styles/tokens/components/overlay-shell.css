@@ -376,9 +376,10 @@
 }
 
 .mbu-overlay-chat-message--user {
-  align-self: flex-end;
+  width: fit-content;
   max-width: 85%;
   padding: 6px 12px;
+  margin-left: auto;
   background: var(--mbu-surface-2);
   border-radius: var(--radius-md);
 }

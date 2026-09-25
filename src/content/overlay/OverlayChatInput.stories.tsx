@@ -158,5 +158,15 @@ export const WithHistoryIdle: Story = {
     const sendRect = sendButton.getBoundingClientRect();
     expect(sendRect.right).toBeLessThanOrEqual(chatRowRect.right);
     expect(sendRect.left).toBeGreaterThanOrEqual(chatRowRect.left);
+
+    const userBubble = shadow?.querySelector(".mbu-overlay-chat-message--user");
+    const userItem = userBubble?.parentElement;
+    if (!(userBubble && userItem)) {
+      throw new Error("user message bubble not found");
+    }
+    const bubbleRect = userBubble.getBoundingClientRect();
+    const itemRect = userItem.getBoundingClientRect();
+    expect(bubbleRect.right).toBeCloseTo(itemRect.right, 0);
+    expect(bubbleRect.left).toBeGreaterThan(itemRect.left);
   },
 };
