@@ -7,7 +7,7 @@ const dirname =
   typeof import.meta.dirname === "undefined"
     ? path.dirname(fileURLToPath(import.meta.url))
     : import.meta.dirname;
-const projectRoot = path.join(dirname, "..");
+const projectRoot = path.join(dirname, "..", "..");
 
 function readSource(relativePath: string): string {
   return fs.readFileSync(path.join(projectRoot, relativePath), "utf8");
