@@ -355,7 +355,7 @@ browser-toolkit/
 │   ├── styles/                # Design Tokens
 │   ├── ui/                    # 共通 UI（theme/styles/toast）
 │   └── utils/                 # ユーティリティ
-└── tests/                     # Vitest（Node / jsdom + chrome stubs）+ Playwright E2E
+└── tests/                     # Vitest（Node / jsdom + chrome stubs, src の構成を写したサブディレクトリ）+ Playwright E2E
 ```
 
 詳細なアーキテクチャは `docs/architecture.md` を参照してください。
