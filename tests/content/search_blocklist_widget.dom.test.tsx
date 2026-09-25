@@ -314,4 +314,42 @@ describe("FloatingWidget", () => {
     );
     expect(resultContainer.getAttribute(BLOCKLIST_BLOCKED_ATTR)).toBe("1");
   });
+
+  it("renders no inert Base UI backdrop layer when the dialog opens", async () => {
+    const resultContainer = document.createElement("div");
+    resultContainer.getBoundingClientRect = () => new DOMRect(0, 20, 300, 20);
+    document.body.appendChild(resultContainer);
+
+    const state = createBlocklistState("google", resolvedRules([]), () => [
+      {
+        container: resultContainer,
+        title: "Example",
+        url: "https://example.com/page",
+      },
+    ]);
+    await state.ready;
+
+    const { host, shadow, root } = mountWidget();
+
+    await act(async () => {
+      root.render(<FloatingWidget host={host} state={state} />);
+      await flushEffects();
+    });
+
+    act(() => {
+      resultContainer.dispatchEvent(
+        new PointerEvent("pointerover", { bubbles: true })
+      );
+    });
+
+    const trigger = shadow.querySelector("button");
+    await act(async () => {
+      trigger?.dispatchEvent(
+        new MouseEvent("click", { bubbles: true, cancelable: true })
+      );
+      await flushEffects();
+    });
+
+    expect(shadow.querySelector("[data-base-ui-inert]")).toBeNull();
+  });
 });

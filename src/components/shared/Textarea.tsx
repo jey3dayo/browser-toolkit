@@ -9,10 +9,12 @@ export type TextareaProps = Omit<
 > &
   TextSurfaceVariantProps & {
     className?: string;
+    ref?: React.Ref<HTMLTextAreaElement>;
   };
 
 export function Textarea({
   className,
+  ref,
   size,
   variant,
   ...props
@@ -20,6 +22,7 @@ export function Textarea({
   return (
     <textarea
       className={textSurfaceVariants({ className, size, variant })}
+      ref={ref}
       {...props}
     />
   );

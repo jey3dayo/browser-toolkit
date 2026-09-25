@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   computeButtonPosition,
+  computeDialogPosition,
   findEntryForNode,
   splitPatternLines,
   suggestPatternFromUrl,
@@ -58,6 +59,50 @@ describe("search-blocklist-ui/dom", () => {
       const rect = { right: 10, top: -50 } as DOMRect;
       const position = computeButtonPosition(rect);
       expect(position.top).toBe(0);
+    });
+  });
+
+  describe("computeDialogPosition", () => {
+    const viewport = { height: 800, width: 1000 };
+    const popupSize = { height: 300, width: 360 };
+
+    it("places the popup below the trigger, right-aligned to its right edge", () => {
+      const triggerRect = { bottom: 220, right: 500, top: 200 };
+      const position = computeDialogPosition(triggerRect, popupSize, viewport);
+      expect(position).toEqual({ left: 140, placement: "below", top: 228 });
+    });
+
+    it("clamps the left edge so the popup stays inside the right viewport bound", () => {
+      const triggerRect = { bottom: 220, right: 995, top: 200 };
+      const position = computeDialogPosition(triggerRect, popupSize, viewport);
+      expect(position.left).toBe(1000 - 360 - 16);
+    });
+
+    it("flips above the trigger when there is not enough room below", () => {
+      const triggerRect = { bottom: 750, right: 500, top: 730 };
+      const position = computeDialogPosition(triggerRect, popupSize, viewport);
+      expect(position.placement).toBe("above");
+      expect(position.top).toBe(730 - 8 - 300);
+    });
+
+    it("clamps the top edge when flipping above still overflows the viewport", () => {
+      const triggerRect = { bottom: 40, right: 500, top: 20 };
+      const tallPopup = { height: 780, width: 360 };
+      const position = computeDialogPosition(triggerRect, tallPopup, viewport);
+      expect(position.placement).toBe("above");
+      expect(position.top).toBe(16);
+    });
+
+    it("clamps both edges when the viewport is narrower than the popup plus margins", () => {
+      const narrowViewport = { height: 800, width: 340 };
+      const narrowPopup = { height: 300, width: narrowViewport.width - 32 };
+      const triggerRect = { bottom: 100, right: 320, top: 80 };
+      const position = computeDialogPosition(
+        triggerRect,
+        narrowPopup,
+        narrowViewport
+      );
+      expect(position.left).toBe(16);
     });
   });
 

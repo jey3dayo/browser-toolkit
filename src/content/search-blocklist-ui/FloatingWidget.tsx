@@ -2,6 +2,7 @@ import { Result } from "@praha/byethrow";
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -18,6 +19,7 @@ import { t } from "@/i18n";
 import type { BlocklistEntry, BlocklistState } from "@/search-blocklist/types";
 import {
   computeButtonPosition,
+  computeDialogPosition,
   findEntryForNode,
   isDomNode,
   splitPatternLines,
@@ -69,10 +71,56 @@ export function FloatingWidget(
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const frozenRef = useRef<boolean>(false);
   const anchorRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const [popupEl, setPopupEl] = useState<HTMLDivElement | null>(null);
+  const addTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const unblockButtonRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     frozenRef.current = dialogOpen;
   }, [dialogOpen]);
+
+  const updateDialogPosition = useCallback((popup: HTMLDivElement) => {
+    const trigger = triggerRef.current;
+    if (!trigger) {
+      return;
+    }
+    const triggerRect = trigger.getBoundingClientRect();
+    const dialogPosition = computeDialogPosition(
+      triggerRect,
+      { height: popup.offsetHeight, width: popup.offsetWidth },
+      { height: window.innerHeight, width: window.innerWidth }
+    );
+    popup.style.top = `${Math.round(dialogPosition.top)}px`;
+    popup.style.left = `${Math.round(dialogPosition.left)}px`;
+    popup.style.transformOrigin =
+      dialogPosition.placement === "below" ? "top right" : "bottom right";
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!(dialogOpen && popupEl)) {
+      return;
+    }
+    const handleReposition = () => updateDialogPosition(popupEl);
+    handleReposition();
+    const observer =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(handleReposition);
+    observer?.observe(popupEl);
+    window.addEventListener("resize", handleReposition);
+    window.addEventListener("scroll", handleReposition, {
+      capture: true,
+      passive: true,
+    });
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", handleReposition);
+      window.removeEventListener("scroll", handleReposition, {
+        capture: true,
+      });
+    };
+  }, [dialogOpen, popupEl, updateDialogPosition]);
 
   useEffect(() => {
     function handlePointerOver(event: PointerEvent): void {
@@ -193,6 +241,13 @@ export function FloatingWidget(
     []
   );
 
+  const focusInitialDialogElement = useCallback((): HTMLElement | null => {
+    if (currentEntry?.blocked) {
+      return unblockButtonRef.current;
+    }
+    return addTextareaRef.current;
+  }, [currentEntry?.blocked]);
+
   if (!(currentEntry && position)) {
     return null;
   }
@@ -213,6 +268,8 @@ export function FloatingWidget(
       }}
     >
       <DrawerDialog
+        initialFocus={focusInitialDialogElement}
+        modal="trap-focus"
         onOpenChange={handleOpenChange}
         open={dialogOpen}
         popupAriaLabel={
@@ -220,11 +277,13 @@ export function FloatingWidget(
             ? t("searchBlocklist.dialog.titleUnblock")
             : t("searchBlocklist.dialog.titleBlock")
         }
-        popupClassName="card card-stack mbu-blocklist-dialog"
+        popupClassName="mbu-blocklist-dialog"
+        popupRef={setPopupEl}
         portalContainer={anchorRef}
         trigger={<Icon aria-hidden="true" name="circle-slash" size={16} />}
         triggerAriaLabel={t("searchBlocklist.dialog.triggerAria")}
         triggerClassName={TRIGGER_CLASS_NAME}
+        triggerRef={triggerRef}
       >
         <Stack spacing="small">
           <PaneTitle>
@@ -263,6 +322,7 @@ export function FloatingWidget(
               <Textarea
                 onChange={handleRulesToAddChange}
                 placeholder={t("searchBlocklist.dialog.rulesToAddPlaceholder")}
+                ref={addTextareaRef}
                 rows={3}
                 value={rulesToAddText}
                 variant="pattern"
@@ -301,6 +361,7 @@ export function FloatingWidget(
             </Button>
             <Button
               onClick={handleSubmit}
+              ref={unblockButtonRef}
               size="small"
               type="button"
               variant="primary"

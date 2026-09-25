@@ -74,15 +74,72 @@ export const OpensBlockDialog: Story = {
       expect(shadow.textContent).toContain("spammy-example.com");
     });
 
-    const popup = getWidgetShadow(canvasElement).querySelector(
-      '[aria-label="このサイトをブロック"]'
-    ) as HTMLElement | null;
-    const rect = popup?.getBoundingClientRect();
-    expect(rect?.width).toBeGreaterThan(0);
-    expect(rect?.top ?? -1).toBeGreaterThanOrEqual(0);
-    expect(rect?.top ?? Number.POSITIVE_INFINITY).toBeLessThan(
-      window.innerHeight
+    const shadow = getWidgetShadow(canvasElement);
+    const popup = shadow.querySelector('[aria-label="このサイトをブロック"]');
+    if (!(popup instanceof HTMLElement)) {
+      throw new Error("popup not found");
+    }
+
+    await waitFor(() => {
+      const rect = popup.getBoundingClientRect();
+      expect(rect.width).toBeGreaterThan(0);
+      expect(rect.left).toBeGreaterThanOrEqual(0);
+      expect(rect.right).toBeLessThanOrEqual(window.innerWidth);
+      expect(rect.bottom).toBeLessThanOrEqual(window.innerHeight);
+    });
+
+    await waitFor(() => {
+      expect(popup.style.top).not.toBe("");
+    });
+    await waitFor(() => {
+      const triggerRect = trigger.getBoundingClientRect();
+      const popupRect = popup.getBoundingClientRect();
+      expect(Math.abs(popupRect.right - triggerRect.right)).toBeLessThanOrEqual(
+        1
+      );
+      expect(popupRect.top).toBeGreaterThanOrEqual(triggerRect.bottom);
+    });
+
+    const addTextarea = popup.querySelector("textarea:not([readonly])");
+    if (!(addTextarea instanceof HTMLTextAreaElement)) {
+      throw new Error("add-rule textarea not found");
+    }
+    const popupButtons = Array.from(popup.querySelectorAll("button"));
+    const cancelButton = popupButtons.find(
+      (button) => button.textContent === "キャンセル"
     );
+    if (!(cancelButton instanceof HTMLButtonElement)) {
+      throw new Error("cancel button not found");
+    }
+    const blockButton = popupButtons.find(
+      (button) => button.textContent === "ブロック"
+    );
+    if (!(blockButton instanceof HTMLButtonElement)) {
+      throw new Error("block button not found");
+    }
+
+    for (const target of [blockButton, cancelButton, addTextarea]) {
+      const rect = target.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const hit = shadow.elementFromPoint(centerX, centerY);
+      expect(hit === target || (hit !== null && target.contains(hit))).toBe(
+        true
+      );
+    }
+
+    await waitFor(() => {
+      expect(shadow.activeElement).toBe(addTextarea);
+    });
+
+    await userEvent.click(cancelButton);
+    await waitFor(() => {
+      expect(
+        getWidgetShadow(canvasElement).querySelector(
+          '[aria-label="このサイトをブロック"]'
+        )
+      ).toBeNull();
+    });
   },
 };
 
