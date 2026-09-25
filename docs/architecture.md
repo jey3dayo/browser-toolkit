@@ -180,7 +180,7 @@ X の全ページ読み込みで注入されるため parse コストを抑え�
 （`src/image-zoom/download-request.ts`）はそこから型 `DownloadImagePayload` だけを
 `import type` するため、download-url.ts の実装自体は bundle graph に入りません
 （つまりルールへの例外ではなく、このモジュール境界のおかげでルールがそのまま成立します）。
-この制約は `tests/build.image_zoom_bundle.test.ts` が metafile の inputs を denylist で
+この制約は `tests/build/image_zoom_bundle.test.ts` が metafile の inputs を denylist で
 検証し、minify 後サイズ 90KB 以下の budget と合わせて自動的にガードします。
 
 ### メッセージパッシング

@@ -1,0 +1,308 @@
+import type { JSDOM } from "jsdom";
+import { act } from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ANTHROPIC_MODELS, OPENAI_MODELS } from "@/constants/models";
+import { flush } from "../helpers/async";
+import { inputValue, selectBaseUiOption } from "../helpers/forms";
+import {
+  createPopupChromeStub,
+  type PopupChromeStub,
+} from "../helpers/popupChromeStub";
+import { createPopupDom } from "../helpers/popupDom";
+import {
+  cleanupPopupTestHooks,
+  registerPopupTestHooks,
+} from "../helpers/popupTestHooks";
+
+(
+  globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }
+).IS_REACT_ACT_ENVIRONMENT = true;
+
+const POPUP_IMPORT_HOOK_TIMEOUT_MS = 30_000;
+
+describe("popup Settings pane", () => {
+  let dom: JSDOM;
+  let chromeStub: PopupChromeStub;
+
+  beforeEach(async () => {
+    vi.resetModules();
+
+    dom = createPopupDom("chrome-extension://test/options.html#pane-settings");
+    chromeStub = createPopupChromeStub();
+
+    chromeStub.storage.local.get.mockImplementation(
+      (keys: string[], callback: (items: unknown) => void) => {
+        chromeStub.runtime.lastError = null;
+        const keyList = Array.isArray(keys) ? keys : [String(keys)];
+        const items: Record<string, unknown> = {};
+        if (keyList.includes("openaiApiToken")) {
+          items.openaiApiToken = "sk-existing";
+        }
+        if (keyList.includes("openaiCustomPrompt")) {
+          items.openaiCustomPrompt = "prompt";
+        }
+        if (keyList.includes("openaiModel")) {
+          items.openaiModel = "gpt-5.2";
+        }
+        callback(items);
+      }
+    );
+
+    chromeStub.runtime.sendMessage.mockImplementation(
+      (message: unknown, callback: (resp: unknown) => void) => {
+        chromeStub.runtime.lastError = null;
+        const { action } = message as { action?: unknown };
+        if (action === "testAiToken" || action === "testOpenAiToken") {
+          callback({ ok: true });
+          return;
+        }
+        callback({ ok: true });
+      }
+    );
+
+    vi.stubGlobal("window", dom.window);
+    vi.stubGlobal("document", dom.window.document);
+    vi.stubGlobal("navigator", dom.window.navigator);
+    vi.stubGlobal("chrome", chromeStub);
+    registerPopupTestHooks();
+
+    await act(async () => {
+      await import("@/options.ts");
+      await flush(dom.window);
+    });
+  }, POPUP_IMPORT_HOOK_TIMEOUT_MS);
+
+  afterEach(async () => {
+    await act(async () => {
+      cleanupPopupTestHooks();
+      await flush(dom.window);
+    });
+    vi.unstubAllGlobals();
+  });
+
+  it("renders the overview and five settings cards", () => {
+    const overview = dom.window.document.querySelector<HTMLElement>(
+      '[data-testid="settings-overview"]'
+    );
+    expect(overview).not.toBeNull();
+    expect(overview?.classList.contains("settings-pane-overview")).toBe(true);
+    expect(overview?.textContent).toContain("この端末のみ");
+
+    const cards = Array.from(
+      dom.window.document.querySelectorAll<HTMLElement>(
+        '[data-testid="settings-card"]'
+      )
+    );
+    expect(cards).toHaveLength(5);
+    expect(
+      cards.every((card) => card.classList.contains("settings-pane-card"))
+    ).toBe(true);
+    expect(cards.map((card) => card.dataset.section)).toEqual([
+      "provider",
+      "token",
+      "model",
+      "prompt",
+      "theme",
+    ]);
+  });
+
+  it("toggles token visibility without changing the token value", async () => {
+    const token = dom.window.document.querySelector<HTMLInputElement>(
+      '[data-testid="ai-token"]'
+    );
+    const toggle = dom.window.document.querySelector<HTMLButtonElement>(
+      '[data-testid="token-visible"]'
+    );
+    expect(token).not.toBeNull();
+    expect(toggle).not.toBeNull();
+
+    expect(token?.type).toBe("password");
+    expect(token?.value).toBe("sk-existing");
+
+    await act(async () => {
+      toggle?.click();
+      await flush(dom.window);
+    });
+
+    expect(token?.type).toBe("text");
+    expect(token?.value).toBe("sk-existing");
+  });
+
+  it("saves and clears the token using local storage", async () => {
+    const token = dom.window.document.querySelector<HTMLInputElement>(
+      '[data-testid="ai-token"]'
+    );
+    const save = dom.window.document.querySelector<HTMLButtonElement>(
+      '[data-testid="token-save"]'
+    );
+    const clear = dom.window.document.querySelector<HTMLButtonElement>(
+      '[data-testid="token-clear"]'
+    );
+
+    await act(async () => {
+      inputValue(dom.window, token as HTMLInputElement, "sk-new");
+      save?.click();
+      await flush(dom.window);
+    });
+
+    expect(chromeStub.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({ openaiApiToken: "sk-new" }),
+      expect.any(Function)
+    );
+
+    await act(async () => {
+      clear?.click();
+      await flush(dom.window);
+    });
+
+    expect(chromeStub.storage.local.remove).toHaveBeenCalledWith(
+      "openaiApiToken",
+      expect.any(Function)
+    );
+  });
+
+  it("groups token actions into primary and danger containers", () => {
+    const primaryActions = dom.window.document.querySelector<HTMLElement>(
+      '[data-testid="token-primary-actions"]'
+    );
+    const dangerActions = dom.window.document.querySelector<HTMLElement>(
+      '[data-testid="token-danger-actions"]'
+    );
+
+    expect(primaryActions).not.toBeNull();
+    expect(
+      Array.from(
+        primaryActions?.querySelectorAll<HTMLButtonElement>(
+          ":scope > button"
+        ) ?? []
+      ).map((button) => button.dataset.testid)
+    ).toEqual(["token-save", "token-test"]);
+    expect(dangerActions).not.toBeNull();
+    expect(dangerActions?.parentElement).toBe(primaryActions);
+    expect(
+      Array.from(
+        dangerActions?.querySelectorAll<HTMLButtonElement>("button") ?? []
+      ).map((button) => button.dataset.testid)
+    ).toEqual(["token-clear"]);
+  });
+
+  it("tests the token via background messaging and shows feedback", async () => {
+    const testButton = dom.window.document.querySelector<HTMLButtonElement>(
+      '[data-testid="token-test"]'
+    );
+    expect(testButton).not.toBeNull();
+
+    await act(async () => {
+      testButton?.click();
+      await flush(dom.window);
+    });
+
+    expect(chromeStub.runtime.sendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "testAiToken" }),
+      expect.any(Function)
+    );
+    expect(dom.window.document.body.textContent).toContain("トークン");
+  });
+
+  it("saves and clears the custom prompt using local storage", async () => {
+    const prompt = dom.window.document.querySelector<HTMLTextAreaElement>(
+      '[data-testid="custom-prompt"]'
+    );
+    const save = dom.window.document.querySelector<HTMLButtonElement>(
+      '[data-testid="prompt-save"]'
+    );
+    const clear = dom.window.document.querySelector<HTMLButtonElement>(
+      '[data-testid="prompt-clear"]'
+    );
+
+    await act(async () => {
+      inputValue(dom.window, prompt as HTMLTextAreaElement, "custom prompt");
+      save?.click();
+      await flush(dom.window);
+    });
+
+    expect(chromeStub.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({ aiCustomPrompt: "custom prompt" }),
+      expect.any(Function)
+    );
+
+    await act(async () => {
+      clear?.click();
+      await flush(dom.window);
+    });
+
+    expect(chromeStub.storage.local.remove).toHaveBeenCalledWith(
+      ["aiCustomPrompt", "openaiCustomPrompt"],
+      expect.any(Function)
+    );
+  });
+
+  it("saves the selected model using local storage", async () => {
+    const modelSelect = dom.window.document.querySelector<HTMLButtonElement>(
+      '[data-testid="ai-model"]'
+    );
+    expect(modelSelect).not.toBeNull();
+
+    expect(modelSelect?.textContent).toContain(OPENAI_MODELS.GPT_5_6_TERRA);
+
+    await act(async () => {
+      await selectBaseUiOption(
+        dom.window,
+        modelSelect as HTMLButtonElement,
+        OPENAI_MODELS.GPT_5_6_LUNA
+      );
+      await flush(dom.window);
+    });
+
+    expect(chromeStub.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({ aiModel: OPENAI_MODELS.GPT_5_6_LUNA }),
+      expect.any(Function)
+    );
+    expect(modelSelect?.textContent).toContain(OPENAI_MODELS.GPT_5_6_LUNA);
+  });
+
+  it("switches provider and persists a consistent provider/model pair", async () => {
+    const anthropicRadio = dom.window.document.querySelector<HTMLInputElement>(
+      'input[name="aiProvider"][value="anthropic"]'
+    );
+    expect(anthropicRadio).not.toBeNull();
+
+    await act(async () => {
+      anthropicRadio?.click();
+      await flush(dom.window);
+    });
+
+    expect(chromeStub.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({ aiProvider: "anthropic" }),
+      expect.any(Function)
+    );
+    expect(chromeStub.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        aiModel: ANTHROPIC_MODELS.CLAUDE_SONNET_5,
+      }),
+      expect.any(Function)
+    );
+
+    const modelSelect = dom.window.document.querySelector<HTMLButtonElement>(
+      '[data-testid="ai-model"]'
+    );
+    expect(modelSelect?.textContent).toContain(
+      ANTHROPIC_MODELS.CLAUDE_SONNET_5
+    );
+  });
+
+  it("orders theme options into primary and auto groups", () => {
+    const primaryOptions = dom.window.document.querySelector<HTMLElement>(
+      '[data-testid="theme-primary-options"]'
+    );
+    const autoOption = dom.window.document.querySelector<HTMLElement>(
+      '[data-testid="theme-auto-option"]'
+    );
+
+    expect(primaryOptions).not.toBeNull();
+    expect(primaryOptions?.textContent).toContain("ダーク");
+    expect(primaryOptions?.textContent).toContain("ライト");
+    expect(autoOption).not.toBeNull();
+    expect(autoOption?.textContent).toContain("自動");
+  });
+});
