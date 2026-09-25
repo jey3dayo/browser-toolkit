@@ -317,3 +317,24 @@
   flex-direction: row-reverse;
   justify-content: flex-end;
 }
+
+/* The overlay stylesheet set has no .button-row, so the footer lays itself out.
+   Scoped to the dialog so it outranks .btn / .btn-small, which load later. */
+.mbu-blocklist-dialog .mbu-blocklist-footer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: var(--spacing-xs);
+}
+
+.mbu-blocklist-dialog .mbu-blocklist-footer-settings {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  margin-right: auto;
+}

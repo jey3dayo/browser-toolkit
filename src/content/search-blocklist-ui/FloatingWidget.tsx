@@ -334,9 +334,10 @@ export function FloatingWidget(
 
           {errorMessage && <Hint as="div">{errorMessage}</Hint>}
 
-          <ButtonRow>
+          <ButtonRow className="mbu-blocklist-footer">
             <Button
               aria-label={t("searchBlocklist.dialog.openSettingsAria")}
+              className="mbu-blocklist-footer-settings"
               onClick={openSearchBlocklistSettings}
               size="small"
               type="button"
