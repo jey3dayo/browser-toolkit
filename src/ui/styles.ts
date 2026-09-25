@@ -1,6 +1,7 @@
 import componentAccordionCss from "@/styles/tokens/components/accordion.css?raw";
 import componentBaseCss from "@/styles/tokens/components/base-ui.css?raw";
 import componentButtonCss from "@/styles/tokens/components/button.css?raw";
+import componentOverlayChatCss from "@/styles/tokens/components/overlay-chat.css?raw";
 import componentOverlayContentCss from "@/styles/tokens/components/overlay-content.css?raw";
 import componentOverlayShellCss from "@/styles/tokens/components/overlay-shell.css?raw";
 import componentPopupCss from "@/styles/tokens/components/popup.css?raw";
@@ -49,6 +50,7 @@ const componentsCss = [
   componentBaseCss,
   componentToastCss,
   componentOverlayShellCss,
+  componentOverlayChatCss,
   componentOverlayContentCss,
   componentPopupCss,
   componentAccordionCss,

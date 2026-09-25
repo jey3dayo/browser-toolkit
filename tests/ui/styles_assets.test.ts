@@ -86,13 +86,22 @@ describe("UI styles wiring", () => {
     expect(manifest.host_permissions ?? []).toContain("<all_urls>");
   });
 
-  it("keeps overlay chat input keyboard focus visible", () => {
-    const overlayShellCss = fs.readFileSync(
-      path.join(projectRoot, "src/styles/tokens/components/overlay-shell.css"),
+  it("imports the split-out overlay chat stylesheet from the popup components bundle", () => {
+    const componentsCss = fs.readFileSync(
+      path.join(projectRoot, "src/styles/tokens/components.css"),
       "utf8"
     );
 
-    expect(overlayShellCss).toMatch(CHAT_COMPOSER_FOCUS_RING_REGEX);
-    expect(overlayShellCss).not.toContain("outline: none");
+    expect(componentsCss).toContain('@import "./components/overlay-chat.css";');
+  });
+
+  it("keeps overlay chat input keyboard focus visible", () => {
+    const overlayChatCss = fs.readFileSync(
+      path.join(projectRoot, "src/styles/tokens/components/overlay-chat.css"),
+      "utf8"
+    );
+
+    expect(overlayChatCss).toMatch(CHAT_COMPOSER_FOCUS_RING_REGEX);
+    expect(overlayChatCss).not.toContain("outline: none");
   });
 });

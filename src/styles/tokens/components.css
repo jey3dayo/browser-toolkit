@@ -3,6 +3,7 @@
 @import "./components/base-ui.css";
 @import "./components/toast.css";
 @import "./components/overlay-shell.css";
+@import "./components/overlay-chat.css";
 @import "./components/overlay-content.css";
 @import "./components/popup.css";
 @import "./components/accordion.css";
