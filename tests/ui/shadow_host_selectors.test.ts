@@ -7,7 +7,7 @@ const dirname =
   typeof import.meta.dirname === "undefined"
     ? path.dirname(fileURLToPath(import.meta.url))
     : import.meta.dirname;
-const stylesRoot = path.join(dirname, "..", "src", "styles");
+const stylesRoot = path.join(dirname, "..", "..", "src", "styles");
 
 // The shadow host is featureless: `:host:not([x])` never matches, only `:host(:not([x]))` does.
 const COMPOUND_HOST_SELECTOR = /:host(?=[.#[]|:(?!:))/;

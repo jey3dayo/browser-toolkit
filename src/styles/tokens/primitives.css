@@ -1,13 +1,14 @@
-:root {
+:root,
+:host {
   /* ========================================
    * Primitive Tokens (physical values)
    * ====================================== */
 
   /* Color palette */
-  --primitive-color-neutral-950: #0c0d10;
-  --primitive-color-neutral-900: #15171c;
-  --primitive-color-neutral-850: #1c1f26;
-  --primitive-color-neutral-800: #262a33;
+  --primitive-color-neutral-950: #141518;
+  --primitive-color-neutral-900: #1e1f24;
+  --primitive-color-neutral-850: #2a2b31;
+  --primitive-color-neutral-800: #34363d;
   --primitive-color-neutral-100: #ececef;
   --primitive-color-neutral-300: #9aa0ac;
 
@@ -25,6 +26,9 @@
 
   --primitive-color-danger-500: #f07178;
   --primitive-color-danger-600: #d64545;
+
+  /* Scrims keep their own base so they stay darker than every neutral surface. */
+  --primitive-color-scrim-base: #0c0d10;
 
   /* Alpha helpers */
   --primitive-alpha-white-03: rgba(255, 255, 255, 0.03);
@@ -75,75 +79,5 @@
   --primitive-shadow-popover: 0 22px 60px rgba(0, 0, 0, 0.42);
 
   /* Typography */
-  --primitive-font-sans: "Segoe UI", "Helvetica Neue", system-ui, sans-serif;
-}
-
-:host {
-  --primitive-color-neutral-950: #0c0d10;
-  --primitive-color-neutral-900: #15171c;
-  --primitive-color-neutral-850: #1c1f26;
-  --primitive-color-neutral-800: #262a33;
-  --primitive-color-neutral-100: #ececef;
-  --primitive-color-neutral-300: #9aa0ac;
-
-  --primitive-color-neutral-50: #f6f6f8;
-  --primitive-color-neutral-0: #ffffff;
-  --primitive-color-neutral-150: #f0f1f4;
-  --primitive-color-neutral-200: #e2e4ea;
-  --primitive-color-neutral-900-light: #16181d;
-  --primitive-color-neutral-600: #6b7080;
-
-  --primitive-color-accent-500: #7c8cff;
-  --primitive-color-accent-600: #6674f5;
-  --primitive-color-accent-700: #4f5fe0;
-  --primitive-color-accent-800: #3f4dc7;
-
-  --primitive-color-danger-500: #f07178;
-  --primitive-color-danger-600: #d64545;
-
-  --primitive-alpha-white-03: rgba(255, 255, 255, 0.03);
-  --primitive-alpha-white-04: rgba(255, 255, 255, 0.04);
-  --primitive-alpha-white-06: rgba(255, 255, 255, 0.06);
-  --primitive-alpha-white-08: rgba(255, 255, 255, 0.08);
-  --primitive-alpha-white-10: rgba(255, 255, 255, 0.1);
-  --primitive-alpha-white-12: rgba(255, 255, 255, 0.12);
-  --primitive-alpha-white-38: rgba(255, 255, 255, 0.38);
-  --primitive-alpha-white-42: rgba(255, 255, 255, 0.42);
-  --primitive-alpha-white-45: rgba(255, 255, 255, 0.45);
-
-  --primitive-alpha-black-06: rgba(0, 0, 0, 0.06);
-  --primitive-alpha-black-08: rgba(0, 0, 0, 0.08);
-  --primitive-alpha-black-12: rgba(0, 0, 0, 0.12);
-  --primitive-alpha-black-22: rgba(0, 0, 0, 0.22);
-  --primitive-alpha-black-24: rgba(0, 0, 0, 0.24);
-  --primitive-alpha-black-25: rgba(0, 0, 0, 0.25);
-  --primitive-alpha-black-28: rgba(0, 0, 0, 0.28);
-  --primitive-alpha-black-30: rgba(0, 0, 0, 0.3);
-  --primitive-alpha-black-35: rgba(0, 0, 0, 0.35);
-
-  --primitive-alpha-ink-06: rgba(16, 18, 24, 0.06);
-  --primitive-alpha-ink-12: rgba(16, 18, 24, 0.12);
-
-  --primitive-space-0: 0;
-  --primitive-space-1: 4px;
-  --primitive-space-2: 6px;
-  --primitive-space-3: 8px;
-  --primitive-space-4: 10px;
-  --primitive-space-5: 12px;
-  --primitive-space-6: 14px;
-  --primitive-space-7: 16px;
-  --primitive-space-8: 18px;
-  --primitive-space-9: 20px;
-  --primitive-space-10: 24px;
-
-  --primitive-radius-10: 10px;
-  --primitive-radius-12: 12px;
-  --primitive-radius-14: 14px;
-  --primitive-radius-999: 999px;
-
-  --primitive-shadow-dark: 0 12px 40px var(--primitive-alpha-black-35);
-  --primitive-shadow-light: 0 16px 44px var(--primitive-alpha-black-28);
-  --primitive-shadow-popover: 0 22px 60px rgba(0, 0, 0, 0.42);
-
   --primitive-font-sans: "Segoe UI", "Helvetica Neue", system-ui, sans-serif;
 }
