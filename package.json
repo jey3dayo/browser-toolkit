@@ -21,6 +21,7 @@
     "hooks:install": "lefthook install",
     "lint": "ultracite check",
     "lint:fix": "ultracite fix",
+    "report:jev": "pnpm dlx --config.minimum-release-age=0 --allow-build=@ast-grep/cli jev-lint@latest review --base origin/main",
     "storybook": "storybook dev -p 6006",
     "test": "vitest run --project=node --project=dom --maxWorkers=1",
     "test:e2e": "playwright test",

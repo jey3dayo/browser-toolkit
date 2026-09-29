@@ -1,0 +1,20 @@
+# Advisory only: findings are candidates for human triage, never a gate.
+files: [src, tests, scripts, package.json]
+exclude:
+  - tests/fixtures
+  - "**/*.stories.tsx"
+cache: tmp/jev-lint/baseline.json
+rules:
+  typescript/fn-name-promises: on
+  typescript/safe-name-is-safe: on
+  typescript/catch-hides-failure: on
+  typescript/comment-describes-declaration: on
+  typescript/comment-describes-block: on
+  typescript/doc-errors-match-body: on
+  typescript/test-name-describes-code: on
+  typescript/test-name-verifies-claim: on
+  typescript/test-mocks-subject: on
+  typescript/error-message-matches-condition: on
+  typescript/log-level-matches-event: on
+  typescript/log-message-matches-event: on
+  json/script-name-does: on
