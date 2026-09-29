@@ -101,7 +101,7 @@ describe("DebugPane debug log loading failures", () => {
       Result.succeed(
         message.action === "getDebugLogs"
           ? { error: "x", ok: false }
-          : { entryCount: 1, ok: true, sizeKB: "0.01" }
+          : { entryCount: 1, ok: true, sizeBytes: 10, sizeKB: "0.01" }
       )
     );
     const props = buildProps(runtime);
@@ -111,6 +111,33 @@ describe("DebugPane debug log loading failures", () => {
       '[data-testid="show-debug-logs"]'
     );
     expect(button).not.toBeNull();
+    await act(async () => {
+      button?.click();
+      await flush(setTimeout);
+    });
+
+    expect(props.notify.error).toHaveBeenCalledWith(
+      "ログの読み込みに失敗しました"
+    );
+    expect(
+      container.querySelector('[data-testid="hide-debug-logs"]')
+    ).toBeNull();
+  });
+
+  it("ログ取得の応答が想定外の形のときエラーを通知しログ表示を開かない", async () => {
+    const runtime = debugModeRuntime(async (message) =>
+      Result.succeed(
+        message.action === "getDebugLogs"
+          ? { logs: [{ nonsense: 1 }], ok: true }
+          : { entryCount: 1, ok: true, sizeBytes: 10, sizeKB: "0.01" }
+      )
+    );
+    const props = buildProps(runtime);
+    const container = await renderDebugPane(props);
+
+    const button = container.querySelector<HTMLButtonElement>(
+      '[data-testid="show-debug-logs"]'
+    );
     await act(async () => {
       button?.click();
       await flush(setTimeout);
