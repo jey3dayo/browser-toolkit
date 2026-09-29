@@ -1,6 +1,6 @@
 import { Result } from "@praha/byethrow";
 import { act, createElement } from "react";
-import { createRoot } from "react-dom/client";
+import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DebugPane } from "@/popup/panes/DebugPane";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
@@ -48,12 +48,15 @@ function buildProps(runtime: PopupRuntime): PopupPaneBaseProps {
   };
 }
 
+const mountedRoots: Root[] = [];
+
 async function renderDebugPane(
   props: PopupPaneBaseProps
 ): Promise<HTMLDivElement> {
   const container = document.createElement("div");
   document.body.append(container);
   const root = createRoot(container);
+  mountedRoots.push(root);
   await act(async () => {
     root.render(createElement(DebugPane, props));
     await flush(setTimeout);
@@ -71,7 +74,13 @@ function debugModeRuntime(
 }
 
 describe("DebugPane debug log loading failures", () => {
-  afterEach(() => {
+  afterEach(async () => {
+    await act(async () => {
+      for (const root of mountedRoots.splice(0)) {
+        root.unmount();
+      }
+      await flush(setTimeout);
+    });
     document.body.innerHTML = "";
   });
 
@@ -101,6 +110,7 @@ describe("DebugPane debug log loading failures", () => {
     const button = container.querySelector<HTMLButtonElement>(
       '[data-testid="show-debug-logs"]'
     );
+    expect(button).not.toBeNull();
     await act(async () => {
       button?.click();
       await flush(setTimeout);
