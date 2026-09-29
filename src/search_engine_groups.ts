@@ -107,9 +107,7 @@ function buildSearchEngineGroup(
   };
 }
 
-/**
- * Type guard for SearchEngineGroup
- */
+/** Coerces an unknown stored value into a SearchEngineGroup, or null when it is invalid. */
 function coerceSearchEngineGroup(value: unknown): SearchEngineGroup | null {
   if (!isRecord(value)) {
     return null;

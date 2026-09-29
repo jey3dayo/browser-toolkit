@@ -23,7 +23,7 @@ export function startTableObserver(
   const handleMutations = (): void => {
     window.clearTimeout(debounceTimer);
     debounceTimer = window.setTimeout(() => {
-      checkForNewTables(onNotify, getRowFilterSetting);
+      enableNewTables(onNotify, getRowFilterSetting);
     }, 300);
   };
 
@@ -36,11 +36,11 @@ export function startTableObserver(
 }
 
 /**
- * 新しいテーブルをチェックして有効化
+ * 新しいテーブルのソートを有効化して通知
  * @param onNotify - 通知コールバック
  * @param getRowFilterSetting - 行フィルタリング設定取得関数
  */
-function checkForNewTables(
+function enableNewTables(
   onNotify: (message: string) => void,
   getRowFilterSetting?: () => Result.Result<boolean, string>
 ): void {

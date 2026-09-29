@@ -9,9 +9,6 @@ import { t } from "@/i18n";
 import { OverlayProgressStatus } from "./OverlayProgressStatus";
 import { overlayClassNames } from "./overlayClassNames";
 
-/**
- * Chat input component for inline follow-up questions
- */
 function createKeyedChatMessages(
   messages: ChatMessage[]
 ): { key: string; message: ChatMessage; messageId: string }[] {
@@ -36,6 +33,7 @@ type OverlayChatInputProps = {
   onSend: (text: string) => void;
 };
 
+/** Chat input component for inline follow-up questions */
 export function OverlayChatInput(
   props: OverlayChatInputProps
 ): React.JSX.Element {

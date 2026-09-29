@@ -181,9 +181,7 @@ function buildSearchEngine(parts: SearchEngineParts): SearchEngine | null {
   return engine;
 }
 
-/**
- * Type guard for SearchEngine
- */
+/** Coerces an unknown stored value into a SearchEngine, or null when it is invalid. */
 function coerceSearchEngine(value: unknown): SearchEngine | null {
   if (!isRecord(value)) {
     return null;

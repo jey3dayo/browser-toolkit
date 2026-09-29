@@ -157,56 +157,38 @@ export async function debugLog(
 }
 
 /**
- * すべてのデバッグログを取得
+ * すべてのデバッグログを取得（storage 失敗時は reject）
  */
 export async function getDebugLogs(): Promise<DebugLogEntry[]> {
-  try {
-    const stored = await chrome.storage.local.get([DEBUG_LOG_KEY]);
-    return Array.isArray(stored[DEBUG_LOG_KEY]) ? stored[DEBUG_LOG_KEY] : [];
-  } catch (error) {
-    console.error("Failed to get debug logs:", error);
-    return [];
-  }
+  const stored = await chrome.storage.local.get([DEBUG_LOG_KEY]);
+  return Array.isArray(stored[DEBUG_LOG_KEY]) ? stored[DEBUG_LOG_KEY] : [];
 }
 
 /**
- * デバッグログをクリア
+ * デバッグログをクリア（storage 失敗時は reject）
  */
 export async function clearDebugLogs(): Promise<void> {
-  try {
-    await chrome.storage.local.remove([DEBUG_LOG_KEY]);
-  } catch (error) {
-    console.error("Failed to clear debug logs:", error);
-  }
+  await chrome.storage.local.remove([DEBUG_LOG_KEY]);
 }
 
 /**
- * デバッグログの統計情報を取得
+ * デバッグログの統計情報を取得（storage 失敗時は reject）
  */
 export async function getDebugLogStats(): Promise<{
   entryCount: number;
   sizeBytes: number;
   sizeKB: string;
 }> {
-  try {
-    const logs = await getDebugLogs();
-    const content = JSON.stringify(logs);
-    const sizeBytes = new Blob([content]).size;
-    const sizeKB = (sizeBytes / 1024).toFixed(2);
+  const logs = await getDebugLogs();
+  const content = JSON.stringify(logs);
+  const sizeBytes = new Blob([content]).size;
+  const sizeKB = (sizeBytes / 1024).toFixed(2);
 
-    return {
-      entryCount: logs.length,
-      sizeBytes,
-      sizeKB,
-    };
-  } catch (error) {
-    console.error("Failed to get debug log stats:", error);
-    return {
-      entryCount: 0,
-      sizeBytes: 0,
-      sizeKB: "0.00",
-    };
-  }
+  return {
+    entryCount: logs.length,
+    sizeBytes,
+    sizeKB,
+  };
 }
 
 /**

@@ -81,8 +81,8 @@ export function getStorageSyncBytesInUse(
 }
 
 /**
- * Generic factory to wrap Chrome Storage API operations in Promises with error handling.
- * Handles the common pattern of checking chrome.runtime.lastError and resolving/rejecting.
+ * Generic factory that wraps a callback-style Chrome Storage operation in a Promise.
+ * The operation receives resolve/reject and is responsible for checking chrome.runtime.lastError.
  */
 function createStorageWrapper<TArgs extends unknown[], TResult>(
   operation: (
