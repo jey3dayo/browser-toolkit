@@ -220,6 +220,7 @@
 - `mise run test:storybook`（Storybook/Vitest addon のテスト）
 - `mise run build`（`dist/` へバンドル）
 - `mise run ci`（format + lint + test + storybook test + build）
+- `mise run report:jev`（jev-lint で `origin/main` との差分を LLM レビュー。`TYPESAFE_API_KEY` が必要。CI やフックには入れていない）
 
 その他:
 

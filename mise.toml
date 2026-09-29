@@ -51,6 +51,10 @@ run = "pnpm run build"
 description = "ビルド成果物を削除"
 run = "pnpm run clean"
 
+[tasks."report:jev"]
+description = "jev-lint で origin/main との差分を LLM レビュー（TYPESAFE_API_KEY が必要、ゲートではなく人がトリアージする）"
+run = "pnpm run report:jev"
+
 [tasks.lint]
 description = "型チェック + Lint"
 run = [{ task = "lint:types" }, { task = "lint:biome" }]
