@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { debugLog } from "@/utils/debug_log";
+import {
+  clearDebugLogs,
+  debugLog,
+  getDebugLogStats,
+  getDebugLogs,
+} from "@/utils/debug_log";
 
 describe("utils/debug_log", () => {
   beforeEach(() => {
@@ -121,5 +126,29 @@ describe("utils/debug_log", () => {
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       '[ERROR] [context] action failed {"url":"https://example.com"}'
     );
+  });
+
+  it("storage の get が失敗したとき getDebugLogs は reject する", async () => {
+    vi.mocked(chrome.storage.local.get).mockRejectedValueOnce(
+      new Error("storage unavailable")
+    );
+
+    await expect(getDebugLogs()).rejects.toThrow("storage unavailable");
+  });
+
+  it("storage の get が失敗したとき getDebugLogStats は 0 件扱いにせず reject する", async () => {
+    vi.mocked(chrome.storage.local.get).mockRejectedValueOnce(
+      new Error("storage unavailable")
+    );
+
+    await expect(getDebugLogStats()).rejects.toThrow("storage unavailable");
+  });
+
+  it("storage の remove が失敗したとき clearDebugLogs は reject する", async () => {
+    vi.mocked(chrome.storage.local.remove).mockRejectedValueOnce(
+      new Error("storage unavailable")
+    );
+
+    await expect(clearDebugLogs()).rejects.toThrow("storage unavailable");
   });
 });

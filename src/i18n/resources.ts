@@ -242,6 +242,7 @@ export const resources = {
         errors: {
           loadFailed: "ログの読み込みに失敗しました",
           saveFailed: "保存に失敗しました",
+          statsLoadFailed: "ログ統計の読み込みに失敗しました",
         },
         logActions: "ログ操作",
         logContent: "ログ内容",

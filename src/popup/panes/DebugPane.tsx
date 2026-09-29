@@ -1,5 +1,6 @@
 import { Result } from "@praha/byethrow";
 import { useCallback, useEffect, useState } from "react";
+import { safeParse } from "valibot";
 import { Button } from "@/components/shared/Button";
 import { Fieldset } from "@/components/shared/Fieldset";
 import { ButtonRow, RowBetween, Stack } from "@/components/shared/Layout";
@@ -13,6 +14,10 @@ import type {
 import { t } from "@/i18n";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { sendBackgroundResult } from "@/popup/utils/background_result";
+import {
+  DebugLogStatsResponseSchema,
+  DebugLogsResponseSchema,
+} from "@/schemas/debug_log";
 import type { LocalStorageData } from "@/storage/types";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
@@ -85,17 +90,20 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
       action: "getDebugLogStats",
     });
 
-    if (Result.isSuccess(result)) {
-      const data = result.value as {
-        ok: boolean;
-        entryCount?: number;
-        sizeKB?: string;
-      };
-      if (data.ok && data.entryCount !== undefined && data.sizeKB) {
-        setLogStats({ entryCount: data.entryCount, sizeKB: data.sizeKB });
-      }
+    if (Result.isFailure(result)) {
+      props.notify.error(t("debug.errors.statsLoadFailed"));
+      return;
     }
-  }, [props.runtime]);
+    const parsed = safeParse(DebugLogStatsResponseSchema, result.value);
+    if (!parsed.success) {
+      props.notify.error(t("debug.errors.statsLoadFailed"));
+      return;
+    }
+    setLogStats({
+      entryCount: parsed.output.entryCount,
+      sizeKB: parsed.output.sizeKB,
+    });
+  }, [props.notify, props.runtime]);
 
   useEffect(() => {
     let cancelled = false;
@@ -174,30 +182,25 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
       action: "getDebugLogs",
     });
 
-    if (Result.isSuccess(result)) {
-      const data = result.value as {
-        ok: boolean;
-        logs?: Array<{
-          timestamp: string;
-          level: string;
-          context: string;
-          message: string;
-          data?: unknown;
-        }>;
-      };
-      if (data.ok && data.logs) {
-        const formatted = data.logs
-          .map(
-            (log) =>
-              `[${log.timestamp}] [${log.level.toUpperCase()}] [${log.context}] ${log.message}${
-                log.data ? `\n  Data: ${JSON.stringify(log.data, null, 2)}` : ""
-              }`
-          )
-          .join("\n\n");
-        setLogContent(formatted);
-        setShowLogs(true);
-      }
+    if (Result.isFailure(result)) {
+      props.notify.error(t("debug.errors.loadFailed"));
+      return;
     }
+    const parsed = safeParse(DebugLogsResponseSchema, result.value);
+    if (!parsed.success) {
+      props.notify.error(t("debug.errors.loadFailed"));
+      return;
+    }
+    const formatted = parsed.output.logs
+      .map(
+        (log) =>
+          `[${log.timestamp}] [${log.level.toUpperCase()}] [${log.context}] ${log.message}${
+            log.data ? `\n  Data: ${JSON.stringify(log.data, null, 2)}` : ""
+          }`
+      )
+      .join("\n\n");
+    setLogContent(formatted);
+    setShowLogs(true);
   };
 
   const toggleDebugMode = async (checked: boolean): Promise<void> => {
