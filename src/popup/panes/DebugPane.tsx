@@ -85,17 +85,23 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
       action: "getDebugLogStats",
     });
 
-    if (Result.isSuccess(result)) {
-      const data = result.value as {
-        ok: boolean;
-        entryCount?: number;
-        sizeKB?: string;
-      };
-      if (data.ok && data.entryCount !== undefined && data.sizeKB) {
-        setLogStats({ entryCount: data.entryCount, sizeKB: data.sizeKB });
-      }
+    if (Result.isFailure(result)) {
+      props.notify.error(t("debug.errors.statsLoadFailed"));
+      return;
     }
-  }, [props.runtime]);
+    const data = result.value as {
+      ok: boolean;
+      entryCount?: number;
+      sizeKB?: string;
+    };
+    if (!data.ok) {
+      props.notify.error(t("debug.errors.statsLoadFailed"));
+      return;
+    }
+    if (data.entryCount !== undefined && data.sizeKB) {
+      setLogStats({ entryCount: data.entryCount, sizeKB: data.sizeKB });
+    }
+  }, [props.notify, props.runtime]);
 
   useEffect(() => {
     let cancelled = false;
@@ -174,29 +180,35 @@ export function DebugPane(props: DebugPaneProps): React.JSX.Element {
       action: "getDebugLogs",
     });
 
-    if (Result.isSuccess(result)) {
-      const data = result.value as {
-        ok: boolean;
-        logs?: Array<{
-          timestamp: string;
-          level: string;
-          context: string;
-          message: string;
-          data?: unknown;
-        }>;
-      };
-      if (data.ok && data.logs) {
-        const formatted = data.logs
-          .map(
-            (log) =>
-              `[${log.timestamp}] [${log.level.toUpperCase()}] [${log.context}] ${log.message}${
-                log.data ? `\n  Data: ${JSON.stringify(log.data, null, 2)}` : ""
-              }`
-          )
-          .join("\n\n");
-        setLogContent(formatted);
-        setShowLogs(true);
-      }
+    if (Result.isFailure(result)) {
+      props.notify.error(t("debug.errors.loadFailed"));
+      return;
+    }
+    const data = result.value as {
+      ok: boolean;
+      logs?: Array<{
+        timestamp: string;
+        level: string;
+        context: string;
+        message: string;
+        data?: unknown;
+      }>;
+    };
+    if (!data.ok) {
+      props.notify.error(t("debug.errors.loadFailed"));
+      return;
+    }
+    if (data.logs) {
+      const formatted = data.logs
+        .map(
+          (log) =>
+            `[${log.timestamp}] [${log.level.toUpperCase()}] [${log.context}] ${log.message}${
+              log.data ? `\n  Data: ${JSON.stringify(log.data, null, 2)}` : ""
+            }`
+        )
+        .join("\n\n");
+      setLogContent(formatted);
+      setShowLogs(true);
     }
   };
 
