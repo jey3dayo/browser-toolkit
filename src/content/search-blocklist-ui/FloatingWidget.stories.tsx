@@ -18,6 +18,14 @@ function getWidgetShadow(canvasElement: HTMLElement): ShadowRoot {
   return shadow;
 }
 
+async function getPointerInteractions() {
+  // Native hover keeps Chromium's pointer state in sync with the widget's document listener.
+  if ("__vitest_browser__" in globalThis) {
+    return (await import("vitest/browser")).userEvent;
+  }
+  return userEvent.setup();
+}
+
 const meta = {
   component: FloatingWidgetStory,
   tags: ["test"],
@@ -32,10 +40,11 @@ export const HoverShowsBlockButton: Story = {
     entries: [makeStoryEntry()],
   },
   play: async ({ canvasElement }) => {
+    const pointer = await getPointerInteractions();
     const canvas = within(canvasElement);
     const result = canvas.getByTestId("search-blocklist-story-result");
 
-    await userEvent.hover(result);
+    await pointer.hover(result);
 
     await waitFor(() => {
       const trigger = getWidgetShadow(canvasElement).querySelector(
@@ -51,10 +60,11 @@ export const OpensBlockDialog: Story = {
     entries: [makeStoryEntry()],
   },
   play: async ({ canvasElement }) => {
+    const pointer = await getPointerInteractions();
     const canvas = within(canvasElement);
     const result = canvas.getByTestId("search-blocklist-story-result");
 
-    await userEvent.hover(result);
+    await pointer.hover(result);
 
     await waitFor(() => {
       expect(
@@ -65,8 +75,11 @@ export const OpensBlockDialog: Story = {
     });
     const trigger = getWidgetShadow(canvasElement).querySelector(
       '[aria-label="この検索結果をブロック"]'
-    ) as HTMLButtonElement;
-    await userEvent.click(trigger);
+    );
+    if (!(trigger instanceof HTMLButtonElement)) {
+      throw new Error("block trigger not found");
+    }
+    await pointer.click(trigger);
 
     await waitFor(() => {
       const shadow = getWidgetShadow(canvasElement);
@@ -129,7 +142,7 @@ export const OpensBlockDialog: Story = {
       expect(shadow.activeElement).toBe(addTextarea);
     });
 
-    await userEvent.click(cancelButton);
+    await pointer.click(cancelButton);
     await waitFor(() => {
       expect(
         getWidgetShadow(canvasElement).querySelector(
@@ -145,10 +158,11 @@ export const OutsideClickClosesDialog: Story = {
     entries: [makeStoryEntry()],
   },
   play: async ({ canvasElement }) => {
+    const pointer = await getPointerInteractions();
     const canvas = within(canvasElement);
     const result = canvas.getByTestId("search-blocklist-story-result");
 
-    await userEvent.hover(result);
+    await pointer.hover(result);
     await waitFor(() => {
       expect(
         getWidgetShadow(canvasElement).querySelector(
@@ -162,7 +176,7 @@ export const OutsideClickClosesDialog: Story = {
     if (!(trigger instanceof HTMLButtonElement)) {
       throw new Error("block trigger not found");
     }
-    await userEvent.click(trigger);
+    await pointer.click(trigger);
 
     await waitFor(() => {
       expect(
@@ -172,7 +186,7 @@ export const OutsideClickClosesDialog: Story = {
       ).toBeTruthy();
     });
 
-    await userEvent.click(result);
+    await pointer.click(result);
 
     await waitFor(() => {
       expect(
@@ -195,10 +209,11 @@ export const UnblockShowsMatchedRules: Story = {
     ],
   },
   play: async ({ canvasElement }) => {
+    const pointer = await getPointerInteractions();
     const canvas = within(canvasElement);
     const result = canvas.getByTestId("search-blocklist-story-result");
 
-    await userEvent.hover(result);
+    await pointer.hover(result);
     await waitFor(() => {
       expect(
         getWidgetShadow(canvasElement).querySelector(
@@ -208,8 +223,11 @@ export const UnblockShowsMatchedRules: Story = {
     });
     const trigger = getWidgetShadow(canvasElement).querySelector(
       '[aria-label="この検索結果をブロック"]'
-    ) as HTMLButtonElement;
-    await userEvent.click(trigger);
+    );
+    if (!(trigger instanceof HTMLButtonElement)) {
+      throw new Error("block trigger not found");
+    }
+    await pointer.click(trigger);
 
     await waitFor(() => {
       expect(getWidgetShadow(canvasElement).textContent).toContain(

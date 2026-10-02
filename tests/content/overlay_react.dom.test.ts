@@ -1,6 +1,7 @@
 import { Result } from "@praha/byethrow";
 import { JSDOM } from "jsdom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { GlobalContentState } from "@/content/types";
 import { flush } from "../helpers/async";
 import { type ChromeStub, createChromeStub } from "../helpers/chromeStub";
 import { inputValue } from "../helpers/forms";
@@ -47,15 +48,16 @@ async function dispatchMessage(
 }
 
 describe("content overlay (React + Shadow DOM)", () => {
+  const contentGlobal: typeof globalThis & {
+    __MBU_CONTENT_STATE__?: GlobalContentState;
+  } = globalThis;
   let dom: JSDOM;
   let listeners: Array<(...args: unknown[]) => unknown>;
   let chromeStub: ChromeStub;
 
   beforeEach(async () => {
     vi.resetModules();
-    (
-      globalThis as unknown as { __MBU_CONTENT_STATE__?: unknown }
-    ).__MBU_CONTENT_STATE__ = undefined;
+    vi.stubGlobal("__MBU_CONTENT_STATE__", undefined);
 
     dom = new JSDOM("<!doctype html><html><body></body></html>", {
       url: "https://example.com/",
@@ -79,8 +81,58 @@ describe("content overlay (React + Shadow DOM)", () => {
   });
 
   afterEach(() => {
-    vi.unstubAllGlobals();
-    vi.restoreAllMocks();
+    try {
+      contentGlobal.__MBU_CONTENT_STATE__?.overlayMount?.root.unmount();
+      contentGlobal.__MBU_CONTENT_STATE__?.toastMount?.root.unmount();
+    } finally {
+      dom.window.close();
+      vi.unstubAllGlobals();
+      vi.restoreAllMocks();
+    }
+  });
+
+  it("releases loading and page timers during fixture teardown", async ({
+    onTestFinished,
+  }) => {
+    vi.useFakeTimers({
+      toFake: ["setInterval", "clearInterval", "setTimeout", "clearTimeout"],
+    });
+    onTestFinished(() => {
+      try {
+        expect(vi.getTimerCount()).toBe(0);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    await import("@/content.ts");
+    const [listener] = listeners;
+    if (!listener) {
+      throw new Error("missing message listener");
+    }
+
+    listener(
+      {
+        action: "showActionOverlay",
+        mode: "text",
+        source: "page",
+        status: "loading",
+        title: "Test",
+      },
+      {},
+      vi.fn()
+    );
+
+    await vi.waitFor(() => {
+      const host = dom.window.document.querySelector(
+        "#browser-toolkit-overlay"
+      );
+      expect(
+        host?.shadowRoot?.querySelector(".mbu-overlay-status-elapsed")
+          ?.textContent
+      ).toMatch(ELAPSED_LABEL_REGEX);
+    });
+    expect(vi.getTimerCount()).toBeGreaterThan(0);
   });
 
   it("mounts overlay idempotently across multiple initializations", async () => {
