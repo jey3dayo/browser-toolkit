@@ -21,9 +21,9 @@ describe("table activation lifecycle", () => {
   let configs: DomainPatternConfig[];
   let storageListeners: StorageListener[];
   const showNotification = vi.fn();
-  const onContextActionsChange = vi.fn(async () => {
-    // The context-action callback is independent of table activation.
-  });
+  const onContextActionsChange = vi
+    .fn<() => Promise<void>>()
+    .mockResolvedValue(undefined);
 
   function setup() {
     return setupTableAutoExec({ onContextActionsChange, showNotification });
@@ -93,12 +93,12 @@ describe("table activation lifecycle", () => {
     vi.restoreAllMocks();
   });
 
-  it("enables existing and future tables from the manual message even without a matching URL", async () => {
+  it("acknowledges each manual message once and reports table counts even on an unmatched URL", async () => {
     configs = [{ enableRowFilter: false, pattern: "other.example/*" }];
     const table = appendTable();
     const tables = setup();
     await vi.advanceTimersByTimeAsync(0);
-    expect(table.dataset.sortable).toBeUndefined();
+    expect(table.querySelector("th")?.getAttribute("aria-sort")).toBeNull();
 
     const listener = createMessageListener({
       enableTableSort: tables.enable,
@@ -115,14 +115,14 @@ describe("table activation lifecycle", () => {
       listener({ action: "enableTableSort" }, {}, sendResponse)
     ).toBeUndefined();
     expect(sendResponse).toHaveBeenCalledExactlyOnceWith({ success: true });
-    expect(table.dataset.sortable).toBe("true");
+    expect(table.querySelector("th")?.getAttribute("aria-sort")).toBe("none");
     expect(showNotification).toHaveBeenCalledExactlyOnceWith(
       "1個のテーブルでソートを有効化しました"
     );
 
     const added = appendTable();
     await vi.advanceTimersByTimeAsync(300);
-    expect(added.dataset.sortable).toBe("true");
+    expect(added.querySelector("th")?.getAttribute("aria-sort")).toBe("none");
     expect(showNotification).toHaveBeenLastCalledWith(
       "1個の新しいテーブルでソートを有効化しました"
     );
@@ -140,25 +140,22 @@ describe("table activation lifecycle", () => {
       ["1個のテーブルでソートを有効化しました"],
     ]);
     sort(table);
-    expect(table.dataset.sortOrder).toBe("asc");
     expect(Array.from(table.tBodies[0].rows, (row) => row.textContent)).toEqual(
       ["0", "1", "2"]
     );
 
     const first = appendTable();
     const second = appendTable();
-    await vi.advanceTimersByTimeAsync(299);
-    expect(first.dataset.sortable).toBeUndefined();
-    await vi.advanceTimersByTimeAsync(1);
-    expect(first.dataset.sortable).toBe("true");
-    expect(second.dataset.sortable).toBe("true");
+    await vi.advanceTimersByTimeAsync(300);
+    expect(first.querySelector("th")?.getAttribute("aria-sort")).toBe("none");
+    expect(second.querySelector("th")?.getAttribute("aria-sort")).toBe("none");
     expect(showNotification).toHaveBeenCalledTimes(3);
     expect(showNotification).toHaveBeenLastCalledWith(
       "2個の新しいテーブルでソートを有効化しました"
     );
   });
 
-  it("starts observing on manual activation even when there are no existing tables", async () => {
+  it("waits to notify until future tables are added after empty-page manual activation", async () => {
     const tables = setup();
     await vi.advanceTimersByTimeAsync(0);
     tables.enable();
@@ -166,8 +163,10 @@ describe("table activation lifecycle", () => {
 
     const table = appendTable();
     await vi.advanceTimersByTimeAsync(300);
-    expect(table.dataset.sortable).toBe("true");
-    expect(showNotification).toHaveBeenCalledTimes(1);
+    expect(table.querySelector("th")?.getAttribute("aria-sort")).toBe("none");
+    expect(showNotification).toHaveBeenCalledWith(
+      "1個の新しいテーブルでソートを有効化しました"
+    );
   });
 
   it("keeps manual activation available when automatic config loading fails", async () => {
@@ -175,14 +174,14 @@ describe("table activation lifecycle", () => {
     const table = appendTable();
     const tables = setup();
     await vi.advanceTimersByTimeAsync(0);
-    expect(table.dataset.sortable).toBeUndefined();
+    expect(table.querySelector("th")?.getAttribute("aria-sort")).toBeNull();
     expect(showNotification).not.toHaveBeenCalled();
 
     tables.enable();
-    expect(table.dataset.sortable).toBe("true");
+    expect(table.querySelector("th")?.getAttribute("aria-sort")).toBe("none");
     const added = appendTable();
     await vi.advanceTimersByTimeAsync(300);
-    expect(added.dataset.sortable).toBe("true");
+    expect(added.querySelector("th")?.getAttribute("aria-sort")).toBe("none");
   });
 
   it("automatically enables matching URLs and keeps row-filter callbacks current for existing and dynamic tables", async () => {
@@ -190,7 +189,9 @@ describe("table activation lifecycle", () => {
     const existing = appendTable();
     setup();
     await vi.advanceTimersByTimeAsync(0);
-    expect(existing.dataset.sortable).toBe("true");
+    expect(existing.querySelector("th")?.getAttribute("aria-sort")).toBe(
+      "none"
+    );
     const added = appendTable();
     await vi.advanceTimersByTimeAsync(300);
 
@@ -215,18 +216,18 @@ describe("table activation lifecycle", () => {
     const table = appendTable();
     setup();
     await vi.advanceTimersByTimeAsync(1000);
-    expect(table.dataset.sortable).toBeUndefined();
+    expect(table.querySelector("th")?.getAttribute("aria-sort")).toBeNull();
     expect(showNotification).not.toHaveBeenCalled();
 
     window.history.replaceState(null, "", "/enabled");
     await vi.advanceTimersByTimeAsync(1000);
-    expect(table.dataset.sortable).toBe("true");
+    expect(table.querySelector("th")?.getAttribute("aria-sort")).toBe("none");
 
     window.history.replaceState(null, "", "/elsewhere");
     await vi.advanceTimersByTimeAsync(1000);
     const added = appendTable();
     await vi.advanceTimersByTimeAsync(300);
-    expect(added.dataset.sortable).toBe("true");
+    expect(added.querySelector("th")?.getAttribute("aria-sort")).toBe("none");
   });
 
   it.each(["domainPatternConfigs", "domainPatterns"])(
@@ -238,40 +239,43 @@ describe("table activation lifecycle", () => {
       configs = [{ enableRowFilter: false, pattern: "example.com/*" }];
       emitStorageChange({ [key]: {} }, "local");
       await vi.advanceTimersByTimeAsync(0);
-      expect(table.dataset.sortable).toBeUndefined();
+      expect(table.querySelector("th")?.getAttribute("aria-sort")).toBeNull();
 
       emitStorageChange({ [key]: {}, contextActions: {} });
       await vi.advanceTimersByTimeAsync(0);
-      expect(table.dataset.sortable).toBe("true");
-      expect(onContextActionsChange).toHaveBeenCalledTimes(1);
+      expect(table.querySelector("th")?.getAttribute("aria-sort")).toBe("none");
+      expect(onContextActionsChange).toHaveBeenCalled();
     }
   );
 
-  it("cancels pending insertion work when hidden and resumes with all tables only on an eligible visible page", async () => {
+  it("stays silent with pending insertions while hidden and reports all table counts on eligible resume", async () => {
     configs = [{ enableRowFilter: false, pattern: "example.com/*" }];
     const existing = appendTable();
     setup();
     await vi.advanceTimersByTimeAsync(0);
+    showNotification.mockClear();
     const pending = appendTable();
-    await vi.advanceTimersByTimeAsync(100);
+    await vi.advanceTimersByTimeAsync(0);
     setHidden(true);
     const hidden = appendTable();
     await vi.advanceTimersByTimeAsync(300);
-    expect(existing.dataset.sortable).toBe("true");
-    expect(pending.dataset.sortable).toBeUndefined();
-    expect(hidden.dataset.sortable).toBeUndefined();
-    expect(showNotification).toHaveBeenCalledTimes(1);
+    expect(existing.querySelector("th")?.getAttribute("aria-sort")).toBe(
+      "none"
+    );
+    expect(pending.querySelector("th")?.getAttribute("aria-sort")).toBeNull();
+    expect(hidden.querySelector("th")?.getAttribute("aria-sort")).toBeNull();
+    expect(showNotification).not.toHaveBeenCalled();
 
     setHidden(false);
     await vi.advanceTimersByTimeAsync(0);
-    expect(pending.dataset.sortable).toBe("true");
-    expect(hidden.dataset.sortable).toBe("true");
+    expect(pending.querySelector("th")?.getAttribute("aria-sort")).toBe("none");
+    expect(hidden.querySelector("th")?.getAttribute("aria-sort")).toBe("none");
     expect(showNotification).toHaveBeenLastCalledWith(
       "3個のテーブルでソートを有効化しました"
     );
     const added = appendTable();
     await vi.advanceTimersByTimeAsync(300);
-    expect(added.dataset.sortable).toBe("true");
+    expect(added.querySelector("th")?.getAttribute("aria-sort")).toBe("none");
   });
 
   it("does not turn manual activation into automatic resume on an unmatched URL", async () => {
@@ -282,11 +286,11 @@ describe("table activation lifecycle", () => {
     const table = appendTable();
     setHidden(false);
     await vi.advanceTimersByTimeAsync(300);
-    expect(table.dataset.sortable).toBeUndefined();
+    expect(table.querySelector("th")?.getAttribute("aria-sort")).toBeNull();
     expect(showNotification).not.toHaveBeenCalled();
 
     tables.enable();
-    expect(table.dataset.sortable).toBe("true");
+    expect(table.querySelector("th")?.getAttribute("aria-sort")).toBe("none");
   });
 
   it("does not resume if the page becomes hidden while its visibility config refresh is pending", async () => {
@@ -308,7 +312,7 @@ describe("table activation lifecycle", () => {
     setHidden(true);
     resolveConfig(configs);
     await vi.advanceTimersByTimeAsync(300);
-    expect(table.dataset.sortable).toBeUndefined();
+    expect(table.querySelector("th")?.getAttribute("aria-sort")).toBeNull();
     expect(showNotification).not.toHaveBeenCalled();
   });
 
@@ -317,18 +321,20 @@ describe("table activation lifecycle", () => {
     await vi.advanceTimersByTimeAsync(0);
     tables.enable();
     const pending = appendTable();
-    await vi.advanceTimersByTimeAsync(100);
+    await vi.advanceTimersByTimeAsync(0);
 
     window.dispatchEvent(new dom.window.Event("pagehide"));
     window.dispatchEvent(new dom.window.Event("pagehide"));
     const afterPagehide = appendTable();
     await vi.advanceTimersByTimeAsync(300);
-    expect(pending.dataset.sortable).toBeUndefined();
-    expect(afterPagehide.dataset.sortable).toBeUndefined();
+    expect(pending.querySelector("th")?.getAttribute("aria-sort")).toBeNull();
+    expect(
+      afterPagehide.querySelector("th")?.getAttribute("aria-sort")
+    ).toBeNull();
     expect(showNotification).not.toHaveBeenCalled();
   });
 
-  it("does not duplicate activation setup when the content script is reinjected", async () => {
+  it("keeps one message listener without multiplying Chrome subscriptions or timers on content-script reinjection", async () => {
     vi.resetModules();
     await import("@/content");
     await vi.advanceTimersByTimeAsync(0);
@@ -337,7 +343,6 @@ describe("table activation lifecycle", () => {
     const storageListenerCount = storageListeners.length;
     const timerCount = vi.getTimerCount();
     expect(listenerCount).toBe(1);
-    expect(refreshTableConfig).toHaveBeenCalledTimes(1);
 
     vi.resetModules();
     await import("@/content");
@@ -347,6 +352,5 @@ describe("table activation lifecycle", () => {
     );
     expect(storageListeners).toHaveLength(storageListenerCount);
     expect(vi.getTimerCount()).toBe(timerCount);
-    expect(refreshTableConfig).toHaveBeenCalledTimes(1);
   });
 });

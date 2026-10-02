@@ -31,7 +31,7 @@ export function setupTableAutoExec(
     );
   }
 
-  // 手動実行はURL設定に関係なく有効化し、監視は重複して開始しない。
+  // 手動実行はURL設定に関係なく有効化する。
   function enable(): void {
     enableTableSort(deps.showNotification, getCurrentPatternRowFilterSetting);
     stopObserving ??= observeTables(
@@ -105,7 +105,6 @@ export function setupTableAutoExec(
           if (document.hidden) {
             return;
           }
-          // 非表示中に挿入されたテーブルも、再開時にまとめて有効化する。
           maybeEnableTableSortFromConfig();
         })
         .catch(() => {
