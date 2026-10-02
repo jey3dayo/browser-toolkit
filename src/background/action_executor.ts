@@ -15,18 +15,14 @@ type ContextActionExecutionParams = {
   target: SummaryTarget;
 };
 
-export type ContextActionOutput = {
+type ContextActionOutput = {
   source: SummaryTarget["source"];
   text: string;
 } & ({ kind: "text" } | { kind: "event"; event: ExtractedEvent });
 
 /**
- * Execute an action for an already resolved target. Text actions require a
- * nonempty prompt; event actions may omit additional instructions. Both return
- * display text, while only event output includes the structured event.
- *
- * Expected validation/provider failures are Results. Unexpected exceptions
- * remain the caller's responsibility, as do wire payloads and notifications.
+ * Expected action/provider failures return Results; unexpected exceptions propagate.
+ * Target resolution and presentation remain the caller's responsibility.
  */
 export async function executeContextAction({
   action,

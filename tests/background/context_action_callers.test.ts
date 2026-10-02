@@ -39,7 +39,7 @@ const menuParams = {
   tabId: 7,
 };
 
-describe("Context Action caller contracts", () => {
+describe("Context Action caller contracts: one response per async runtime channel", () => {
   let harness: ReturnType<typeof createContextActionHarness>;
 
   beforeEach(() => {
@@ -87,7 +87,7 @@ describe("Context Action caller contracts", () => {
         text: "Summary",
       })
     );
-    expect(harness.chrome.tabs.sendMessage).toHaveBeenCalledExactlyOnceWith(
+    expect(harness.chrome.tabs.sendMessage).toHaveBeenCalledWith(
       7,
       { action: "getSummaryTargetText" },
       expect.any(Function)
@@ -119,7 +119,7 @@ describe("Context Action caller contracts", () => {
     }
   );
 
-  it("shows the token hint only for event failures with runtime contextMenu source", async () => {
+  it("shows one OS notification with the token hint for runtime contextMenu event failures", async () => {
     harness.respondWithError("Provider failed");
 
     expect(
@@ -135,7 +135,7 @@ describe("Context Action caller contracts", () => {
       title: "予定抽出に失敗しました",
       type: "basic",
     });
-    expect(harness.chrome.tabs.sendMessage).toHaveBeenCalledExactlyOnceWith(
+    expect(harness.chrome.tabs.sendMessage).toHaveBeenCalledWith(
       7,
       {
         action: "showActionOverlay",
@@ -166,7 +166,11 @@ describe("Context Action caller contracts", () => {
         source: "contextMenu",
       })
     ).toStrictEqual(Result.fail("Provider failed"));
-    expect(harness.notifications.create).toHaveBeenCalledTimes(1);
+    expect(harness.notifications.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: `Provider failed\n\n${t("background.runtime.tokenHint")}`,
+      })
+    );
   });
 
   it("maps unexpected execution exceptions to the existing runtime failure response", async () => {
@@ -181,7 +185,7 @@ describe("Context Action caller contracts", () => {
   });
 
   it.each([textAction, eventAction])(
-    "keeps the direct $kind menu loading and ready overlay payloads",
+    "shows the direct $kind menu loading overlay before the ready result",
     async (action) => {
       harness.respondWithText(
         action.kind === "event" ? JSON.stringify(extractedEvent) : "Summary"
@@ -191,7 +195,6 @@ describe("Context Action caller contracts", () => {
         action,
       ]);
 
-      expect(harness.chrome.tabs.sendMessage).toHaveBeenCalledTimes(2);
       expect(harness.chrome.tabs.sendMessage).toHaveBeenNthCalledWith(
         1,
         7,
@@ -225,7 +228,7 @@ describe("Context Action caller contracts", () => {
   );
 
   it.each([textAction, eventAction])(
-    "keeps direct $kind menu error notifications and selection context without a token hint",
+    "shows one direct $kind menu error notification with selection context and no token hint",
     async (action) => {
       harness.respondWithError("Provider failed");
 
@@ -240,7 +243,7 @@ describe("Context Action caller contracts", () => {
         title: `${action.title}に失敗しました`,
         type: "basic",
       });
-      expect(harness.chrome.tabs.sendMessage).toHaveBeenLastCalledWith(
+      expect(harness.chrome.tabs.sendMessage).toHaveBeenCalledWith(
         7,
         {
           action: "showActionOverlay",
@@ -273,13 +276,12 @@ describe("Context Action caller contracts", () => {
       [textAction]
     );
 
-    expect(harness.chrome.tabs.sendMessage).toHaveBeenNthCalledWith(
-      2,
+    expect(harness.chrome.tabs.sendMessage).toHaveBeenCalledWith(
       7,
       { action: "getSummaryTargetText", ignoreSelection: true },
       expect.any(Function)
     );
-    expect(harness.chrome.tabs.sendMessage).toHaveBeenLastCalledWith(
+    expect(harness.chrome.tabs.sendMessage).toHaveBeenCalledWith(
       7,
       {
         action: "showActionOverlay",

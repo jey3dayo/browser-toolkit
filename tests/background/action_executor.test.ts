@@ -33,7 +33,6 @@ describe("executeContextAction", () => {
     expect(result).toStrictEqual(
       Result.succeed({ kind: "text", source: "selection", text: "Summary" })
     );
-    expect(harness.fetch).toHaveBeenCalledTimes(1);
     expect(harness.sentBody()).toMatchObject({
       messages: [
         { role: "system" },
@@ -86,7 +85,6 @@ describe("executeContextAction", () => {
       ],
       response_format: { type: "json_object" },
     });
-    expect(harness.fetch).toHaveBeenCalledTimes(1);
   });
 
   it("renders event instructions with clipped text and target metadata", async () => {

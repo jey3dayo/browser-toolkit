@@ -31,7 +31,6 @@ import type {
   SummarizeEventResponse,
   SummaryTarget,
 } from "@/background/types";
-import type { ContextAction } from "@/context_actions";
 import { t } from "@/i18n";
 import {
   parseDownloadImageRequest,
@@ -98,34 +97,6 @@ async function applySearchBlocklistMutation(
     revision: searchBlocklistRevision,
     rules: mutated.value.rules,
     skippedCount: mutated.value.skippedCount,
-  });
-}
-
-async function reportContextActionEventFailure(
-  tabId: number,
-  target: SummaryTarget,
-  action: ContextAction,
-  error: string
-): Promise<void> {
-  const tokenHint = t("background.runtime.tokenHint");
-  await showErrorNotification({
-    errorMessage: error,
-    hint: tokenHint,
-    title: t("background.runtime.actionFailedTitle", {
-      title: action.title,
-    }),
-  });
-
-  await sendMessageToTab(tabId, {
-    action: "showActionOverlay",
-    mode: "event",
-    primary: error,
-    secondary: tokenHint,
-    source: target.source,
-    status: "error",
-    title: action.title,
-  }).catch(() => {
-    // no-op
   });
 }
 
@@ -238,22 +209,34 @@ function handleRunContextActionRequest(
 
       const result = await executeContextAction({ action, target });
       if (Result.isFailure(result)) {
-        // Only event failures from this runtime caller show a token hint.
         if (action.kind === "event" && request.source === "contextMenu") {
-          await reportContextActionEventFailure(
-            request.tabId,
-            target,
-            action,
-            result.error
-          );
+          const tokenHint = t("background.runtime.tokenHint");
+          await showErrorNotification({
+            errorMessage: result.error,
+            hint: tokenHint,
+            title: t("background.runtime.actionFailedTitle", {
+              title: action.title,
+            }),
+          });
+
+          await sendMessageToTab(request.tabId, {
+            action: "showActionOverlay",
+            mode: "event",
+            primary: result.error,
+            secondary: tokenHint,
+            source: target.source,
+            status: "error",
+            title: action.title,
+          }).catch(() => {
+            // Best-effort overlay: the action error is already notified and returned below.
+          });
         }
         sendResponse(Result.fail(result.error));
         return;
       }
 
       const output = result.value;
-      // Keep the runtime contract separate: event responses expose eventText,
-      // but do not transmit the structured event used by the direct menu path.
+      // The runtime contract omits the structured event used by direct menu overlays.
       const payload: RunContextActionSuccessPayload =
         output.kind === "event"
           ? {
