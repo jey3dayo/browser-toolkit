@@ -23,8 +23,7 @@ import type {
 import { t } from "@/i18n";
 
 export type MessageHandlerDeps = {
-  enableTableSortWithNotification: () => void;
-  startTableObserverWithNotification: () => void;
+  enableTableSort: () => void;
   showNotification: (message: string) => void;
   getOrCreateToastMount: () => Promise<ToastMount | null>;
   showActionOverlay: (request: ActionOverlayRequest) => void;
@@ -40,8 +39,7 @@ function handleEnableTableSort(
   deps: MessageHandlerDeps,
   sendResponse: (response: { success: boolean }) => void
 ): void {
-  deps.enableTableSortWithNotification();
-  deps.startTableObserverWithNotification();
+  deps.enableTableSort();
   sendResponse({ success: true });
 }
 

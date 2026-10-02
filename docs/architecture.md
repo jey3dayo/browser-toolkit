@@ -103,6 +103,13 @@ Browser Toolkitは4つの独立した実行環境（ランタイム境界）を�
 - 選択テキストの取得と送信
 - MutationObserverによる動的テーブル検出
 
+テーブル機能の有効化と監視のライフサイクルは `src/content/table-auto-exec.ts` が
+所有します。`setupTableAutoExec` の戻り値の `enable()` は既存テーブルを有効化し、
+動的テーブルの監視も重複なく開始します。手動実行の呼び出し側はこの1操作だけを使い、
+URL設定による自動実行、表示状態の変化、`pagehide` での監視停止は同モジュールに閉じます。
+`table-observer.ts` の監視終了関数は、MutationObserverと未実行のデバウンスタイマーを
+まとめて停止します。ソートと行フィルタリングのDOM処理は `table-sort.ts` に残します。
+
 #### アクセス可能なAPI
 
 - ✅ ページDOM（読み取り/書き込み）
