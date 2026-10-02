@@ -6,6 +6,7 @@ import type {
 import { searchBlocklistMutationFailureMessage } from "@/search-blocklist/mutation_failure_message";
 import { type StorageError, storageLocalGet } from "@/storage/helpers";
 import { debugLog } from "@/utils/debug_log";
+import { isRecord } from "@/utils/guards";
 import {
   type CompiledSearchBlocklistPattern,
   compileSearchBlocklistPattern,
@@ -37,10 +38,6 @@ export type BlocklistStateController = BlocklistState & {
 };
 
 const HASH_MODULUS = 2_147_483_647;
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
 
 function isSearchBlocklistRuleList(
   value: unknown
