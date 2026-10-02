@@ -4,6 +4,7 @@ description: APM project for browser-toolkit
 author: jey3dayo
 targets:
   - codex
+  - claude
 dependencies:
   apm: []
   mcp:
