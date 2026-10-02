@@ -4,16 +4,8 @@ description: APM project for browser-toolkit
 author: jey3dayo
 targets:
   - codex
-  - claude
 dependencies:
   apm: []
-  mcp:
-    - name: chrome-devtools
-      registry: false
-      transport: stdio
-      command: npx
-      args:
-        - -y
-        - chrome-devtools-mcp@latest
+  mcp: []
 includes: auto
 scripts: {}
