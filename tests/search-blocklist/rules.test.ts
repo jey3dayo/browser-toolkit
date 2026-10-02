@@ -52,12 +52,6 @@ describe("search-blocklist rules", () => {
 
     it("does not match and does not throw for a URL over the length limit", () => {
       const longPath = "a".repeat(2100);
-      expect(() =>
-        matchesSearchBlocklistPattern(
-          "*://*.example.com/*",
-          `https://example.com/${longPath}`
-        )
-      ).not.toThrow();
       expect(
         matchesSearchBlocklistPattern(
           "*://*.example.com/*",
@@ -67,9 +61,6 @@ describe("search-blocklist rules", () => {
     });
 
     it("does not match and does not throw for an unparsable URL", () => {
-      expect(() =>
-        matchesSearchBlocklistPattern("*://*.example.com/*", "not a url")
-      ).not.toThrow();
       expect(
         matchesSearchBlocklistPattern("*://*.example.com/*", "not a url")
       ).toBe(false);
