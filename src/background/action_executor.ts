@@ -10,89 +10,60 @@ import type { ContextAction } from "@/context_actions";
 import { t } from "@/i18n";
 import type { ExtractedEvent } from "@/shared_types";
 
-/**
- * Action execution result type
- */
-export type ActionExecutionResult<T> = Result.Result<T, string>;
-
-export interface ContextActionExecutionParams {
+type ContextActionExecutionParams = {
   action: ContextAction;
   target: SummaryTarget;
-}
+};
 
-export type EventActionParams = ContextActionExecutionParams;
-export type PromptActionParams = ContextActionExecutionParams;
-
-/**
- * Event action execution result
- */
-export interface EventActionResult {
-  event: ExtractedEvent;
-  eventText: string;
-  source: SummaryTarget["source"];
-}
-
-/**
- * Prompt action execution result
- */
-export interface PromptActionResult {
+export type ContextActionOutput = {
   source: SummaryTarget["source"];
   text: string;
-}
+} & ({ kind: "text" } | { kind: "event"; event: ExtractedEvent });
 
 /**
- * Execute event action with OpenAI
+ * Execute an action for an already resolved target. Text actions require a
+ * nonempty prompt; event actions may omit additional instructions. Both return
+ * display text, while only event output includes the structured event.
  *
- * @param params - Event action parameters
- * @returns Result containing extracted event or error
+ * Expected validation/provider failures are Results. Unexpected exceptions
+ * remain the caller's responsibility, as do wire payloads and notifications.
  */
-export async function executeEventAction(
-  params: EventActionParams
-): Promise<ActionExecutionResult<EventActionResult>> {
-  const { target, action } = params;
+export async function executeContextAction({
+  action,
+  target,
+}: ContextActionExecutionParams): Promise<
+  Result.Result<ContextActionOutput, string>
+> {
+  const prompt = action.prompt.trim();
 
-  const extraInstruction = action.prompt.trim()
-    ? renderInstructionTemplate(action.prompt, target)
-    : undefined;
+  if (action.kind === "event") {
+    const extraInstruction = prompt
+      ? renderInstructionTemplate(action.prompt, target)
+      : undefined;
+    const result = await extractEventWithOpenAI(target, extraInstruction);
+    if (Result.isFailure(result)) {
+      return Result.fail(result.error);
+    }
 
-  const result = await extractEventWithOpenAI(target, extraInstruction);
-
-  if (Result.isFailure(result)) {
-    return Result.fail(result.error);
+    return Result.succeed({
+      event: result.value,
+      kind: "event",
+      source: target.source,
+      text: formatEventText(result.value),
+    });
   }
 
-  const eventText = formatEventText(result.value);
-
-  return Result.succeed({
-    event: result.value,
-    eventText,
-    source: target.source,
-  });
-}
-
-/**
- * Execute prompt action with OpenAI
- *
- * @param params - Prompt action parameters
- * @returns Result containing generated text or error
- */
-export async function executePromptAction(
-  params: PromptActionParams
-): Promise<ActionExecutionResult<PromptActionResult>> {
-  const { target, action } = params;
-
-  const prompt = action.prompt.trim();
   if (!prompt) {
     return Result.fail(t("background.actionExecutor.emptyPrompt"));
   }
 
   const result = await runPromptActionWithOpenAI(target, prompt);
-
   if (Result.isFailure(result)) {
     return Result.fail(result.error);
   }
 
   return Result.succeed({
+    kind: "text",
     source: target.source,
     text: result.value,
   });

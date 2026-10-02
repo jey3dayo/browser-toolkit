@@ -1,8 +1,5 @@
 import { Result } from "@praha/byethrow";
-import {
-  executeEventAction,
-  executePromptAction,
-} from "@/background/action_executor";
+import { executeContextAction } from "@/background/action_executor";
 import {
   buildGoogleCalendarUrl,
   buildGoogleCalendarUrlFailureMessage,
@@ -30,7 +27,6 @@ import type {
 import type {
   BackgroundRequest,
   ContentScriptMessage,
-  RunContextActionResponse,
   RunContextActionSuccessPayload,
   SummarizeEventResponse,
   SummaryTarget,
@@ -105,86 +101,31 @@ async function applySearchBlocklistMutation(
   });
 }
 
-type RunContextActionHandlerOptions<T> = {
-  execute: () => Promise<Result.Result<T, string>>;
-  mapSuccess: (value: T) => RunContextActionSuccessPayload;
-  onFailure?: (error: string) => Promise<void> | void;
-  sendResponse: (response: RunContextActionResponse) => void;
-};
-
-async function handleRunContextActionResult<T>(
-  options: RunContextActionHandlerOptions<T>
-): Promise<void> {
-  const result = await options.execute();
-
-  if (Result.isFailure(result)) {
-    await options.onFailure?.(result.error);
-    options.sendResponse(Result.fail(result.error));
-    return;
-  }
-
-  options.sendResponse(Result.succeed(options.mapSuccess(result.value)));
-}
-
-// Helper function for handling event actions in message listener
-async function handleEventActionInMessage(
+async function reportContextActionEventFailure(
   tabId: number,
   target: SummaryTarget,
   action: ContextAction,
-  sendResponse: (response: RunContextActionResponse) => void,
-  source?: "popup" | "contextMenu"
+  error: string
 ): Promise<void> {
-  await handleRunContextActionResult({
-    execute: () => executeEventAction({ action, target }),
-    mapSuccess: (value) => ({
-      eventText: value.eventText,
-      resultType: "event",
-      source: value.source,
+  const tokenHint = t("background.runtime.tokenHint");
+  await showErrorNotification({
+    errorMessage: error,
+    hint: tokenHint,
+    title: t("background.runtime.actionFailedTitle", {
+      title: action.title,
     }),
-    onFailure: async (error) => {
-      // コンテキストメニューからの実行の場合はOS通知を表示
-      if (source === "contextMenu") {
-        await showErrorNotification({
-          errorMessage: error,
-          hint: t("background.runtime.tokenHint"),
-          title: t("background.runtime.actionFailedTitle", {
-            title: action.title,
-          }),
-        });
-
-        const tokenHintBase = t("background.runtime.tokenHint");
-        await sendMessageToTab(tabId, {
-          action: "showActionOverlay",
-          mode: "event",
-          primary: error,
-          secondary: tokenHintBase,
-          source: target.source,
-          status: "error",
-          title: action.title,
-        }).catch(() => {
-          // no-op
-        });
-      }
-    },
-    sendResponse,
   });
-}
 
-// Helper function for handling prompt actions in message listener
-async function handlePromptActionInMessage(
-  target: SummaryTarget,
-  action: ContextAction,
-  sendResponse: (response: RunContextActionResponse) => void,
-  _source?: "popup" | "contextMenu"
-): Promise<void> {
-  await handleRunContextActionResult({
-    execute: () => executePromptAction({ action, target }),
-    mapSuccess: (value) => ({
-      resultType: "text",
-      source: value.source,
-      text: value.text,
-    }),
-    sendResponse,
+  await sendMessageToTab(tabId, {
+    action: "showActionOverlay",
+    mode: "event",
+    primary: error,
+    secondary: tokenHint,
+    source: target.source,
+    status: "error",
+    title: action.title,
+  }).catch(() => {
+    // no-op
   });
 }
 
@@ -295,22 +236,33 @@ function handleRunContextActionRequest(
         return;
       }
 
-      if (action.kind === "event") {
-        await handleEventActionInMessage(
-          request.tabId,
-          target,
-          action,
-          sendResponse,
-          request.source
-        );
-      } else {
-        await handlePromptActionInMessage(
-          target,
-          action,
-          sendResponse,
-          request.source
-        );
+      const result = await executeContextAction({ action, target });
+      if (Result.isFailure(result)) {
+        // Only event failures from this runtime caller show a token hint.
+        if (action.kind === "event" && request.source === "contextMenu") {
+          await reportContextActionEventFailure(
+            request.tabId,
+            target,
+            action,
+            result.error
+          );
+        }
+        sendResponse(Result.fail(result.error));
+        return;
       }
+
+      const output = result.value;
+      // Keep the runtime contract separate: event responses expose eventText,
+      // but do not transmit the structured event used by the direct menu path.
+      const payload: RunContextActionSuccessPayload =
+        output.kind === "event"
+          ? {
+              eventText: output.text,
+              resultType: "event",
+              source: output.source,
+            }
+          : { resultType: "text", source: output.source, text: output.text };
+      sendResponse(Result.succeed(payload));
     } catch (error) {
       await debugLog(
         "handleRunContextActionRequest",
