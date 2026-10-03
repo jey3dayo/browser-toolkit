@@ -3,21 +3,16 @@ import type { Result } from "@praha/byethrow";
 import { t } from "@/i18n";
 import { enableSingleTable } from "./table-sort";
 
-let tableObserver: MutationObserver | null = null;
-
 /**
  * 動的に追加されるテーブルを監視開始
  * @param onNotify - 通知コールバック
  * @param getRowFilterSetting - 行フィルタリング設定取得関数
+ * @returns 監視と未実行のデバウンス処理を停止する関数
  */
-export function startTableObserver(
+export function observeTables(
   onNotify: (message: string) => void,
   getRowFilterSetting?: () => Result.Result<boolean, string>
-): void {
-  if (tableObserver) {
-    return;
-  }
-
+): () => void {
   let debounceTimer: number | undefined;
 
   const handleMutations = (): void => {
@@ -27,12 +22,17 @@ export function startTableObserver(
     }, 300);
   };
 
-  tableObserver = new MutationObserver(handleMutations);
+  const tableObserver = new MutationObserver(handleMutations);
 
   tableObserver.observe(document.body, {
     childList: true,
     subtree: true,
   });
+
+  return () => {
+    tableObserver.disconnect();
+    window.clearTimeout(debounceTimer);
+  };
 }
 
 /**
@@ -54,15 +54,5 @@ function enableNewTables(
     }
 
     onNotify(t("tableSort.newTablesEnabledCount", { count: tables.length }));
-  }
-}
-
-/**
- * MutationObserverを停止
- */
-export function stopTableObserver(): void {
-  if (tableObserver) {
-    tableObserver.disconnect();
-    tableObserver = null;
   }
 }

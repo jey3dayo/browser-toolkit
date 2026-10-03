@@ -9,7 +9,6 @@ import type { ToastMount } from "@/content/notification";
 import type { OverlayMount } from "@/content/overlay-helpers";
 import { buildDiagnosticsResponse } from "@/content/search-blocklist-ui/diagnostics";
 import { setupTableAutoExec } from "@/content/table-auto-exec";
-import { stopTableObserver } from "@/content/table-observer";
 import { createThemeManager } from "@/content/theme-manager";
 import type { GlobalContentState } from "@/content/types";
 import type {
@@ -314,10 +313,7 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
   // 7. 自動実行ロジック（SPA URL変化も含む）
   // ========================================
 
-  const {
-    enableTableSortWithNotification,
-    startTableObserverWithNotification,
-  } = setupTableAutoExec({
+  const tableSort = setupTableAutoExec({
     onContextActionsChange: async () => {
       const module = await loadOverlayModule();
       if (module) {
@@ -327,21 +323,18 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
     showNotification,
   });
 
-  window.addEventListener("pagehide", stopTableObserver);
-
   // ========================================
   // 8. メッセージリスナー
   // ========================================
 
   const messageHandlerDeps: MessageHandlerDeps = {
-    enableTableSortWithNotification,
+    enableTableSort: tableSort.enable,
     getOrCreateToastMount,
     getSearchBlocklistDiagnostics,
     showActionOverlay,
     showNotification,
     showQrCodeOverlay,
     showSummaryOverlay,
-    startTableObserverWithNotification,
   };
 
   chrome.runtime.onMessage.addListener(

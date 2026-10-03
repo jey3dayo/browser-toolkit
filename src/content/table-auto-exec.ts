@@ -1,10 +1,7 @@
 // テーブル自動実行ロジック（SPA URL変化も含む）
 
 import { refreshTableConfig } from "@/content/config";
-import {
-  startTableObserver,
-  stopTableObserver,
-} from "@/content/table-observer";
+import { observeTables } from "@/content/table-observer";
 import { enableTableSort } from "@/content/table-sort";
 import {
   type DomainPatternConfig,
@@ -18,14 +15,14 @@ export type TableAutoExecDeps = {
 };
 
 export type TableAutoExecResult = {
-  enableTableSortWithNotification: () => void;
-  startTableObserverWithNotification: () => void;
+  enable: () => void;
 };
 
 export function setupTableAutoExec(
   deps: TableAutoExecDeps
 ): TableAutoExecResult {
   let tableConfig: DomainPatternConfig[] = [];
+  let stopObserving: (() => void) | undefined;
 
   function getCurrentPatternRowFilterSetting() {
     return getCurrentPatternRowFilterSettingFromConfig(
@@ -34,23 +31,25 @@ export function setupTableAutoExec(
     );
   }
 
-  function enableTableSortWithNotification(): void {
+  // 手動実行はURL設定に関係なく有効化する。
+  function enable(): void {
     enableTableSort(deps.showNotification, getCurrentPatternRowFilterSetting);
-  }
-
-  function startTableObserverWithNotification(): void {
-    startTableObserver(
+    stopObserving ??= observeTables(
       deps.showNotification,
       getCurrentPatternRowFilterSetting
     );
+  }
+
+  function stop(): void {
+    stopObserving?.();
+    stopObserving = undefined;
   }
 
   function maybeEnableTableSortFromConfig(): void {
     if (tableConfig.length > 0) {
       const patterns = tableConfig.map((c) => c.pattern);
       if (matchesAnyPattern(patterns, window.location.href)) {
-        enableTableSortWithNotification();
-        startTableObserverWithNotification();
+        enable();
       }
     }
   }
@@ -96,7 +95,7 @@ export function setupTableAutoExec(
   // アクティブ時は再開（既存テーブルの処理も含む）
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
-      stopTableObserver();
+      stop();
     } else {
       // 最新の設定を再取得してから判定（タイミング問題を回避）
       refreshTableConfig()
@@ -106,22 +105,15 @@ export function setupTableAutoExec(
           if (document.hidden) {
             return;
           }
-          if (tableConfig.length > 0) {
-            const patterns = tableConfig.map((c) => c.pattern);
-            const shouldObserve = matchesAnyPattern(patterns);
-            if (shouldObserve) {
-              // タブ非アクティブ中に挿入された既存テーブルを処理
-              enableTableSortWithNotification();
-              // 新しいテーブルの監視を開始
-              startTableObserverWithNotification();
-            }
-          }
+          maybeEnableTableSortFromConfig();
         })
         .catch(() => {
           // 設定読み込み失敗時は何もしない（エラーログは不要）
         });
     }
   });
+
+  window.addEventListener("pagehide", stop);
 
   let lastHref = window.location.href;
   window.setInterval(() => {
@@ -133,8 +125,5 @@ export function setupTableAutoExec(
     maybeEnableTableSortFromConfig();
   }, 1000);
 
-  return {
-    enableTableSortWithNotification,
-    startTableObserverWithNotification,
-  };
+  return { enable };
 }

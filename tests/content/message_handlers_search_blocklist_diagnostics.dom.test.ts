@@ -9,14 +9,13 @@ function buildDeps(
   getSearchBlocklistDiagnostics: () => SearchBlocklistDiagnosticsResponse
 ): MessageHandlerDeps {
   return {
-    enableTableSortWithNotification: vi.fn(),
+    enableTableSort: vi.fn(),
     getOrCreateToastMount: vi.fn(async () => null),
     getSearchBlocklistDiagnostics,
     showActionOverlay: vi.fn(),
     showNotification: vi.fn(),
     showQrCodeOverlay: vi.fn(),
     showSummaryOverlay: vi.fn(),
-    startTableObserverWithNotification: vi.fn(),
   };
 }
 
