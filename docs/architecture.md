@@ -103,6 +103,13 @@ Browser Toolkitは4つの独立した実行環境（ランタイム境界）を�
 - 選択テキストの取得と送信
 - MutationObserverによる動的テーブル検出
 
+テーブル機能の有効化と監視のライフサイクルは `src/content/table-auto-exec.ts` が
+所有します。`setupTableAutoExec` の戻り値の `enable()` は既存テーブルを有効化し、
+動的テーブルの監視も重複なく開始します。手動実行の呼び出し側はこの1操作だけを使い、
+URL設定による自動実行、表示状態の変化、`pagehide` での監視停止は同モジュールに閉じます。
+`table-observer.ts` の監視終了関数は、MutationObserverと未実行のデバウンスタイマーを
+まとめて停止します。ソートと行フィルタリングのDOM処理は `table-sort.ts` に残します。
+
 #### アクセス可能なAPI
 
 - ✅ ページDOM（読み取り/書き込み）
@@ -344,6 +351,18 @@ Browser Toolkitは、複数のAIプロバイダー（OpenAI、Anthropic、z.ai�
 │                                                          │
 └─────────────────────────────────────────────────────────┘
 ```
+
+### Context Action の実行
+
+`src/background/action_executor.ts` の `executeContextAction({ action, target })`
+が、解決済みの対象に対する text / event の実行を所有します。prompt の検証、event の
+追加指示テンプレート、provider 呼び出し、event の表示文字列への整形をここに集約し、
+`Result<ContextActionOutput, string>` を返します。成功値は共通の `text` / `source` と
+`kind` を持ち、`kind: "event"` の場合だけ構造化 `event` も含みます。
+
+対象解決、通知、runtime の wire payload は呼び出し元が所有します。runtime の event
+応答は従来どおり `eventText` のみを返し、右クリックの直接実行は構造化 event も
+オーバーレイへ渡します。専用のカレンダー登録経路と provider adapter は独立したままです。
 
 ### 型定義
 

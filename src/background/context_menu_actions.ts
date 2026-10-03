@@ -1,9 +1,6 @@
 import { Result } from "@praha/byethrow";
 import { APP_NAME } from "@/app_meta";
-import {
-  executeEventAction,
-  executePromptAction,
-} from "@/background/action_executor";
+import { executeContextAction } from "@/background/action_executor";
 import { buildCalendarArtifacts } from "@/background/calendar";
 import { sendMessageToTab } from "@/background/messaging";
 import { extractEventWithOpenAI } from "@/background/openai";
@@ -14,21 +11,11 @@ import type {
   SummaryTarget,
   SyncStorageData,
 } from "@/background/types";
-import type { ActionOverlayRequest } from "@/content-script-messages";
 import type { ContextAction } from "@/context_actions";
 import { t } from "@/i18n";
 import type { CalendarRegistrationTarget, SummarySource } from "@/shared_types";
 import { resolveCalendarTargets } from "@/utils/calendar_targets";
 import { showErrorNotification } from "@/utils/notifications";
-
-// Helper functions to reduce cognitive complexity (extracted from context menu handler)
-type OverlayContext = {
-  tabId: number;
-  action: ContextAction;
-  target: SummaryTarget;
-  resolvedTitle: string;
-  selectionSecondary: string | undefined;
-};
 
 type ContextMenuSelectionContext = {
   selection: string;
@@ -128,48 +115,6 @@ function buildResolvedTitle(
 ): string {
   const resolvedSuffix = titleSuffixBySource(source);
   return `${action.title}（${resolvedSuffix}）`;
-}
-
-type SendActionOverlayMessageParams = Omit<ActionOverlayRequest, "action"> & {
-  tabId: number;
-};
-
-async function sendActionOverlayMessage(
-  params: SendActionOverlayMessageParams
-): Promise<void> {
-  const { tabId, ...overlay } = params;
-  await sendMessageToTab(tabId, {
-    action: "showActionOverlay",
-    ...overlay,
-  });
-}
-
-async function reportPromptActionFailure(params: {
-  tabId: number;
-  actionTitle: string;
-  source: SummarySource;
-  resolvedTitle: string;
-  errorMessage: string;
-  selectionSecondary: string | undefined;
-}): Promise<void> {
-  await showErrorNotification({
-    errorMessage: params.errorMessage,
-    title: t("background.contextActions.actionFailedTitle", {
-      title: params.actionTitle,
-    }),
-  });
-
-  await sendActionOverlayMessage({
-    mode: "text",
-    primary: params.errorMessage,
-    secondary: params.selectionSecondary,
-    source: params.source,
-    status: "error",
-    tabId: params.tabId,
-    title: params.resolvedTitle,
-  }).catch(() => {
-    // no-op
-  });
 }
 
 export async function showContextMenuUnexpectedErrorOverlay(
@@ -295,26 +240,7 @@ export async function handleContextMenuClick(
   });
   const resolvedTitle = buildResolvedTitle(action, target.source);
 
-  const overlayContext: OverlayContext = {
-    action,
-    resolvedTitle,
-    selectionSecondary: context.selectionSecondary,
-    tabId: params.tabId,
-    target,
-  };
-
-  if (action.kind === "event") {
-    await handleEventAction(overlayContext);
-  } else {
-    await handlePromptAction(overlayContext);
-  }
-}
-
-async function handleEventAction(context: OverlayContext): Promise<void> {
-  const { tabId, action, target, resolvedTitle, selectionSecondary } = context;
-
-  const result = await executeEventAction({ action, target });
-
+  const result = await executeContextAction({ action, target });
   if (Result.isFailure(result)) {
     await showErrorNotification({
       errorMessage: result.error,
@@ -323,11 +249,11 @@ async function handleEventAction(context: OverlayContext): Promise<void> {
       }),
     });
 
-    await sendMessageToTab(tabId, {
+    await sendMessageToTab(params.tabId, {
       action: "showActionOverlay",
-      mode: "event",
+      mode: action.kind,
       primary: result.error,
-      secondary: selectionSecondary,
+      secondary: context.selectionSecondary,
       source: target.source,
       status: "error",
       title: resolvedTitle,
@@ -337,42 +263,15 @@ async function handleEventAction(context: OverlayContext): Promise<void> {
     return;
   }
 
-  await sendMessageToTab(tabId, {
+  const output = result.value;
+  await sendMessageToTab(params.tabId, {
     action: "showActionOverlay",
-    event: result.value.event,
-    mode: "event",
-    primary: result.value.eventText,
-    secondary: selectionSecondary,
-    source: target.source,
+    ...(output.kind === "event" ? { event: output.event } : {}),
+    mode: output.kind,
+    primary: output.text,
+    secondary: context.selectionSecondary,
+    source: output.source,
     status: "ready",
-    title: resolvedTitle,
-  });
-}
-
-async function handlePromptAction(context: OverlayContext): Promise<void> {
-  const { tabId, action, target, resolvedTitle, selectionSecondary } = context;
-
-  const result = await executePromptAction({ action, target });
-
-  if (Result.isFailure(result)) {
-    await reportPromptActionFailure({
-      actionTitle: action.title,
-      errorMessage: result.error,
-      resolvedTitle,
-      selectionSecondary,
-      source: target.source,
-      tabId,
-    });
-    return;
-  }
-
-  await sendActionOverlayMessage({
-    mode: "text",
-    primary: result.value.text,
-    secondary: selectionSecondary,
-    source: target.source,
-    status: "ready",
-    tabId,
     title: resolvedTitle,
   });
 }
