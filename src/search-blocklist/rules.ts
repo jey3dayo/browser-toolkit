@@ -1,5 +1,6 @@
 import { Result } from "@praha/byethrow";
 import { t } from "@/i18n";
+import { isRecord } from "@/utils/guards";
 import { generateId } from "@/utils/id_generator";
 import type { SearchBlocklistRule } from "./types";
 
@@ -106,10 +107,6 @@ export function normalizeSearchBlocklistPattern(
   }
 
   return Result.succeed(normalizedPattern);
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
 }
 
 export function isSearchBlocklistRule(

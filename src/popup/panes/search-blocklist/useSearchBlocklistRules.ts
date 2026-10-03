@@ -9,11 +9,13 @@ import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { searchBlocklistMutationFailureMessage } from "@/search-blocklist/mutation_failure_message";
 import {
   compileSearchBlocklistPattern,
+  isSearchBlocklistRule,
   listDisplayableSearchBlocklistRules,
   normalizeSearchBlocklistPattern,
   validateSearchBlocklistRules,
 } from "@/search-blocklist/rules";
 import type { SearchBlocklistRule } from "@/search-blocklist/types";
+import { isRecord } from "@/utils/guards";
 
 export type UseSearchBlocklistRulesResult = {
   rules: SearchBlocklistRule[];
@@ -47,23 +49,6 @@ type SearchBlocklistMutatePayload = {
   revision: number;
   skippedCount: number;
 };
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
-
-function isSearchBlocklistRule(value: unknown): value is SearchBlocklistRule {
-  if (!isRecord(value)) {
-    return false;
-  }
-  return (
-    typeof value.id === "string" &&
-    value.id.length > 0 &&
-    typeof value.pattern === "string" &&
-    typeof value.createdAt === "number" &&
-    Number.isFinite(value.createdAt)
-  );
-}
 
 function isSearchBlocklistRuleList(
   value: unknown
