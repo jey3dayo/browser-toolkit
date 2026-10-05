@@ -1,15 +1,25 @@
 import { watch as chokidarWatch } from "chokidar";
 import { build } from "esbuild";
 import { WebSocketServer } from "ws";
-import { copyStyles, cssRawPlugin, watchStyles } from "./build-shared.mjs";
+import {
+  copyStyles,
+  entryPoints,
+  sharedBuildOptions,
+  watchStyles,
+} from "./build-shared.mjs";
 
 // WebSocket server for auto-reload
 const wss = new WebSocketServer({ port: 8090 });
 const clients = new Set();
+let pendingTabReload = false;
 
 wss.on("connection", (ws) => {
   console.log("🔌 Extension connected to dev server");
   clients.add(ws);
+  if (pendingTabReload) {
+    ws.send(JSON.stringify({ type: "reload-tab" }));
+    pendingTabReload = false;
+  }
   ws.on("close", () => {
     console.log("🔌 Extension disconnected from dev server");
     clients.delete(ws);
@@ -30,31 +40,22 @@ function notifyClients(type) {
     }
   }
   if (successCount > 0) {
+    if (type === "reload") {
+      pendingTabReload = true;
+    }
     console.log(`🔄 Sent ${type} signal to ${successCount} client(s)`);
   }
 }
 
 const buildOptions = {
-  alias: {
-    "@": "./src",
-  },
-  bundle: true,
-  charset: "utf8",
+  ...sharedBuildOptions,
   define: {
+    ...sharedBuildOptions.define,
     "process.env.NODE_ENV": '"development"',
   },
-  entryPoints: ["src/background.ts", "src/content.ts", "src/popup.ts"],
-  format: "iife",
-  jsx: "automatic",
-  loader: {
-    ".css": "css",
-    ".toml": "text",
-  },
+  entryPoints,
   outdir: "dist",
-  platform: "browser",
-  plugins: [cssRawPlugin],
   sourcemap: "inline",
-  target: "es2020",
 };
 
 let isBuilding = false;

@@ -1,6 +1,7 @@
 import { build, context } from "esbuild";
 import {
   copyStyles,
+  entryPoints,
   sharedBuildOptions,
   watchStyles,
 } from "./build-shared.mjs";
@@ -9,15 +10,7 @@ const isWatch = process.argv.includes("--watch");
 
 const buildOptions = {
   ...sharedBuildOptions,
-  entryPoints: [
-    "src/background.ts",
-    "src/content.ts",
-    "src/popup.ts",
-    "src/options.ts",
-    "src/focus-override.ts",
-    "src/search-blocklist.ts",
-    "src/image-zoom.ts",
-  ],
+  entryPoints,
   minify: !isWatch,
   outdir: "dist",
   sourcemap: isWatch,
