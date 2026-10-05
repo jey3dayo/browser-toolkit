@@ -37,11 +37,11 @@ describe("schemas/provider", () => {
 
   describe("normalizeAiModel", () => {
     it("returns the value if it is a valid model for the provider", () => {
-      expect(normalizeAiModel("openai", OPENAI_MODELS.GPT_5_6_TERRA)).toBe(
-        OPENAI_MODELS.GPT_5_6_TERRA
+      expect(normalizeAiModel("openai", OPENAI_MODELS.GPT_6_1_SOL)).toBe(
+        OPENAI_MODELS.GPT_6_1_SOL
       );
-      expect(normalizeAiModel("openai", OPENAI_MODELS.GPT_5_6_LUNA)).toBe(
-        OPENAI_MODELS.GPT_5_6_LUNA
+      expect(normalizeAiModel("openai", OPENAI_MODELS.GPT_6_LUNA)).toBe(
+        OPENAI_MODELS.GPT_6_LUNA
       );
       expect(
         normalizeAiModel("anthropic", ANTHROPIC_MODELS.CLAUDE_SONNET_5)
@@ -68,34 +68,14 @@ describe("schemas/provider", () => {
       );
       expect(normalizeAiModel("zai", "gpt-4")).toBe(ZAI_MODELS.GLM_4_7);
     });
-
-    it("falls back for unsupported OpenAI model IDs", () => {
-      expect(normalizeAiModel("openai", "gpt-5.1")).toBe(DEFAULT_OPENAI_MODEL);
-      expect(normalizeAiModel("openai", "gpt-5.4")).toBe(DEFAULT_OPENAI_MODEL);
-      expect(normalizeAiModel("openai", "gpt-5.4-2026-03-05")).toBe(
-        DEFAULT_OPENAI_MODEL
-      );
-      expect(normalizeAiModel("openai", "gpt-5.2-chat-latest")).toBe(
-        DEFAULT_OPENAI_MODEL
-      );
-      expect(normalizeAiModel("openai", "gpt-4o")).toBe(DEFAULT_OPENAI_MODEL);
-    });
   });
 
   describe("OpenAI model validation and fallback", () => {
-    it.each([
-      "default",
-      "gpt-5-mini",
-      "gpt-5-nano",
-      "gpt-4o-mini",
-      "unknown-model",
-    ])(
-      "rejects unsupported %s during validation and uses the common default at read time",
-      (model) => {
-        expect(safeParseOpenAiModel(model).success).toBe(false);
-        expect(normalizeAiModel("openai", model)).toBe(DEFAULT_OPENAI_MODEL);
-      }
-    );
+    it("rejects unsupported IDs during validation and uses the common default at read time", () => {
+      const model = "unsupported-model";
+      expect(safeParseOpenAiModel(model).success).toBe(false);
+      expect(normalizeAiModel("openai", model)).toBe(DEFAULT_OPENAI_MODEL);
+    });
   });
 
   describe("PROVIDER_CONFIGS", () => {

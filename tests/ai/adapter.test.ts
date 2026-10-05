@@ -35,7 +35,7 @@ describe("ai/adapter", () => {
     it("builds request with correct URL and headers", () => {
       const { url, init } = openaiAdapter.buildRequest("test-token", {
         messages: [{ content: "test", role: "user" }],
-        model: OPENAI_MODELS.GPT_5_6_LUNA,
+        model: OPENAI_MODELS.GPT_6_LUNA,
       });
 
       expect(url).toBe("https://api.openai.com/v1/chat/completions");

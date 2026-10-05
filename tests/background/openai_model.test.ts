@@ -13,7 +13,7 @@ describe("background: OpenAI model selection", () => {
   beforeEach(() => {
     vi.resetModules();
     listeners = [];
-    storedModel = OPENAI_MODELS.GPT_5_6_TERRA;
+    storedModel = OPENAI_MODELS.GPT_6_1_SOL;
     chromeStub = createChromeStub({ listeners });
 
     chromeStub.storage.local.get.mockImplementation(
@@ -43,8 +43,8 @@ describe("background: OpenAI model selection", () => {
 
   it.each([
     {
-      expected: OPENAI_MODELS.GPT_5_6_TERRA,
-      stored: OPENAI_MODELS.GPT_5_6_TERRA,
+      expected: OPENAI_MODELS.GPT_6_1_SOL,
+      stored: OPENAI_MODELS.GPT_6_1_SOL,
     },
     { expected: DEFAULT_OPENAI_MODEL, stored: undefined },
   ])(

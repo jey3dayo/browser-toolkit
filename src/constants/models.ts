@@ -9,8 +9,7 @@
  */
 export const OPENAI_MODELS = {
   GPT_6_LUNA: "gpt-6-luna",
-  GPT_5_6_LUNA: "gpt-5.6-luna",
-  GPT_5_6_TERRA: "gpt-5.6-terra",
+  GPT_6_1_SOL: "gpt-6.1-sol",
 } as const;
 
 /** OpenAI の既定モデル。未設定・未対応の設定の fallback はこの値を参照する。 */

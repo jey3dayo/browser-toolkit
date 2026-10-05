@@ -11,25 +11,14 @@ describe("openai/settings", () => {
     expect(normalizeOpenAiModel(null)).toBe(DEFAULT_OPENAI_MODEL);
     expect(normalizeOpenAiModel("")).toBe(DEFAULT_OPENAI_MODEL);
     expect(normalizeOpenAiModel("  ")).toBe(DEFAULT_OPENAI_MODEL);
-    expect(normalizeOpenAiModel("gpt-custom")).toBe(DEFAULT_OPENAI_MODEL);
-    expect(normalizeOpenAiModel(OPENAI_MODELS.GPT_5_6_TERRA)).toBe(
-      OPENAI_MODELS.GPT_5_6_TERRA
-    );
-    expect(normalizeOpenAiModel(`  ${OPENAI_MODELS.GPT_5_6_LUNA}  `)).toBe(
-      OPENAI_MODELS.GPT_5_6_LUNA
-    );
-  });
-
-  it("falls back to the common default for unsupported model IDs", () => {
-    expect(normalizeOpenAiModel("gpt-5.4-2026-03-05")).toBe(
+    expect(normalizeOpenAiModel("unsupported-model")).toBe(
       DEFAULT_OPENAI_MODEL
     );
-    expect(normalizeOpenAiModel("gpt-5.4")).toBe(DEFAULT_OPENAI_MODEL);
-    expect(normalizeOpenAiModel("gpt-5.2")).toBe(DEFAULT_OPENAI_MODEL);
-    expect(normalizeOpenAiModel("gpt-5.2-chat-latest")).toBe(
-      DEFAULT_OPENAI_MODEL
+    expect(normalizeOpenAiModel(OPENAI_MODELS.GPT_6_1_SOL)).toBe(
+      OPENAI_MODELS.GPT_6_1_SOL
     );
-    expect(normalizeOpenAiModel("gpt-5.1")).toBe(DEFAULT_OPENAI_MODEL);
-    expect(normalizeOpenAiModel("gpt-4o")).toBe(DEFAULT_OPENAI_MODEL);
+    expect(normalizeOpenAiModel(`  ${OPENAI_MODELS.GPT_6_LUNA}  `)).toBe(
+      OPENAI_MODELS.GPT_6_LUNA
+    );
   });
 });

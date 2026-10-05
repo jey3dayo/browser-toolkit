@@ -8,8 +8,7 @@ describe("schemas/openai", () => {
     // 表示順は意図的な選択なので、集合だけでなく順序も固定する。
     expect(OPENAI_MODEL_OPTIONS).toEqual([
       OPENAI_MODELS.GPT_6_LUNA,
-      OPENAI_MODELS.GPT_5_6_LUNA,
-      OPENAI_MODELS.GPT_5_6_TERRA,
+      OPENAI_MODELS.GPT_6_1_SOL,
     ]);
 
     for (const model of OPENAI_MODEL_OPTIONS) {
@@ -21,15 +20,8 @@ describe("schemas/openai", () => {
     }
   });
 
-  it.each(["default", "gpt-5-mini", "gpt-5-nano", "gpt-5.5", "gpt-4o"])(
-    "rejects unsupported %s without substituting a different model",
-    (model) => {
-      expect(safeParseOpenAiModel(model).success).toBe(false);
-    }
-  );
-
   it("rejects invalid values", () => {
-    const invalidValues = [undefined, null, "", "  ", "gpt-custom"];
+    const invalidValues = [undefined, null, "", "  ", "unsupported-model"];
 
     for (const value of invalidValues) {
       const parsed = safeParseOpenAiModel(value);

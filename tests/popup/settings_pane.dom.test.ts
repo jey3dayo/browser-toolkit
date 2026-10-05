@@ -253,16 +253,16 @@ describe("popup Settings pane", () => {
       await selectBaseUiOption(
         dom.window,
         modelSelect as HTMLButtonElement,
-        OPENAI_MODELS.GPT_5_6_LUNA
+        OPENAI_MODELS.GPT_6_1_SOL
       );
       await flush(dom.window);
     });
 
     expect(chromeStub.storage.local.set).toHaveBeenCalledWith(
-      expect.objectContaining({ aiModel: OPENAI_MODELS.GPT_5_6_LUNA }),
+      expect.objectContaining({ aiModel: OPENAI_MODELS.GPT_6_1_SOL }),
       expect.any(Function)
     );
-    expect(modelSelect?.textContent).toContain(OPENAI_MODELS.GPT_5_6_LUNA);
+    expect(modelSelect?.textContent).toContain(OPENAI_MODELS.GPT_6_1_SOL);
   });
 
   it("switches provider and persists a consistent provider/model pair", async () => {

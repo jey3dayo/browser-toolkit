@@ -31,14 +31,14 @@ describe("ai/settings", () => {
     );
     it("uses the default for unsupported settings without changing the saved value", () => {
       const storage = {
-        aiModel: "gpt-5-mini",
+        aiModel: "unsupported-model",
         openaiApiToken: "sk-test-token",
       };
       const result = loadAiSettings(storage);
       expect(Result.isSuccess(result) && result.value.model).toBe(
         DEFAULT_OPENAI_MODEL
       );
-      expect(storage.aiModel).toBe("gpt-5-mini");
+      expect(storage.aiModel).toBe("unsupported-model");
     });
 
     it("loads settings from new keys", () => {
@@ -65,7 +65,7 @@ describe("ai/settings", () => {
       const storage: LocalStorageData = {
         openaiApiToken: "sk-old-token",
         openaiCustomPrompt: "old prompt",
-        openaiModel: "gpt-4o-mini",
+        openaiModel: "unsupported-model",
       };
 
       const result = loadAiSettings(storage);
@@ -170,12 +170,12 @@ describe("ai/settings", () => {
         get: async (_keys: string[]) => ({
           openaiApiToken: "sk-old-token",
           openaiCustomPrompt: "old prompt",
-          openaiModel: "gpt-4o-mini",
+          openaiModel: "unsupported-model",
         }),
         set: (items: Record<string, unknown>) => {
           expect(items.aiProvider).toBe("openai");
           // openaiApiTokenはそのまま維持（プロバイダー別キー）
-          expect(items.aiModel).toBe("gpt-4o-mini");
+          expect(items.aiModel).toBe("unsupported-model");
           expect(items.aiCustomPrompt).toBe("old prompt");
           return Promise.resolve();
         },

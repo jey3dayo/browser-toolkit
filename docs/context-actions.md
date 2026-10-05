@@ -99,16 +99,15 @@ Event アクションはモデルに JSON のみを返すよう要求し、以�
 ポップアップ → 設定:
 
 - OpenAI API Token: 必須（`chrome.storage.local` に保存。同期されません）
-- Model: `gpt-6-luna`（デフォルト）、`gpt-5.6-luna`、`gpt-5.6-terra`
+- Model: `gpt-6-luna`（デフォルト）、`gpt-6.1-sol`
 - 追加指示: 出力の文体やフォーマットの好みなどを上乗せできます
 
 モデルの検証では、対応するモデル ID だけを受け入れます。設定が未指定または未対応の
 場合は、読み込み時に共通の既定モデルへフォールバックします。保存値の書き換えや
-モデル名ごとの変換は行いません。保存済みの
-`gpt-5.6-luna` / `gpt-5.6-terra` は明示的な選択として維持します。既存の Terra 設定から
-切り替える場合は、設定画面で `gpt-6-luna` を一度選択してください。
+モデル名ごとの変換は行いません。保存済みの対応モデルはそのまま使用します。
+選択肢にない旧モデルが保存されている場合も、一般の未対応値と同じフォールバックを使います。
 
-モデル ID と Chat Completions の対応は [OpenAI モデル一覧](https://developers.openai.com/api/docs/models/gpt-6-luna) を参照してください。
+モデル ID と Chat Completions の対応は OpenAI の [GPT-6 Luna](https://developers.openai.com/api/docs/models/gpt-6-luna) / [GPT-6.1 Sol](https://developers.openai.com/api/docs/models/gpt-6.1-sol) を参照してください。
 
 ## プライバシー/注意点
 
