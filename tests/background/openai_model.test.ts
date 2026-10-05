@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { OPENAI_MODELS } from "@/constants/models";
+import { DEFAULT_OPENAI_MODEL, OPENAI_MODELS } from "@/constants/models";
 import { flush } from "../helpers/async";
 import { type ChromeStub, createChromeStub } from "../helpers/chromeStub";
 
@@ -8,10 +8,12 @@ const BACKGROUND_IMPORT_TEST_TIMEOUT_MS = 15_000;
 describe("background: OpenAI model selection", () => {
   let listeners: Array<(...args: unknown[]) => unknown>;
   let chromeStub: ChromeStub;
+  let storedModel: string | undefined;
 
   beforeEach(() => {
     vi.resetModules();
     listeners = [];
+    storedModel = OPENAI_MODELS.GPT_5_6_TERRA;
     chromeStub = createChromeStub({ listeners });
 
     chromeStub.storage.local.get.mockImplementation(
@@ -25,8 +27,8 @@ describe("background: OpenAI model selection", () => {
         if (keyList.includes("openaiCustomPrompt")) {
           items.openaiCustomPrompt = "";
         }
-        if (keyList.includes("openaiModel")) {
-          items.openaiModel = OPENAI_MODELS.GPT_5_6_TERRA;
+        if (keyList.includes("openaiModel") && storedModel !== undefined) {
+          items.openaiModel = storedModel;
         }
         callback(items);
       }
@@ -39,17 +41,24 @@ describe("background: OpenAI model selection", () => {
     vi.unstubAllGlobals();
   });
 
-  it(
-    "uses openaiModel from local storage in chat completion requests",
-    async () => {
-      let capturedModel: string | null = null;
+  it.each([
+    {
+      expected: OPENAI_MODELS.GPT_5_6_TERRA,
+      stored: OPENAI_MODELS.GPT_5_6_TERRA,
+    },
+    { expected: DEFAULT_OPENAI_MODEL, stored: undefined },
+  ])(
+    "sends $expected without temperature when saved model is $stored",
+    async ({ stored, expected }) => {
+      storedModel = stored;
+      let capturedBody: unknown;
 
       const fetchSpy = vi.fn((_url: string, options?: unknown) => {
         const body =
           typeof (options as { body?: unknown }).body === "string"
             ? (options as { body: string }).body
             : "";
-        capturedModel = (JSON.parse(body) as { model?: string }).model ?? null;
+        capturedBody = JSON.parse(body);
         return Promise.resolve({
           json: () =>
             Promise.resolve({ choices: [{ message: { content: "ok" } }] }),
@@ -78,7 +87,11 @@ describe("background: OpenAI model selection", () => {
       );
 
       await flush(setTimeout, 6);
-      expect(capturedModel).toBe(OPENAI_MODELS.GPT_5_6_TERRA);
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(capturedBody).toEqual(
+        expect.objectContaining({ model: expected })
+      );
+      expect(capturedBody).not.toHaveProperty("temperature");
     },
     BACKGROUND_IMPORT_TEST_TIMEOUT_MS
   );

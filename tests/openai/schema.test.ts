@@ -21,26 +21,12 @@ describe("schemas/openai", () => {
     }
   });
 
-  it("migrates deprecated models", () => {
-    const legacyModels = [
-      { expected: OPENAI_MODELS.GPT_6_LUNA, input: "default" },
-      { expected: OPENAI_MODELS.GPT_6_LUNA, input: "gpt-5.5" },
-      { expected: OPENAI_MODELS.GPT_6_LUNA, input: "gpt-5.4-2026-03-05" },
-      { expected: OPENAI_MODELS.GPT_6_LUNA, input: "gpt-5.4" },
-      { expected: OPENAI_MODELS.GPT_6_LUNA, input: "gpt-5.2" },
-      { expected: OPENAI_MODELS.GPT_6_LUNA, input: "gpt-5.2-chat-latest" },
-      { expected: OPENAI_MODELS.GPT_6_LUNA, input: "gpt-5.1" },
-      { expected: OPENAI_MODELS.GPT_6_LUNA, input: "gpt-4o" },
-    ];
-
-    for (const { input, expected } of legacyModels) {
-      const parsed = safeParseOpenAiModel(input);
-      expect(parsed.success).toBe(true);
-      if (parsed.success) {
-        expect(parsed.output).toBe(expected);
-      }
+  it.each(["default", "gpt-5-mini", "gpt-5-nano", "gpt-5.5", "gpt-4o"])(
+    "rejects unsupported %s without substituting a different model",
+    (model) => {
+      expect(safeParseOpenAiModel(model).success).toBe(false);
     }
-  });
+  );
 
   it("rejects invalid values", () => {
     const invalidValues = [undefined, null, "", "  ", "gpt-custom"];

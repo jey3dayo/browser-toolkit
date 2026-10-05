@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { OPENAI_MODELS } from "@/constants/models";
-import { DEFAULT_OPENAI_MODEL, normalizeOpenAiModel } from "@/openai/settings";
+import { DEFAULT_OPENAI_MODEL, OPENAI_MODELS } from "@/constants/models";
+import { normalizeOpenAiModel } from "@/openai/settings";
 
 describe("openai/settings", () => {
   it("defaults to GPT-6 Luna", () => {
@@ -20,16 +20,16 @@ describe("openai/settings", () => {
     );
   });
 
-  it("migrates deprecated models to their replacements", () => {
+  it("falls back to the common default for unsupported model IDs", () => {
     expect(normalizeOpenAiModel("gpt-5.4-2026-03-05")).toBe(
-      OPENAI_MODELS.GPT_6_LUNA
+      DEFAULT_OPENAI_MODEL
     );
-    expect(normalizeOpenAiModel("gpt-5.4")).toBe(OPENAI_MODELS.GPT_6_LUNA);
-    expect(normalizeOpenAiModel("gpt-5.2")).toBe(OPENAI_MODELS.GPT_6_LUNA);
+    expect(normalizeOpenAiModel("gpt-5.4")).toBe(DEFAULT_OPENAI_MODEL);
+    expect(normalizeOpenAiModel("gpt-5.2")).toBe(DEFAULT_OPENAI_MODEL);
     expect(normalizeOpenAiModel("gpt-5.2-chat-latest")).toBe(
-      OPENAI_MODELS.GPT_6_LUNA
+      DEFAULT_OPENAI_MODEL
     );
-    expect(normalizeOpenAiModel("gpt-5.1")).toBe(OPENAI_MODELS.GPT_6_LUNA);
-    expect(normalizeOpenAiModel("gpt-4o")).toBe(OPENAI_MODELS.GPT_6_LUNA);
+    expect(normalizeOpenAiModel("gpt-5.1")).toBe(DEFAULT_OPENAI_MODEL);
+    expect(normalizeOpenAiModel("gpt-4o")).toBe(DEFAULT_OPENAI_MODEL);
   });
 });

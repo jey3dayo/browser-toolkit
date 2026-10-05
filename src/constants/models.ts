@@ -13,6 +13,9 @@ export const OPENAI_MODELS = {
   GPT_5_6_TERRA: "gpt-5.6-terra",
 } as const;
 
+/** OpenAI の既定モデル。未設定・未対応の設定の fallback はこの値を参照する。 */
+export const DEFAULT_OPENAI_MODEL = OPENAI_MODELS.GPT_6_LUNA;
+
 /**
  * Anthropic (Claude) モデル定数
  *
@@ -48,28 +51,3 @@ export const ANTHROPIC_MODEL_LIST = Object.values(ANTHROPIC_MODELS);
  * z.aiモデル一覧（配列）
  */
 export const ZAI_MODEL_LIST = Object.values(ZAI_MODELS);
-
-/**
- * 旧バージョンで使用していた OpenAI モデル ID から現行モデルへの読み替え表
- *
- * 既存ユーザーの保存済み設定を壊さないために必要。OpenAI モデルを更新する際は
- * ここだけを編集すれば `src/schemas/openai.ts` と `src/schemas/provider.ts` の
- * 両方に反映される。
- */
-export const LEGACY_OPENAI_MODEL_MAP: Record<
-  string,
-  (typeof OPENAI_MODEL_LIST)[number]
-> = {
-  default: OPENAI_MODELS.GPT_6_LUNA,
-  "gpt-4o": OPENAI_MODELS.GPT_6_LUNA,
-  "gpt-4o-mini": OPENAI_MODELS.GPT_6_LUNA,
-  "gpt-5-mini": OPENAI_MODELS.GPT_6_LUNA,
-  "gpt-5-nano": OPENAI_MODELS.GPT_6_LUNA,
-  "gpt-5-pro": OPENAI_MODELS.GPT_6_LUNA,
-  "gpt-5.1": OPENAI_MODELS.GPT_6_LUNA,
-  "gpt-5.2": OPENAI_MODELS.GPT_6_LUNA,
-  "gpt-5.2-chat-latest": OPENAI_MODELS.GPT_6_LUNA,
-  "gpt-5.4": OPENAI_MODELS.GPT_6_LUNA,
-  "gpt-5.4-2026-03-05": OPENAI_MODELS.GPT_6_LUNA,
-  "gpt-5.5": OPENAI_MODELS.GPT_6_LUNA,
-};

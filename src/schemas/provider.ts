@@ -5,9 +5,8 @@ import { check, pipe, safeParse, string } from "valibot";
 import {
   ANTHROPIC_MODEL_LIST,
   ANTHROPIC_MODELS,
-  LEGACY_OPENAI_MODEL_MAP,
+  DEFAULT_OPENAI_MODEL,
   OPENAI_MODEL_LIST,
-  OPENAI_MODELS,
   ZAI_MODEL_LIST,
   ZAI_MODELS,
 } from "@/constants/models";
@@ -32,7 +31,7 @@ export const PROVIDER_CONFIGS: Record<
   },
   openai: {
     baseUrl: "https://api.openai.com/v1",
-    defaultModel: OPENAI_MODELS.GPT_6_LUNA,
+    defaultModel: DEFAULT_OPENAI_MODEL,
     label: "OpenAI",
     models: OPENAI_MODEL_LIST,
   },
@@ -74,11 +73,9 @@ export function normalizeAiModel(
     return PROVIDER_CONFIGS[provider].defaultModel;
   }
 
-  const normalizedValue =
-    provider === "openai" ? (LEGACY_OPENAI_MODEL_MAP[value] ?? value) : value;
   const config = PROVIDER_CONFIGS[provider];
-  if (config.models.includes(normalizedValue)) {
-    return normalizedValue;
+  if (config.models.includes(value)) {
+    return value;
   }
 
   return config.defaultModel;

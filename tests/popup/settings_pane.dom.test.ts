@@ -1,7 +1,11 @@
 import type { JSDOM } from "jsdom";
 import { act } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ANTHROPIC_MODELS, OPENAI_MODELS } from "@/constants/models";
+import {
+  ANTHROPIC_MODELS,
+  DEFAULT_OPENAI_MODEL,
+  OPENAI_MODELS,
+} from "@/constants/models";
 import { flush } from "../helpers/async";
 import { inputValue, selectBaseUiOption } from "../helpers/forms";
 import {
@@ -243,7 +247,7 @@ describe("popup Settings pane", () => {
     );
     expect(modelSelect).not.toBeNull();
 
-    expect(modelSelect?.textContent).toContain(OPENAI_MODELS.GPT_6_LUNA);
+    expect(modelSelect?.textContent).toContain(DEFAULT_OPENAI_MODEL);
 
     await act(async () => {
       await selectBaseUiOption(
@@ -298,10 +302,10 @@ describe("popup Settings pane", () => {
       await flush(dom.window);
     });
     expect(chromeStub.storage.local.set).toHaveBeenLastCalledWith(
-      expect.objectContaining({ aiModel: "gpt-6-luna" }),
+      expect.objectContaining({ aiModel: DEFAULT_OPENAI_MODEL }),
       expect.any(Function)
     );
-    expect(modelSelect?.textContent).toContain("gpt-6-luna");
+    expect(modelSelect?.textContent).toContain(DEFAULT_OPENAI_MODEL);
   });
 
   it("orders theme options into primary and auto groups", () => {

@@ -1,14 +1,20 @@
 import { Result } from "@praha/byethrow";
 import { describe, expect, it } from "vitest";
 import { loadAiSettings, migrateToAiSettings } from "@/ai/settings";
-import { ANTHROPIC_MODELS, OPENAI_MODELS } from "@/constants/models";
+import {
+  ANTHROPIC_MODELS,
+  DEFAULT_OPENAI_MODEL,
+  OPENAI_MODELS,
+} from "@/constants/models";
 import type { LocalStorageData } from "@/storage/types";
 
 describe("ai/settings", () => {
   describe("loadAiSettings", () => {
     it("uses Luna for new or reset model settings", () => {
       const result = loadAiSettings({ openaiApiToken: "sk-test-token" });
-      expect(Result.isSuccess(result) && result.value.model).toBe("gpt-6-luna");
+      expect(Result.isSuccess(result) && result.value.model).toBe(
+        DEFAULT_OPENAI_MODEL
+      );
     });
 
     it.each(Object.values(OPENAI_MODELS))(
@@ -23,6 +29,18 @@ describe("ai/settings", () => {
         }
       }
     );
+    it("uses the default for unsupported settings without changing the saved value", () => {
+      const storage = {
+        aiModel: "gpt-5-mini",
+        openaiApiToken: "sk-test-token",
+      };
+      const result = loadAiSettings(storage);
+      expect(Result.isSuccess(result) && result.value.model).toBe(
+        DEFAULT_OPENAI_MODEL
+      );
+      expect(storage.aiModel).toBe("gpt-5-mini");
+    });
+
     it("loads settings from new keys", () => {
       const storage: LocalStorageData = {
         aiCustomPrompt: "test prompt",
@@ -56,7 +74,7 @@ describe("ai/settings", () => {
       if (Result.isSuccess(result)) {
         expect(result.value.provider).toBe("openai");
         expect(result.value.token).toBe("sk-old-token");
-        expect(result.value.model).toBe(OPENAI_MODELS.GPT_6_LUNA);
+        expect(result.value.model).toBe(DEFAULT_OPENAI_MODEL);
         expect(result.value.customPrompt).toBe("old prompt");
         expect(result.value.baseUrl).toBe("https://api.openai.com/v1");
       }

@@ -1,10 +1,9 @@
-import { OPENAI_MODELS } from "@/constants/models";
+import { DEFAULT_OPENAI_MODEL } from "@/constants/models";
 import {
   type OpenAiModelOption as OpenAiModelOptionSchema,
   safeParseOpenAiModel,
 } from "@/schemas/openai";
 
-export const DEFAULT_OPENAI_MODEL = OPENAI_MODELS.GPT_6_LUNA;
 type OpenAiModelOption = OpenAiModelOptionSchema;
 
 export function normalizeOpenAiModel(value: unknown): OpenAiModelOption {

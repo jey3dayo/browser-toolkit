@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   ANTHROPIC_MODELS,
-  LEGACY_OPENAI_MODEL_MAP,
+  DEFAULT_OPENAI_MODEL,
   OPENAI_MODELS,
   ZAI_MODELS,
 } from "@/constants/models";
@@ -52,9 +52,7 @@ describe("schemas/provider", () => {
     });
 
     it("returns the default model if value is undefined", () => {
-      expect(normalizeAiModel("openai", undefined)).toBe(
-        OPENAI_MODELS.GPT_6_LUNA
-      );
+      expect(normalizeAiModel("openai", undefined)).toBe(DEFAULT_OPENAI_MODEL);
       expect(normalizeAiModel("anthropic", undefined)).toBe(
         ANTHROPIC_MODELS.CLAUDE_SONNET_5
       );
@@ -63,7 +61,7 @@ describe("schemas/provider", () => {
 
     it("returns the default model if value is invalid for the provider", () => {
       expect(normalizeAiModel("openai", "invalid-model")).toBe(
-        OPENAI_MODELS.GPT_6_LUNA
+        DEFAULT_OPENAI_MODEL
       );
       expect(normalizeAiModel("anthropic", "gpt-4")).toBe(
         ANTHROPIC_MODELS.CLAUDE_SONNET_5
@@ -71,48 +69,33 @@ describe("schemas/provider", () => {
       expect(normalizeAiModel("zai", "gpt-4")).toBe(ZAI_MODELS.GLM_4_7);
     });
 
-    it("maps deprecated openai model ids to supported ones", () => {
-      expect(normalizeAiModel("openai", "gpt-5.1")).toBe(
-        OPENAI_MODELS.GPT_6_LUNA
-      );
-      expect(normalizeAiModel("openai", "gpt-5.4")).toBe(
-        OPENAI_MODELS.GPT_6_LUNA
-      );
+    it("falls back for unsupported OpenAI model IDs", () => {
+      expect(normalizeAiModel("openai", "gpt-5.1")).toBe(DEFAULT_OPENAI_MODEL);
+      expect(normalizeAiModel("openai", "gpt-5.4")).toBe(DEFAULT_OPENAI_MODEL);
       expect(normalizeAiModel("openai", "gpt-5.4-2026-03-05")).toBe(
-        OPENAI_MODELS.GPT_6_LUNA
+        DEFAULT_OPENAI_MODEL
       );
       expect(normalizeAiModel("openai", "gpt-5.2-chat-latest")).toBe(
-        OPENAI_MODELS.GPT_6_LUNA
+        DEFAULT_OPENAI_MODEL
       );
-      expect(normalizeAiModel("openai", "gpt-4o")).toBe(
-        OPENAI_MODELS.GPT_6_LUNA
-      );
+      expect(normalizeAiModel("openai", "gpt-4o")).toBe(DEFAULT_OPENAI_MODEL);
     });
   });
 
-  describe("legacy OpenAI model aliases", () => {
-    it.each(["default", "gpt-5-mini", "gpt-5-nano", "gpt-4o-mini"])(
-      "uses Luna for legacy %s rather than promoting to Terra",
+  describe("OpenAI model validation and fallback", () => {
+    it.each([
+      "default",
+      "gpt-5-mini",
+      "gpt-5-nano",
+      "gpt-4o-mini",
+      "unknown-model",
+    ])(
+      "rejects unsupported %s during validation and uses the common default at read time",
       (model) => {
-        expect(normalizeAiModel("openai", model)).toBe("gpt-6-luna");
-        const parsed = safeParseOpenAiModel(model);
-        expect(parsed.success && parsed.output).toBe("gpt-6-luna");
+        expect(safeParseOpenAiModel(model).success).toBe(false);
+        expect(normalizeAiModel("openai", model)).toBe(DEFAULT_OPENAI_MODEL);
       }
     );
-    // 読み替え表は src/constants/models.ts が単一の正本。
-    // strict パース経路と fallback 経路が同じ表を参照していることを固定する。
-    it("resolves every legacy alias identically through both entry points", () => {
-      for (const [legacyId, expected] of Object.entries(
-        LEGACY_OPENAI_MODEL_MAP
-      )) {
-        const parsed = safeParseOpenAiModel(legacyId);
-        expect(parsed.success).toBe(true);
-        if (parsed.success) {
-          expect(parsed.output).toBe(expected);
-        }
-        expect(normalizeAiModel("openai", legacyId)).toBe(expected);
-      }
-    });
   });
 
   describe("PROVIDER_CONFIGS", () => {
