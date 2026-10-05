@@ -26,6 +26,16 @@ async function getPointerInteractions() {
   return userEvent.setup();
 }
 
+async function clickOutsideDialog(element: HTMLElement): Promise<void> {
+  // The dialog opens 8px below the trigger and can cover the element's center, so press a corner it never reaches.
+  if ("__vitest_browser__" in globalThis) {
+    const { userEvent: browserUserEvent } = await import("vitest/browser");
+    await browserUserEvent.click(element, { position: { x: 8, y: 8 } });
+    return;
+  }
+  await userEvent.setup().click(element);
+}
+
 const meta = {
   component: FloatingWidgetStory,
   tags: ["test"],
@@ -186,7 +196,7 @@ export const OutsideClickClosesDialog: Story = {
       ).toBeTruthy();
     });
 
-    await pointer.click(result);
+    await clickOutsideDialog(result);
 
     await waitFor(() => {
       expect(

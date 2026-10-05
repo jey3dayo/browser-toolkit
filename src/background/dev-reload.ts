@@ -8,7 +8,6 @@ export {};
 const DEV_SERVER_URL = "ws://localhost:8090";
 const RECONNECT_INTERVAL = 3000; // 3 seconds
 const MAX_RECONNECT_ATTEMPTS = 10;
-const HTTP_URL_PATTERN = /^https?:\/\//;
 
 let ws: WebSocket | null = null;
 let reconnectAttempts = 0;
@@ -18,7 +17,11 @@ function reloadActiveTab() {
   chrome.tabs
     .query({ active: true, lastFocusedWindow: true })
     .then(([tab]) => {
-      if (tab?.id !== undefined && HTTP_URL_PATTERN.test(tab.url ?? "")) {
+      const url = tab?.url ?? "";
+      if (
+        tab?.id !== undefined &&
+        (url.startsWith("http://") || url.startsWith("https://"))
+      ) {
         return chrome.tabs.reload(tab.id);
       }
     })
