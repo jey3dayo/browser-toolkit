@@ -8,17 +8,21 @@ import {
   watchStyles,
 } from "./build-shared.mjs";
 
+const DOTFILE_PATTERN = /(^|[/\\])\../;
+// chokidar v4+ dropped glob support, so filter by extension here.
+const WATCHED_SOURCE_PATTERN = /\.(ts|tsx|toml)$/;
+
 // WebSocket server for auto-reload
 const wss = new WebSocketServer({ port: 8090 });
 const clients = new Set();
-let pendingTabReload = false;
+let pendingTabReloads = 0;
 
 wss.on("connection", (ws) => {
   console.log("🔌 Extension connected to dev server");
   clients.add(ws);
-  if (pendingTabReload) {
+  if (pendingTabReloads > 0) {
     ws.send(JSON.stringify({ type: "reload-tab" }));
-    pendingTabReload = false;
+    pendingTabReloads -= 1;
   }
   ws.on("close", () => {
     console.log("🔌 Extension disconnected from dev server");
@@ -41,7 +45,7 @@ function notifyClients(type) {
   }
   if (successCount > 0) {
     if (type === "reload") {
-      pendingTabReload = true;
+      pendingTabReloads = successCount;
     }
     console.log(`🔄 Sent ${type} signal to ${successCount} client(s)`);
   }
@@ -92,8 +96,10 @@ await performBuild();
 // Watch for file changes
 watchStyles();
 
-const watcher = chokidarWatch("src/**/*.{ts,tsx,toml}", {
-  ignored: /(^|[/\\])\../,
+const watcher = chokidarWatch("src", {
+  ignored: (filePath, stats) =>
+    DOTFILE_PATTERN.test(filePath) ||
+    (stats?.isFile() === true && !WATCHED_SOURCE_PATTERN.test(filePath)),
   ignoreInitial: true,
   persistent: true,
 });
