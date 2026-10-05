@@ -8,10 +8,24 @@ export {};
 const DEV_SERVER_URL = "ws://localhost:8090";
 const RECONNECT_INTERVAL = 3000; // 3 seconds
 const MAX_RECONNECT_ATTEMPTS = 10;
+const HTTP_URL_PATTERN = /^https?:\/\//;
 
 let ws: WebSocket | null = null;
 let reconnectAttempts = 0;
 let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+
+function reloadActiveTab() {
+  chrome.tabs
+    .query({ active: true, lastFocusedWindow: true })
+    .then(([tab]) => {
+      if (tab?.id !== undefined && HTTP_URL_PATTERN.test(tab.url ?? "")) {
+        return chrome.tabs.reload(tab.id);
+      }
+    })
+    .catch((error) => {
+      console.error("[dev-reload] Failed to reload active tab:", error);
+    });
+}
 
 function connect() {
   if (ws?.readyState === WebSocket.OPEN) {
@@ -32,6 +46,8 @@ function connect() {
         if (message.type === "reload") {
           console.log("[dev-reload] 🔄 Reloading extension...");
           chrome.runtime.reload();
+        } else if (message.type === "reload-tab") {
+          reloadActiveTab();
         }
       } catch (error) {
         console.error("[dev-reload] Failed to parse message:", error);

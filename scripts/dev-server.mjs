@@ -1,15 +1,29 @@
 import { watch as chokidarWatch } from "chokidar";
 import { build } from "esbuild";
 import { WebSocketServer } from "ws";
-import { copyStyles, cssRawPlugin, watchStyles } from "./build-shared.mjs";
+import {
+  copyStyles,
+  entryPoints,
+  sharedBuildOptions,
+  watchStyles,
+} from "./build-shared.mjs";
+
+const DOTFILE_PATTERN = /(^|[/\\])\../;
+// chokidar v4+ dropped glob support, so filter by extension here.
+const WATCHED_SOURCE_PATTERN = /\.(ts|tsx|toml)$/;
 
 // WebSocket server for auto-reload
 const wss = new WebSocketServer({ port: 8090 });
 const clients = new Set();
+let pendingTabReloads = 0;
 
 wss.on("connection", (ws) => {
   console.log("🔌 Extension connected to dev server");
   clients.add(ws);
+  if (pendingTabReloads > 0) {
+    ws.send(JSON.stringify({ type: "reload-tab" }));
+    pendingTabReloads -= 1;
+  }
   ws.on("close", () => {
     console.log("🔌 Extension disconnected from dev server");
     clients.delete(ws);
@@ -30,31 +44,22 @@ function notifyClients(type) {
     }
   }
   if (successCount > 0) {
+    if (type === "reload") {
+      pendingTabReloads = successCount;
+    }
     console.log(`🔄 Sent ${type} signal to ${successCount} client(s)`);
   }
 }
 
 const buildOptions = {
-  alias: {
-    "@": "./src",
-  },
-  bundle: true,
-  charset: "utf8",
+  ...sharedBuildOptions,
   define: {
+    ...sharedBuildOptions.define,
     "process.env.NODE_ENV": '"development"',
   },
-  entryPoints: ["src/background.ts", "src/content.ts", "src/popup.ts"],
-  format: "iife",
-  jsx: "automatic",
-  loader: {
-    ".css": "css",
-    ".toml": "text",
-  },
+  entryPoints,
   outdir: "dist",
-  platform: "browser",
-  plugins: [cssRawPlugin],
   sourcemap: "inline",
-  target: "es2020",
 };
 
 let isBuilding = false;
@@ -91,8 +96,10 @@ await performBuild();
 // Watch for file changes
 watchStyles();
 
-const watcher = chokidarWatch("src/**/*.{ts,tsx,toml}", {
-  ignored: /(^|[/\\])\../,
+const watcher = chokidarWatch("src", {
+  ignored: (filePath, stats) =>
+    DOTFILE_PATTERN.test(filePath) ||
+    (stats?.isFile() === true && !WATCHED_SOURCE_PATTERN.test(filePath)),
   ignoreInitial: true,
   persistent: true,
 });
