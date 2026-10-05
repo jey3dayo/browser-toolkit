@@ -38,9 +38,11 @@
 
 - `src/ai/` — AI アダプター（OpenAI / Anthropic / z.ai）と設定ローダー
   - `src/ai/adapter.ts`, `src/ai/get-adapter.ts`, `src/ai/{openai,anthropic,zai}-adapter.ts`
+  - `src/ai/chat-completion-client.ts` — 共通 HTTP 送信 / timeout / origin 検証
+  - `src/ai/openai-request-policy.ts` — UI 選択肢とは独立した OpenAI の送信制約
   - `src/ai/settings.ts` — `loadAiSettings` / `AiSettings` 型
 - `src/background/` — Service Worker モジュール
-  - `openai.ts`, `openai_common.ts` — AI リクエスト共通処理（`prepareAiInput` / `requestAiText`）
+  - `ai_requests.ts`, `ai_input.ts` — AI リクエスト共通処理（`prepareAiInput` / `requestAiText`）
   - `context_menu_registry.ts`, `context_menu_actions.ts`, `context_menu_qrcode.ts`, `context_menu_copy.ts`
   - `runtime_handlers.ts`, `runtime_types.ts` — 型安全なメッセージハンドラ
   - `calendar.ts` — イベント抽出と ICS 生成

@@ -1,7 +1,11 @@
 import type { JSDOM } from "jsdom";
 import { act } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ANTHROPIC_MODELS, OPENAI_MODELS } from "@/constants/models";
+import {
+  ANTHROPIC_MODELS,
+  DEFAULT_OPENAI_MODEL,
+  OPENAI_MODELS,
+} from "@/constants/models";
 import { flush } from "../helpers/async";
 import { inputValue, selectBaseUiOption } from "../helpers/forms";
 import {
@@ -243,22 +247,22 @@ describe("popup Settings pane", () => {
     );
     expect(modelSelect).not.toBeNull();
 
-    expect(modelSelect?.textContent).toContain(OPENAI_MODELS.GPT_5_6_TERRA);
+    expect(modelSelect?.textContent).toContain(DEFAULT_OPENAI_MODEL);
 
     await act(async () => {
       await selectBaseUiOption(
         dom.window,
         modelSelect as HTMLButtonElement,
-        OPENAI_MODELS.GPT_5_6_LUNA
+        OPENAI_MODELS.GPT_6_1_SOL
       );
       await flush(dom.window);
     });
 
     expect(chromeStub.storage.local.set).toHaveBeenCalledWith(
-      expect.objectContaining({ aiModel: OPENAI_MODELS.GPT_5_6_LUNA }),
+      expect.objectContaining({ aiModel: OPENAI_MODELS.GPT_6_1_SOL }),
       expect.any(Function)
     );
-    expect(modelSelect?.textContent).toContain(OPENAI_MODELS.GPT_5_6_LUNA);
+    expect(modelSelect?.textContent).toContain(OPENAI_MODELS.GPT_6_1_SOL);
   });
 
   it("switches provider and persists a consistent provider/model pair", async () => {
@@ -289,6 +293,19 @@ describe("popup Settings pane", () => {
     expect(modelSelect?.textContent).toContain(
       ANTHROPIC_MODELS.CLAUDE_SONNET_5
     );
+
+    const openaiRadio = dom.window.document.querySelector<HTMLInputElement>(
+      'input[name="aiProvider"][value="openai"]'
+    );
+    await act(async () => {
+      openaiRadio?.click();
+      await flush(dom.window);
+    });
+    expect(chromeStub.storage.local.set).toHaveBeenLastCalledWith(
+      expect.objectContaining({ aiModel: DEFAULT_OPENAI_MODEL }),
+      expect.any(Function)
+    );
+    expect(modelSelect?.textContent).toContain(DEFAULT_OPENAI_MODEL);
   });
 
   it("orders theme options into primary and auto groups", () => {

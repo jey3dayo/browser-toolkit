@@ -1,8 +1,8 @@
 import { Result } from "@praha/byethrow";
 import { useEffect, useId, useState } from "react";
 import { getAiProviderTokenKey } from "@/ai/provider-token";
+import { DEFAULT_OPENAI_MODEL } from "@/constants/models";
 import { t } from "@/i18n";
-import { DEFAULT_OPENAI_MODEL } from "@/openai/settings";
 import { isTestAiTokenResponse } from "@/popup/panes/settings/isTestAiTokenResponse";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import type { TestAiTokenRequest, TestAiTokenResponse } from "@/popup/runtime";

@@ -1,18 +1,18 @@
 import { Result } from "@praha/byethrow";
 import { executeContextAction } from "@/background/action_executor";
 import {
+  chatFollowUpWithAi,
+  extractEventWithAi,
+  summarizeWithAi,
+  testAiToken,
+} from "@/background/ai_requests";
+import {
   buildGoogleCalendarUrl,
   buildGoogleCalendarUrlFailureMessage,
   formatEventText,
 } from "@/background/calendar";
 import { loadContextActions } from "@/background/context_menu_storage";
 import { sendMessageToTab } from "@/background/messaging";
-import {
-  chatFollowUpWithOpenAI,
-  extractEventWithOpenAI,
-  summarizeWithOpenAI,
-  testAiToken,
-} from "@/background/openai";
 import { debugRuntimeHandlers } from "@/background/runtime_debug_handlers";
 import type {
   ChatFollowUpRequest,
@@ -104,7 +104,7 @@ async function handleSummarizeEventInMessage(
   target: SummaryTarget,
   sendResponse: (response: SummarizeEventResponse) => void
 ): Promise<void> {
-  const result = await extractEventWithOpenAI(target);
+  const result = await extractEventWithAi(target);
   if (Result.isFailure(result)) {
     sendResponse(Result.fail(result.error));
     return;
@@ -139,7 +139,7 @@ function handleSummarizeTabRequest(
         ignoreSelection: true,
       });
 
-      const result = await summarizeWithOpenAI(target);
+      const result = await summarizeWithAi(target);
       sendResponse(result);
     } catch (error) {
       await debugLog(
@@ -166,7 +166,7 @@ function handleSummarizeTextRequest(
 ): boolean {
   (async () => {
     try {
-      const result = await summarizeWithOpenAI(request.target);
+      const result = await summarizeWithAi(request.target);
       sendResponse(result);
     } catch (error) {
       await debugLog(
@@ -385,7 +385,7 @@ function handleChatFollowUpRequest(
 ): boolean {
   (async () => {
     try {
-      const result = await chatFollowUpWithOpenAI(
+      const result = await chatFollowUpWithAi(
         request.messages,
         request.context
       );

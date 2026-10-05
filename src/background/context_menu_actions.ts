@@ -1,9 +1,9 @@
 import { Result } from "@praha/byethrow";
 import { APP_NAME } from "@/app_meta";
 import { executeContextAction } from "@/background/action_executor";
+import { extractEventWithAi } from "@/background/ai_requests";
 import { buildCalendarArtifacts } from "@/background/calendar";
 import { sendMessageToTab } from "@/background/messaging";
-import { extractEventWithOpenAI } from "@/background/openai";
 import { storageSyncGet } from "@/background/storage";
 import type {
   ContentScriptMessage,
@@ -165,7 +165,7 @@ export async function handleCalendarContextMenuClick(
     source: titleSuffixBySource(target.source),
   });
 
-  const result = await extractEventWithOpenAI(target);
+  const result = await extractEventWithAi(target);
   if (Result.isFailure(result)) {
     await showErrorNotification({
       errorMessage: result.error,

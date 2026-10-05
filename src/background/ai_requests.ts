@@ -1,9 +1,12 @@
 import { Result } from "@praha/byethrow";
 import type { ChatRequestBody } from "@/ai/adapter";
+import {
+  fetchChatCompletionOk,
+  fetchChatCompletionText,
+} from "@/ai/chat-completion-client";
 import { getAdapter } from "@/ai/get-adapter";
 import { getAiProviderTokenKey } from "@/ai/provider-token";
 import { loadAiSettings } from "@/ai/settings";
-import { normalizeEvent } from "@/background/calendar";
 import {
   applyTemplateVariables,
   buildSystemMessage,
@@ -11,7 +14,8 @@ import {
   clipInputText,
   type PreparedAiInput,
   prepareAiInput,
-} from "@/background/openai_common";
+} from "@/background/ai_input";
+import { normalizeEvent } from "@/background/calendar";
 import type { ChatMessage } from "@/background/runtime_types";
 import { storageLocalGetTyped } from "@/background/storage";
 import type { BackgroundResponse, SummaryTarget } from "@/background/types";
@@ -22,7 +26,6 @@ import {
 import { safeParseJsonObject } from "@/schemas/json";
 import { safeParseAiProvider } from "@/schemas/provider";
 import type { ExtractedEvent } from "@/shared_types";
-import { fetchChatCompletionOk, fetchChatCompletionText } from "@/utils/openai";
 
 const MAX_CHAT_TURNS = 20;
 
@@ -66,7 +69,7 @@ async function requestAiText(
   );
 }
 
-export async function summarizeWithOpenAI(
+export async function summarizeWithAi(
   target: SummaryTarget
 ): Promise<BackgroundResponse> {
   const summaryResult = await requestAiText({
@@ -113,7 +116,7 @@ export async function summarizeWithOpenAI(
   });
 }
 
-export async function runPromptActionWithOpenAI(
+export async function runPromptActionWithAi(
   target: SummaryTarget,
   promptTemplate: string
 ): Promise<Result.Result<string, string>> {
@@ -225,7 +228,7 @@ export async function testAiToken(
   return Result.succeed(undefined);
 }
 
-export async function extractEventWithOpenAI(
+export async function extractEventWithAi(
   target: SummaryTarget,
   extraInstruction?: string
 ): Promise<Result.Result<ExtractedEvent, string>> {
@@ -297,7 +300,7 @@ export async function extractEventWithOpenAI(
   return Result.succeed(normalizeEvent(eventResult.output));
 }
 
-export async function chatFollowUpWithOpenAI(
+export async function chatFollowUpWithAi(
   messages: ChatMessage[],
   context: string
 ): Promise<Result.Result<string, string>> {

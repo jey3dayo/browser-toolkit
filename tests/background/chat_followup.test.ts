@@ -45,9 +45,9 @@ describe("background: chat follow-up history guard", () => {
     // Claude 4.6 以降は 400 を返す。送信前に弾く。
     const fetchSpy = vi.fn();
     vi.stubGlobal("fetch", fetchSpy);
-    const { chatFollowUpWithOpenAI } = await import("@/background/openai");
+    const { chatFollowUpWithAi } = await import("@/background/ai_requests");
 
-    const result = await chatFollowUpWithOpenAI([], "ページの本文");
+    const result = await chatFollowUpWithAi([], "ページの本文");
 
     expect(Result.isFailure(result)).toBe(true);
     expect(fetchSpy).not.toHaveBeenCalled();
@@ -56,9 +56,9 @@ describe("background: chat follow-up history guard", () => {
   it("rejects a history whose last turn is from the assistant", async () => {
     const fetchSpy = vi.fn();
     vi.stubGlobal("fetch", fetchSpy);
-    const { chatFollowUpWithOpenAI } = await import("@/background/openai");
+    const { chatFollowUpWithAi } = await import("@/background/ai_requests");
 
-    const result = await chatFollowUpWithOpenAI(
+    const result = await chatFollowUpWithAi(
       [
         { content: "質問", role: "user" },
         { content: "回答", role: "assistant" },
@@ -83,9 +83,9 @@ describe("background: chat follow-up history guard", () => {
       });
     });
     vi.stubGlobal("fetch", fetchSpy);
-    const { chatFollowUpWithOpenAI } = await import("@/background/openai");
+    const { chatFollowUpWithAi } = await import("@/background/ai_requests");
 
-    const result = await chatFollowUpWithOpenAI(
+    const result = await chatFollowUpWithAi(
       [{ content: "質問", role: "user" }],
       "ページの本文"
     );

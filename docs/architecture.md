@@ -367,7 +367,7 @@ Browser Toolkitは、複数のAIプロバイダー（OpenAI、Anthropic、z.ai�
 ### 型定義
 
 ```typescript
-// src/background/openai_common.ts
+// src/background/ai_input.ts
 export type PreparedAiInput = {
   settings: AiSettings; // プロバイダー、モデル、トークン、カスタムプロンプト
   clippedText: string; // 20,000文字に制限されたテキスト
@@ -383,14 +383,29 @@ export type AiSettings = {
 };
 ```
 
+### AI リクエストの責務
+
+- `src/background/ai_requests.ts`: 要約・イベント抽出・会話など、選択 provider に依存しない実行フロー
+- `src/background/ai_input.ts`: 入力整形と設定読み込み
+- `src/ai/chat-completion-client.ts`: adapter 経由の HTTP 送信、許可 origin、timeout、JSON / Result 処理
+- `src/ai/openai-compatible-adapter.ts`: Chat Completions wire 形式（Bearer / POST / choices / error）のみ
+- `src/ai/openai-adapter.ts` / `zai-adapter.ts`: provider 設定と送信前処理の組み立て
+- `src/ai/openai-request-policy.ts`: OpenAI 固有のパラメータ制約。UI の選択肢とは独立に管理
+- `src/ai/anthropic-adapter.ts`: Anthropic Messages の形式変換
+
+`src/constants/models.ts` の選択肢へモデルを追加しても、リクエストの capability が
+自動的に決まることはありません。OpenAI の現在の reasoning モデルは temperature を省略し、
+既存 GPT-5 系互換性を維持します。その他の任意モデル文字列は従来どおり渡します。
+z.ai へ OpenAI の送信制約は適用しません。
+
 ### プロバイダー別アダプター
 
 ```typescript
 // src/ai/get-adapter.ts
-export function getAdapter(provider: AiProvider): AiAdapter {
+export function getAdapter(provider: AiProvider): ChatCompletionAdapter {
   switch (provider) {
     case "openai":
-      return openAiAdapter;
+      return openaiAdapter;
     case "anthropic":
       return anthropicAdapter;
     case "zai":
@@ -399,10 +414,13 @@ export function getAdapter(provider: AiProvider): AiAdapter {
 }
 
 // 各アダプターは共通インターフェースを実装
-export type AiAdapter = {
-  buildUrl: () => string;
-  buildHeaders: (token: string) => Record<string, string>;
-  parseResponse: (data: unknown) => string | null;
+export type ChatCompletionAdapter = {
+  buildRequest: (token: string, body: ChatRequestBody) => {
+    url: string;
+    init: RequestInit;
+  };
+  extractText: (json: unknown) => string | null;
+  extractError: (json: unknown, status: number) => string;
 };
 ```
 
@@ -458,7 +476,7 @@ const value = result.value;
 内部関数: 常に `Result` 型を返す
 
 ```typescript
-// src/background/openai_common.ts
+// src/background/ai_input.ts
 export async function prepareAiInput(params: {
   target: SummaryTarget;
   missingTextMessage: string;

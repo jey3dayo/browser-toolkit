@@ -1,11 +1,46 @@
 import { Result } from "@praha/byethrow";
 import { describe, expect, it } from "vitest";
 import { loadAiSettings, migrateToAiSettings } from "@/ai/settings";
-import { ANTHROPIC_MODELS, OPENAI_MODELS } from "@/constants/models";
+import {
+  ANTHROPIC_MODELS,
+  DEFAULT_OPENAI_MODEL,
+  OPENAI_MODELS,
+} from "@/constants/models";
 import type { LocalStorageData } from "@/storage/types";
 
 describe("ai/settings", () => {
   describe("loadAiSettings", () => {
+    it("uses Luna for new or reset model settings", () => {
+      const result = loadAiSettings({ openaiApiToken: "sk-test-token" });
+      expect(Result.isSuccess(result) && result.value.model).toBe(
+        DEFAULT_OPENAI_MODEL
+      );
+    });
+
+    it.each(Object.values(OPENAI_MODELS))(
+      "preserves a saved supported model %s in either storage key",
+      (model) => {
+        for (const key of ["aiModel", "openaiModel"]) {
+          const result = loadAiSettings({
+            [key]: model,
+            openaiApiToken: "sk-test-token",
+          });
+          expect(Result.isSuccess(result) && result.value.model).toBe(model);
+        }
+      }
+    );
+    it("uses the default for unsupported settings without changing the saved value", () => {
+      const storage = {
+        aiModel: "unsupported-model",
+        openaiApiToken: "sk-test-token",
+      };
+      const result = loadAiSettings(storage);
+      expect(Result.isSuccess(result) && result.value.model).toBe(
+        DEFAULT_OPENAI_MODEL
+      );
+      expect(storage.aiModel).toBe("unsupported-model");
+    });
+
     it("loads settings from new keys", () => {
       const storage: LocalStorageData = {
         aiCustomPrompt: "test prompt",
@@ -30,7 +65,7 @@ describe("ai/settings", () => {
       const storage: LocalStorageData = {
         openaiApiToken: "sk-old-token",
         openaiCustomPrompt: "old prompt",
-        openaiModel: "gpt-4o-mini",
+        openaiModel: "unsupported-model",
       };
 
       const result = loadAiSettings(storage);
@@ -39,7 +74,7 @@ describe("ai/settings", () => {
       if (Result.isSuccess(result)) {
         expect(result.value.provider).toBe("openai");
         expect(result.value.token).toBe("sk-old-token");
-        expect(result.value.model).toBe(OPENAI_MODELS.GPT_5_6_TERRA);
+        expect(result.value.model).toBe(DEFAULT_OPENAI_MODEL);
         expect(result.value.customPrompt).toBe("old prompt");
         expect(result.value.baseUrl).toBe("https://api.openai.com/v1");
       }
@@ -135,12 +170,12 @@ describe("ai/settings", () => {
         get: async (_keys: string[]) => ({
           openaiApiToken: "sk-old-token",
           openaiCustomPrompt: "old prompt",
-          openaiModel: "gpt-4o-mini",
+          openaiModel: "unsupported-model",
         }),
         set: (items: Record<string, unknown>) => {
           expect(items.aiProvider).toBe("openai");
           // openaiApiTokenはそのまま維持（プロバイダー別キー）
-          expect(items.aiModel).toBe("gpt-4o-mini");
+          expect(items.aiModel).toBe("unsupported-model");
           expect(items.aiCustomPrompt).toBe("old prompt");
           return Promise.resolve();
         },

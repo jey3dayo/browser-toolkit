@@ -1,7 +1,5 @@
 import { Result } from "@praha/byethrow";
 import type { ChatCompletionAdapter, ChatRequestBody } from "@/ai/adapter";
-import { extractApiErrorMessage } from "@/ai/adapter-helpers";
-import { extractOpenAiCompatibleChoiceText } from "@/ai/openai-compatible-adapter";
 import { isAllowedApiOrigin } from "@/constants/api-endpoints";
 import { API_FETCH_TIMEOUT_MS } from "@/constants/timeouts";
 import { FetchTimeoutError } from "@/utils/custom-errors";
@@ -19,65 +17,12 @@ function handleFetchError(error: unknown, defaultMessage: string): string {
   return toErrorMessage(error, defaultMessage);
 }
 
-export function extractChatCompletionText(json: unknown): string | null {
-  return extractOpenAiCompatibleChoiceText(json);
-}
-
-export function extractOpenAiApiErrorMessage(
-  json: unknown,
-  status: number
-): string {
-  return extractApiErrorMessage(json) ?? `OpenAI APIエラー: ${status}`;
-}
-
 type ChatCompletionResponsePayload = {
   response: Response;
   json: unknown;
 };
 
 type ChatCompletionErrorExtractor = (json: unknown, status: number) => string;
-
-/**
- * Internal helper to fetch OpenAI Chat Completion API and return raw response + parsed JSON.
- * This function handles the common logic of making the API request and parsing the response.
- */
-function fetchOpenAiChatCompletionRaw(
-  fetchFn: typeof fetch,
-  token: string,
-  body: unknown
-): Result.ResultAsync<ChatCompletionResponsePayload, string> {
-  return Result.pipe(
-    Result.try({
-      catch: (error) =>
-        handleFetchError(error, "OpenAI APIへのリクエストに失敗しました"),
-      try: () =>
-        fetchWithTimeout(
-          fetchFn,
-          "https://api.openai.com/v1/chat/completions",
-          {
-            body: JSON.stringify(body),
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            method: "POST",
-          },
-          API_FETCH_TIMEOUT_MS
-        ),
-    }),
-    Result.andThen(async (response) => {
-      const json = await Result.unwrap(
-        Result.try({
-          catch: () => null,
-          try: () => response.json(),
-        }),
-        null
-      );
-
-      return Result.succeed({ json, response });
-    })
-  );
-}
 
 function buildChatCompletionTextResult(params: {
   payload: ChatCompletionResponsePayload;
@@ -110,40 +55,8 @@ function buildChatCompletionOkResult(
   return Result.fail(extractError(json, response.status));
 }
 
-export function fetchOpenAiChatCompletionText(
-  fetchFn: typeof fetch,
-  token: string,
-  body: unknown,
-  emptyContentMessage: string
-): Result.ResultAsync<string, string> {
-  return Result.pipe(
-    fetchOpenAiChatCompletionRaw(fetchFn, token, body),
-    Result.andThen((payload) =>
-      buildChatCompletionTextResult({
-        emptyContentMessage,
-        extractError: extractOpenAiApiErrorMessage,
-        extractText: extractChatCompletionText,
-        payload,
-      })
-    )
-  );
-}
-
-export function fetchOpenAiChatCompletionOk(
-  fetchFn: typeof fetch,
-  token: string,
-  body: unknown
-): Result.ResultAsync<void, string> {
-  return Result.pipe(
-    fetchOpenAiChatCompletionRaw(fetchFn, token, body),
-    Result.andThen((payload) =>
-      buildChatCompletionOkResult(payload, extractOpenAiApiErrorMessage)
-    )
-  );
-}
-
 /**
- * アダプター経由でチャット補完テキストを取得（新版）
+ * アダプター経由でチャット補完テキストを取得
  */
 export function fetchChatCompletionText(
   fetchFn: typeof fetch,
@@ -203,7 +116,7 @@ function fetchChatCompletionJson(
 }
 
 /**
- * アダプター経由でチャット補完の成否を確認（新版）
+ * アダプター経由でチャット補完の成否を確認
  */
 export function fetchChatCompletionOk(
   fetchFn: typeof fetch,
