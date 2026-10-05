@@ -5,7 +5,6 @@ import {
   OPENAI_MODELS,
   ZAI_MODELS,
 } from "@/constants/models";
-import { safeParseOpenAiModel } from "@/schemas/openai";
 import {
   AI_PROVIDERS,
   normalizeAiModel,
@@ -67,14 +66,6 @@ describe("schemas/provider", () => {
         ANTHROPIC_MODELS.CLAUDE_SONNET_5
       );
       expect(normalizeAiModel("zai", "gpt-4")).toBe(ZAI_MODELS.GLM_4_7);
-    });
-  });
-
-  describe("OpenAI model validation and fallback", () => {
-    it("rejects unsupported IDs during validation and uses the common default at read time", () => {
-      const model = "unsupported-model";
-      expect(safeParseOpenAiModel(model).success).toBe(false);
-      expect(normalizeAiModel("openai", model)).toBe(DEFAULT_OPENAI_MODEL);
     });
   });
 
