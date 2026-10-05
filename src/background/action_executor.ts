@@ -1,10 +1,10 @@
 import { Result } from "@praha/byethrow";
-import { formatEventText } from "@/background/calendar";
 import {
-  extractEventWithOpenAI,
+  extractEventWithAi,
   renderInstructionTemplate,
-  runPromptActionWithOpenAI,
-} from "@/background/openai";
+  runPromptActionWithAi,
+} from "@/background/ai_requests";
+import { formatEventText } from "@/background/calendar";
 import type { SummaryTarget } from "@/background/types";
 import type { ContextAction } from "@/context_actions";
 import { t } from "@/i18n";
@@ -36,7 +36,7 @@ export async function executeContextAction({
     const extraInstruction = prompt
       ? renderInstructionTemplate(action.prompt, target)
       : undefined;
-    const result = await extractEventWithOpenAI(target, extraInstruction);
+    const result = await extractEventWithAi(target, extraInstruction);
     if (Result.isFailure(result)) {
       return Result.fail(result.error);
     }
@@ -53,7 +53,7 @@ export async function executeContextAction({
     return Result.fail(t("background.actionExecutor.emptyPrompt"));
   }
 
-  const result = await runPromptActionWithOpenAI(target, prompt);
+  const result = await runPromptActionWithAi(target, prompt);
   if (Result.isFailure(result)) {
     return Result.fail(result.error);
   }
