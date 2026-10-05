@@ -53,7 +53,7 @@ describe("schemas/provider", () => {
 
     it("returns the default model if value is undefined", () => {
       expect(normalizeAiModel("openai", undefined)).toBe(
-        OPENAI_MODELS.GPT_5_6_TERRA
+        OPENAI_MODELS.GPT_6_LUNA
       );
       expect(normalizeAiModel("anthropic", undefined)).toBe(
         ANTHROPIC_MODELS.CLAUDE_SONNET_5
@@ -63,7 +63,7 @@ describe("schemas/provider", () => {
 
     it("returns the default model if value is invalid for the provider", () => {
       expect(normalizeAiModel("openai", "invalid-model")).toBe(
-        OPENAI_MODELS.GPT_5_6_TERRA
+        OPENAI_MODELS.GPT_6_LUNA
       );
       expect(normalizeAiModel("anthropic", "gpt-4")).toBe(
         ANTHROPIC_MODELS.CLAUDE_SONNET_5
@@ -73,24 +73,32 @@ describe("schemas/provider", () => {
 
     it("maps deprecated openai model ids to supported ones", () => {
       expect(normalizeAiModel("openai", "gpt-5.1")).toBe(
-        OPENAI_MODELS.GPT_5_6_TERRA
+        OPENAI_MODELS.GPT_6_LUNA
       );
       expect(normalizeAiModel("openai", "gpt-5.4")).toBe(
-        OPENAI_MODELS.GPT_5_6_TERRA
+        OPENAI_MODELS.GPT_6_LUNA
       );
       expect(normalizeAiModel("openai", "gpt-5.4-2026-03-05")).toBe(
-        OPENAI_MODELS.GPT_5_6_TERRA
+        OPENAI_MODELS.GPT_6_LUNA
       );
       expect(normalizeAiModel("openai", "gpt-5.2-chat-latest")).toBe(
-        OPENAI_MODELS.GPT_5_6_TERRA
+        OPENAI_MODELS.GPT_6_LUNA
       );
       expect(normalizeAiModel("openai", "gpt-4o")).toBe(
-        OPENAI_MODELS.GPT_5_6_TERRA
+        OPENAI_MODELS.GPT_6_LUNA
       );
     });
   });
 
   describe("legacy OpenAI model aliases", () => {
+    it.each(["default", "gpt-5-mini", "gpt-5-nano", "gpt-4o-mini"])(
+      "uses Luna for legacy %s rather than promoting to Terra",
+      (model) => {
+        expect(normalizeAiModel("openai", model)).toBe("gpt-6-luna");
+        const parsed = safeParseOpenAiModel(model);
+        expect(parsed.success && parsed.output).toBe("gpt-6-luna");
+      }
+    );
     // 読み替え表は src/constants/models.ts が単一の正本。
     // strict パース経路と fallback 経路が同じ表を参照していることを固定する。
     it("resolves every legacy alias identically through both entry points", () => {

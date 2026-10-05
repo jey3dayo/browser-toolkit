@@ -32,7 +32,7 @@ export const PROVIDER_CONFIGS: Record<
   },
   openai: {
     baseUrl: "https://api.openai.com/v1",
-    defaultModel: OPENAI_MODELS.GPT_5_6_TERRA,
+    defaultModel: OPENAI_MODELS.GPT_6_LUNA,
     label: "OpenAI",
     models: OPENAI_MODEL_LIST,
   },

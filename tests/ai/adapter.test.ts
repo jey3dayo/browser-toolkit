@@ -46,20 +46,23 @@ describe("ai/adapter", () => {
       });
     });
 
-    it("removes temperature for GPT-5 OpenAI models", () => {
-      const { init } = openaiAdapter.buildRequest("test-token", {
-        messages: [{ content: "test", role: "user" }],
-        model: OPENAI_MODELS.GPT_5_6_TERRA,
-        temperature: 0.2,
-      });
+    it.each(Object.values(OPENAI_MODELS))(
+      "removes temperature for supported OpenAI model %s",
+      (model) => {
+        const { init } = openaiAdapter.buildRequest("test-token", {
+          messages: [{ content: "test", role: "user" }],
+          model,
+          temperature: 0.2,
+        });
 
-      const body = JSON.parse(String(init.body)) as {
-        model?: string;
-        temperature?: number;
-      };
-      expect(body.model).toBe(OPENAI_MODELS.GPT_5_6_TERRA);
-      expect(body.temperature).toBeUndefined();
-    });
+        const body = JSON.parse(String(init.body)) as {
+          model?: string;
+          temperature?: number;
+        };
+        expect(body.model).toBe(model);
+        expect(body.temperature).toBeUndefined();
+      }
+    );
 
     it("keeps temperature for non GPT-5 OpenAI models", () => {
       const { init } = openaiAdapter.buildRequest("test-token", {

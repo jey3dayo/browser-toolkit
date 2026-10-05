@@ -8,6 +8,7 @@
  * OpenAI モデル定数
  */
 export const OPENAI_MODELS = {
+  GPT_6_LUNA: "gpt-6-luna",
   GPT_5_6_LUNA: "gpt-5.6-luna",
   GPT_5_6_TERRA: "gpt-5.6-terra",
 } as const;
@@ -49,7 +50,7 @@ export const ANTHROPIC_MODEL_LIST = Object.values(ANTHROPIC_MODELS);
 export const ZAI_MODEL_LIST = Object.values(ZAI_MODELS);
 
 /**
- * 廃止された OpenAI モデル ID から現行モデルへの読み替え表
+ * 旧バージョンで使用していた OpenAI モデル ID から現行モデルへの読み替え表
  *
  * 既存ユーザーの保存済み設定を壊さないために必要。OpenAI モデルを更新する際は
  * ここだけを編集すれば `src/schemas/openai.ts` と `src/schemas/provider.ts` の
@@ -59,16 +60,16 @@ export const LEGACY_OPENAI_MODEL_MAP: Record<
   string,
   (typeof OPENAI_MODEL_LIST)[number]
 > = {
-  default: OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-4o": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-4o-mini": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5-mini": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5-nano": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5-pro": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5.1": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5.2": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5.2-chat-latest": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5.4": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5.4-2026-03-05": OPENAI_MODELS.GPT_5_6_TERRA,
-  "gpt-5.5": OPENAI_MODELS.GPT_5_6_TERRA,
+  default: OPENAI_MODELS.GPT_6_LUNA,
+  "gpt-4o": OPENAI_MODELS.GPT_6_LUNA,
+  "gpt-4o-mini": OPENAI_MODELS.GPT_6_LUNA,
+  "gpt-5-mini": OPENAI_MODELS.GPT_6_LUNA,
+  "gpt-5-nano": OPENAI_MODELS.GPT_6_LUNA,
+  "gpt-5-pro": OPENAI_MODELS.GPT_6_LUNA,
+  "gpt-5.1": OPENAI_MODELS.GPT_6_LUNA,
+  "gpt-5.2": OPENAI_MODELS.GPT_6_LUNA,
+  "gpt-5.2-chat-latest": OPENAI_MODELS.GPT_6_LUNA,
+  "gpt-5.4": OPENAI_MODELS.GPT_6_LUNA,
+  "gpt-5.4-2026-03-05": OPENAI_MODELS.GPT_6_LUNA,
+  "gpt-5.5": OPENAI_MODELS.GPT_6_LUNA,
 };

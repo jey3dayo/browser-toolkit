@@ -7,6 +7,7 @@ describe("schemas/openai", () => {
     // 順序は設定ペインのモデル選択に表示される順そのもの（Luna を先頭に置く）。
     // 表示順は意図的な選択なので、集合だけでなく順序も固定する。
     expect(OPENAI_MODEL_OPTIONS).toEqual([
+      OPENAI_MODELS.GPT_6_LUNA,
       OPENAI_MODELS.GPT_5_6_LUNA,
       OPENAI_MODELS.GPT_5_6_TERRA,
     ]);
@@ -22,14 +23,14 @@ describe("schemas/openai", () => {
 
   it("migrates deprecated models", () => {
     const legacyModels = [
-      { expected: OPENAI_MODELS.GPT_5_6_TERRA, input: "default" },
-      { expected: OPENAI_MODELS.GPT_5_6_TERRA, input: "gpt-5.5" },
-      { expected: OPENAI_MODELS.GPT_5_6_TERRA, input: "gpt-5.4-2026-03-05" },
-      { expected: OPENAI_MODELS.GPT_5_6_TERRA, input: "gpt-5.4" },
-      { expected: OPENAI_MODELS.GPT_5_6_TERRA, input: "gpt-5.2" },
-      { expected: OPENAI_MODELS.GPT_5_6_TERRA, input: "gpt-5.2-chat-latest" },
-      { expected: OPENAI_MODELS.GPT_5_6_TERRA, input: "gpt-5.1" },
-      { expected: OPENAI_MODELS.GPT_5_6_TERRA, input: "gpt-4o" },
+      { expected: OPENAI_MODELS.GPT_6_LUNA, input: "default" },
+      { expected: OPENAI_MODELS.GPT_6_LUNA, input: "gpt-5.5" },
+      { expected: OPENAI_MODELS.GPT_6_LUNA, input: "gpt-5.4-2026-03-05" },
+      { expected: OPENAI_MODELS.GPT_6_LUNA, input: "gpt-5.4" },
+      { expected: OPENAI_MODELS.GPT_6_LUNA, input: "gpt-5.2" },
+      { expected: OPENAI_MODELS.GPT_6_LUNA, input: "gpt-5.2-chat-latest" },
+      { expected: OPENAI_MODELS.GPT_6_LUNA, input: "gpt-5.1" },
+      { expected: OPENAI_MODELS.GPT_6_LUNA, input: "gpt-4o" },
     ];
 
     for (const { input, expected } of legacyModels) {

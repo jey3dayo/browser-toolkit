@@ -243,7 +243,7 @@ describe("popup Settings pane", () => {
     );
     expect(modelSelect).not.toBeNull();
 
-    expect(modelSelect?.textContent).toContain(OPENAI_MODELS.GPT_5_6_TERRA);
+    expect(modelSelect?.textContent).toContain(OPENAI_MODELS.GPT_6_LUNA);
 
     await act(async () => {
       await selectBaseUiOption(
@@ -289,6 +289,19 @@ describe("popup Settings pane", () => {
     expect(modelSelect?.textContent).toContain(
       ANTHROPIC_MODELS.CLAUDE_SONNET_5
     );
+
+    const openaiRadio = dom.window.document.querySelector<HTMLInputElement>(
+      'input[name="aiProvider"][value="openai"]'
+    );
+    await act(async () => {
+      openaiRadio?.click();
+      await flush(dom.window);
+    });
+    expect(chromeStub.storage.local.set).toHaveBeenLastCalledWith(
+      expect.objectContaining({ aiModel: "gpt-6-luna" }),
+      expect.any(Function)
+    );
+    expect(modelSelect?.textContent).toContain("gpt-6-luna");
   });
 
   it("orders theme options into primary and auto groups", () => {

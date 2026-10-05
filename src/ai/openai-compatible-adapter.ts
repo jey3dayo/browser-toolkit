@@ -1,3 +1,4 @@
+import { OPENAI_MODEL_LIST } from "@/constants/models";
 import type { AiProvider } from "@/schemas/provider";
 import { PROVIDER_CONFIGS } from "@/schemas/provider";
 import type { ChatCompletionAdapter, ChatRequestBody } from "./adapter";
@@ -6,7 +7,13 @@ import { extractApiErrorMessage } from "./adapter-helpers";
 type OpenAiCompatibleProvider = Extract<AiProvider, "openai" | "zai">;
 
 function buildOpenAiRequestBody(body: ChatRequestBody): ChatRequestBody {
-  if (!body.model.startsWith("gpt-5")) {
+  // 対応モデルは reasoning が既定で有効なため temperature を送らない。
+  if (
+    !(
+      OPENAI_MODEL_LIST.some((model) => model === body.model) ||
+      body.model.startsWith("gpt-5")
+    )
+  ) {
     return body;
   }
 

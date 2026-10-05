@@ -4,7 +4,7 @@ import {
   safeParseOpenAiModel,
 } from "@/schemas/openai";
 
-export const DEFAULT_OPENAI_MODEL = OPENAI_MODELS.GPT_5_6_TERRA;
+export const DEFAULT_OPENAI_MODEL = OPENAI_MODELS.GPT_6_LUNA;
 type OpenAiModelOption = OpenAiModelOptionSchema;
 
 export function normalizeOpenAiModel(value: unknown): OpenAiModelOption {
