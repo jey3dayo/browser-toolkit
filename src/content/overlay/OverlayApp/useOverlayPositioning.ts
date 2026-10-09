@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffectEvent, useLayoutEffect, useRef, useState } from "react";
 import type { OverlayViewModel } from "../OverlayApp";
 import {
   type DragOffset,
@@ -30,9 +30,8 @@ export function useOverlayPositioning(params: Params) {
   const [pinnedPos, setPinnedPos] = useState<Point | null>(null);
   const [dragging, setDragging] = useState(false);
   const dragOffsetRef = useRef<DragOffset | null>(null);
-  const updateOverlayPositionRef = useRef<() => void>(() => undefined);
 
-  updateOverlayPositionRef.current = (): void => {
+  const updateOverlayPosition = useEffectEvent((): void => {
     positionOverlayHost({
       anchorRect: viewModel.anchorRect,
       host,
@@ -45,7 +44,7 @@ export function useOverlayPositioning(params: Params) {
       host,
       panel: panelRef.current,
     });
-  };
+  });
 
   useLayoutEffect(() => {
     if (!viewModel.open) {
@@ -72,7 +71,7 @@ export function useOverlayPositioning(params: Params) {
       lastWidth = width;
       lastHeight = height;
       panelSizeRef.current = { height, width };
-      updateOverlayPositionRef.current();
+      updateOverlayPosition();
     };
 
     const observer = new ResizeObserver(([entry]) => {
@@ -94,7 +93,7 @@ export function useOverlayPositioning(params: Params) {
   }, [viewModel.open, panelRef]);
 
   useLayoutEffect(() => {
-    updateOverlayPositionRef.current();
+    updateOverlayPosition();
   });
 
   useLayoutEffect(() => {
@@ -103,7 +102,7 @@ export function useOverlayPositioning(params: Params) {
     }
 
     const updatePosition = (): void => {
-      updateOverlayPositionRef.current();
+      updateOverlayPosition();
     };
 
     window.addEventListener("resize", updatePosition);
