@@ -45,6 +45,9 @@
     var(--primitive-color-scrim-base) 92%,
     transparent
   );
+
+  /* Resolved at :root/:host; does not follow element-local --color-text overrides. */
+  --color-surface-hover: color-mix(in oklab, var(--color-text) 6%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {

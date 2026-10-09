@@ -59,17 +59,7 @@
 }
 
 .input-icon-toggle:hover {
-  background: color-mix(in oklab, var(--color-text) 6%, transparent);
-}
-
-.input-icon-toggle[data-pressed] {
-  color: var(--text);
-  background: color-mix(
-    in oklab,
-    var(--color-primary) var(--accent-mix-14),
-    transparent
-  );
-  border-color: color-mix(in oklab, var(--color-primary) 35%, var(--line));
+  background: var(--color-surface-hover);
 }
 
 .input-icon-toggle svg {
@@ -137,7 +127,7 @@
 }
 
 .mbu-select-item[data-highlighted] {
-  background: color-mix(in oklab, var(--color-text) 6%, transparent);
+  background: var(--color-surface-hover);
 }
 
 .mbu-select-item[data-selected] {
@@ -182,9 +172,10 @@
 }
 
 .mbu-toggle:hover {
-  background: color-mix(in oklab, var(--color-text) 6%, transparent);
+  background: var(--color-surface-hover);
 }
 
+.input-icon-toggle[data-pressed],
 .mbu-toggle[data-pressed] {
   color: var(--text);
   background: color-mix(
@@ -224,7 +215,7 @@
 }
 
 .mbu-toggle-group-item:hover {
-  background: color-mix(in oklab, var(--color-text) 6%, transparent);
+  background: var(--color-surface-hover);
 }
 
 .mbu-toggle-group-item[data-pressed] {

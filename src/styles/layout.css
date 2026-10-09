@@ -105,7 +105,7 @@
 
 .nav-item:hover {
   color: var(--text);
-  background-color: color-mix(in oklab, var(--color-text) 6%, transparent);
+  background-color: var(--color-surface-hover);
 }
 
 .nav-item.active,

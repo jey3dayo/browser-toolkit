@@ -254,7 +254,9 @@
 }
 
 .mbu-overlay-primary-markdown tr:last-child th,
-.mbu-overlay-primary-markdown tr:last-child td {
+.mbu-overlay-primary-markdown tr:last-child td,
+.mbu-overlay-event-table tr:last-child th,
+.mbu-overlay-event-table tr:last-child td {
   border-bottom: none;
 }
 
@@ -300,11 +302,6 @@
   vertical-align: top;
   text-align: left;
   border-bottom: 1px solid var(--mbu-border);
-}
-
-.mbu-overlay-event-table tr:last-child th,
-.mbu-overlay-event-table tr:last-child td {
-  border-bottom: none;
 }
 
 .mbu-overlay-event-table th {
