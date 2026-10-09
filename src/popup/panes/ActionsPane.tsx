@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useLayoutEffect, useRef } from "react";
 import { SortableList } from "@/components/SortableList";
 import { Badge } from "@/components/shared/Badge";
 import {
@@ -86,7 +86,9 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
     runtime: props.runtime,
     setActions,
   });
-  resetEditorStateRef.current = resetEditorState;
+  useLayoutEffect(() => {
+    resetEditorStateRef.current = resetEditorState;
+  });
 
   const handleReorder = async (
     reorderedActions: ContextAction[]
