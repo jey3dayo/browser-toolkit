@@ -2,7 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { useCallback, useMemo } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
-import { createNotifications, ToastHost } from "@/ui/toast";
+import { ToastHost } from "@/ui/toast";
+import { createNotifications } from "@/ui/toast-manager";
 
 function ToastStory(): React.JSX.Element {
   const notifications = useMemo(() => createNotifications(), []);

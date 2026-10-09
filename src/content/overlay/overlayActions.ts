@@ -1,5 +1,5 @@
 import { t } from "@/i18n";
-import type { createNotifications } from "@/ui/toast";
+import type { createNotifications } from "@/ui/toast-manager";
 
 type OverlayNotify = ReturnType<typeof createNotifications>["notify"];
 

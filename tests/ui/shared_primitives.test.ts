@@ -27,6 +27,7 @@ const allowedBaseUiImportFiles = new Set([
   "src/components/shared/Toggle.tsx",
   "src/components/shared/Tooltip.tsx",
   "src/ui/toast.tsx",
+  "src/ui/toast-manager.ts",
 ]);
 const allowedLucideImportFiles = new Set(["src/components/icon.tsx"]);
 const allowedNativeInputFiles = new Set(["src/components/shared/Checkbox.tsx"]);
