@@ -1,40 +1,15 @@
 import { Result } from "@praha/byethrow";
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { useCallback, useRef, useState, useSyncExternalStore } from "react";
 import { Icon } from "@/components/icon";
-import { Accordion } from "@/components/shared/Accordion";
-import { Button } from "@/components/shared/Button";
 import { DrawerDialog } from "@/components/shared/Dialog";
-import { Fieldset } from "@/components/shared/Fieldset";
-import { ButtonRow, RowBetween, Stack } from "@/components/shared/Layout";
-import { Textarea } from "@/components/shared/Textarea";
-import { Hint, PaneTitle } from "@/components/shared/Typography";
 import { t } from "@/i18n";
-import type { BlocklistEntry, BlocklistState } from "@/search-blocklist/types";
-import {
-  computeButtonPosition,
-  computeDialogPosition,
-  findEntryForNode,
-  isDomNode,
-  splitPatternLines,
-  suggestPatternFromUrl,
-} from "./dom";
+import type { BlocklistState } from "@/search-blocklist/types";
+import { BlocklistDialogContent } from "./BlocklistDialogContent";
+import { splitPatternLines, suggestPatternFromUrl } from "./dom";
+import { useDialogPosition } from "./useDialogPosition";
+import { useHoveredEntry } from "./useHoveredEntry";
 
 const TRIGGER_CLASS_NAME = "mbu-overlay-action mbu-overlay-icon-button";
-
-function openSearchBlocklistSettings(): void {
-  chrome.runtime
-    .sendMessage({ action: "openPopupPane", paneId: "pane-search-blocklist" })
-    .catch(() => {
-      // no-op
-    });
-}
 
 function addRulesSequentially(
   state: BlocklistState,
@@ -61,117 +36,21 @@ export function FloatingWidget(
     props.state.subscribe,
     props.state.getSnapshot
   );
-  const [hoveredEntry, setHoveredEntry] = useState<BlocklistEntry | null>(null);
-  const [position, setPosition] = useState<{
-    top: number;
-    left: number;
-  } | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [rulesToAddText, setRulesToAddText] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const frozenRef = useRef<boolean>(false);
   const anchorRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const [popupEl, setPopupEl] = useState<HTMLDivElement | null>(null);
   const addTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const primaryButtonRef = useRef<HTMLElement | null>(null);
 
-  useEffect(() => {
-    frozenRef.current = dialogOpen;
-  }, [dialogOpen]);
-
-  const updateDialogPosition = useCallback((popup: HTMLDivElement) => {
-    const trigger = triggerRef.current;
-    if (!trigger) {
-      return;
-    }
-    const triggerRect = trigger.getBoundingClientRect();
-    const dialogPosition = computeDialogPosition(
-      triggerRect,
-      { height: popup.offsetHeight, width: popup.offsetWidth },
-      { height: window.innerHeight, width: window.innerWidth }
-    );
-    popup.style.top = `${Math.round(dialogPosition.top)}px`;
-    popup.style.left = `${Math.round(dialogPosition.left)}px`;
-    popup.style.transformOrigin =
-      dialogPosition.placement === "below" ? "top right" : "bottom right";
-  }, []);
-
-  useLayoutEffect(() => {
-    if (!(dialogOpen && popupEl)) {
-      return;
-    }
-    const handleReposition = () => updateDialogPosition(popupEl);
-    handleReposition();
-    const observer =
-      typeof ResizeObserver === "undefined"
-        ? null
-        : new ResizeObserver(handleReposition);
-    observer?.observe(popupEl);
-    window.addEventListener("resize", handleReposition);
-    return () => {
-      observer?.disconnect();
-      window.removeEventListener("resize", handleReposition);
-    };
-  }, [dialogOpen, popupEl, updateDialogPosition]);
-
-  useEffect(() => {
-    function handlePointerOver(event: PointerEvent): void {
-      if (frozenRef.current === true) {
-        return;
-      }
-      if (event.composedPath().includes(props.host)) {
-        return;
-      }
-      const { target } = event;
-      const node = isDomNode(target) ? target : null;
-      const entry = findEntryForNode(node, props.state.getSnapshot().entries);
-      if (!entry) {
-        setHoveredEntry(null);
-        setPosition(null);
-        return;
-      }
-      setHoveredEntry(entry);
-      setPosition(
-        computeButtonPosition(entry.container.getBoundingClientRect())
-      );
-    }
-
-    document.addEventListener("pointerover", handlePointerOver, {
-      passive: true,
-    });
-    return () => {
-      document.removeEventListener("pointerover", handlePointerOver);
-    };
-  }, [props.host, props.state]);
-
-  useEffect(() => {
-    if (frozenRef.current === true || !hoveredEntry) {
-      return;
-    }
-    const trackedContainer = hoveredEntry.container;
-    function handleReposition(): void {
-      if (!trackedContainer.isConnected) {
-        setHoveredEntry(null);
-        setPosition(null);
-        return;
-      }
-      setPosition(
-        computeButtonPosition(trackedContainer.getBoundingClientRect())
-      );
-    }
-    window.addEventListener("scroll", handleReposition, {
-      capture: true,
-      passive: true,
-    });
-    window.addEventListener("resize", handleReposition, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", handleReposition, {
-        capture: true,
-      });
-      window.removeEventListener("resize", handleReposition);
-    };
-  }, [hoveredEntry, dialogOpen]);
+  const { hoveredEntry, position, clearHover } = useHoveredEntry({
+    frozen: dialogOpen,
+    host: props.host,
+    state: props.state,
+  });
+  useDialogPosition({ dialogOpen, popupEl, triggerRef });
 
   const currentEntry = hoveredEntry
     ? (snapshot.entries.find(
@@ -189,11 +68,10 @@ export function FloatingWidget(
         );
       }
       if (!open) {
-        setHoveredEntry(null);
-        setPosition(null);
+        clearHover();
       }
     },
-    [currentEntry]
+    [clearHover, currentEntry]
   );
 
   const handleSubmit = useCallback(() => {
@@ -245,11 +123,6 @@ export function FloatingWidget(
     return null;
   }
 
-  const hostname = suggestPatternFromUrl(currentEntry.url);
-  const rulesToRemoveText = currentEntry.blocked
-    ? (currentEntry.matchedPatterns ?? []).join("\n")
-    : t("searchBlocklist.dialog.rulesToRemoveEmpty");
-
   return (
     <div
       ref={anchorRef}
@@ -278,94 +151,17 @@ export function FloatingWidget(
         triggerClassName={TRIGGER_CLASS_NAME}
         triggerRef={triggerRef}
       >
-        <Stack spacing="small">
-          <PaneTitle>
-            {currentEntry.blocked
-              ? t("searchBlocklist.dialog.titleUnblock")
-              : t("searchBlocklist.dialog.titleBlock")}
-          </PaneTitle>
-          <Hint>
-            {hostname || t("searchBlocklist.dialog.hostnameFallback")}
-          </Hint>
-
-          <Accordion
-            className="mbu-blocklist-details"
-            defaultOpen={false}
-            itemValue="search-blocklist-details"
-            title={t("searchBlocklist.dialog.detailsTitle")}
-          >
-            <Stack spacing="small">
-              <RowBetween>
-                <span>{t("searchBlocklist.dialog.detailsUrl")}</span>
-                <span>{currentEntry.url}</span>
-              </RowBetween>
-              <RowBetween>
-                <span>{t("searchBlocklist.dialog.detailsTitleField")}</span>
-                <span>{currentEntry.title}</span>
-              </RowBetween>
-              <RowBetween>
-                <span>{t("searchBlocklist.dialog.detailsEngine")}</span>
-                <span>{snapshot.engineId}</span>
-              </RowBetween>
-            </Stack>
-          </Accordion>
-
-          {!currentEntry.blocked && (
-            <Fieldset legend={t("searchBlocklist.dialog.rulesToAdd")}>
-              <Textarea
-                onChange={handleRulesToAddChange}
-                placeholder={t("searchBlocklist.dialog.rulesToAddPlaceholder")}
-                ref={addTextareaRef}
-                rows={3}
-                value={rulesToAddText}
-                variant="pattern"
-              />
-            </Fieldset>
-          )}
-
-          <Fieldset legend={t("searchBlocklist.dialog.rulesToRemove")}>
-            <Textarea
-              readOnly
-              rows={2}
-              value={rulesToRemoveText}
-              variant="pattern"
-            />
-          </Fieldset>
-
-          {errorMessage && <Hint as="div">{errorMessage}</Hint>}
-
-          <ButtonRow className="mbu-blocklist-footer">
-            <Button
-              aria-label={t("searchBlocklist.dialog.openSettingsAria")}
-              className="mbu-blocklist-footer-settings"
-              onClick={openSearchBlocklistSettings}
-              size="small"
-              type="button"
-              variant="ghost"
-            >
-              <Icon aria-hidden="true" name="settings" size={16} />
-            </Button>
-            <Button
-              onClick={handleCancel}
-              size="small"
-              type="button"
-              variant="ghost"
-            >
-              {t("searchBlocklist.dialog.cancelAction")}
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              ref={primaryButtonRef}
-              size="small"
-              type="button"
-              variant="primary"
-            >
-              {currentEntry.blocked
-                ? t("searchBlocklist.dialog.unblockAction")
-                : t("searchBlocklist.dialog.blockAction")}
-            </Button>
-          </ButtonRow>
-        </Stack>
+        <BlocklistDialogContent
+          addTextareaRef={addTextareaRef}
+          engineId={snapshot.engineId}
+          entry={currentEntry}
+          errorMessage={errorMessage}
+          onCancel={handleCancel}
+          onRulesToAddChange={handleRulesToAddChange}
+          onSubmit={handleSubmit}
+          primaryButtonRef={primaryButtonRef}
+          rulesToAddText={rulesToAddText}
+        />
       </DrawerDialog>
     </div>
   );
