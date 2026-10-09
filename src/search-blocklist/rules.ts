@@ -109,6 +109,12 @@ export function normalizeSearchBlocklistPattern(
   return Result.succeed(normalizedPattern);
 }
 
+export function isSearchBlocklistRuleList(
+  value: unknown
+): value is SearchBlocklistRule[] {
+  return Array.isArray(value) && value.every(isSearchBlocklistRule);
+}
+
 export function isSearchBlocklistRule(
   value: unknown
 ): value is SearchBlocklistRule {
