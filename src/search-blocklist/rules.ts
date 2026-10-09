@@ -6,10 +6,10 @@ import type { SearchBlocklistRule } from "./types";
 
 const SEARCH_BLOCKLIST_RULE_ID_PREFIX = "sbl";
 
-export const SEARCH_BLOCKLIST_RULE_LIMIT = 2000;
-export const SEARCH_BLOCKLIST_PATTERN_MAX_LENGTH = 255;
-export const SEARCH_BLOCKLIST_PATTERN_MAX_WILDCARDS = 3;
-export const SEARCH_BLOCKLIST_URL_MAX_LENGTH = 2048;
+const SEARCH_BLOCKLIST_RULE_LIMIT = 2000;
+const SEARCH_BLOCKLIST_PATTERN_MAX_LENGTH = 255;
+const SEARCH_BLOCKLIST_PATTERN_MAX_WILDCARDS = 3;
+const SEARCH_BLOCKLIST_URL_MAX_LENGTH = 2048;
 
 const ALLOWED_SCHEMES = new Set(["*", "http", "https"]);
 
@@ -125,9 +125,7 @@ export function isSearchBlocklistRuleList(
   return Array.isArray(value) && value.every(isSearchBlocklistRule);
 }
 
-export function isSearchBlocklistRule(
-  value: unknown
-): value is SearchBlocklistRule {
+function isSearchBlocklistRule(value: unknown): value is SearchBlocklistRule {
   if (!isRecord(value)) {
     return false;
   }

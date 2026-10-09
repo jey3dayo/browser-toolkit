@@ -7,23 +7,23 @@ export type SummaryTarget = {
   url?: string;
 };
 
-export type ShowNotificationMessage = {
+type ShowNotificationMessage = {
   action: "showNotification";
   message: string;
 };
 
-export type GetSummaryTargetTextMessage = {
+type GetSummaryTargetTextMessage = {
   action: "getSummaryTargetText";
   ignoreSelection?: boolean;
 };
 
-export type CopyToClipboardMessage = {
+type CopyToClipboardMessage = {
   action: "copyToClipboard";
   text: string;
   successMessage?: string;
 };
 
-export type PasteTemplateMessage = {
+type PasteTemplateMessage = {
   action: "pasteTemplate";
   content: string;
 };
@@ -49,7 +49,7 @@ export type ActionOverlayRequest = {
   event?: ExtractedEvent;
 };
 
-export type ShowQrCodeOverlayMessage = {
+type ShowQrCodeOverlayMessage = {
   action: "showQrCodeOverlay";
   url: string;
 };

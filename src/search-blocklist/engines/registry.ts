@@ -1,7 +1,7 @@
 import { googleAdapter } from "./google";
 import type { SearchEngineAdapter } from "./types";
 
-export const searchEngineAdapters: SearchEngineAdapter[] = [googleAdapter];
+const searchEngineAdapters: SearchEngineAdapter[] = [googleAdapter];
 
 export function findAdapterForLocation(
   location: Location

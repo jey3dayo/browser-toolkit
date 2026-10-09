@@ -12,9 +12,7 @@ import { applyTheme, isTheme, type Theme } from "@/ui/theme";
 import { CountBar } from "./CountBar";
 import { FloatingWidget } from "./FloatingWidget";
 
-export function createFakeBlocklistState(
-  initial: BlocklistSnapshot
-): BlocklistState {
+function createFakeBlocklistState(initial: BlocklistSnapshot): BlocklistState {
   const snapshot = initial;
   const listeners = new Set<() => void>();
 

@@ -1,7 +1,7 @@
 import { Toast } from "@base-ui/react/toast";
 import { cloneElement, useMemo } from "react";
 
-export type NotifyOptions = {
+type NotifyOptions = {
   title: string;
   description?: React.ReactNode;
 };
@@ -13,7 +13,7 @@ export type Notifier = {
 };
 
 export type ToastManager = ReturnType<typeof Toast.createToastManager>;
-export type ToastPortalContainer = React.ComponentProps<
+type ToastPortalContainer = React.ComponentProps<
   typeof Toast.Portal
 >["container"];
 

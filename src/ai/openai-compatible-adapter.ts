@@ -1,9 +1,7 @@
 import type { ChatCompletionAdapter, ChatRequestBody } from "./adapter";
 import { extractApiErrorMessage } from "./adapter-helpers";
 
-export function extractOpenAiCompatibleChoiceText(
-  json: unknown
-): string | null {
+function extractOpenAiCompatibleChoiceText(json: unknown): string | null {
   if (typeof json !== "object" || json === null) {
     return null;
   }

@@ -2,7 +2,7 @@ import { Button } from "@/components/shared/Button";
 import { ButtonRow } from "@/components/shared/Layout";
 import { t } from "@/i18n";
 
-export type CalendarActionButtonState = {
+type CalendarActionButtonState = {
   visible: boolean;
   enabled: boolean;
 };

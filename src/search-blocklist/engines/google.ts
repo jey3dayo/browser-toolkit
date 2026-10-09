@@ -17,7 +17,7 @@ function extractTitle(
   return (heading?.textContent ?? anchor.textContent ?? "").trim();
 }
 
-export function findResults(root: ParentNode): SearchResultEntry[] {
+function findResults(root: ParentNode): SearchResultEntry[] {
   const anchors = Array.from(
     root.querySelectorAll<HTMLAnchorElement>(EXTERNAL_LINK_SELECTOR)
   );
@@ -57,7 +57,7 @@ export function findResults(root: ParentNode): SearchResultEntry[] {
   return entries;
 }
 
-export function matches(location: Location): boolean {
+function matches(location: Location): boolean {
   return (
     GOOGLE_SEARCH_HOSTS.has(location.hostname) &&
     location.pathname === "/search"

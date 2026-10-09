@@ -18,7 +18,7 @@ export type BackgroundRequest =
       source?: "popup" | "contextMenu";
     };
 
-export type BackgroundSuccessPayload = {
+type BackgroundSuccessPayload = {
   summary: string;
   source: SummarySource;
 };

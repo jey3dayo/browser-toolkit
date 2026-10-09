@@ -1,10 +1,10 @@
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 
-export type DialogPortalContainer = React.ComponentProps<
+type DialogPortalContainer = React.ComponentProps<
   typeof BaseDialog.Portal
 >["container"];
 
-export type DrawerDialogInitialFocus = React.ComponentProps<
+type DrawerDialogInitialFocus = React.ComponentProps<
   typeof BaseDialog.Popup
 >["initialFocus"];
 

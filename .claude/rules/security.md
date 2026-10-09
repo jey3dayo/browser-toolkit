@@ -199,10 +199,10 @@ if (import.meta.env.DEV) {
 
 ```typescript
 // src/search-blocklist/rules.ts の上限
-export const SEARCH_BLOCKLIST_RULE_LIMIT = 2000;
-export const SEARCH_BLOCKLIST_PATTERN_MAX_LENGTH = 255;
-export const SEARCH_BLOCKLIST_PATTERN_MAX_WILDCARDS = 3;
-export const SEARCH_BLOCKLIST_URL_MAX_LENGTH = 2048;
+const SEARCH_BLOCKLIST_RULE_LIMIT = 2000;
+const SEARCH_BLOCKLIST_PATTERN_MAX_LENGTH = 255;
+const SEARCH_BLOCKLIST_PATTERN_MAX_WILDCARDS = 3;
+const SEARCH_BLOCKLIST_URL_MAX_LENGTH = 2048;
 ```
 
 ## 📋 コードレビューチェックリスト
