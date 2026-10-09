@@ -10,7 +10,7 @@ import { isRecord } from "@/utils/guards";
 import {
   type CompiledSearchBlocklistPattern,
   compileSearchBlocklistPattern,
-  isSearchBlocklistRule,
+  isSearchBlocklistRuleList,
   matchesCompiledSearchBlocklistPattern,
   normalizeSearchBlocklistPattern,
   partitionStoredSearchBlocklistRules,
@@ -38,12 +38,6 @@ export type BlocklistStateController = BlocklistState & {
 };
 
 const HASH_MODULUS = 2_147_483_647;
-
-function isSearchBlocklistRuleList(
-  value: unknown
-): value is SearchBlocklistRule[] {
-  return Array.isArray(value) && value.every(isSearchBlocklistRule);
-}
 
 function isSearchBlocklistMutationPayload(
   value: unknown

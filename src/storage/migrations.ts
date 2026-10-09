@@ -18,6 +18,7 @@ import {
   YANDEX_SEARCH_ENGINE,
 } from "@/search_engines";
 import type { LocalStorageData } from "@/storage/types";
+import { runSequentially } from "@/utils/async";
 
 /**
  * Migration function interface
@@ -211,16 +212,6 @@ export interface BackupData {
 const SCHEMA_VERSION_KEY = STORAGE_RESERVED_KEYS.SCHEMA_VERSION;
 const MIGRATION_LOG_KEY = STORAGE_RESERVED_KEYS.MIGRATION_LOG;
 const BACKUP_KEY_PREFIX = STORAGE_RESERVED_KEYS.BACKUP_PREFIX;
-
-function runSequentially<T>(
-  items: readonly T[],
-  task: (item: T) => Promise<void>
-): Promise<void> {
-  return items.reduce(
-    (previous, item) => previous.then(() => task(item)),
-    Promise.resolve()
-  );
-}
 
 /**
  * Get current schema version

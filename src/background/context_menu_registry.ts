@@ -51,6 +51,7 @@ import {
 } from "@/background/context_menu_storage";
 import { t } from "@/i18n";
 import { getPaneSurfacePage } from "@/popup/panes";
+import { runSequentially } from "@/utils/async";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
 import {
@@ -99,16 +100,6 @@ function createBuiltinRootMenuItems(): chrome.contextMenus.CreateProperties[] {
       type: "separator",
     },
   ];
-}
-
-function runSequentially<T>(
-  items: readonly T[],
-  task: (item: T) => Promise<void>
-): Promise<void> {
-  return items.reduce(
-    (previous, item) => previous.then(() => task(item)),
-    Promise.resolve()
-  );
 }
 
 /**

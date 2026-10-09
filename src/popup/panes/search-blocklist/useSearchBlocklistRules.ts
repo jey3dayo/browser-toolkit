@@ -9,7 +9,7 @@ import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { searchBlocklistMutationFailureMessage } from "@/search-blocklist/mutation_failure_message";
 import {
   compileSearchBlocklistPattern,
-  isSearchBlocklistRule,
+  isSearchBlocklistRuleList,
   listDisplayableSearchBlocklistRules,
   normalizeSearchBlocklistPattern,
   validateSearchBlocklistRules,
@@ -49,12 +49,6 @@ type SearchBlocklistMutatePayload = {
   revision: number;
   skippedCount: number;
 };
-
-function isSearchBlocklistRuleList(
-  value: unknown
-): value is SearchBlocklistRule[] {
-  return Array.isArray(value) && value.every(isSearchBlocklistRule);
-}
 
 function isSearchBlocklistMutatePayload(
   value: unknown
