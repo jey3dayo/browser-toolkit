@@ -145,7 +145,7 @@ body.no-js:has(.pane:target) .pane.active:not(:target) {
 
 .mbu-popover-trigger:hover {
   color: var(--text);
-  background: color-mix(in oklab, var(--color-text) 6%, transparent);
+  background: var(--color-surface-hover);
 }
 
 .mbu-popover-trigger:focus-visible {

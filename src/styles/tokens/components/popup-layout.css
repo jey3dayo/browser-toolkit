@@ -11,7 +11,8 @@
   font-size: var(--font-size-md);
 }
 
-.editor-form {
+.editor-form,
+.mbu-radio-group {
   display: grid;
   gap: 10px;
 }
@@ -39,10 +40,7 @@
   box-shadow: var(--shadow);
 }
 
-#pane-actions .pane-intro {
-  grid-template-columns: minmax(0, 1fr);
-}
-
+#pane-actions .pane-intro,
 #pane-table .pane-intro,
 #pane-settings .pane-intro {
   grid-template-columns: minmax(0, 1fr);
@@ -61,7 +59,8 @@
   font-size: var(--font-size-xl);
 }
 
-.muted {
+.muted,
+.meta-note {
   margin: 0;
   line-height: 1.5;
   color: var(--text-sub);
@@ -73,11 +72,6 @@
   align-items: center;
   color: var(--text-sub);
   cursor: pointer;
-}
-
-.mbu-radio-group {
-  display: grid;
-  gap: 10px;
 }
 
 .mbu-radio-group--horizontal {
@@ -112,7 +106,7 @@
 }
 
 .mbu-radio-root:hover {
-  background: color-mix(in oklab, var(--color-text) 6%, transparent);
+  background: var(--color-surface-hover);
 }
 
 .mbu-radio-root:focus-visible {
@@ -153,12 +147,6 @@
 .meta-title {
   margin: 0;
   font-weight: 700;
-}
-
-.meta-note {
-  margin: 0;
-  line-height: 1.5;
-  color: var(--text-sub);
 }
 
 .card-grid {
@@ -337,7 +325,8 @@
   letter-spacing: 0;
 }
 
-.actions-page .field {
+.actions-page .field,
+.actions-page .button-row {
   gap: 7px;
 }
 
@@ -422,10 +411,6 @@
   background: var(--actions-surface);
   border-color: var(--actions-line);
   box-shadow: 0 1px 2px var(--primitive-alpha-black-06);
-}
-
-.actions-page .button-row {
-  gap: 7px;
 }
 
 .actions-page .button-row .btn,

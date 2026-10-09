@@ -111,7 +111,7 @@
 /* Button hover state */
 .mbu-accordion-copy-btn:hover:not(:disabled) {
   color: var(--text);
-  background: color-mix(in oklab, var(--color-text) 6%, transparent);
+  background: var(--color-surface-hover);
   transform: scale(1.05);
 }
 

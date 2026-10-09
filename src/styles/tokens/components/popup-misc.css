@@ -13,11 +13,6 @@
   color: var(--text-sub);
 }
 
-.table-pane-heading {
-  flex-wrap: wrap;
-  align-items: flex-start;
-}
-
 .table-pane-section {
   display: grid;
   gap: var(--spacing-sm);
@@ -56,7 +51,8 @@
   position: relative;
 }
 
-.pattern-list-inner {
+.pattern-list-inner,
+.search-engines-list {
   padding: 0;
   margin: 0;
   list-style: none;
@@ -182,9 +178,9 @@
   margin-top: 10px;
 }
 
-.prompt-input {
+.prompt-input,
+.summary-output {
   width: 100%;
-  min-height: 110px;
   padding: 12px;
   font: inherit;
   font-size: var(--font-size-md);
@@ -196,28 +192,19 @@
   border-radius: var(--input-radius);
 }
 
-.prompt-input::placeholder {
-  color: var(--input-placeholder);
+.prompt-input {
+  min-height: 110px;
 }
 
 .summary-output {
-  width: 100%;
   min-height: 160px;
-  padding: 12px;
-  font: inherit;
-  font-size: var(--font-size-md);
-  line-height: 1.5;
-  color: var(--input-text);
-  resize: vertical;
-  background: var(--input-bg);
-  border: var(--input-border);
-  border-radius: var(--input-radius);
 }
 
 .summary-output--sm {
   min-height: 120px;
 }
 
+.prompt-input::placeholder,
 .summary-output::placeholder {
   color: var(--input-placeholder);
 }
@@ -279,11 +266,6 @@ input[type="checkbox"] {
   );
   border: 1px solid color-mix(in oklab, var(--line) 96%, transparent);
   border-radius: var(--radius-lg);
-}
-
-.focus-diagnostic-panel > .row-between {
-  flex-wrap: wrap;
-  align-items: flex-start;
 }
 
 .focus-diagnostic-eyebrow {
@@ -372,6 +354,8 @@ input[type="checkbox"] {
   gap: var(--spacing-md);
 }
 
+.table-pane-heading,
+.focus-diagnostic-panel > .row-between,
 .settings-surface-heading {
   flex-wrap: wrap;
   align-items: flex-start;
@@ -513,10 +497,6 @@ input[type="checkbox"] {
   flex-basis: 100%;
 }
 
-.settings-pane-card[data-section="token"] {
-  gap: var(--spacing-md);
-}
-
 /* Buttons size to their label. Stretching 保存 across half the card made the
    primary action read as a banner rather than a control. */
 .settings-pane-card .settings-token-primary-actions {
@@ -531,14 +511,9 @@ input[type="checkbox"] {
   margin-left: auto;
 }
 
-.settings-pane-card[data-section="prompt"] {
-  gap: var(--spacing-md);
-}
-
-.settings-pane-card[data-section="theme"] {
-  gap: var(--spacing-md);
-}
-
+.settings-pane-card[data-section="token"],
+.settings-pane-card[data-section="prompt"],
+.settings-pane-card[data-section="theme"],
 .calendar-settings-pane .settings-pane-card,
 .debug-settings-pane .settings-pane-card,
 .templates-settings-pane .settings-pane-card {
@@ -573,12 +548,6 @@ input[type="checkbox"] {
 }
 
 /* Search Engine Settings UI */
-.search-engines-list {
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
-
 .search-engine-item {
   display: flex;
   gap: 12px;
