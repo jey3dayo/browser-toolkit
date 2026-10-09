@@ -25,7 +25,7 @@
   color: color-mix(in oklab, var(--color-primary) 65%, var(--color-text));
   background: color-mix(
     in oklab,
-    var(--color-primary) var(--accent-mix-15),
+    var(--color-primary) var(--accent-mix-14),
     transparent
   );
 }
