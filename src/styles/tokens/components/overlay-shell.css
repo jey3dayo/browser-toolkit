@@ -216,30 +216,8 @@
   stroke-width: 2.2;
 }
 
-.mbu-overlay-icon-button[data-active="true"],
-.mbu-overlay-primary {
+.mbu-overlay-icon-button[data-active="true"] {
   background: color-mix(in oklab, var(--mbu-accent) 14%, var(--mbu-surface));
-}
-
-.mbu-overlay-drag {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  color: var(--mbu-text);
-  appearance: none;
-  touch-action: none;
-  cursor: grab;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-}
-
-.mbu-overlay-drag:active {
-  cursor: grabbing;
 }
 
 .mbu-overlay-body {

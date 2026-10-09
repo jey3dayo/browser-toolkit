@@ -28,42 +28,9 @@
   border-radius: var(--radius-sm);
 }
 
-.pane-intro {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(200px, 220px);
-  gap: 16px;
-  align-items: start;
-  padding: 16px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-}
-
-#pane-actions .pane-intro,
-#pane-table .pane-intro,
-#pane-settings .pane-intro {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.pane-eyebrow {
-  margin: 0 0 6px;
-  font-size: var(--font-size-xs);
-  color: var(--text-sub);
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-}
-
 .pane h2 {
   margin: 0 0 6px;
   font-size: var(--font-size-xl);
-}
-
-.muted,
-.meta-note {
-  margin: 0;
-  line-height: 1.5;
-  color: var(--text-sub);
 }
 
 .checkbox-inline {
@@ -137,26 +104,9 @@
   opacity: 1;
 }
 
-.meta-card {
-  padding: 14px;
-  background: var(--panel-soft);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-}
-
 .meta-title {
   margin: 0;
   font-weight: 700;
-}
-
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 14px;
-}
-
-#pane-table .card-grid {
-  grid-template-columns: 1fr;
 }
 
 .card {
@@ -184,29 +134,8 @@
   );
 }
 
-.card-header {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.card-eyebrow {
-  margin: 0;
-  font-size: var(--font-size-xs);
-  color: var(--text-sub);
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-}
-
 .card h3 {
   margin: 4px 0 6px;
-}
-
-.card-copy {
-  margin: 0 0 12px;
-  line-height: 1.5;
-  color: var(--text-sub);
 }
 
 .actions-page {

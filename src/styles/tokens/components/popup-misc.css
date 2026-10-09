@@ -51,8 +51,7 @@
   position: relative;
 }
 
-.pattern-list-inner,
-.search-engines-list {
+.pattern-list-inner {
   padding: 0;
   margin: 0;
   list-style: none;
@@ -155,29 +154,6 @@
   white-space: nowrap;
 }
 
-.bullet-list {
-  padding-left: 16px;
-  margin: 0;
-  line-height: 1.6;
-  color: var(--text-sub);
-}
-
-.token-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-  margin: 8px 0 6px;
-}
-
-.token-row-main {
-  flex-wrap: nowrap;
-}
-
-.token-row-actions {
-  margin-top: 10px;
-}
-
 .prompt-input,
 .summary-output {
   width: 100%;
@@ -220,13 +196,6 @@
   background: color-mix(in oklab, var(--panel-soft) 88%, transparent);
   border: 1px solid color-mix(in oklab, var(--line) 90%, transparent);
   border-radius: var(--radius-md);
-}
-
-.field-label {
-  display: block;
-  margin-top: 8px;
-  margin-bottom: 4px;
-  color: var(--text-sub);
 }
 
 .hint {
@@ -364,15 +333,6 @@ input[type="checkbox"] {
 .settings-surface-heading > .stack-sm {
   flex: 1;
   min-width: 0;
-}
-
-.settings-section-label {
-  align-self: center;
-  min-width: 0;
-  font-size: var(--font-size-md);
-  font-weight: 700;
-  line-height: 1.4;
-  color: var(--text);
 }
 
 .settings-output-panel,
