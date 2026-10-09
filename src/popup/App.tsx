@@ -1,5 +1,12 @@
 import { Result } from "@praha/byethrow";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { APP_NAME } from "@/app_meta";
 import { TabsPanel, TabsRoot } from "@/components/shared/Tabs";
@@ -117,20 +124,17 @@ export function PopupApp({
     [surface]
   );
 
-  const syncFromHashRef = useRef<() => void>(() => {
-    // no-op until the first render assigns the current handler
-  });
-  syncFromHashRef.current = () => {
+  const syncFromHash = useEffectEvent(() => {
     const next = parsePaneHash(window.location.hash).paneId;
     if (!(next && canSurfaceRender(surface, next))) {
       return;
     }
     setTabValue(next);
-  };
+  });
 
   useEffect(() => {
     const handleHashChange = () => {
-      syncFromHashRef.current();
+      syncFromHash();
     };
 
     window.addEventListener("hashchange", handleHashChange);
