@@ -96,7 +96,7 @@ export type DownloadImagePayload = {
   url: string;
 };
 
-export const downloadImageRequestSchema = object({
+const downloadImageRequestSchema = object({
   action: literal("downloadImage"),
   url: string(),
 }) satisfies BaseSchema<unknown, DownloadImagePayload, BaseIssue<unknown>>;

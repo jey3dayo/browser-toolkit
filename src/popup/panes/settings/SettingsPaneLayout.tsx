@@ -2,7 +2,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import type { ComponentPropsWithoutRef } from "react";
 import { ButtonRow } from "@/components/shared/Layout";
 
-export type SettingsPaneCardSection =
+type SettingsPaneCardSection =
   | "provider"
   | "token"
   | "model"

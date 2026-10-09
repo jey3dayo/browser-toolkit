@@ -12,13 +12,11 @@ import { matchesAnyPattern } from "@/utils/url-pattern";
 // Re-export types from background/types for popup components
 export type {
   RunContextActionResponse,
-  SummarizeEventResponse,
   SummaryTarget,
 } from "@/background/types";
 export type { SyncStorageData } from "@/storage/types";
 
 export type EnableTableSortMessage = { action: "enableTableSort" };
-export type EnableTableSortResponse = { success: boolean };
 
 export type RunContextActionRequest = {
   action: "runContextAction";
@@ -40,22 +38,11 @@ type TestTokenFields = {
 export type TestOpenAiTokenRequest = TestTokenFields & {
   action: "testOpenAiToken";
 };
-export type TestOpenAiTokenResponse = Result.Result<void, string>;
 
 export type TestAiTokenRequest = TestTokenFields & {
   action: "testAiToken";
 };
 export type TestAiTokenResponse = Result.Result<void, string>;
-
-export type DownloadDebugLogsRequest = {
-  action: "downloadDebugLogs";
-};
-export type DownloadDebugLogsResponse = Result.Result<void, string>;
-
-export type ClearDebugLogsRequest = {
-  action: "clearDebugLogs";
-};
-export type ClearDebugLogsResponse = Result.Result<void, string>;
 
 export type ActiveTabInfo = {
   id: number;

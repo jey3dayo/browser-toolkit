@@ -21,7 +21,7 @@ export type ChatFollowUpRequest = {
   context: string;
 };
 
-export type ChatFollowUpResponse = Result.Result<{ text: string }, string>;
+type ChatFollowUpResponse = Result.Result<{ text: string }, string>;
 
 export type OpenPopupPaneRequest = {
   action: "openPopupPane";
@@ -39,10 +39,7 @@ export type SearchBlocklistMutateResponse = Result.Result<
 
 export type DownloadImageRequest = DownloadImagePayload;
 
-export type DownloadImageResponse = Result.Result<
-  Record<string, never>,
-  string
->;
+type DownloadImageResponse = Result.Result<Record<string, never>, string>;
 
 export type RuntimeRequest =
   | BackgroundRequest
@@ -94,7 +91,7 @@ type RuntimeResponse =
 
 export type RuntimeSendResponse = (response?: RuntimeResponse) => void;
 
-export type DebugLogAction =
+type DebugLogAction =
   | "downloadDebugLogs"
   | "clearDebugLogs"
   | "getDebugLogStats"

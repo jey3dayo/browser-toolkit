@@ -12,7 +12,7 @@ import {
 } from "valibot";
 import type { DebugLogEntry } from "@/utils/debug_log";
 
-export const DebugLogEntrySchema = object({
+const DebugLogEntrySchema = object({
   context: string(),
   data: optional(unknown()),
   level: picklist(["debug", "info", "warn", "error"]),

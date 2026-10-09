@@ -6,12 +6,12 @@ import { Fieldset } from "@/components/shared/Fieldset";
 
 const radioOptionsVariants = cva("mbu-radio-options");
 
-export type RadioFieldsetOption = {
+type RadioFieldsetOption = {
   label: React.ReactNode;
   value: string;
 };
 
-export type RadioFieldsetOptionGroup = {
+type RadioFieldsetOptionGroup = {
   className?: string;
   options: RadioFieldsetOption[];
   testId?: string;

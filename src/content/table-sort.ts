@@ -181,7 +181,7 @@ function sortTable(
  * @param columnIndex - フィルタリング対象の列インデックス
  * @param enableRowFilter - 行フィルタリングを有効にするかどうか
  */
-export function applyRowFiltering(
+function applyRowFiltering(
   rows: HTMLTableRowElement[],
   columnIndex: number,
   enableRowFilter: boolean

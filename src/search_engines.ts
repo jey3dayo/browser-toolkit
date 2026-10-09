@@ -22,7 +22,7 @@ export const BUILTIN_SEARCH_ENGINE_IDS = {
   YOUTUBE: "builtin:youtube",
 } as const;
 
-export const SOUNDHOUSE_SEARCH_ENGINE: SearchEngine = {
+const SOUNDHOUSE_SEARCH_ENGINE: SearchEngine = {
   enabled: true,
   id: BUILTIN_SEARCH_ENGINE_IDS.SOUNDHOUSE,
   name: "サウンドハウス",

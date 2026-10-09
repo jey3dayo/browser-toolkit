@@ -1,4 +1,4 @@
-export const LINK_FORMATS = [
+const LINK_FORMATS = [
   "url",
   "text",
   "markdown",

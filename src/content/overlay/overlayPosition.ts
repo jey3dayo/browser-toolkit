@@ -14,7 +14,7 @@ import {
 export type Point = import("@/shared_types").Point;
 export type DragOffset = { x: number; y: number };
 export type PanelSize = Size;
-export type StateSetter<T> = React.Dispatch<React.SetStateAction<T>>;
+type StateSetter<T> = React.Dispatch<React.SetStateAction<T>>;
 
 /**
  * Get panel size from DOM element
@@ -137,7 +137,7 @@ export function positionOverlayHost(params: {
 /**
  * Drag handler parameter types
  */
-export type OverlayDragBaseParams = {
+type OverlayDragBaseParams = {
   event: React.PointerEvent<HTMLElement>;
   dragOffsetRef: React.MutableRefObject<DragOffset | null>;
   setDragging: StateSetter<boolean>;

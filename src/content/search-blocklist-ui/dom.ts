@@ -45,7 +45,7 @@ const DIALOG_VIEWPORT_MARGIN = 16;
 const DIALOG_TRIGGER_GAP = 8;
 
 export type DialogTriggerRect = Pick<DOMRect, "top" | "right" | "bottom">;
-export type DialogPlacement = "above" | "below";
+type DialogPlacement = "above" | "below";
 export type DialogPosition = Point & { placement: DialogPlacement };
 
 function clamp(value: number, min: number, max: number): number {
