@@ -14,6 +14,7 @@ import { coerceSummarySourceLabel } from "@/popup/utils/summary_source_label";
 import { fetchSummaryTargetForActiveTab } from "@/popup/utils/summary_target";
 import type { CalendarRegistrationTarget } from "@/shared_types";
 import type { Notifier } from "@/ui/toast";
+import { copyToClipboard } from "@/utils/clipboard";
 import { buildIcs, sanitizeFileName } from "@/utils/ics";
 import type { OutputState } from "./types";
 
@@ -205,16 +206,16 @@ export function useCalendarRun(params: {
       return;
     }
 
-    try {
-      if (!navigator.clipboard?.writeText) {
-        notify.error(t("calendarPane.errors.clipboardUnavailable"));
-        return;
-      }
-      await navigator.clipboard.writeText(text);
+    const result = await copyToClipboard(text);
+    if (Result.isSuccess(result)) {
       notify.success(t("calendarPane.success.copied"));
-    } catch {
-      notify.error(t("calendarPane.errors.copyFailed"));
+      return;
     }
+    notify.error(
+      result.error.type === "unavailable"
+        ? t("calendarPane.errors.clipboardUnavailable")
+        : t("calendarPane.errors.copyFailed")
+    );
   };
 
   const openCalendar = (): void => {

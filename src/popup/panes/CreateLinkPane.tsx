@@ -20,6 +20,7 @@ import { i18n, type TranslationKey } from "@/i18n";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import type { PopupRuntime } from "@/popup/runtime";
 import { persistWithRollback } from "@/popup/utils/persist";
+import { copyToClipboard } from "@/utils/clipboard";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
 import {
@@ -210,16 +211,16 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
       return;
     }
 
-    try {
-      if (!navigator.clipboard?.writeText) {
-        notify.error(t("createLink.errors.clipboardUnavailable"));
-        return;
-      }
-      await navigator.clipboard.writeText(text);
+    const result = await copyToClipboard(text);
+    if (Result.isSuccess(result)) {
       notify.success(t("createLink.success.copied"));
-    } catch {
-      notify.error(t("createLink.errors.copyFailed"));
+      return;
     }
+    notify.error(
+      result.error.type === "unavailable"
+        ? t("createLink.errors.clipboardUnavailable")
+        : t("createLink.errors.copyFailed")
+    );
   };
 
   const handleCopyClick = useCallback(() => {
