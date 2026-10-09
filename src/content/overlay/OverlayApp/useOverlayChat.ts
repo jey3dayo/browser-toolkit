@@ -1,10 +1,7 @@
-import { Result } from "@praha/byethrow";
-import { useRef, useState } from "react";
-import type {
-  ChatFollowUpResponse,
-  ChatMessage,
-} from "@/background/runtime_types";
+import { useLayoutEffect, useRef, useState } from "react";
+import type { ChatMessage } from "@/background/runtime_types";
 import { t } from "@/i18n";
+import { isRecord } from "@/utils/guards";
 
 /**
  * Manage overlay chat follow-up state: message history, in-flight request
@@ -23,8 +20,10 @@ export function useOverlayChat(primary: string) {
     setPrevPrimary(primary);
     setChatMessages([]);
     setIsChatting(false);
-    chatRequestIdRef.current += 1;
   }
+  useLayoutEffect(() => {
+    chatRequestIdRef.current += 1;
+  }, [primary]);
 
   const handleChatSend = (text: string): void => {
     if (!text.trim() || isChatting) {
@@ -47,16 +46,24 @@ export function useOverlayChat(primary: string) {
         if (requestId !== chatRequestIdRef.current) {
           return;
         }
-        const res = response as ChatFollowUpResponse | undefined;
-        if (res && Result.isSuccess(res) && res.value.text) {
+        const replyText =
+          isRecord(response) &&
+          response.type === "Success" &&
+          isRecord(response.value) &&
+          typeof response.value.text === "string"
+            ? response.value.text
+            : "";
+        if (replyText) {
           setChatMessages((prev) => [
             ...prev,
-            { content: res.value.text, role: "assistant" },
+            { content: replyText, role: "assistant" },
           ]);
         } else {
           const errorMsg =
-            res && Result.isFailure(res)
-              ? res.error
+            isRecord(response) &&
+            response.type === "Failure" &&
+            typeof response.error === "string"
+              ? response.error
               : t("content.overlay.chatResponseFailed");
           setChatMessages((prev) => [
             ...prev,

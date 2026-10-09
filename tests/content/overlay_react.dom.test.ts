@@ -777,4 +777,74 @@ describe("content overlay (React + Shadow DOM)", () => {
       shadow?.querySelector('[data-message-id="overlay-chat-thinking"]')
     ).toBeNull();
   });
+
+  it("ignores a pending follow-up response after the primary text changes", async () => {
+    await import("@/content.ts");
+    const [listener] = listeners;
+    if (!listener) {
+      throw new Error("missing message listener");
+    }
+
+    let resolveChat: ((value: unknown) => void) | null = null;
+    chromeStub.runtime.sendMessage.mockImplementation((message: unknown) => {
+      if (
+        typeof message === "object" &&
+        message !== null &&
+        "action" in message &&
+        message.action === "chatFollowUp"
+      ) {
+        return new Promise((resolve) => {
+          resolveChat = resolve;
+        });
+      }
+      return Promise.resolve({ ok: true });
+    });
+
+    const showOverlay = (primary: string) =>
+      dispatchMessage(
+        listener,
+        {
+          action: "showActionOverlay",
+          mode: "text",
+          primary,
+          source: "page",
+          status: "ready",
+          title: "Test",
+        },
+        dom.window
+      );
+
+    await showOverlay("最初の回答");
+
+    const shadow =
+      dom.window.document.querySelector<HTMLDivElement>(
+        "#browser-toolkit-overlay"
+      )?.shadowRoot ?? null;
+    expect(shadow).not.toBeNull();
+
+    const textarea = shadow?.querySelector<HTMLTextAreaElement>(
+      ".mbu-overlay-chat-input"
+    );
+    if (!textarea) {
+      throw new Error("chat textarea not found");
+    }
+    inputValue(dom.window, textarea, "追加質問");
+    await flush(dom.window, 2);
+    shadow
+      ?.querySelector<HTMLButtonElement>(".mbu-overlay-chat-input-row button")
+      ?.click();
+    await flush(dom.window, 6);
+    expect(shadow?.textContent).toContain("追加質問");
+
+    await showOverlay("別の回答");
+    await flush(dom.window, 6);
+
+    resolveChat?.(Result.succeed({ text: "STALE" }));
+    await flush(dom.window, 8);
+
+    expect(shadow?.textContent).not.toContain("STALE");
+    expect(
+      shadow?.querySelectorAll("[data-message-id^='overlay-chat-message-']")
+    ).toHaveLength(0);
+  });
 });
