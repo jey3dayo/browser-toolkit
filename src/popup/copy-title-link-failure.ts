@@ -5,7 +5,7 @@ import {
 } from "@/popup/chrome-action-utils";
 import type { createPopupRuntime } from "@/popup/runtime";
 import type { CopyTitleLinkFailure } from "@/storage/types";
-import type { createNotifications } from "@/ui/toast";
+import type { createNotifications } from "@/ui/toast-manager";
 import { coerceLinkFormat, type LinkFormat } from "@/utils/link_format";
 
 export function coerceCopyTitleLinkFailure(

@@ -43,6 +43,34 @@ function splitPattern(
   return Result.succeed({ host, path: path || "/*", scheme });
 }
 
+function normalizeSearchBlocklistHost(
+  host: string
+): Result.Result<string, string> {
+  if (!host) {
+    return Result.fail("ホストを含むパターンを入力してください");
+  }
+  if (host.includes("@")) {
+    return Result.fail("ユーザー情報を含むパターンは未対応です");
+  }
+  if (host.includes(":")) {
+    return Result.fail("ポート指定は未対応です");
+  }
+
+  const hostLabels = host.split(".");
+  for (const [index, label] of hostLabels.entries()) {
+    const isLeadingWildcardLabel = index === 0 && label === "*";
+    if (label.includes("*") && !isLeadingWildcardLabel) {
+      return Result.fail(
+        "ホストのワイルドカードは *.example.com 形式のみ対応しています"
+      );
+    }
+  }
+
+  return Result.succeed(
+    hostLabels.map((label) => label.toLowerCase()).join(".")
+  );
+}
+
 export function normalizeSearchBlocklistPattern(
   input: string
 ): Result.Result<string, string> {
@@ -71,29 +99,11 @@ export function normalizeSearchBlocklistPattern(
   if (!ALLOWED_SCHEMES.has(scheme)) {
     return Result.fail("スキームは http/https のみ対応しています");
   }
-  if (!host) {
-    return Result.fail("ホストを含むパターンを入力してください");
+  const hostResult = normalizeSearchBlocklistHost(host);
+  if (Result.isFailure(hostResult)) {
+    return hostResult;
   }
-  if (host.includes("@")) {
-    return Result.fail("ユーザー情報を含むパターンは未対応です");
-  }
-  if (host.includes(":")) {
-    return Result.fail("ポート指定は未対応です");
-  }
-
-  const hostLabels = host.split(".");
-  for (const [index, label] of hostLabels.entries()) {
-    const isLeadingWildcardLabel = index === 0 && label === "*";
-    if (label.includes("*") && !isLeadingWildcardLabel) {
-      return Result.fail(
-        "ホストのワイルドカードは *.example.com 形式のみ対応しています"
-      );
-    }
-  }
-
-  const normalizedHost = hostLabels
-    .map((label) => label.toLowerCase())
-    .join(".");
+  const normalizedHost = hostResult.value;
   if (!path.startsWith("/")) {
     return Result.fail("パスは / から始まる形式で入力してください");
   }

@@ -41,7 +41,8 @@ import { SettingsPane } from "@/popup/panes/SettingsPane";
 import { TablePane } from "@/popup/panes/TablePane";
 import { TemplatesPane } from "@/popup/panes/TemplatesPane";
 import { createPopupRuntime } from "@/popup/runtime";
-import { createNotifications, ToastHost } from "@/ui/toast";
+import { ToastHost } from "@/ui/toast";
+import { createNotifications } from "@/ui/toast-manager";
 import type { LinkFormat } from "@/utils/link_format";
 
 type CreateLinkInitialState = {

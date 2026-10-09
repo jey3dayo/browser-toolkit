@@ -1,7 +1,8 @@
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, expect, it } from "vitest";
-import { createNotifications, ToastHost } from "@/ui/toast";
+import { ToastHost } from "@/ui/toast";
+import { createNotifications } from "@/ui/toast-manager";
 
 // Enable React's act() behavior warnings to be handled correctly in this test suite.
 (

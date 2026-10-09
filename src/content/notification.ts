@@ -3,12 +3,8 @@ import { createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { ensureShadowMount } from "@/content/shadow_mount";
 import type { Theme } from "@/ui/theme";
-import {
-  createNotifications,
-  type Notifier,
-  ToastHost,
-  type ToastManager,
-} from "@/ui/toast";
+import { type Notifier, ToastHost, type ToastManager } from "@/ui/toast";
+import { createNotifications } from "@/ui/toast-manager";
 
 const TOAST_HOST_ID = "browser-toolkit-toast-host";
 const TOAST_ROOT_ID = "mtk-toast-react-root";

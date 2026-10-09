@@ -4,7 +4,8 @@ import { createPortal } from "react-dom";
 import { expect, userEvent, waitFor } from "storybook/test";
 import { ensureShadowUiBaseStyles } from "@/ui/styles";
 import { applyTheme, isTheme, type Theme } from "@/ui/theme";
-import { createNotifications, ToastHost } from "@/ui/toast";
+import { ToastHost } from "@/ui/toast";
+import { createNotifications } from "@/ui/toast-manager";
 import { overlayClassNames } from "./overlayClassNames";
 
 function OverlayToastPlacementStory(): React.JSX.Element {

@@ -15,9 +15,15 @@ export function findEntryForNode(
   node: Node | null,
   entries: readonly BlocklistEntry[]
 ): BlocklistEntry | null {
+  const byContainer = new Map<Node, BlocklistEntry>();
+  for (const entry of entries) {
+    if (!byContainer.has(entry.container)) {
+      byContainer.set(entry.container, entry);
+    }
+  }
   let current: Node | null = node;
   while (current) {
-    const match = entries.find((entry) => entry.container === current);
+    const match = byContainer.get(current);
     if (match) {
       return match;
     }
