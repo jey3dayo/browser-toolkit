@@ -15,6 +15,7 @@ import { t } from "@/i18n";
 import type { ExtractedEvent, SummarySource } from "@/shared_types";
 import { storageSyncGet } from "@/storage/helpers";
 import type { Theme } from "@/ui/theme";
+import { isRecord } from "@/utils/guards";
 
 const OVERLAY_HOST_ID = "browser-toolkit-overlay";
 const OVERLAY_ROOT_ID = "mtk-overlay-react-root";
@@ -104,10 +105,6 @@ export function renderOverlay(
  */
 function stripSourceSuffix(title: string): string {
   return title.replace(SOURCE_SUFFIX_REGEX, "").trim();
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
 }
 
 function getTrimmedStringProp(

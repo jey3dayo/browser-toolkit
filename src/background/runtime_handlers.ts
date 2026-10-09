@@ -45,14 +45,11 @@ import {
 } from "@/search-blocklist/rules";
 import { storageLocalGet, storageLocalSet } from "@/storage/helpers";
 import { debugLog } from "@/utils/debug_log";
+import { isRecord } from "@/utils/guards";
 import { showErrorNotification } from "@/utils/notifications";
 
 let mutationQueue: Promise<unknown> = Promise.resolve();
 let searchBlocklistRevision = 0;
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
 
 async function loadSearchBlocklistRules(
   op: SearchBlocklistMutateRequest["op"]

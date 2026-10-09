@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { BlocklistEntry, BlocklistState } from "@/search-blocklist/types";
+import type { Point } from "@/shared_types";
 import { computeButtonPosition, findEntryForNode, isDomNode } from "./dom";
-
-type HoverPosition = { top: number; left: number };
 
 type UseHoveredEntryArgs = {
   host: HTMLElement;
@@ -12,11 +11,11 @@ type UseHoveredEntryArgs = {
 
 export function useHoveredEntry({ host, state, frozen }: UseHoveredEntryArgs): {
   hoveredEntry: BlocklistEntry | null;
-  position: HoverPosition | null;
+  position: Point | null;
   clearHover: () => void;
 } {
   const [hoveredEntry, setHoveredEntry] = useState<BlocklistEntry | null>(null);
-  const [position, setPosition] = useState<HoverPosition | null>(null);
+  const [position, setPosition] = useState<Point | null>(null);
   const frozenRef = useRef<boolean>(false);
 
   useEffect(() => {
