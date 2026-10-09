@@ -14,13 +14,6 @@
   width: 100%;
 }
 
-.pattern-input--select {
-  flex: 0 0 auto;
-  width: auto;
-  appearance: auto;
-  cursor: pointer;
-}
-
 .pattern-input,
 .token-input {
   flex: 1;
@@ -225,25 +218,6 @@
     var(--color-primary) var(--accent-mix-14),
     transparent
   );
-}
-
-.mbu-switch-field {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 10px;
-  color: var(--text);
-  cursor: pointer;
-  user-select: none;
-  background: color-mix(in oklab, var(--color-text) 4%, transparent);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-}
-
-.mbu-switch-text {
-  font-weight: 500;
-  color: inherit;
 }
 
 .mbu-switch {
