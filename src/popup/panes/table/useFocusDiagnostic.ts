@@ -1,5 +1,11 @@
 import { Result } from "@praha/byethrow";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { t } from "@/i18n";
 import {
   FOCUS_DIAGNOSTIC_SLOW_MS,
@@ -191,7 +197,9 @@ export function useFocusDiagnostic(
   }
 
   const runFocusDiagnosticRef = useRef(runFocusDiagnostic);
-  runFocusDiagnosticRef.current = runFocusDiagnostic;
+  useLayoutEffect(() => {
+    runFocusDiagnosticRef.current = runFocusDiagnostic;
+  });
   const requestFocusDiagnostic = useCallback((showToast: boolean) => {
     runFocusDiagnosticRef.current(showToast).catch(() => {
       // no-op
