@@ -19,6 +19,7 @@ import {
 import { i18n } from "@/i18n";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import type { ActionHistoryEntry } from "@/storage/types";
+import { copyToClipboard } from "@/utils/clipboard";
 
 function formatDate(timestamp: number): string {
   const date = new Date(timestamp);
@@ -107,12 +108,12 @@ export function HistoryPane(props: PopupPaneBaseProps): React.JSX.Element {
   };
 
   const copyEntry = async (text: string): Promise<void> => {
-    try {
-      await navigator.clipboard.writeText(text);
+    const result = await copyToClipboard(text);
+    if (Result.isSuccess(result)) {
       props.notify.success(t("history.success.copied"));
-    } catch {
-      props.notify.error(t("history.errors.copyFailed"));
+      return;
     }
+    props.notify.error(t("history.errors.copyFailed"));
   };
 
   const handleClearHistoryClick = useCallback(() => {
