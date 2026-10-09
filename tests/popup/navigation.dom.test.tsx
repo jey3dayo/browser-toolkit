@@ -266,6 +266,46 @@ describe("popup navigation (React + Base UI Tabs)", () => {
     expect(i18n.t("common.close")).toBe("閉じる");
   });
 
+  it("follows external hash changes and ignores panes of the other surface", async () => {
+    const rootEl = dom.window.document.getElementById("root");
+    if (!rootEl) {
+      throw new Error("missing #root");
+    }
+
+    const root = createRoot(rootEl);
+    await act(async () => {
+      root.render(<PopupApp />);
+      await flush(dom.window);
+    });
+
+    await act(async () => {
+      dom.window.location.hash = "#pane-create-link";
+      dom.window.dispatchEvent(new dom.window.HashChangeEvent("hashchange"));
+      await flush(dom.window);
+    });
+
+    expect(
+      dom.window.document.querySelector('[data-pane="pane-create-link"]')
+    ).not.toBeNull();
+
+    await act(async () => {
+      dom.window.location.hash = "#pane-settings";
+      dom.window.dispatchEvent(new dom.window.HashChangeEvent("hashchange"));
+      await flush(dom.window);
+    });
+
+    expect(
+      dom.window.document.querySelector('[data-pane="pane-create-link"]')
+    ).not.toBeNull();
+    expect(
+      dom.window.document.querySelector('[data-pane="pane-settings"]')
+    ).toBeNull();
+
+    act(() => {
+      root.unmount();
+    });
+  });
+
   it("switches tabs and synchronizes hash", async () => {
     const rootEl = dom.window.document.getElementById("root");
     if (!rootEl) {
