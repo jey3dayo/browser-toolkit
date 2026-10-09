@@ -43,7 +43,9 @@ export function useFocusDiagnostic(
   const focusDiagnosticRequestIdRef = useRef(0);
   const focusDiagnosticTimerRef = useRef<number | null>(null);
 
-  focusPatternsRef.current = focusPatterns;
+  useLayoutEffect(() => {
+    focusPatternsRef.current = focusPatterns;
+  });
 
   useEffect(
     () => () => {
