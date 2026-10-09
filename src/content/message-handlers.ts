@@ -2,7 +2,6 @@
 
 import { Result } from "@praha/byethrow";
 import {
-  copyToClipboard,
   copyToClipboardWithNotification,
   getClipboardErrorMessage,
 } from "@/content/clipboard";
@@ -21,6 +20,7 @@ import type {
   SummaryTarget,
 } from "@/content-script-messages";
 import { t } from "@/i18n";
+import { copyToClipboard } from "@/utils/clipboard";
 
 export type MessageHandlerDeps = {
   enableTableSort: () => void;

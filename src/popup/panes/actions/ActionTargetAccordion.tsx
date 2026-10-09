@@ -1,3 +1,4 @@
+import { Result } from "@praha/byethrow";
 import { useCallback, useState } from "react";
 import { Icon } from "@/components/icon";
 import {
@@ -10,6 +11,7 @@ import {
 import { Button } from "@/components/shared/Button";
 import { t } from "@/i18n";
 import type { SummaryTarget } from "@/popup/runtime";
+import { copyToClipboard } from "@/utils/clipboard";
 
 type Props = {
   sourceLabel: string;
@@ -81,20 +83,20 @@ export function ActionTargetAccordion(props: Props): React.JSX.Element | null {
       return;
     }
 
-    try {
-      if (!navigator.clipboard?.writeText) {
-        console.error("Clipboard API not available");
-        return;
-      }
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-
-      setTimeout(() => {
-        setCopied(false);
-      }, 2000);
-    } catch (error) {
-      console.error("Failed to copy text:", error);
+    const result = await copyToClipboard(text);
+    if (Result.isFailure(result)) {
+      console.error(
+        result.error.type === "unavailable"
+          ? "Clipboard API not available"
+          : "Failed to copy text"
+      );
+      return;
     }
+    setCopied(true);
+
+    setTimeout(() => {
+      setCopied(false);
+    }, 2000);
   }, [previewText]);
 
   if (!trimmed) {
