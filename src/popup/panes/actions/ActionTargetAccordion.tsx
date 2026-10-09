@@ -70,14 +70,6 @@ export function ActionTargetAccordion(props: Props): React.JSX.Element | null {
   const [copied, setCopied] = useState(false);
 
   const trimmed = props.target.text.trim();
-  if (!trimmed) {
-    return null;
-  }
-
-  const label =
-    props.target.source === "selection"
-      ? t("actions.target.selectionTitle")
-      : t("actions.target.pageTitle");
   const isTruncated = trimmed.length > MAX_PREVIEW_CHARS;
   const previewText = isTruncated
     ? `${trimmed.slice(0, MAX_PREVIEW_CHARS)}\n\n${t("actions.target.omitted")}`
@@ -104,6 +96,15 @@ export function ActionTargetAccordion(props: Props): React.JSX.Element | null {
       console.error("Failed to copy text:", error);
     }
   }, [previewText]);
+
+  if (!trimmed) {
+    return null;
+  }
+
+  const label =
+    props.target.source === "selection"
+      ? t("actions.target.selectionTitle")
+      : t("actions.target.pageTitle");
 
   return (
     <Accordion itemValue="target" title={label}>
