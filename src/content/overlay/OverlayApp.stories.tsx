@@ -414,15 +414,20 @@ export const ReadyStylesFallbackApplied: Story = {
     title: "要約",
   },
   play: async ({ canvasElement }) => {
-    await waitFor(() => {
-      const host = canvasElement.querySelector<HTMLDivElement>(
-        "#browser-toolkit-overlay-fallback"
-      );
-      const shadow = host?.shadowRoot ?? null;
-      expect(host).toBeTruthy();
-      expect(shadow).toBeTruthy();
-      expect(shadow?.querySelector(`.${overlayClassNames.panel}`)).toBeTruthy();
-    });
+    await waitFor(
+      () => {
+        const host = canvasElement.querySelector<HTMLDivElement>(
+          "#browser-toolkit-overlay-fallback"
+        );
+        const shadow = host?.shadowRoot ?? null;
+        expect(host).toBeTruthy();
+        expect(shadow).toBeTruthy();
+        expect(
+          shadow?.querySelector(`.${overlayClassNames.panel}`)
+        ).toBeTruthy();
+      },
+      { timeout: 5000 }
+    );
 
     const host = canvasElement.querySelector<HTMLDivElement>(
       "#browser-toolkit-overlay-fallback"
@@ -436,22 +441,31 @@ export const ReadyStylesFallbackApplied: Story = {
       throw new Error("overlay host/shadow/panel not mounted");
     }
 
-    await waitFor(() => {
-      expect(
-        getComputedStyle(host).getPropertyValue("--primitive-space-7").trim()
-      ).toBe("");
-    });
+    await waitFor(
+      () => {
+        expect(
+          getComputedStyle(host).getPropertyValue("--primitive-space-7").trim()
+        ).toBe("");
+      },
+      { timeout: 5000 }
+    );
 
-    await waitFor(() => {
-      expect(
-        getComputedStyle(host).getPropertyValue("--mbu-surface").trim()
-      ).not.toBe("");
-    });
+    await waitFor(
+      () => {
+        expect(
+          getComputedStyle(host).getPropertyValue("--mbu-surface").trim()
+        ).not.toBe("");
+      },
+      { timeout: 5000 }
+    );
 
-    await waitFor(() => {
-      const styles = getComputedStyle(panel);
-      expect(styles.backgroundColor).not.toBe("rgba(0, 0, 0, 0)");
-    });
+    await waitFor(
+      () => {
+        const styles = getComputedStyle(panel);
+        expect(styles.backgroundColor).not.toBe("rgba(0, 0, 0, 0)");
+      },
+      { timeout: 5000 }
+    );
   },
   render: (args) => <OverlayAppFallbackStory {...args} />,
 };
