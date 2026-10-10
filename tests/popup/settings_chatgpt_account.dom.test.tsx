@@ -141,14 +141,14 @@ describe("SettingsChatGptAccountSection", () => {
     vi.unstubAllGlobals();
   });
 
-  it("signedOut: 見出し・説明・primary ボタンを描画する", async () => {
+  it("signedOut: 説明と primary ボタンだけを描画し、legend と同じ見出しを重ねない", async () => {
     const bg = backgroundFor({ authState: () => Result.succeed(SIGNED_OUT) });
     const container = await mountSection(
       buildRuntime({ sendMessageToBackground: bg.send })
     );
     const status = query(container, "chatgpt-status");
     expect(status.getAttribute("aria-live")).toBe("polite");
-    expect(status.textContent).toContain("ChatGPT プランを使う");
+    expect(status.querySelector(".chatgpt-account-title")).toBeNull();
     expect(status.textContent).toContain("ChatGPT（Plus / Pro）の利用枠");
     expect(query(container, "chatgpt-sign-in").textContent).toBe(
       "ChatGPT で続行"

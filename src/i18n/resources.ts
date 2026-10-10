@@ -541,7 +541,6 @@ export const resources = {
           signedInTitle: "ChatGPT プランを使用中",
           signedOutDescription:
             "API キーの代わりに、ChatGPT（Plus / Pro）の利用枠で AI 機能を使います。",
-          signedOutTitle: "ChatGPT プランを使う",
           signIn: "ChatGPT で続行",
           signOut: "サインアウト",
           signOutRevokeUnconfirmed:

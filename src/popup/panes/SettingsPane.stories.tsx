@@ -146,7 +146,7 @@ function chatGptStory(state: ChatGptAuthState, expected: string): Story {
 
 export const ChatGptSignedOut: Story = chatGptStory(
   { email: null, errorMessage: null, status: "signedOut" },
-  "ChatGPT プランを使う"
+  "ChatGPT（Plus / Pro）の利用枠"
 );
 
 export const ChatGptPending: Story = chatGptStory(

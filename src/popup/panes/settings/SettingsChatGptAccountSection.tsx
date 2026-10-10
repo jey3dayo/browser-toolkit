@@ -30,14 +30,7 @@ function StatusBody({
   }
   switch (auth.status) {
     case "signedOut":
-      return (
-        <>
-          <p className="chatgpt-account-title">
-            {t("settings.chatgpt.signedOutTitle")}
-          </p>
-          <Hint>{t("settings.chatgpt.signedOutDescription")}</Hint>
-        </>
-      );
+      return <Hint>{t("settings.chatgpt.signedOutDescription")}</Hint>;
     case "pending":
       return (
         <p className="chatgpt-account-title">
