@@ -147,7 +147,7 @@ manifest.jsonのCSPを厳格化（Issue #143）：
 ```json
 {
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://api.openai.com https://api.anthropic.com https://api.z.ai"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://api.openai.com https://api.anthropic.com https://api.z.ai https://auth.openai.com"
   }
 }
 ```
