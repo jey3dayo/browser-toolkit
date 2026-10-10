@@ -49,8 +49,8 @@ function recordFetch(
   return calls;
 }
 
-function authorizeUrlOf(harness: Harness): string {
-  return harness.tabs.update.mock.calls[0]?.[1].url ?? "";
+function authorizeUrlOf(harness: Harness, index = 0): string {
+  return harness.tabs.update.mock.calls.at(index)?.[1].url ?? "";
 }
 
 function deferred<T>() {
@@ -517,6 +517,52 @@ describe("background: chatgpt_session", () => {
         .filter((c) => c.url.endsWith("/oauth/revoke"))
         .map((c) => c.params.get("token"));
       expect(revoked).toEqual(["refresh-new"]);
+    });
+
+    it("keeps the issued client id after invalid_grant and reuses it on the next attempt", async () => {
+      const { mod, pending } = await startAndGetPending();
+      recordFetch(() => jsonResponse(400, { error: "invalid_grant" }));
+
+      await mod.handleChatGptTabUpdated(
+        pending.tabId,
+        callbackUrl(pending.state)
+      );
+
+      expect(harness.local.get("chatgptClientId")).toBe("client-new");
+      expect(harness.local.has("chatgptClientSubject")).toBe(false);
+      expect(harness.local.has("chatgptCredentials")).toBe(false);
+      const state = await mod.getChatGptAuthState();
+      expect(state.errorMessage).toContain("有効期限が切れました");
+
+      await mod.startChatGptSignIn();
+      const retry = pendingOf(harness);
+      if (retry?.status !== "pending") {
+        throw new Error("expected a new pending attempt");
+      }
+      const url = new URL(authorizeUrlOf(harness, -1));
+      expect(url.searchParams.get("client_id")).toBe("client-new");
+      expect(url.searchParams.has("agent_name_hint")).toBe(false);
+
+      recordFetch(() => tokenSuccess(retry.nonce));
+      await mod.handleChatGptTabUpdated(retry.tabId, callbackUrl(retry.state));
+      expect(harness.local.get("chatgptClientSubject")).toBe("user-1");
+    });
+
+    it("does not keep the client id when sign-out cancels an invalid_grant exchange", async () => {
+      const { mod, pending } = await startAndGetPending();
+      const gate = deferred<Response>();
+      const calls = recordFetch(() => gate.promise);
+
+      const handling = mod.handleChatGptTabUpdated(
+        pending.tabId,
+        callbackUrl(pending.state)
+      );
+      await vi.waitFor(() => expect(calls).toHaveLength(1));
+      await mod.signOutChatGpt();
+      gate.resolve(jsonResponse(400, { error: "invalid_grant" }));
+      await handling;
+
+      expect(harness.local.has("chatgptClientId")).toBe(false);
     });
 
     it("opens a single tab when sign-in is requested concurrently", async () => {

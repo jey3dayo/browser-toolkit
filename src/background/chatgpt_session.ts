@@ -39,6 +39,8 @@ const SESSION_EXPIRED_MESSAGE =
   "ChatGPT のセッションが切れました。設定画面から再度サインインしてください";
 const ACCOUNT_MISMATCH_MESSAGE =
   "前回と別の ChatGPT アカウントが選ばれました。もう一度サインインすると、このアカウント用に新しく登録します";
+const CODE_EXPIRED_MESSAGE =
+  "サインインの有効期限が切れました。もう一度サインインしてください";
 const PLAN_REQUIRED_MESSAGE =
   "このアカウントでは ChatGPT プランを利用できません（Plus / Pro が必要です）";
 
@@ -263,6 +265,17 @@ function persistSignedInCredentials(
   });
 }
 
+function keepIssuedClientId(
+  clientId: string,
+  startGeneration: number
+): Promise<void> {
+  return exclusive(async () => {
+    if (startGeneration === generation) {
+      await storageLocalSet({ chatgptClientId: clientId });
+    }
+  });
+}
+
 async function exchangeAuthorizationCode(
   pending: PendingSignIn,
   url: string,
@@ -293,6 +306,12 @@ async function exchangeAuthorizationCode(
     response.value.json
   );
   if (Result.isFailure(tokens)) {
+    if (tokens.error.code === "invalid_grant") {
+      if (pending.clientId === null) {
+        await keepIssuedClientId(clientId, startGeneration);
+      }
+      return Result.fail(CODE_EXPIRED_MESSAGE);
+    }
     return Result.fail(tokens.error.message);
   }
   const { value: tokenSet } = tokens;
