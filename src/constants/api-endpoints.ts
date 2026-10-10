@@ -12,6 +12,7 @@ export const ALLOWED_API_ORIGINS = [
   "https://api.openai.com",
   "https://api.anthropic.com",
   "https://api.z.ai",
+  "https://auth.openai.com",
 ] as const;
 
 /**

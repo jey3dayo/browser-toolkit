@@ -2,6 +2,10 @@
 
 import { APP_NAME } from "@/app_meta";
 import {
+  handleChatGptTabRemoved,
+  handleChatGptTabUpdated,
+} from "@/background/chatgpt_session";
+import {
   registerContextMenuHandlers,
   scheduleRefreshContextMenus,
 } from "@/background/context_menu_registry";
@@ -78,6 +82,30 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 
 registerContextMenuHandlers();
 registerRuntimeMessageHandlers();
+
+function logChatGptTabFailure(message: string, error: unknown): void {
+  debugLog(
+    "background",
+    message,
+    { error: error instanceof Error ? error.message : "unknown" },
+    "error"
+  ).catch(() => {
+    // no-op
+  });
+}
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  handleChatGptTabUpdated(tabId, changeInfo.url ?? tab.url).catch(
+    (error: unknown) =>
+      logChatGptTabFailure("ChatGPT tab update handling failed", error)
+  );
+});
+
+chrome.tabs.onRemoved.addListener((tabId) => {
+  handleChatGptTabRemoved(tabId).catch((error: unknown) =>
+    logChatGptTabFailure("ChatGPT tab removal handling failed", error)
+  );
+});
 
 // メニュー登録はブラウザプロセス側に永続化されるため、SW復帰のたびに
 // 再構築する必要はない（removeAll から再作成までの間にメニューが

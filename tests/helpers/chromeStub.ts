@@ -33,6 +33,8 @@ export type ChromeStub = {
   tabs: {
     sendMessage: ReturnType<typeof vi.fn>;
     reload: ReturnType<typeof vi.fn>;
+    onUpdated: { addListener: ReturnType<typeof vi.fn> };
+    onRemoved: { addListener: ReturnType<typeof vi.fn> };
   };
   scripting: {
     getRegisteredContentScripts: ReturnType<typeof vi.fn>;
@@ -145,6 +147,8 @@ export function createChromeStub(options: Options = {}): ChromeStub {
       },
     },
     tabs: {
+      onRemoved: { addListener: vi.fn() },
+      onUpdated: { addListener: vi.fn() },
       reload: vi.fn(
         (_tabId: number, _reloadProperties: unknown, callback?: () => void) => {
           clearError();

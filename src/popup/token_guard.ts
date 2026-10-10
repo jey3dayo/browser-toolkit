@@ -2,7 +2,8 @@ import { Result } from "@praha/byethrow";
 import { getAiProviderToken } from "@/ai/provider-token";
 import { t } from "@/i18n";
 import type { PaneNavigator } from "@/popup/panes";
-import { safeParseAiProvider } from "@/schemas/provider";
+import { safeParseChatGptCredentials } from "@/schemas/chatgpt";
+import { isApiKeyProvider, safeParseAiProvider } from "@/schemas/provider";
 import type { LocalStorageData } from "@/storage/types";
 
 export type NotificationOptions = {
@@ -53,6 +54,7 @@ export async function ensureOpenAiTokenConfigured(
       "openaiApiToken",
       "anthropicApiToken",
       "zaiApiToken",
+      "chatgptCredentials",
     ]);
   } catch {
     notifyLoadFailed(deps);
@@ -64,9 +66,11 @@ export async function ensureOpenAiTokenConfigured(
   }
 
   const provider = safeParseAiProvider(loaded.value.aiProvider) ?? "openai";
-  const token = getAiProviderToken(loaded.value, provider);
+  const configured = isApiKeyProvider(provider)
+    ? getAiProviderToken(loaded.value, provider).trim() !== ""
+    : safeParseChatGptCredentials(loaded.value.chatgptCredentials) !== null;
 
-  const tokenConfigured = token.trim()
+  const tokenConfigured = configured
     ? Result.succeed()
     : Result.fail("missing-token" as const);
 

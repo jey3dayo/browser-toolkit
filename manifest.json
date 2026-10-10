@@ -17,10 +17,11 @@
     "https://api.openai.com/*",
     "https://api.anthropic.com/*",
     "https://api.z.ai/*",
+    "https://auth.openai.com/*",
     "https://gemini.google.com/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://api.openai.com https://api.anthropic.com https://api.z.ai"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://api.openai.com https://api.anthropic.com https://api.z.ai https://auth.openai.com"
   },
   "action": {
     "default_popup": "popup.html",

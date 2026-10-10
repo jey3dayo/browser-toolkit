@@ -43,6 +43,50 @@ describe("ensureOpenAiTokenConfigured", () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
+  it("returns Success for chatgpt when credentials are stored", async () => {
+    const storageLocalGet = vi.fn(async () =>
+      Result.succeed({
+        aiProvider: "chatgpt",
+        chatgptCredentials: {
+          accessToken: "a",
+          clientId: "c",
+          email: null,
+          expiresAt: 1,
+          idToken: "i",
+          refreshToken: "r",
+          scope: "s",
+          subject: "u",
+        },
+      })
+    );
+    const showNotification = vi.fn();
+
+    const result = await ensureOpenAiTokenConfigured({
+      navigate: vi.fn(),
+      showNotification,
+      storageLocalGet,
+    });
+
+    expect(Result.isSuccess(result)).toBe(true);
+    expect(showNotification).not.toHaveBeenCalled();
+  });
+
+  it("reports a missing token for chatgpt without credentials even with an api key", async () => {
+    const storageLocalGet = vi.fn(async () =>
+      Result.succeed({ aiProvider: "chatgpt", openaiApiToken: "sk-test" })
+    );
+    const showNotification = vi.fn();
+
+    const result = await ensureOpenAiTokenConfigured({
+      navigate: vi.fn(),
+      showNotification,
+      storageLocalGet,
+    });
+
+    expect(Result.isFailure(result) && result.error).toBe("missing-token");
+    expect(showNotification).toHaveBeenCalledTimes(1);
+  });
+
   it("navigates to the settings pane with token focus when the token is missing", async () => {
     const storageLocalGet = vi.fn(async () =>
       Result.succeed({ openaiApiToken: "" })

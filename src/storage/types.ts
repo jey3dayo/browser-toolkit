@@ -39,6 +39,7 @@ export type LocalStorageData = {
   // Sign in with ChatGPT。端末ごとの host ID と回転する refresh token を含むため sync に置かない
   chatgptCredentials?: ChatGptCredentials;
   chatgptClientId?: string;
+  chatgptClientSubject?: string;
   chatgptHostId?: string;
   // 旧OpenAI専用キー（マイグレーション用に維持）
   openaiCustomPrompt?: string;
