@@ -1,6 +1,7 @@
 import type { ContextAction } from "@/context_actions";
 import type { DomainPatternConfig } from "@/domain-pattern-configs";
 import type { FocusOverrideStorageData } from "@/focus-override/patterns";
+import type { ChatGptCredentials } from "@/schemas/chatgpt";
 import type { SearchEngineGroup } from "@/search_engine_groups";
 import type { SearchEngine } from "@/search_engine_types";
 import type { SearchBlocklistRule } from "@/search-blocklist/types";
@@ -28,13 +29,17 @@ export type CopyTitleLinkFailure = {
 
 export type LocalStorageData = {
   // 新しいマルチプロバイダー設定キー
-  aiProvider?: string; // "openai" | "anthropic" | "zai"
+  aiProvider?: string; // "openai" | "chatgpt" | "anthropic" | "zai"
   aiModel?: string; // アクティブプロバイダーのモデル
   aiCustomPrompt?: string; // 共有カスタムプロンプト
   // プロバイダー別トークンキー
   openaiApiToken?: string;
   anthropicApiToken?: string;
   zaiApiToken?: string;
+  // Sign in with ChatGPT。端末ごとの host ID と回転する refresh token を含むため sync に置かない
+  chatgptCredentials?: ChatGptCredentials;
+  chatgptClientId?: string;
+  chatgptHostId?: string;
   // 旧OpenAI専用キー（マイグレーション用に維持）
   openaiCustomPrompt?: string;
   openaiModel?: string;

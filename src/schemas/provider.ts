@@ -11,7 +11,7 @@ import {
   ZAI_MODELS,
 } from "@/constants/models";
 
-export const AI_PROVIDERS = ["openai", "anthropic", "zai"] as const;
+export const AI_PROVIDERS = ["openai", "chatgpt", "anthropic", "zai"] as const;
 export type AiProvider = (typeof AI_PROVIDERS)[number];
 
 export const PROVIDER_CONFIGS: Record<
@@ -28,6 +28,12 @@ export const PROVIDER_CONFIGS: Record<
     defaultModel: ANTHROPIC_MODELS.CLAUDE_SONNET_5,
     label: "Anthropic (Claude)",
     models: ANTHROPIC_MODEL_LIST,
+  },
+  chatgpt: {
+    baseUrl: "https://api.openai.com/v1",
+    defaultModel: DEFAULT_OPENAI_MODEL,
+    label: "ChatGPT プラン",
+    models: OPENAI_MODEL_LIST,
   },
   openai: {
     baseUrl: "https://api.openai.com/v1",
