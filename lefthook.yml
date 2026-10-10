@@ -1,3 +1,6 @@
+# lefthook が見つからないと生成 hook は既定で gate 無しに通すため、hard fail させる
+assert_lefthook_installed: true
+
 pre-commit:
   jobs:
     - name: format staged files
@@ -15,6 +18,11 @@ pre-commit:
 pre-push:
   jobs:
     # CI (.github/workflows/ci.yml) と同じ順序・粒度で分割し、失敗したゲートを特定できるようにする
+    - name: lint:actions
+      glob:
+        - ".github/**"
+        - "mise.toml"
+      run: mise run lint:actions
     - name: lint
       glob:
         - "*.{js,jsx,ts,tsx,mjs,cjs,json,jsonc,css}"

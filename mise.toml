@@ -35,6 +35,10 @@ run = "pnpm exec tsc --noEmit"
 description = "Biomeのチェックのみ（自動修正なし）"
 run = "pnpm run lint"
 
+[tasks."lint:actions"]
+description = "GitHub Actions ワークフローをチェック（jactionlint）"
+run = "jactionlint"
+
 [tasks.test]
 description = "Vitestでユニットテストを実行"
 run = "pnpm run test"
@@ -71,6 +75,7 @@ run = [{ task = "lint" }, { task = "test" }, { task = "test:storybook" }]
 description = "ローカルCI確認"
 run = [
   { task = "format" },
+  { task = "lint:actions" },
   { task = "lint" },
   { task = "test" },
   { task = "test:storybook" },
