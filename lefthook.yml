@@ -10,7 +10,7 @@ pre-commit:
       stage_fixed: true
     - name: lint workflows
       glob: ".github/workflows/*.{yml,yaml}"
-      run: actionlint {staged_files}
+      run: jactionlint {staged_files}
 
 pre-push:
   jobs:
