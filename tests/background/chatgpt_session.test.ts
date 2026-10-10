@@ -445,6 +445,94 @@ describe("background: chatgpt_session", () => {
       expect(calls).toHaveLength(1);
     });
 
+    it("keeps a newer attempt when a stale exchange finishes after its tab was closed", async () => {
+      const { mod, pending: first } = await startAndGetPending();
+      const gate = deferred<Response>();
+      let secondNonce = "";
+      const calls = recordFetch(() =>
+        calls.length === 1 ? gate.promise : tokenSuccess(secondNonce)
+      );
+
+      const staleExchange = mod.handleChatGptTabUpdated(
+        first.tabId,
+        callbackUrl(first.state)
+      );
+      await vi.waitFor(() => expect(calls).toHaveLength(1));
+      await mod.handleChatGptTabRemoved(first.tabId);
+      await mod.startChatGptSignIn();
+      const second = pendingOf(harness);
+      if (second?.status !== "pending") {
+        throw new Error("expected a new pending attempt");
+      }
+      secondNonce = second.nonce;
+      gate.resolve(tokenSuccess(first.nonce));
+      await staleExchange;
+
+      const current = pendingOf(harness);
+      expect(current?.status === "pending" && current.state).toBe(second.state);
+
+      await mod.handleChatGptTabUpdated(
+        second.tabId,
+        callbackUrl(second.state)
+      );
+      expect(harness.session.has("chatgptSignIn")).toBe(false);
+      expect((await mod.getChatGptAuthState()).status).toBe("signedIn");
+    });
+
+    it("revokes the refresh token of credentials that a later sign-in replaces", async () => {
+      const { mod, pending: first } = await startAndGetPending();
+      const gate = deferred<Response>();
+      let secondNonce = "";
+      const calls = recordFetch((call) => {
+        if (call.url.endsWith("/oauth/revoke")) {
+          return jsonResponse(200, {});
+        }
+        return calls.filter((c) => c.url.endsWith("/oauth/token")).length === 1
+          ? gate.promise
+          : tokenSuccess(secondNonce, { refresh_token: "refresh-second" });
+      });
+
+      const staleExchange = mod.handleChatGptTabUpdated(
+        first.tabId,
+        callbackUrl(first.state)
+      );
+      await vi.waitFor(() => expect(calls).toHaveLength(1));
+      await mod.handleChatGptTabRemoved(first.tabId);
+      await mod.startChatGptSignIn();
+      const second = pendingOf(harness);
+      if (second?.status !== "pending") {
+        throw new Error("expected a new pending attempt");
+      }
+      secondNonce = second.nonce;
+      gate.resolve(tokenSuccess(first.nonce));
+      await staleExchange;
+      await mod.handleChatGptTabUpdated(
+        second.tabId,
+        callbackUrl(second.state)
+      );
+
+      const stored = harness.local.get("chatgptCredentials");
+      expect(isRecord(stored) && stored.refreshToken).toBe("refresh-second");
+      const revoked = calls
+        .filter((c) => c.url.endsWith("/oauth/revoke"))
+        .map((c) => c.params.get("token"));
+      expect(revoked).toEqual(["refresh-new"]);
+    });
+
+    it("opens a single tab when sign-in is requested concurrently", async () => {
+      const { startChatGptSignIn } = await import(
+        "@/background/chatgpt_session"
+      );
+
+      const results = await Promise.all([
+        startChatGptSignIn(),
+        startChatGptSignIn(),
+      ]);
+
+      expect(results.every((r) => Result.isSuccess(r))).toBe(true);
+      expect(harness.tabs.create).toHaveBeenCalledTimes(1);
+    });
+
     it("clears pending when the sign-in tab is closed", async () => {
       const { mod, pending } = await startAndGetPending();
 
@@ -559,6 +647,28 @@ describe("background: chatgpt_session", () => {
       expect(Result.isSuccess(result)).toBe(true);
       const stored = harness.local.get("chatgptCredentials");
       expect(isRecord(stored) && stored.scope).toBe(PLAN_SCOPE);
+    });
+
+    it("refreshes when the already-renewed stored token is no longer fresh", async () => {
+      harness.local.set(
+        "chatgptCredentials",
+        sampleCredentials({
+          accessToken: "access-other",
+          expiresAt: Date.now() - 1000,
+        })
+      );
+      const calls = recordFetch(refreshSuccess);
+      const { getChatGptAccessToken } = await import(
+        "@/background/chatgpt_session"
+      );
+
+      const result = await getChatGptAccessToken({
+        forceRefresh: true,
+        staleAccessToken: "access-1",
+      });
+
+      expect(Result.isSuccess(result) && result.value).toBe("access-2");
+      expect(calls).toHaveLength(1);
     });
 
     it("removes credentials when the refreshed scope lacks the plan scope", async () => {

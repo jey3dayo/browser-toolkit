@@ -26,7 +26,10 @@ async function requestChatGptText(
 
   let result = await send(accessToken.value);
   if (Result.isFailure(result) && result.error.status === 401) {
-    const refreshed = await getChatGptAccessToken({ forceRefresh: true });
+    const refreshed = await getChatGptAccessToken({
+      forceRefresh: true,
+      staleAccessToken: accessToken.value,
+    });
     if (Result.isFailure(refreshed)) {
       return Result.fail(refreshed.error);
     }

@@ -52,6 +52,7 @@ type FormResponse = { status: number; json: unknown };
 
 let generation = 0;
 let queue: Promise<unknown> = Promise.resolve();
+let startQueue: Promise<unknown> = Promise.resolve();
 const completingTabIds = new Set<number>();
 
 function exclusive<T>(task: () => Promise<T>): Promise<T> {
@@ -189,9 +190,7 @@ async function openSignInTab(): Promise<Result.Result<void, string>> {
   return Result.succeed();
 }
 
-export async function startChatGptSignIn(): Promise<
-  Result.Result<void, string>
-> {
+async function startOrFocusSignIn(): Promise<Result.Result<void, string>> {
   try {
     const current = await readSignInState();
     if (current?.status === "pending" && (await tabExists(current.tabId))) {
@@ -206,13 +205,22 @@ export async function startChatGptSignIn(): Promise<
   }
 }
 
+export function startChatGptSignIn(): Promise<Result.Result<void, string>> {
+  const run = startQueue.then(startOrFocusSignIn);
+  startQueue = run.catch(() => undefined);
+  return run;
+}
+
 type PendingSignIn = Extract<ChatGptSignInState, { status: "pending" }>;
 
 type ExchangeOutcome =
   | { kind: "signedIn"; email: string | null }
   | { kind: "cancelled" };
 
-type PersistResult = "saved" | "cancelled" | "accountMismatch";
+type PersistResult =
+  | { kind: "saved"; replaced: ChatGptCredentials | null }
+  | { kind: "cancelled" }
+  | { kind: "accountMismatch" };
 
 async function rejectAndRevoke(
   grant: { clientId: string; refreshToken: string },
@@ -228,20 +236,30 @@ function persistSignedInCredentials(
 ): Promise<PersistResult> {
   return exclusive(async () => {
     if (startGeneration !== generation) {
-      return "cancelled";
+      return { kind: "cancelled" };
     }
-    const storage = await storageLocalGetTyped(["chatgptClientSubject"]);
+    const storage = await storageLocalGetTyped([
+      "chatgptClientSubject",
+      "chatgptCredentials",
+    ]);
     const knownSubject = storage.chatgptClientSubject;
     if (knownSubject !== undefined && knownSubject !== credentials.subject) {
       await storageLocalRemove(["chatgptClientId", "chatgptClientSubject"]);
-      return "accountMismatch";
+      return { kind: "accountMismatch" };
     }
     await storageLocalSet({
       chatgptClientId: credentials.clientId,
       chatgptClientSubject: credentials.subject,
       chatgptCredentials: credentials,
     });
-    return "saved";
+    const previous = safeParseChatGptCredentials(storage.chatgptCredentials);
+    return {
+      kind: "saved",
+      replaced:
+        previous && previous.refreshToken !== credentials.refreshToken
+          ? previous
+          : null,
+    };
   });
 }
 
@@ -312,11 +330,14 @@ async function exchangeAuthorizationCode(
     },
     startGeneration
   );
-  if (persisted === "saved") {
+  if (persisted.kind === "saved") {
+    if (persisted.replaced) {
+      await revokeRefreshToken(persisted.replaced);
+    }
     return Result.succeed({ email: identity.value.email, kind: "signedIn" });
   }
   await revokeRefreshToken(grant);
-  if (persisted === "cancelled") {
+  if (persisted.kind === "cancelled") {
     return Result.succeed({ kind: "cancelled" });
   }
   return Result.fail(ACCOUNT_MISMATCH_MESSAGE);
@@ -335,6 +356,18 @@ async function closeSignInTab(tabId: number): Promise<void> {
   }
 }
 
+function ifAttemptStillCurrent(
+  attemptState: string,
+  action: () => Promise<void>
+): Promise<void> {
+  return exclusive(async () => {
+    const current = await readSignInState();
+    if (current?.status === "pending" && current.state === attemptState) {
+      await action();
+    }
+  });
+}
+
 async function completeSignIn(
   pending: PendingSignIn,
   url: string,
@@ -348,18 +381,23 @@ async function completeSignIn(
   }
 
   if (Result.isSuccess(outcome)) {
-    if (outcome.value.kind === "signedIn") {
-      await clearSignInState();
-      await showNotification({
-        message: outcome.value.email ?? "ChatGPT プランを利用できます",
-        title: "ChatGPT にサインインしました",
+    const { value } = outcome;
+    if (value.kind === "signedIn") {
+      await ifAttemptStillCurrent(pending.state, async () => {
+        await clearSignInState();
+        await showNotification({
+          message: value.email ?? "ChatGPT プランを利用できます",
+          title: "ChatGPT にサインインしました",
+        });
       });
     }
   } else if (startGeneration === generation) {
-    await writeSignInState({ message: outcome.error, status: "failed" });
-    await showErrorNotification({
-      errorMessage: outcome.error,
-      title: "ChatGPT へのサインインに失敗しました",
+    await ifAttemptStillCurrent(pending.state, async () => {
+      await writeSignInState({ message: outcome.error, status: "failed" });
+      await showErrorNotification({
+        errorMessage: outcome.error,
+        title: "ChatGPT へのサインインに失敗しました",
+      });
     });
   }
   await closeSignInTab(pending.tabId);
@@ -444,6 +482,7 @@ async function refreshCredentials(
 
 export function getChatGptAccessToken(options?: {
   forceRefresh?: boolean;
+  staleAccessToken?: string;
 }): Promise<Result.Result<string, string>> {
   const requestedGeneration = generation;
   return exclusive(async () => {
@@ -455,7 +494,11 @@ export function getChatGptAccessToken(options?: {
       if (!credentials) {
         return Result.fail(CHATGPT_NOT_SIGNED_IN_MESSAGE);
       }
-      if (!options?.forceRefresh && isFresh(credentials)) {
+      const alreadyRenewed =
+        options?.staleAccessToken !== undefined &&
+        credentials.accessToken !== options.staleAccessToken;
+      const reusable = alreadyRenewed || !options?.forceRefresh;
+      if (reusable && isFresh(credentials)) {
         return Result.succeed(credentials.accessToken);
       }
       return await refreshCredentials(credentials);

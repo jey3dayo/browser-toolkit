@@ -106,6 +106,43 @@ describe("background: ai_credentials dispatch", () => {
     expect(seen).toEqual(["Bearer access-1", "Bearer access-2"]);
   });
 
+  it("refreshes once when concurrent requests hit 401 with the same token", async () => {
+    installChatGptChrome({ chatgptCredentials: sampleCredentials() });
+    let refreshCalls = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: string, init?: RequestInit) => {
+        if (url.endsWith("/oauth/token")) {
+          refreshCalls += 1;
+          return Promise.resolve(
+            jsonResponse(200, {
+              access_token: "access-2",
+              expires_in: 3600,
+              refresh_token: "refresh-2",
+              scope: "openid chatgpt.tokens.use.direct",
+            })
+          );
+        }
+        return Promise.resolve(
+          bearerOf(init) === "Bearer access-1"
+            ? jsonResponse(401, {})
+            : sseResponse("ok")
+        );
+      })
+    );
+    const { requestAiCompletionText } = await import(
+      "@/background/ai_credentials"
+    );
+
+    const results = await Promise.all([
+      requestAiCompletionText(chatgptSettings, body, "empty"),
+      requestAiCompletionText(chatgptSettings, body, "empty"),
+    ]);
+
+    expect(results.every((r) => Result.isSuccess(r))).toBe(true);
+    expect(refreshCalls).toBe(1);
+  });
+
   it("does not retry a second time when the retry is also 401", async () => {
     installChatGptChrome({ chatgptCredentials: sampleCredentials() });
     const responsesCalls: string[] = [];

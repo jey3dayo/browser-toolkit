@@ -153,6 +153,19 @@ describe("fetchChatGptResponsesText", () => {
     expect(result).toEqual(Result.succeed("ok"));
   });
 
+  it("複数 data 行のイベントで CR と LF が別チャンクに分かれても 1 イベントとして扱う", async () => {
+    const result = await run(
+      fetchReturning(() =>
+        streamResponse([
+          'data: {"type":"response.output_text.delta",\r',
+          '\ndata: "delta":"AB"}\r\n\r\n',
+          'data: {"type":"response.completed"}\r\n\r\n',
+        ])
+      )
+    );
+    expect(Result.isSuccess(result) && result.value).toBe("AB");
+  });
+
   it("response.completed を受けずに終わったら成功扱いしない", async () => {
     const result = await run(
       fetchReturning(() =>

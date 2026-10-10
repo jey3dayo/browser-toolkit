@@ -135,6 +135,7 @@ function handleStreamEvent(data: string, chunks: string[]): StreamOutcome {
   return { kind: "continue" };
 }
 
+const TRAILING_CR = /\r$/;
 const LINE_BREAK = /\r\n|\n|\r/;
 
 class SseParser {
@@ -143,13 +144,17 @@ class SseParser {
 
   push(text: string): string[] {
     this.buffer += text;
-    const lines = this.buffer.split(LINE_BREAK);
-    this.buffer = lines.pop() ?? "";
+    const endsWithCr = this.buffer.endsWith("\r");
+    const source = endsWithCr ? this.buffer.slice(0, -1) : this.buffer;
+    const lines = source.split(LINE_BREAK);
+    const rest = lines.pop() ?? "";
+    this.buffer = endsWithCr ? `${rest}\r` : rest;
     return this.consume(lines);
   }
 
   flush(): string[] {
-    const lines = this.buffer === "" ? [] : [this.buffer];
+    const lines =
+      this.buffer === "" ? [] : [this.buffer.replace(TRAILING_CR, "")];
     this.buffer = "";
     const events = this.consume(lines);
     if (this.dataLines.length > 0) {
