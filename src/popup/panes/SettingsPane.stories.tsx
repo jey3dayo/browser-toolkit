@@ -1,9 +1,11 @@
+import { Result } from "@praha/byethrow";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useRef } from "react";
 
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import { SettingsPane } from "@/popup/panes/SettingsPane";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
+import type { ChatGptAuthState, PopupRuntime } from "@/popup/runtime";
 import { createStoryPopupRuntime } from "@/popup/storybook/createStoryPopupRuntime";
 import { PROVIDER_CONFIGS } from "@/schemas/provider";
 
@@ -91,3 +93,73 @@ export const Populated: Story = {
     });
   },
 };
+
+function createChatGptRuntime(state: ChatGptAuthState): PopupRuntime {
+  const base = createStoryPopupRuntime({
+    local: { aiProvider: "chatgpt" },
+  });
+
+  function sendMessageToBackground<TRequest, TResponse>(
+    message: TRequest
+  ): Promise<Result.Result<TResponse, string>>;
+  function sendMessageToBackground(
+    message: unknown
+  ): Promise<Result.Result<unknown, string>> {
+    const action =
+      typeof message === "object" && message !== null && "action" in message
+        ? message.action
+        : null;
+    if (action === "chatgptAuthState") {
+      return Promise.resolve(Result.succeed(Result.succeed(state)));
+    }
+    if (action === "chatgptSignIn") {
+      return Promise.resolve(Result.succeed(Result.succeed({})));
+    }
+    if (action === "chatgptSignOut") {
+      return Promise.resolve(
+        Result.succeed(Result.succeed({ revokeConfirmed: true }))
+      );
+    }
+    return base.sendMessageToBackground(message);
+  }
+
+  return { ...base, sendMessageToBackground };
+}
+
+function chatGptStory(state: ChatGptAuthState, expected: string): Story {
+  return {
+    args: {
+      notify: { error: fn(), info: fn(), success: fn() },
+      runtime: createChatGptRuntime(state),
+    },
+    play: async ({ canvasElement }) => {
+      const canvas = within(canvasElement);
+      await waitFor(() => {
+        expect(canvas.getByTestId("chatgpt-status").textContent).toContain(
+          expected
+        );
+        expect(canvas.queryByTestId("ai-token")).toBeNull();
+      });
+    },
+  };
+}
+
+export const ChatGptSignedOut: Story = chatGptStory(
+  { email: null, errorMessage: null, status: "signedOut" },
+  "ChatGPT プランを使う"
+);
+
+export const ChatGptPending: Story = chatGptStory(
+  { email: null, errorMessage: null, status: "pending" },
+  "ブラウザでサインインを続けてください"
+);
+
+export const ChatGptSignedIn: Story = chatGptStory(
+  { email: "user@example.com", errorMessage: null, status: "signedIn" },
+  "user@example.com"
+);
+
+export const ChatGptFailed: Story = chatGptStory(
+  { email: null, errorMessage: "認可に失敗しました", status: "failed" },
+  "認可に失敗しました"
+);

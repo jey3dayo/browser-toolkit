@@ -3,6 +3,7 @@ import { PaneCard } from "@/components/shared/Layout";
 import { Hint } from "@/components/shared/Typography";
 import { t } from "@/i18n";
 import { DebugPane } from "@/popup/panes/DebugPane";
+import { SettingsChatGptAccountSection } from "@/popup/panes/settings/SettingsChatGptAccountSection";
 import { SettingsModelSection } from "@/popup/panes/settings/SettingsModelSection";
 import { SettingsPaneOverview } from "@/popup/panes/settings/SettingsPaneLayout";
 import { SettingsPromptSection } from "@/popup/panes/settings/SettingsPromptSection";
@@ -39,19 +40,26 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
         setToken={state.setToken}
       />
 
-      <SettingsTokenSection
-        clearToken={state.clearToken}
-        provider={state.provider}
-        providerConfigs={PROVIDER_CONFIGS}
-        saveToken={state.saveToken}
-        setShowToken={state.setShowToken}
-        setToken={state.setToken}
-        showToken={state.showToken}
-        testToken={state.testToken}
-        token={state.token}
-        tokenInputId={state.tokenInputId}
-        tokenInputRef={props.tokenInputRef}
-      />
+      {state.provider === "chatgpt" ? (
+        <SettingsChatGptAccountSection
+          notify={props.notify}
+          runtime={props.runtime}
+        />
+      ) : (
+        <SettingsTokenSection
+          clearToken={state.clearToken}
+          provider={state.provider}
+          providerConfigs={PROVIDER_CONFIGS}
+          saveToken={state.saveToken}
+          setShowToken={state.setShowToken}
+          setToken={state.setToken}
+          showToken={state.showToken}
+          testToken={state.testToken}
+          token={state.token}
+          tokenInputId={state.tokenInputId}
+          tokenInputRef={props.tokenInputRef}
+        />
+      )}
 
       <SettingsModelSection
         model={state.model}
