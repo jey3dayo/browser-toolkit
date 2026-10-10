@@ -667,3 +667,41 @@ input[type="checkbox"] {
   background: none;
   border: none;
 }
+
+.chatgpt-account-status {
+  line-height: 1.55;
+}
+
+.chatgpt-account-state {
+  display: grid;
+  gap: var(--spacing-xs);
+  animation: chatgpt-account-fade var(--motion-duration-fast) ease-out;
+}
+
+.chatgpt-account-title {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.chatgpt-account-link {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+@keyframes chatgpt-account-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chatgpt-account-state {
+    animation: none;
+  }
+}

@@ -11,8 +11,17 @@ import {
   ZAI_MODELS,
 } from "@/constants/models";
 
-export const AI_PROVIDERS = ["openai", "anthropic", "zai"] as const;
+export const AI_PROVIDERS = ["openai", "chatgpt", "anthropic", "zai"] as const;
 export type AiProvider = (typeof AI_PROVIDERS)[number];
+
+/** API キーで認証する provider。chatgpt は OAuth（Sign in with ChatGPT）で認証する */
+export type ApiKeyProvider = Exclude<AiProvider, "chatgpt">;
+
+export function isApiKeyProvider(
+  provider: AiProvider
+): provider is ApiKeyProvider {
+  return provider !== "chatgpt";
+}
 
 export const PROVIDER_CONFIGS: Record<
   AiProvider,
@@ -28,6 +37,12 @@ export const PROVIDER_CONFIGS: Record<
     defaultModel: ANTHROPIC_MODELS.CLAUDE_SONNET_5,
     label: "Anthropic (Claude)",
     models: ANTHROPIC_MODEL_LIST,
+  },
+  chatgpt: {
+    baseUrl: "https://api.openai.com/v1",
+    defaultModel: DEFAULT_OPENAI_MODEL,
+    label: "ChatGPT プラン",
+    models: OPENAI_MODEL_LIST,
   },
   openai: {
     baseUrl: "https://api.openai.com/v1",

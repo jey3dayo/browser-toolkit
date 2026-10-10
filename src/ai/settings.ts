@@ -3,8 +3,10 @@
  */
 import { Result } from "@praha/byethrow";
 import { getAiProviderToken } from "@/ai/provider-token";
+import { safeParseChatGptCredentials } from "@/schemas/chatgpt";
 import {
-  type AiProvider,
+  type ApiKeyProvider,
+  isApiKeyProvider,
   normalizeAiModel,
   PROVIDER_CONFIGS,
   safeParseAiProvider,
@@ -14,13 +16,18 @@ import type { LocalStorageData } from "@/storage/types";
 /**
  * AI設定
  */
-export type AiSettings = {
-  provider: AiProvider;
-  token: string;
+type AiSettingsCommon = {
   customPrompt: string;
   model: string;
   baseUrl: string;
 };
+
+export type AiSettings =
+  | (AiSettingsCommon & { provider: ApiKeyProvider; token: string })
+  | (AiSettingsCommon & { provider: "chatgpt" });
+
+export const CHATGPT_NOT_SIGNED_IN_MESSAGE =
+  "ChatGPT にサインインしていません。設定画面からサインインしてください";
 
 /**
  * AI設定の読み込み
@@ -34,9 +41,17 @@ export function loadAiSettings(
   const providerValue = storage.aiProvider ?? "openai";
   const provider = safeParseAiProvider(providerValue) ?? "openai";
 
-  const token = getAiProviderToken(storage, provider).trim();
-  if (!token) {
+  const token = isApiKeyProvider(provider)
+    ? getAiProviderToken(storage, provider).trim()
+    : null;
+  if (token === "") {
     return Result.fail("APIトークンが設定されていません");
+  }
+  if (
+    token === null &&
+    !safeParseChatGptCredentials(storage.chatgptCredentials)
+  ) {
+    return Result.fail(CHATGPT_NOT_SIGNED_IN_MESSAGE);
   }
 
   // カスタムプロンプト（新キー優先、旧キーフォールバック）
@@ -50,13 +65,12 @@ export function loadAiSettings(
   // ベースURL
   const { baseUrl } = PROVIDER_CONFIGS[provider];
 
-  return Result.succeed({
-    baseUrl,
-    customPrompt,
-    model,
-    provider,
-    token,
-  });
+  const common = { baseUrl, customPrompt, model };
+  return Result.succeed(
+    isApiKeyProvider(provider) && token !== null
+      ? { ...common, provider, token }
+      : { ...common, provider: "chatgpt" }
+  );
 }
 
 /**

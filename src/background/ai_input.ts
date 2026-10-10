@@ -99,6 +99,7 @@ export async function prepareAiInput(params: {
     "zaiApiToken",
     "openaiModel",
     "openaiCustomPrompt",
+    "chatgptCredentials",
   ]);
   const settingsResult = loadAiSettings(storage);
   if (Result.isFailure(settingsResult)) {

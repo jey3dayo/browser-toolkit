@@ -318,7 +318,11 @@ function simpleHash(str: string): string {
 
 ## AI統一インターフェース
 
-Browser Toolkitは、複数のAIプロバイダー（OpenAI、Anthropic、z.ai）をサポートしています。
+Browser Toolkitは、複数のAIプロバイダー（OpenAI、ChatGPT プラン、Anthropic、z.ai）をサポートしています。
+
+ChatGPT プラン（provider id `chatgpt`）だけは API キーではなく
+[Sign in with ChatGPT](https://developers.openai.com/siwc/token-sharing-open-source) の OAuth で認証し、
+Chat Completions ではなく Responses API（`store: false` / `stream: true` 必須）へ送ります。
 
 ### アーキテクチャ
 
@@ -375,12 +379,9 @@ export type PreparedAiInput = {
 };
 
 // src/ai/settings.ts
-export type AiSettings = {
-  provider: AiProvider; // "openai" | "anthropic" | "zai"
-  model: string; // モデルID
-  token: string; // APIトークン
-  customPrompt?: string; // カスタムプロンプト
-};
+export type AiSettings =
+  | (AiSettingsCommon & { provider: ApiKeyProvider; token: string }) // "openai" | "anthropic" | "zai"
+  | (AiSettingsCommon & { provider: "chatgpt" }); // トークンは送信直前に非同期で解決する
 ```
 
 ### AI リクエストの責務
@@ -392,6 +393,19 @@ export type AiSettings = {
 - `src/ai/openai-adapter.ts` / `zai-adapter.ts`: provider 設定と送信前処理の組み立て
 - `src/ai/openai-request-policy.ts`: OpenAI 固有のパラメータ制約。UI の選択肢とは独立に管理
 - `src/ai/anthropic-adapter.ts`: Anthropic Messages の形式変換
+- `src/background/ai_credentials.ts`: provider ごとの送信の振り分け。API キー provider は adapter 経由、`chatgpt` は access token を解決して Responses へ送り、401 なら1回だけ refresh して再送する
+- `src/ai/chatgpt/oauth.ts`: SIWC の authorize URL・callback・token 応答・ID トークン claim の検証（純粋関数）
+- `src/ai/chatgpt/responses.ts`: Chat 形式から Responses 形式への変換、SSE を `response.completed` まで読む処理、SIWC 固有エラーの文言化
+- `src/background/chatgpt_session.ts`: サインイン・refresh・サインアウト（revoke）。refresh token は回転するため、refresh は直列化する
+
+#### ChatGPT プランのサインイン経路
+
+SIWC は redirect URI に loopback（`http://127.0.0.1:1455/auth/callback`）しか受け付けず、拡張機能はそのポートで待ち受けられません。
+そこで background が認可タブを開き、`chrome.tabs.onUpdated` でタブの遷移先 URL を読み取って認可コードを取り出します。
+タブを開いた時点で popup は閉じるため、PKCE・state・nonce は `chrome.storage.session` の `chatgptSignIn` に置きます。
+完了は `chrome.notifications` で知らせ、popup は `storage.onChanged` で表示を追従させます。
+credentials・発行済み client ID とその登録時のアカウント（`sub`）・host ID は `chrome.storage.local` に置き、sync には置きません。別アカウントが選ばれた場合はトークンを revoke して登録をやり直します。端末ごとに別の host ID を使う必要があり、回転する refresh token を端末間で共有すると失効するためです。
+ID トークンの署名は検証しません。token endpoint から TLS で直接受け取る経路に限り、`iss`・`aud`・`exp`・`nonce` と scope を照合します。
 
 `src/constants/models.ts` の選択肢へモデルを追加しても、リクエストの capability が
 自動的に決まることはありません。OpenAI の現在の reasoning モデルは temperature を省略し、
@@ -402,7 +416,7 @@ z.ai へ OpenAI の送信制約は適用しません。
 
 ```typescript
 // src/ai/get-adapter.ts
-export function getAdapter(provider: AiProvider): ChatCompletionAdapter {
+export function getAdapter(provider: ApiKeyProvider): ChatCompletionAdapter {
   switch (provider) {
     case "openai":
       return openaiAdapter;

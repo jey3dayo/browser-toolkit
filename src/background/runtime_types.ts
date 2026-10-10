@@ -41,6 +41,20 @@ export type DownloadImageRequest = DownloadImagePayload;
 
 type DownloadImageResponse = Result.Result<Record<string, never>, string>;
 
+type ChatGptAuthStateResponse = Result.Result<
+  {
+    status: "signedOut" | "pending" | "signedIn" | "failed";
+    email: string | null;
+    errorMessage: string | null;
+  },
+  string
+>;
+type ChatGptSignInResponse = Result.Result<Record<string, never>, string>;
+type ChatGptSignOutResponse = Result.Result<
+  { revokeConfirmed: boolean },
+  string
+>;
+
 export type RuntimeRequest =
   | BackgroundRequest
   | { action: "summarizeText"; target: SummaryTarget }
@@ -54,7 +68,10 @@ export type RuntimeRequest =
   | { action: "clearDebugLogs" }
   | { action: "getDebugLogStats" }
   | { action: "getDebugLogs" }
-  | ChatFollowUpRequest;
+  | ChatFollowUpRequest
+  | { action: "chatgptAuthState" }
+  | { action: "chatgptSignIn" }
+  | { action: "chatgptSignOut" };
 
 type TestOpenAiTokenResponse = Result.Result<Record<string, never>, string>;
 type DownloadDebugLogsResponse = Result.Result<Record<string, never>, string>;
@@ -68,6 +85,9 @@ type RuntimeResponse =
   | DownloadDebugLogsResponse
   | ClearDebugLogsResponse
   | ChatFollowUpResponse
+  | ChatGptAuthStateResponse
+  | ChatGptSignInResponse
+  | ChatGptSignOutResponse
   | SearchBlocklistMutateResponse
   | DownloadImageResponse
   | { ok: true }

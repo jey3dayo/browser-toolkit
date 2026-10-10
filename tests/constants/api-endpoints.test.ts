@@ -24,6 +24,12 @@ describe("API Endpoints Whitelist", () => {
       ).toBe(true);
     });
 
+    it("should allow the OpenAI auth origin used by Sign in with ChatGPT", () => {
+      expect(
+        isAllowedApiOrigin("https://auth.openai.com/api/accounts/oauth/token")
+      ).toBe(true);
+    });
+
     it("should reject unknown API origins", () => {
       expect(isAllowedApiOrigin("https://evil.com/api")).toBe(false);
       expect(isAllowedApiOrigin("https://api.malicious.com/v1")).toBe(false);
@@ -43,14 +49,15 @@ describe("API Endpoints Whitelist", () => {
   });
 
   describe("ALLOWED_API_ORIGINS", () => {
-    it("should contain exactly 3 allowed origins", () => {
-      expect(ALLOWED_API_ORIGINS).toHaveLength(3);
+    it("should contain exactly 4 allowed origins", () => {
+      expect(ALLOWED_API_ORIGINS).toHaveLength(4);
     });
 
-    it("should contain OpenAI, Anthropic, and z.ai", () => {
+    it("should contain OpenAI, Anthropic, z.ai, and the OpenAI auth origin", () => {
       expect(ALLOWED_API_ORIGINS).toContain("https://api.openai.com");
       expect(ALLOWED_API_ORIGINS).toContain("https://api.anthropic.com");
       expect(ALLOWED_API_ORIGINS).toContain("https://api.z.ai");
+      expect(ALLOWED_API_ORIGINS).toContain("https://auth.openai.com");
     });
   });
 });

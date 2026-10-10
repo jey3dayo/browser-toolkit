@@ -7,6 +7,7 @@ import { SettingsPaneCard } from "@/popup/panes/settings/SettingsPaneLayout";
 import type { PopupRuntime } from "@/popup/runtime";
 import {
   type AiProvider,
+  isApiKeyProvider,
   PROVIDER_CONFIGS,
   safeParseAiProvider,
 } from "@/schemas/provider";
@@ -43,16 +44,20 @@ export function SettingsProviderSection({
       setModel(defaultModel);
 
       // プロバイダー別トークンをロード（完了を待つ）
-      const tokenKey = getAiProviderTokenKey(newProvider);
-      try {
-        const result = await runtime.storageLocalGet([tokenKey]);
-        if (Result.isSuccess(result)) {
-          const raw = result.value as Partial<LocalStorageData>;
-          const tokenValue = raw[tokenKey];
-          setToken(typeof tokenValue === "string" ? tokenValue : "");
+      if (isApiKeyProvider(newProvider)) {
+        const tokenKey = getAiProviderTokenKey(newProvider);
+        try {
+          const result = await runtime.storageLocalGet([tokenKey]);
+          if (Result.isSuccess(result)) {
+            const raw = result.value as Partial<LocalStorageData>;
+            const tokenValue = raw[tokenKey];
+            setToken(typeof tokenValue === "string" ? tokenValue : "");
+          }
+        } catch {
+          // no-op
         }
-      } catch {
-        // no-op
+      } else {
+        setToken("");
       }
 
       // トークンロード完了後に保存
@@ -73,6 +78,7 @@ export function SettingsProviderSection({
           {
             options: [
               { label: "OpenAI", value: "openai" },
+              { label: PROVIDER_CONFIGS.chatgpt.label, value: "chatgpt" },
               { label: "Anthropic (Claude)", value: "anthropic" },
               { label: "z.ai", value: "zai" },
             ],

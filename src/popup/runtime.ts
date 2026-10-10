@@ -44,6 +44,25 @@ export type TestAiTokenRequest = TestTokenFields & {
 };
 export type TestAiTokenResponse = Result.Result<void, string>;
 
+export type ChatGptAuthStatus = "signedOut" | "pending" | "signedIn" | "failed";
+export type ChatGptAuthState = {
+  status: ChatGptAuthStatus;
+  email: string | null;
+  errorMessage: string | null;
+};
+export type ChatGptAuthStateRequest = { action: "chatgptAuthState" };
+export type ChatGptAuthStateResponse = Result.Result<ChatGptAuthState, string>;
+export type ChatGptSignInRequest = { action: "chatgptSignIn" };
+export type ChatGptSignInResponse = Result.Result<
+  Record<string, never>,
+  string
+>;
+export type ChatGptSignOutRequest = { action: "chatgptSignOut" };
+export type ChatGptSignOutResponse = Result.Result<
+  { revokeConfirmed: boolean },
+  string
+>;
+
 export type ActiveTabInfo = {
   id: number;
   title?: string;

@@ -10,6 +10,44 @@ import type { LocalStorageData } from "@/storage/types";
 
 describe("ai/settings", () => {
   describe("loadAiSettings", () => {
+    it("accepts chatgpt when valid credentials are stored and carries no token", () => {
+      const result = loadAiSettings({
+        aiProvider: "chatgpt",
+        chatgptCredentials: {
+          accessToken: "a",
+          clientId: "c",
+          email: null,
+          expiresAt: 1,
+          idToken: "i",
+          refreshToken: "r",
+          scope: "s",
+          subject: "u",
+        },
+        openaiApiToken: "sk-must-not-be-used",
+      });
+
+      expect(Result.isSuccess(result) && result.value.provider).toBe("chatgpt");
+      expect(Result.isSuccess(result) && "token" in result.value).toBe(false);
+    });
+
+    it("rejects chatgpt without credentials even when an api key exists", () => {
+      const result = loadAiSettings({
+        aiProvider: "chatgpt",
+        openaiApiToken: "sk-test-token",
+      });
+
+      expect(Result.isFailure(result)).toBe(true);
+    });
+
+    it("rejects chatgpt when stored credentials are malformed", () => {
+      const result = loadAiSettings({
+        aiProvider: "chatgpt",
+        chatgptCredentials: JSON.parse('{"accessToken":"a"}'),
+      });
+
+      expect(Result.isFailure(result)).toBe(true);
+    });
+
     it("uses Luna for new or reset model settings", () => {
       const result = loadAiSettings({ openaiApiToken: "sk-test-token" });
       expect(Result.isSuccess(result) && result.value.model).toBe(

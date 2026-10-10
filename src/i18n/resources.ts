@@ -524,6 +524,30 @@ export const resources = {
       },
       settings: {
         apiToken: "{{provider}} API トークン",
+        chatgpt: {
+          errors: {
+            failedFallback: "サインインに失敗しました",
+          },
+          failedTitle: "サインインできませんでした",
+          legend: "ChatGPT プラン",
+          loading: "確認中です…",
+          manageUsage: "利用状況を管理",
+          manageUsageLabel: "利用状況を管理（新しいタブで開く）",
+          openingBrowser: "ブラウザを開いています…",
+          pendingTitle: "ブラウザでサインインを続けてください",
+          reopenSignIn: "サインイン画面を開く",
+          retrySignIn: "もう一度サインイン",
+          signedInHint: "利用状況と上限は ChatGPT の設定で管理できます。",
+          signedInTitle: "ChatGPT プランを使用中",
+          signedOutDescription:
+            "API キーの代わりに、ChatGPT（Plus / Pro）の利用枠で AI 機能を使います。",
+          signIn: "ChatGPT で続行",
+          signOut: "サインアウト",
+          signOutRevokeUnconfirmed:
+            "サインアウトしました。OpenAI 側での失効は確認できなかったため、必要なら ChatGPT の設定から接続を解除してください。",
+          signOutSuccess: "サインアウトしました",
+          testConnection: "接続テスト",
+        },
         customPrompt: "追加指示",
         customPromptLegend: "追加指示（オプション）",
         debugSection: "デバッグ",

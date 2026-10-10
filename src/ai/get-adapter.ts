@@ -1,7 +1,7 @@
 /**
  * アダプターファクトリ
  */
-import type { AiProvider } from "@/schemas/provider";
+import type { ApiKeyProvider } from "@/schemas/provider";
 import type { ChatCompletionAdapter } from "./adapter";
 import { anthropicAdapter } from "./anthropic-adapter";
 import { openaiAdapter } from "./openai-adapter";
@@ -10,7 +10,7 @@ import { zaiAdapter } from "./zai-adapter";
 /**
  * プロバイダーに応じたアダプターを取得
  */
-export function getAdapter(provider: AiProvider): ChatCompletionAdapter {
+export function getAdapter(provider: ApiKeyProvider): ChatCompletionAdapter {
   switch (provider) {
     case "openai":
       return openaiAdapter;
@@ -18,7 +18,9 @@ export function getAdapter(provider: AiProvider): ChatCompletionAdapter {
       return anthropicAdapter;
     case "zai":
       return zaiAdapter;
-    default:
-      return openaiAdapter;
+    default: {
+      const unreachable: never = provider;
+      return unreachable;
+    }
   }
 }

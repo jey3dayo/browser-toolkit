@@ -5,7 +5,7 @@
 主な機能:
 
 - テーブルをクリックでソート（動的に追加されるテーブルも対応）
-- AI（OpenAI / Anthropic / z.ai）を使った「Context Actions」（要約/翻訳/コードレビューなど）をポップアップと右クリックから実行
+- AI（OpenAI / ChatGPT プラン / Anthropic / z.ai）を使った「Context Actions」（要約/翻訳/コードレビューなど）をポップアップと右クリックから実行
 - カレンダー登録（ページ内容からイベントを抽出して Google カレンダー / iCal に登録）
 - リンク作成（タイトル+URLを複数形式でコピー）
 - 検索エンジン（選択テキストをカスタム検索エンジンで検索）/ まとめて検索（グループ一括検索）
@@ -56,6 +56,7 @@
 
 - 対応プロバイダー:
   - OpenAI（GPT-5 系列ほか）
+  - ChatGPT プラン（Sign in with ChatGPT。Plus / Pro の利用枠を使うため API キー不要）
   - Anthropic（Claude Sonnet 4.5 ほか）
   - z.ai（GLM-4.7 ほか）
 - 実行方法:
@@ -162,8 +163,10 @@
 
 オプションページ → **設定**:
 
-- AI プロバイダー: OpenAI / Anthropic / z.ai を切り替え
+- AI プロバイダー: OpenAI / ChatGPT プラン / Anthropic / z.ai を切り替え
 - API Token: 選択中のプロバイダーのトークンを保存（`chrome.storage.local` に保存。同期されません）
+- ChatGPT プラン: 「ChatGPT で続行」でブラウザのタブにサインイン画面が開き、完了すると通知が出ます。
+  利用状況と上限は [ChatGPT の設定](https://chatgpt.com/settings/usage) で管理します。モデルは OpenAI と同じ選択肢を使います
 - モデルID: プロバイダーごとのプリセットから選択 + 任意のモデルIDを入力可
   - OpenAI: `gpt-6-luna`（デフォルト）/ `gpt-6.1-sol`
   - Anthropic デフォルト: `claude-sonnet-4-5`
@@ -364,9 +367,10 @@ browser-toolkit/
 ## プライバシー/セキュリティ
 
 - AI プロバイダーごとの API Token は `chrome.storage.local` に保存（同期なし）
+- ChatGPT プランの OAuth トークン（access / refresh / ID token）と端末ごとの host ID も `chrome.storage.local` に保存（同期なし）。サインアウトすると refresh token を OpenAI 側で失効させてから削除します
 - URL パターン/アクション定義などの非機密設定は `chrome.storage.sync` に保存
 - 選択テキストは安定動作のためローカルに短時間キャッシュされることがあります（fresh 判定は約30秒）
-- AI API（OpenAI / Anthropic / z.ai）への送信は **Context Action やカレンダー登録を明示的に実行した場合のみ** 発生します
+- AI API（OpenAI / ChatGPT プラン / Anthropic / z.ai）への送信は **Context Action やカレンダー登録を明示的に実行した場合のみ** 発生します
 - 送信対象は、ポップアップ実行では **選択範囲 → 直近の選択キャッシュ → ページ本文**、右クリック実行では **右クリック時の選択範囲 → ページ本文** の順に決まります
 
 ### エラー監視（Google Analytics 4）

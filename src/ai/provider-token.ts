@@ -1,4 +1,4 @@
-import type { AiProvider } from "@/schemas/provider";
+import type { ApiKeyProvider } from "@/schemas/provider";
 import type { LocalStorageData } from "@/storage/types";
 
 type AiProviderTokenKey =
@@ -7,7 +7,7 @@ type AiProviderTokenKey =
   | "zaiApiToken";
 
 export function getAiProviderTokenKey(
-  provider: AiProvider
+  provider: ApiKeyProvider
 ): AiProviderTokenKey {
   switch (provider) {
     case "anthropic":
@@ -16,14 +16,16 @@ export function getAiProviderTokenKey(
       return "zaiApiToken";
     case "openai":
       return "openaiApiToken";
-    default:
-      return "openaiApiToken";
+    default: {
+      const unreachable: never = provider;
+      return unreachable;
+    }
   }
 }
 
 export function getAiProviderToken(
   storage: Partial<LocalStorageData>,
-  provider: AiProvider
+  provider: ApiKeyProvider
 ): string {
   return storage[getAiProviderTokenKey(provider)] ?? "";
 }

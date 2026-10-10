@@ -8,6 +8,7 @@ import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import type { TestAiTokenRequest, TestAiTokenResponse } from "@/popup/runtime";
 import {
   type AiProvider,
+  isApiKeyProvider,
   normalizeAiModel,
   safeParseAiProvider,
 } from "@/schemas/provider";
@@ -105,8 +106,9 @@ export function useSettingsState(params: PopupPaneBaseProps): UseSettingsState {
       setProvider(resolvedProvider);
 
       // プロバイダー別トークン
-      const tokenKey = getAiProviderTokenKey(resolvedProvider);
-      const tokenValue = raw[tokenKey];
+      const tokenValue = isApiKeyProvider(resolvedProvider)
+        ? raw[getAiProviderTokenKey(resolvedProvider)]
+        : undefined;
       setToken(typeof tokenValue === "string" ? tokenValue : "");
 
       // カスタムプロンプト（新キー優先、旧キーフォールバック）
@@ -144,17 +146,24 @@ export function useSettingsState(params: PopupPaneBaseProps): UseSettingsState {
   }, [runtime]);
 
   const saveToken = async (): Promise<void> => {
+    if (!isApiKeyProvider(provider)) {
+      return;
+    }
     const tokenKey = getAiProviderTokenKey(provider);
     await saveLocalString(tokenKey, token);
   };
 
   const clearToken = async (): Promise<void> => {
+    if (!isApiKeyProvider(provider)) {
+      return;
+    }
     const tokenKey = getAiProviderTokenKey(provider);
     await clearLocalString(tokenKey, () => setToken(""));
   };
 
   const testToken = async (): Promise<void> => {
-    const tokenOverride = token.trim() ? token.trim() : undefined;
+    const tokenOverride =
+      isApiKeyProvider(provider) && token.trim() ? token.trim() : undefined;
     const responseUnknown = await runtime.sendMessageToBackground<
       TestAiTokenRequest,
       unknown

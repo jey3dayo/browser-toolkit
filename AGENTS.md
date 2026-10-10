@@ -64,6 +64,9 @@ Browser Toolkitは、個人用のChrome拡張機能（Manifest V3）です。Web
 
 - `<all_urls>` は、全ページでのテーブルソート、選択テキスト取得、ページ本文フォールバック、Shadow DOM オーバーレイ表示に必要です。より狭い match pattern へ変更する場合は、これらの既存機能が対象外ページで壊れないかを明示的に検証してください。
 - `scripting` は active tab への機能注入、`downloads` は `.ics` などのファイル出力、`notifications` はユーザー向け通知、`alarms` は Manifest V3 service worker の復帰補助に使います。未使用に見える権限を削る前に、対応する runtime path を `src/background.ts`、`src/content.ts`、`src/popup/` から確認してください。
+- ChatGPT プラン（Sign in with ChatGPT）は token / revoke に `https://auth.openai.com` を使います。
+  認可コードは loopback redirect（`http://127.0.0.1:1455/auth/callback`）のタブ URL を `tabs.onUpdated` で読んで受け取り、
+  その読み取りは既存の `<all_urls>` に依存します。`tabs` 権限は追加していません。
 - AI provider の endpoint を追加・変更するときは、`src/constants/api-endpoints.ts`、`manifest.json` の `host_permissions`、`content_security_policy.connect-src` を同じ差分で揃えてください。
 - Chrome Web Store など外部配布に進む前は、強い権限の理由をリリース説明に転記できる粒度で残してください。
 - `content_scripts` は3エントリあります。既存 `dist/content.js`（全ページ、`document_idle`）に加え、

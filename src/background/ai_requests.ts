@@ -1,12 +1,11 @@
 import { Result } from "@praha/byethrow";
 import type { ChatRequestBody } from "@/ai/adapter";
-import {
-  fetchChatCompletionOk,
-  fetchChatCompletionText,
-} from "@/ai/chat-completion-client";
-import { getAdapter } from "@/ai/get-adapter";
 import { getAiProviderTokenKey } from "@/ai/provider-token";
 import { loadAiSettings } from "@/ai/settings";
+import {
+  requestAiCompletionOk,
+  requestAiCompletionText,
+} from "@/background/ai_credentials";
 import {
   applyTemplateVariables,
   buildSystemMessage,
@@ -24,7 +23,7 @@ import {
   ExtractedEventSchema,
 } from "@/schemas/extracted_event";
 import { safeParseJsonObject } from "@/schemas/json";
-import { safeParseAiProvider } from "@/schemas/provider";
+import { isApiKeyProvider, safeParseAiProvider } from "@/schemas/provider";
 import type { ExtractedEvent } from "@/shared_types";
 
 const MAX_CHAT_TURNS = 20;
@@ -58,15 +57,7 @@ async function requestAiText(
     settings,
   });
 
-  const adapter = getAdapter(settings.provider);
-
-  return await fetchChatCompletionText(
-    fetch,
-    adapter,
-    settings.token,
-    body,
-    emptyContentMessage
-  );
+  return await requestAiCompletionText(settings, body, emptyContentMessage);
 }
 
 export async function summarizeWithAi(
@@ -185,16 +176,16 @@ export async function testAiToken(
     "anthropicApiToken",
     "zaiApiToken",
     "openaiModel",
+    "chatgptCredentials",
   ]);
 
   // tokenOverrideがある場合は、ストレージの設定に上書き
   let effectiveStorage = storage;
-  if (tokenOverride) {
-    const provider = safeParseAiProvider(storage.aiProvider) ?? "openai";
-    const tokenKey = getAiProviderTokenKey(provider);
+  const provider = safeParseAiProvider(storage.aiProvider) ?? "openai";
+  if (tokenOverride && isApiKeyProvider(provider)) {
     effectiveStorage = {
       ...storage,
-      [tokenKey]: tokenOverride,
+      [getAiProviderTokenKey(provider)]: tokenOverride,
     };
   }
 
@@ -204,22 +195,15 @@ export async function testAiToken(
   }
 
   const settings = settingsResult.value;
-  const adapter = getAdapter(settings.provider);
-
-  const checkResult = await fetchChatCompletionOk(
-    fetch,
-    adapter,
-    settings.token,
-    {
-      max_completion_tokens: 1024,
-      messages: [
-        { content: "You are a health check bot.", role: "system" },
-        { content: "Reply with OK.", role: "user" },
-      ],
-      model: settings.model,
-      temperature: 0,
-    }
-  );
+  const checkResult = await requestAiCompletionOk(settings, {
+    max_completion_tokens: 1024,
+    messages: [
+      { content: "You are a health check bot.", role: "system" },
+      { content: "Reply with OK.", role: "user" },
+    ],
+    model: settings.model,
+    temperature: 0,
+  });
 
   if (Result.isFailure(checkResult)) {
     return Result.fail(checkResult.error);
@@ -272,7 +256,7 @@ export async function extractEventWithAi(
         body.output_config = {
           format: { schema: EXTRACTED_EVENT_JSON_SCHEMA, type: "json_schema" },
         };
-      } else {
+      } else if (settings.provider !== "chatgpt") {
         body.response_format = { type: "json_object" };
       }
 
@@ -313,6 +297,7 @@ export async function chatFollowUpWithAi(
     "zaiApiToken",
     "openaiModel",
     "openaiCustomPrompt",
+    "chatgptCredentials",
   ]);
   const settingsResult = loadAiSettings(storage);
   if (Result.isFailure(settingsResult)) {
@@ -352,11 +337,8 @@ export async function chatFollowUpWithAi(
     temperature: 0.2,
   };
 
-  const adapter = getAdapter(settings.provider);
-  return await fetchChatCompletionText(
-    fetch,
-    adapter,
-    settings.token,
+  return await requestAiCompletionText(
+    settings,
     body,
     "チャット応答の取得に失敗しました"
   );
