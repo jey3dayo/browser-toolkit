@@ -75,6 +75,9 @@ jobs:
       - name: Setup Node environment
         uses: ./.github/actions/setup-node-env
 
+      - name: Verify agent skill delivery
+        run: pnpm run test:agent-skills
+
       - name: Run tests
         run: pnpm test
 

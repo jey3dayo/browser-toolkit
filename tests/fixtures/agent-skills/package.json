@@ -1,0 +1,9 @@
+{
+  "name": "@browser-toolkit/agent-skills-poc",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Repository-owned inert pnpm Agent Skills proof of concept",
+  "files": [
+    "skills"
+  ]
+}

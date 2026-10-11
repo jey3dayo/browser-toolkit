@@ -24,6 +24,7 @@
     "report:jev": "pnpm dlx --config.minimum-release-age=0 --allow-build=@ast-grep/cli jev-lint@latest review --base origin/main",
     "storybook": "storybook dev -p 6006",
     "test": "vitest run --project=node --project=dom --maxWorkers=1",
+    "test:agent-skills": "node --test tests/build/agent-skills.test.mjs",
     "test:e2e": "playwright test",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:ui": "playwright test --ui",
@@ -60,6 +61,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.14",
+    "@browser-toolkit/agent-skills-poc": "file:tests/fixtures/agent-skills",
     "@chromatic-com/storybook": "^5.3.1",
     "@playwright/test": "^1.63.0",
     "@storybook/addon-a11y": "^10.6.0",
@@ -89,7 +91,7 @@
     "vitest": "^4.1.11",
     "ws": "^8.21.3"
   },
-  "packageManager": "pnpm@12.7.0",
+  "packageManager": "pnpm@12.11.2",
   "engines": {
     "node": ">=24.0.0"
   }

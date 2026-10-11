@@ -14,3 +14,11 @@ trustPolicyExclude:
   - semver@6.3.1
 update:
   githubActions: true
+# Repository-owned, inert PoC only; no external package skill grants.
+skills:
+  dirs:
+    - .agents/skills
+    - .claude/skills
+permissions:
+  "@browser-toolkit/agent-skills-poc@file:tests/fixtures/agent-skills":
+    skills: true
