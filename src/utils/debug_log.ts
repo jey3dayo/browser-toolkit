@@ -53,7 +53,8 @@ function redactSensitiveData(
 
 function safeStringify(value: unknown): string {
   try {
-    return JSON.stringify(value) ?? String(value);
+    const json: string | undefined = JSON.stringify(value);
+    return json ?? String(value);
   } catch {
     return "[unserializable data]";
   }
