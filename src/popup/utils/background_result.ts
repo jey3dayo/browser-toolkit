@@ -6,19 +6,33 @@ import { ClientTimeoutError } from "@/utils/custom-errors";
 
 type ErrorHandler = (message: string) => void;
 
+/**
+ * Timeout configuration for background message sending.
+ * - `null`: タイムアウト無効（無期限に待機）
+ * - `undefined`: デフォルトタイムアウトを使用（CLIENT_MESSAGE_TIMEOUT_MS）
+ * - `number`: カスタムタイムアウト（ミリ秒）
+ */
+type TimeoutConfig = number | null | undefined;
+
+/**
+ * タイムアウト設定を実際のミリ秒数またはnullに解決する
+ * @param timeoutMs - タイムアウト設定
+ * @returns 実際のタイムアウト値（ミリ秒）またはnull（タイムアウト無効）
+ */
+function resolveTimeout(timeoutMs: TimeoutConfig): number | null {
+  if (timeoutMs === null) {
+    return null;
+  }
+  return timeoutMs ?? CLIENT_MESSAGE_TIMEOUT_MS;
+}
+
 export async function sendBackgroundResult<TRequest, TResponse>(params: {
   runtime: Pick<PopupRuntime, "sendMessageToBackground">;
   message: TRequest;
   onError: ErrorHandler;
-  timeoutMs?: number | null;
+  timeoutMs?: TimeoutConfig;
 }): Promise<TResponse | null> {
-  // timeoutMs === null でタイムアウト無効化
-  // timeoutMs === undefined でデフォルト30秒
-  // timeoutMs === 数値 でカスタムタイムアウト
-  const timeout =
-    params.timeoutMs === null
-      ? null
-      : (params.timeoutMs ?? CLIENT_MESSAGE_TIMEOUT_MS);
+  const timeout = resolveTimeout(params.timeoutMs);
 
   const responseUnknown =
     timeout === null

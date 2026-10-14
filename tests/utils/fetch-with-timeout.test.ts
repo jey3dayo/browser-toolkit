@@ -99,7 +99,6 @@ describe("fetchWithTimeout", () => {
       {}
     );
     expect(mockFetch).toHaveBeenCalled();
-    // デフォルトタイムアウトは25000ms（コード内で確認済み）
   });
 
   it("カスタムタイムアウトを設定可能", async () => {
