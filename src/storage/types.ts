@@ -52,6 +52,40 @@ export type LocalStorageData = {
   searchBlocklistRules?: SearchBlocklistRule[];
 };
 
+/** AI provider settings (device-local, not synced) */
+export type AiProviderSettings = Pick<
+  LocalStorageData,
+  | "aiProvider"
+  | "aiModel"
+  | "aiCustomPrompt"
+  | "openaiApiToken"
+  | "anthropicApiToken"
+  | "zaiApiToken"
+  | "openaiCustomPrompt"
+  | "openaiModel"
+>;
+
+/** ChatGPT OAuth credentials (device-local, not synced) */
+export type ChatGptAuthSettings = Pick<
+  LocalStorageData,
+  | "chatgptCredentials"
+  | "chatgptClientId"
+  | "chatgptClientSubject"
+  | "chatgptHostId"
+>;
+
+/** UI and behavior settings (device-local) */
+export type LocalUiSettings = Pick<
+  LocalStorageData,
+  "theme" | "lastCopyTitleLinkFailure" | "debugMode"
+>;
+
+/** User data (device-local) */
+export type LocalUserData = Pick<
+  LocalStorageData,
+  "actionHistory" | "searchBlocklistRules"
+>;
+
 export type SyncStorageData = {
   domainPatternConfigs?: DomainPatternConfig[];
   focusOverridePatterns?: FocusOverrideStorageData["focusOverridePatterns"];
@@ -62,3 +96,20 @@ export type SyncStorageData = {
   searchEngineGroups?: SearchEngineGroup[];
   textTemplates?: TextTemplate[];
 };
+
+/** Table sort configuration (synced) */
+export type TableSortConfig = Pick<
+  SyncStorageData,
+  "domainPatternConfigs" | "focusOverridePatterns"
+>;
+
+/** Context menu and actions (synced) */
+export type ContextMenuConfig = Pick<
+  SyncStorageData,
+  | "contextActions"
+  | "linkFormat"
+  | "calendarTargets"
+  | "searchEngines"
+  | "searchEngineGroups"
+  | "textTemplates"
+>;
