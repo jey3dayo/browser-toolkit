@@ -9,9 +9,8 @@ import {
   DebugLogsResponseSchema,
 } from "@/schemas/debug_log";
 import type { LocalStorageData } from "@/storage/types";
-import { debugLog } from "@/utils/debug_log";
-import { formatErrorLog } from "@/utils/errors";
 import { ignoreRejection } from "@/utils/ignore_rejection";
+
 type LogStats = {
   entryCount: number;
   sizeKB: string;
@@ -171,10 +170,7 @@ export function useDebugLogs(props: PopupPaneBaseProps): UseDebugLogsResult {
   );
 
   const handleShowLogsClick = useCallback(() => {
-    ignoreRejection(
-      loadAndShowLogs(),
-      "useDebugLogs: load and show logs"
-    );
+    ignoreRejection(loadAndShowLogs(), "useDebugLogs: load and show logs");
   }, [loadAndShowLogs]);
 
   const handleDownloadLogsClick = useCallback(() => {

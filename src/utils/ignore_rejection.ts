@@ -1,32 +1,33 @@
 import { debugLog } from "@/utils/debug_log";
 
-/**
- * Promise の rejection を無視し、debug log に記録する
- * @param promise - rejection を無視する Promise
- * @param scope - ログに記録するスコープ・理由
- */
 export function ignoreRejection<T>(
   promise: Promise<T>,
   scope: string
 ): Promise<void> {
-  return promise
-    .then(() => {
-      // success: no-op
-    })
-    .catch(async (error: unknown) => {
-      try {
-        await debugLog("ignore-rejection", scope, {
-          error: error instanceof Error ? error.message : String(error),
-        });
-      } catch {
-        // fail silent: debug log 自体の失敗は無視
-      }
-    });
+  return (
+    promise
+      // biome-ignore lint/suspicious/noEmptyBlockStatements: intentionally empty success handler
+      .then(() => {})
+      .catch(async (error: unknown) => {
+        try {
+          await debugLog("ignore-rejection", scope, {
+            error: error instanceof Error ? error.message : String(error),
+          });
+          // biome-ignore lint/suspicious/noEmptyBlockStatements: intentionally swallow debugLog failure
+        } catch {}
+      })
+  );
 }
 
-/**
- * Storybook など UI テスト用の noop ハンドラ
- */
-export const NOOP = (): void => {
-  // intentionally empty
-};
+// biome-ignore lint/suspicious/noEmptyBlockStatements: intentionally empty for stories
+export const NOOP = (): void => {};
+
+export function debugLogSilently(
+  context: string,
+  message: string,
+  data?: Record<string, unknown>,
+  level?: "debug" | "info" | "warn" | "error"
+): void {
+  // biome-ignore lint/suspicious/noEmptyBlockStatements: intentionally swallow debugLog failure
+  debugLog(context, message, data, level).catch(() => {});
+}

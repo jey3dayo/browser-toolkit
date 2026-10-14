@@ -54,7 +54,7 @@ import { getPaneSurfacePage } from "@/popup/panes";
 import { runSequentially } from "@/utils/async";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
-import { ignoreRejection } from "@/utils/ignore_rejection";
+import { debugLogSilently, ignoreRejection } from "@/utils/ignore_rejection";
 import {
   CONTEXT_MENU_LINK_FORMATS,
   coerceLinkFormat,
@@ -264,24 +264,15 @@ export async function refreshContextMenus(): Promise<boolean> {
     // Search engines section
     const enabledEngines = searchEngines.filter((engine) => engine.enabled);
 
-    ignoreRejection(
-      debugLog("refreshContextMenus", "searchEngines loaded", {
-        searchEngines,
-      }),
-      "context_menu_registry: debug search engines"
-    );
-    ignoreRejection(
-      debugLog("refreshContextMenus", "enabledEngines filtered", {
-        enabledEngines,
-      }),
-      "context_menu_registry: debug enabled engines"
-    );
+    debugLogSilently("refreshContextMenus", "searchEngines loaded", {
+      searchEngines,
+    });
+    debugLogSilently("refreshContextMenus", "enabledEngines filtered", {
+      enabledEngines,
+    });
 
     if (enabledEngines.length > 0) {
-      ignoreRejection(
-        debugLog("refreshContextMenus", "creating search parent menu"),
-        "context_menu_registry: debug search parent menu"
-      );
+      debugLogSilently("refreshContextMenus", "creating search parent menu");
       await createMenuItem({
         contexts: ["selection"],
         id: CONTEXT_MENU_SEARCH_PARENT_ID,
@@ -290,12 +281,9 @@ export async function refreshContextMenus(): Promise<boolean> {
       });
 
       await runSequentially(enabledEngines, (engine) => {
-        ignoreRejection(
-          debugLog("refreshContextMenus", "creating search engine menu", {
-            engine,
-          }),
-          "context_menu_registry: debug search engine menu"
-        );
+        debugLogSilently("refreshContextMenus", "creating search engine menu", {
+          engine,
+        });
         return createMenuItem({
           contexts: ["selection"],
           id: `${CONTEXT_MENU_SEARCH_PREFIX}${engine.id}`,
@@ -309,12 +297,9 @@ export async function refreshContextMenus(): Promise<boolean> {
       const enabledGroups = groups.filter((group) => group.enabled);
 
       if (enabledGroups.length > 0) {
-        ignoreRejection(
-          debugLog(
-            "refreshContextMenus",
-            "creating batch search parent menu"
-          ),
-          "context_menu_registry: debug batch search parent menu"
+        debugLogSilently(
+          "refreshContextMenus",
+          "creating batch search parent menu"
         );
         await createMenuItem({
           contexts: ["selection"],
@@ -324,11 +309,12 @@ export async function refreshContextMenus(): Promise<boolean> {
         });
 
         await runSequentially(enabledGroups, (group) => {
-          ignoreRejection(
-            debugLog("refreshContextMenus", "creating batch search menu", {
+          debugLogSilently(
+            "refreshContextMenus",
+            "creating batch search menu",
+            {
               group,
-            }),
-            "context_menu_registry: debug batch search menu"
+            }
           );
           return createMenuItem({
             contexts: ["selection"],
