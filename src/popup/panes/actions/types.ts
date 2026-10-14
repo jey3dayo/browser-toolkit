@@ -1,8 +1,7 @@
 import { Result } from "@praha/byethrow";
 import { t } from "@/i18n";
-import type { RunContextActionResponse } from "@/popup/runtime";
 import { coerceSummarySourceLabel } from "@/popup/utils/summary_source_label";
-import { isResultType } from "@/schemas/result";
+import { isRunContextActionResponse } from "@/schemas/context-action-response";
 
 export type OutputState =
   | { status: "idle" }
@@ -14,12 +13,6 @@ export type OutputState =
       sourceLabel: string;
     }
   | { status: "error"; title: string; message: string };
-
-function isRunContextActionResponse(
-  value: unknown
-): value is RunContextActionResponse {
-  return isResultType(value);
-}
 
 type ParseRunContextActionResponseError = string;
 
