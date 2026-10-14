@@ -51,7 +51,6 @@ import {
 import { storageLocalGet, storageLocalSet } from "@/storage/helpers";
 import { debugLog } from "@/utils/debug_log";
 import { isRecord } from "@/utils/guards";
-import { ignoreRejection } from "@/utils/ignore_rejection";
 import { showErrorNotification } from "@/utils/notifications";
 
 let mutationQueue: Promise<unknown> = Promise.resolve();
@@ -362,10 +361,10 @@ function handleSearchBlocklistMutateRequest(
   request: SearchBlocklistMutateRequest,
   sendResponse: RuntimeSendResponse
 ): boolean {
-  const operation = mutationQueue.then(() =>
-    applySearchBlocklistMutation(request)
-  );
-  mutationQueue = ignoreRejection(operation, "blocklist-mutation");
+  const operation = mutationQueue
+    .catch(() => undefined)
+    .then(() => applySearchBlocklistMutation(request));
+  mutationQueue = operation;
   operation
     .then((result) => {
       sendResponse(result);
