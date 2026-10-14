@@ -6,4 +6,6 @@ declare global {
   // content.js と image-zoom.js は同じ isolated world の別バンドルなので、
   // モーダルの「最上位」判定は globalThis 経由で共有する必要がある。
   var __MBU_MODAL_STACK__: symbol[] | undefined;
+  // テスト環境フラグ（Vitest実行時にtrue）
+  var __MBU_IS_VITEST__: boolean | undefined;
 }

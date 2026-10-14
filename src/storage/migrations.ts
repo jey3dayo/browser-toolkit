@@ -209,6 +209,7 @@ export interface BackupData {
 const SCHEMA_VERSION_KEY = STORAGE_RESERVED_KEYS.SCHEMA_VERSION;
 const MIGRATION_LOG_KEY = STORAGE_RESERVED_KEYS.MIGRATION_LOG;
 const BACKUP_KEY_PREFIX = STORAGE_RESERVED_KEYS.BACKUP_PREFIX;
+const MAX_BACKUPS = 3;
 
 /**
  * Get current schema version
@@ -271,7 +272,7 @@ export async function backupBeforeMigration(version: number): Promise<void> {
     const backupKey = `${BACKUP_KEY_PREFIX}${version}_${backup.timestamp}`;
     await storageLocalSet({ [backupKey]: backup });
 
-    // Clean old backups (keep only last 3)
+    // Clean old backups
     await cleanOldBackups();
   } catch (error) {
     console.error("[migrations] Backup failed:", error);
@@ -283,7 +284,7 @@ export async function backupBeforeMigration(version: number): Promise<void> {
 }
 
 /**
- * Clean old backups (keep only last 3)
+ * Clean old backups (keep only last MAX_BACKUPS)
  */
 export async function cleanOldBackups(): Promise<void> {
   const allData = await storageLocalGet(null);
@@ -292,8 +293,7 @@ export async function cleanOldBackups(): Promise<void> {
     .sort()
     .reverse();
 
-  // Keep only last 3 backups
-  const keysToRemove = backupKeys.slice(3);
+  const keysToRemove = backupKeys.slice(MAX_BACKUPS);
   if (keysToRemove.length > 0) {
     const removeObj = Object.fromEntries(
       keysToRemove.map((key) => [key, undefined])

@@ -421,18 +421,22 @@ export async function refreshContextMenus(): Promise<boolean> {
  * @returns Promise that resolves when the refresh is complete
  */
 export function scheduleRefreshContextMenus(): Promise<void> {
-  // 直前の更新が失敗しても次回を止めないようにしつつ、
-  // 非標準の thenable 等が混入しても壊れないように Promise.resolve で正規化する。
-  contextMenuRefreshQueue = Promise.resolve(contextMenuRefreshQueue).then(
-    async () => {
+  contextMenuRefreshQueue = contextMenuRefreshQueue
+    .catch((error) => {
+      debugLogSilently(
+        "scheduleRefreshContextMenus",
+        "recovered from previous refresh failure",
+        { error }
+      );
+    })
+    .then(async () => {
       // SW 復帰ごとの再構築を廃止した分、失敗時の自己回復機会が減るため、
       // 途中失敗で空/部分メニューのまま固定されないよう1回だけ再試行する。
       const succeeded = await refreshContextMenus();
       if (!succeeded) {
         await refreshContextMenus();
       }
-    }
-  );
+    });
   ignoreRejection(
     contextMenuRefreshQueue,
     "context_menu_registry: refresh queue error"
