@@ -13,12 +13,14 @@ export function ignoreRejection<T>(
     .then(() => {
       // success: no-op
     })
-    .catch((error: unknown) => {
-      debugLog("ignore-rejection", scope, {
-        error: error instanceof Error ? error.message : String(error),
-      }).catch(() => {
+    .catch(async (error: unknown) => {
+      try {
+        await debugLog("ignore-rejection", scope, {
+          error: error instanceof Error ? error.message : String(error),
+        });
+      } catch {
         // fail silent: debug log 自体の失敗は無視
-      });
+      }
     });
 }
 

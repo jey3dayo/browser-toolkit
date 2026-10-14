@@ -15,6 +15,7 @@ import { t } from "@/i18n";
 import type { CopyTitleLinkFailure } from "@/storage/types";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog, toErrorMessage } from "@/utils/errors";
+import { ignoreRejection } from "@/utils/ignore_rejection";
 import {
   coerceLinkFormat,
   formatLink,
@@ -79,12 +80,13 @@ export async function handleCopyTitleLinkContextMenuClick(
   const fallback = title && url ? `${title}\n${url}` : url || title;
   const text = formatted || fallback;
   if (!text.trim()) {
-    await sendMessageToTab(params.tabId, {
-      action: "showNotification",
-      message: t("background.copyTitleLink.emptyContent"),
-    } satisfies ContentScriptMessage).catch(() => {
-      // no-op
-    });
+    ignoreRejection(
+      sendMessageToTab(params.tabId, {
+        action: "showNotification",
+        message: t("background.copyTitleLink.emptyContent"),
+      } satisfies ContentScriptMessage),
+      "context_menu_copy: empty content notification"
+    );
     return;
   }
 
@@ -225,9 +227,10 @@ async function clearCopyTitleLinkFailureIndicator(
     typeof storedFailure.tabId === "number" &&
     storedFailure.tabId === tabId
   ) {
-    await storageLocalRemove("lastCopyTitleLinkFailure").catch(() => {
-      // no-op
-    });
+    ignoreRejection(
+      storageLocalRemove("lastCopyTitleLinkFailure"),
+      "context_menu_copy: clear failure indicator"
+    );
   }
 
   try {
