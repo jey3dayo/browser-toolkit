@@ -92,7 +92,7 @@ function backgroundFor(handlers: Handlers) {
       );
     }
     if (action === "testAiToken") {
-      return Result.succeed(handlers.testAiToken?.() ?? Result.succeed());
+      return Result.succeed(handlers.testAiToken?.() ?? Result.succeed({}));
     }
     return Result.fail("unexpected");
   }
