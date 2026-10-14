@@ -1,21 +1,24 @@
 import { debugLog } from "@/utils/debug_log";
+import { formatErrorLog } from "@/utils/errors";
 
 export function ignoreRejection<T>(
   promise: Promise<T>,
   scope: string
 ): Promise<void> {
-  return (
-    promise
-      // biome-ignore lint/suspicious/noEmptyBlockStatements: intentionally empty success handler
-      .then(() => {})
-      .catch(async (error: unknown) => {
-        try {
-          await debugLog("ignore-rejection", scope, {
-            error: error instanceof Error ? error.message : String(error),
-          });
-          // biome-ignore lint/suspicious/noEmptyBlockStatements: intentionally swallow debugLog failure
-        } catch {}
-      })
+  return promise.then(
+    () => {
+      // success: no-op
+    },
+    async (error: unknown) => {
+      try {
+        await debugLog(
+          "ignore-rejection",
+          scope,
+          formatErrorLog(scope, {}, error)
+        );
+        // biome-ignore lint/suspicious/noEmptyBlockStatements: intentionally swallow debugLog failure
+      } catch {}
+    }
   );
 }
 

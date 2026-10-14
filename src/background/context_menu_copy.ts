@@ -227,7 +227,7 @@ async function clearCopyTitleLinkFailureIndicator(
     typeof storedFailure.tabId === "number" &&
     storedFailure.tabId === tabId
   ) {
-    ignoreRejection(
+    await ignoreRejection(
       storageLocalRemove("lastCopyTitleLinkFailure"),
       "context_menu_copy: clear failure indicator"
     );
