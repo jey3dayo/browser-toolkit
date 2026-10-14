@@ -122,8 +122,9 @@ describe("background: focus override registration", () => {
       .mockRejectedValueOnce(new Error("First sync failed"))
       .mockResolvedValueOnce([]);
 
-    chromeStub.scripting.registerContentScripts.mockImplementation(async () => {
-      callCount++;
+    chromeStub.scripting.registerContentScripts.mockImplementation(() => {
+      callCount += 1;
+      return Promise.resolve();
     });
 
     const { syncFocusOverrideContentScript } = await import(
