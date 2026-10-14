@@ -56,7 +56,7 @@ describe("context_menu_registry queue recovery", () => {
     );
 
     let callCount = 0;
-    
+
     // First call throws error
     chromeStub.contextMenus.removeAll
       .mockImplementationOnce(() => {
