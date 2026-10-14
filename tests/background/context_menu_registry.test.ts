@@ -55,6 +55,20 @@ describe("context_menu_registry queue recovery", () => {
       }
     );
 
+    let callCount = 0;
+    
+    // First call throws error
+    chromeStub.contextMenus.removeAll
+      .mockImplementationOnce(() => {
+        callCount += 1;
+        throw new Error("First refresh failed");
+      })
+      .mockImplementation((callback?: () => void) => {
+        callCount += 1;
+        chromeStub.runtime.lastError = null;
+        callback?.();
+      });
+
     chromeStub.contextMenus.create.mockImplementation(
       (_createProperties: unknown, callback?: () => void) => {
         chromeStub.runtime.lastError = null;
@@ -62,31 +76,18 @@ describe("context_menu_registry queue recovery", () => {
       }
     );
 
-    let removeAllCallCount = 0;
-    chromeStub.contextMenus.removeAll
-      .mockImplementationOnce((callback?: () => void) => {
-        removeAllCallCount += 1;
-        chromeStub.runtime.lastError = { message: "First refresh failed" };
-        callback?.();
-      })
-      .mockImplementation((callback?: () => void) => {
-        removeAllCallCount += 1;
-        chromeStub.runtime.lastError = null;
-        callback?.();
-      });
-
     const { scheduleRefreshContextMenus } = await import(
       "@/background/context_menu_registry"
     );
 
-    // First refresh fails (with retry), but error is absorbed by ignoreRejection
+    // First refresh throws and rejects, but error is absorbed by ignoreRejection
     await scheduleRefreshContextMenus();
-    const countAfterFirst = removeAllCallCount;
+    const countAfterFirst = callCount;
 
     // Second refresh should succeed despite previous failure (queue recovered)
     await scheduleRefreshContextMenus();
 
     // Verify that the second call actually ran (queue didn't stay poisoned)
-    expect(removeAllCallCount).toBeGreaterThan(countAfterFirst);
+    expect(callCount).toBeGreaterThan(countAfterFirst);
   });
 });
