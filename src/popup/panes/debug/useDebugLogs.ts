@@ -11,7 +11,7 @@ import {
 import type { LocalStorageData } from "@/storage/types";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
-
+import { ignoreRejection } from "@/utils/ignore_rejection";
 type LogStats = {
   entryCount: number;
   sizeKB: string;
@@ -61,29 +61,21 @@ export function useDebugLogs(props: PopupPaneBaseProps): UseDebugLogsResult {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
-      const loaded = await runtime.storageLocalGet(["debugMode"]);
-      if (Result.isFailure(loaded) || cancelled) {
-        return;
-      }
-      const raw: Partial<LocalStorageData> = loaded.value;
-      const nextDebugMode = raw.debugMode ?? false;
-      setDebugMode(nextDebugMode);
-      if (nextDebugMode) {
-        await loadLogStats();
-      }
-    })().catch(async (error) => {
-      try {
-        await debugLog(
-          "DebugPane.useEffect[props.runtime]",
-          "failed",
-          { error: formatErrorLog("", {}, error) },
-          "error"
-        );
-      } catch {
-        // no-op
-      }
-    });
+    ignoreRejection(
+      (async () => {
+        const loaded = await runtime.storageLocalGet(["debugMode"]);
+        if (Result.isFailure(loaded) || cancelled) {
+          return;
+        }
+        const raw: Partial<LocalStorageData> = loaded.value;
+        const nextDebugMode = raw.debugMode ?? false;
+        setDebugMode(nextDebugMode);
+        if (nextDebugMode) {
+          await loadLogStats();
+        }
+      })(),
+      "useDebugLogs: load debug mode"
+    );
     return () => {
       cancelled = true;
     };
@@ -170,39 +162,27 @@ export function useDebugLogs(props: PopupPaneBaseProps): UseDebugLogsResult {
 
   const handleToggleDebugMode = useCallback(
     (checked: boolean) => {
-      toggleDebugMode(checked).catch(() => {
-        // no-op
-      });
+      ignoreRejection(
+        toggleDebugMode(checked),
+        "useDebugLogs: toggle debug mode"
+      );
     },
     [toggleDebugMode]
   );
 
   const handleShowLogsClick = useCallback(() => {
-    loadAndShowLogs().catch(async (error) => {
-      try {
-        await debugLog(
-          "DebugPane.loadAndShowLogs",
-          "failed",
-          { error: formatErrorLog("", {}, error) },
-          "error"
-        );
-      } catch {
-        // no-op
-      }
-      notify.error(t("debug.errors.loadFailed"));
-    });
-  }, [loadAndShowLogs, notify]);
+    ignoreRejection(
+      loadAndShowLogs(),
+      "useDebugLogs: load and show logs"
+    );
+  }, [loadAndShowLogs]);
 
   const handleDownloadLogsClick = useCallback(() => {
-    downloadLogs().catch(() => {
-      // no-op
-    });
+    ignoreRejection(downloadLogs(), "useDebugLogs: download logs");
   }, [downloadLogs]);
 
   const handleClearLogsClick = useCallback(() => {
-    clearLogs().catch(() => {
-      // no-op
-    });
+    ignoreRejection(clearLogs(), "useDebugLogs: clear logs");
   }, [clearLogs]);
 
   const handleHideLogsClick = useCallback(() => {
