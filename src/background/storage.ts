@@ -229,7 +229,6 @@ export const storageSyncGet = createStorageWrapper<[string[] | null], unknown>(
         return;
       }
 
-      // Check if any keys are marked as fallback to local storage
       const markerKey = STORAGE_RESERVED_KEYS.FALLBACK_KEYS_MARKER;
       chrome.storage.local.get([markerKey], (markerData) => {
         const markerErr = chrome.runtime.lastError;
@@ -238,7 +237,6 @@ export const storageSyncGet = createStorageWrapper<[string[] | null], unknown>(
             "[storageSyncGet] Failed to load fallback marker:",
             markerErr
           );
-          // Fallback: return sync data only
           resolve(syncItems);
           return;
         }
@@ -252,12 +250,10 @@ export const storageSyncGet = createStorageWrapper<[string[] | null], unknown>(
             : keys.filter((key) => fallbackKeySet.has(key));
 
         if (keysInLocal.length === 0) {
-          // No fallback keys, return sync data
           resolve(syncItems);
           return;
         }
 
-        // Fetch fallback keys from local storage
         chrome.storage.local.get(keysInLocal, (localItems) => {
           const localErr = chrome.runtime.lastError;
           if (localErr) {
@@ -265,7 +261,6 @@ export const storageSyncGet = createStorageWrapper<[string[] | null], unknown>(
             return;
           }
 
-          // Merge sync and local data (local takes precedence)
           resolve({ ...syncItems, ...localItems });
         });
       });
