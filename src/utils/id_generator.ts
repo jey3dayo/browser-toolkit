@@ -13,10 +13,10 @@ function simpleHash(str: string): string {
   let hash = 0;
   for (let i = 0; i < str.length; i += 1) {
     const char = str.charCodeAt(i);
-    // biome-ignore lint/suspicious/noBitwiseOperators: Required for hash calculation
+    // biome-ignore lint/suspicious/noBitwiseOperators: Required for hash calculation and 32-bit integer conversion
     hash = (hash << 5) - hash + char;
-    // biome-ignore lint/suspicious/noBitwiseOperators: Required for 32-bit conversion
-    hash &= hash; // Convert to 32bit integer
+    // biome-ignore lint/suspicious/noBitwiseOperators: Required for 32-bit integer conversion
+    hash &= hash;
   }
   return Math.abs(hash).toString(16).padStart(8, "0");
 }
