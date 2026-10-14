@@ -1,4 +1,3 @@
-// QRコードオーバーレイ（Shadow DOM + DOM API、Reactなし）
 import QRCode from "qrcode";
 import { ensureShadowMount } from "@/content/shadow_mount";
 import { t } from "@/i18n";

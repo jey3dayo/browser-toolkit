@@ -98,17 +98,14 @@ const migrations: Migration[] = [
 
       const updates: Partial<LocalStorageData> = {};
 
-      // Migrate openaiModel to aiModel (if aiModel doesn't exist)
       if (typeof data.openaiModel === "string" && !data.aiModel) {
         updates.aiModel = data.openaiModel;
       }
 
-      // Migrate openaiCustomPrompt to aiCustomPrompt (if aiCustomPrompt doesn't exist)
       if (typeof data.openaiCustomPrompt === "string" && !data.aiCustomPrompt) {
         updates.aiCustomPrompt = data.openaiCustomPrompt;
       }
 
-      // Set aiProvider to "openai" if openaiApiToken exists and aiProvider doesn't exist
       if (typeof data.openaiApiToken === "string" && !data.aiProvider) {
         updates.aiProvider = "openai";
       }
@@ -261,7 +258,6 @@ export async function getMigrationLog(): Promise<MigrationLogEntry[]> {
  */
 export async function backupBeforeMigration(version: number): Promise<void> {
   try {
-    // Get all sync and local storage data
     const syncData = await storageSyncGet(null);
     const localData = await storageLocalGet(null);
 
@@ -336,7 +332,6 @@ export async function restoreFromBackup(timestamp: number): Promise<void> {
   }
 
   try {
-    // Get current data to identify keys to remove
     const currentSyncData = (await storageSyncGet(null)) as Record<
       string,
       unknown
@@ -354,7 +349,6 @@ export async function restoreFromBackup(timestamp: number): Promise<void> {
       (key) => !(key in backup.localData || isReservedStorageKey(key))
     );
 
-    // Remove keys not in backup
     if (syncKeysToRemove.length > 0) {
       const removeSync = Object.fromEntries(
         syncKeysToRemove.map((key) => [key, undefined])
@@ -385,7 +379,6 @@ export async function restoreFromBackup(timestamp: number): Promise<void> {
       await storageLocalSet(localDataToRestore);
     }
 
-    // Update schema version to backup version
     await setSchemaVersion(backup.version);
 
     console.log(`[migrations] Restored from backup: ${timestamp}`);

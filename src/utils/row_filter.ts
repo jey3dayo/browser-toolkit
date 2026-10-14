@@ -1,4 +1,3 @@
-// Module-level regex patterns (lint/performance/useTopLevelRegex)
 const HYPHEN_REGEX = /^[-−]$/;
 const EMPTY_NA_REGEX = /^(n\/a|null|undefined|—)$/i;
 

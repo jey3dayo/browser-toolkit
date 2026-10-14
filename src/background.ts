@@ -1,5 +1,3 @@
-// Background Service Worker
-
 import { APP_NAME } from "@/app_meta";
 import {
   handleChatGptTabRemoved,

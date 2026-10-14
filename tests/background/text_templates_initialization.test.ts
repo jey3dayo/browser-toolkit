@@ -65,16 +65,13 @@ describe("background: text templates initialization", () => {
   });
 
   it("initializes default templates when textTemplates is undefined", async () => {
-    // Arrange: textTemplates is undefined (first time)
     mockStorage = {};
 
-    // Act: Import and trigger initialization
     const { refreshContextMenus } = await import(
       "@/background/context_menu_registry"
     );
     await refreshContextMenus();
 
-    // Assert: Default templates should be saved
     expect(chrome.storage.sync.set).toHaveBeenCalledWith(
       expect.objectContaining({
         textTemplates: expect.arrayContaining([
@@ -98,17 +95,13 @@ describe("background: text templates initialization", () => {
   });
 
   it("preserves empty array when user deleted all templates", async () => {
-    // Arrange: textTemplates is explicitly empty array
     mockStorage = { textTemplates: [] };
 
-    // Act: Import and trigger initialization
     const { refreshContextMenus } = await import(
       "@/background/context_menu_registry"
     );
     await refreshContextMenus();
 
-    // Assert: Should NOT overwrite with defaults
-    // The set call count should be 0 or only for other items
     const setCalls = (chrome.storage.sync.set as any).mock.calls;
     const templateSets = setCalls.filter((call: any) =>
       Object.hasOwn(call[0], "textTemplates")

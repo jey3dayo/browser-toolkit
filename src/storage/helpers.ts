@@ -1,5 +1,3 @@
-// Storage helper functions with Result type for error handling
-
 import { Result } from "@praha/byethrow";
 
 export type StorageError =

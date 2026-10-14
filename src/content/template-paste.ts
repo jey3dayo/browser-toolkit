@@ -1,5 +1,3 @@
-// Template Paste Helpers
-
 import { Result } from "@praha/byethrow";
 import {
   copyToClipboardWithNotification,
@@ -22,11 +20,9 @@ export function pasteToInputElement(
     currentValue.slice(0, start) + content + currentValue.slice(end);
   element.value = newValue;
 
-  // カーソル位置を挿入後に移動
   const newCursorPos = start + content.length;
   element.setSelectionRange(newCursorPos, newCursorPos);
 
-  // input/changeイベントを発火（React等のフレームワーク対応）
   element.dispatchEvent(new Event("input", { bubbles: true }));
   element.dispatchEvent(new Event("change", { bubbles: true }));
 }
@@ -52,13 +48,11 @@ export function pasteToContentEditable(
   const textNode = document.createTextNode(content);
   range.insertNode(textNode);
 
-  // カーソルを挿入後に移動
   range.setStartAfter(textNode);
   range.setEndAfter(textNode);
   selection.removeAllRanges();
   selection.addRange(range);
 
-  // inputイベントを発火
   element.dispatchEvent(new Event("input", { bubbles: true }));
 }
 

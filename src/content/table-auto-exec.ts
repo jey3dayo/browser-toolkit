@@ -1,5 +1,3 @@
-// テーブル自動実行ロジック（SPA URL変化も含む）
-
 import { refreshTableConfig } from "@/content/config";
 import { observeTables } from "@/content/table-observer";
 import { enableTableSort } from "@/content/table-sort";

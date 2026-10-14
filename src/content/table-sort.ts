@@ -1,4 +1,3 @@
-// テーブルソート機能
 import { Result } from "@praha/byethrow";
 import { t } from "@/i18n";
 import { parseNumericValue } from "@/utils/number_parser";

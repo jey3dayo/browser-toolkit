@@ -1,4 +1,3 @@
-// クリップボード操作
 import { Result } from "@praha/byethrow";
 
 export type ClipboardError =

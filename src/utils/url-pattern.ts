@@ -1,6 +1,3 @@
-// URLパターンマッチングモジュール
-
-// Regex patterns at module level for performance (lint/performance/useTopLevelRegex)
 const QUERY_OR_HASH_REGEX = /[?#]/;
 const HTTP_PROTOCOL_REGEX = /^https?:\/\//;
 

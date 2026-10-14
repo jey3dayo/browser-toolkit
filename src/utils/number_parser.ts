@@ -1,4 +1,3 @@
-// Module-level regex patterns (lint/performance/useTopLevelRegex)
 const CURRENCY_SYMBOLS_REGEX = /[¥$€£円元]/;
 const NUMBER_WITH_SEPARATORS_REGEX =
   /^[¥$€£円元]?\s*-?[\d,]+\.?\d*\s*[¥$€£円元]?$/;
