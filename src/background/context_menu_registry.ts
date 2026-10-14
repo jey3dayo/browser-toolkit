@@ -297,9 +297,15 @@ export async function refreshContextMenus(): Promise<boolean> {
       const enabledGroups = groups.filter((group) => group.enabled);
 
       if (enabledGroups.length > 0) {
+<<<<<<< HEAD
         debugLogSilently(
           "refreshContextMenus",
           "creating batch search parent menu"
+=======
+        ignoreRejection(
+          debugLog("refreshContextMenus", "creating batch search parent menu"),
+          "context_menu_registry: debug batch search parent menu"
+>>>>>>> 3e2b10e (refactor: 型ガードをスキーマ検証に置き換え、ストレージ型を論理グループに分割)
         );
         await createMenuItem({
           contexts: ["selection"],

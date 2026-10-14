@@ -2,7 +2,7 @@ import { Result } from "@praha/byethrow";
 import { t } from "@/i18n";
 import type { RunContextActionResponse } from "@/popup/runtime";
 import { coerceSummarySourceLabel } from "@/popup/utils/summary_source_label";
-import { isRecord } from "@/utils/guards";
+import { isResultType } from "@/schemas/result";
 
 export type OutputState =
   | { status: "idle" }
@@ -18,9 +18,7 @@ export type OutputState =
 function isRunContextActionResponse(
   value: unknown
 ): value is RunContextActionResponse {
-  // Result type is opaque, so we can't check its structure directly
-  // We assume the value is a RunContextActionResponse if it's an object
-  return isRecord(value);
+  return isResultType(value);
 }
 
 type ParseRunContextActionResponseError = string;
