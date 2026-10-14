@@ -54,6 +54,7 @@ import { getPaneSurfacePage } from "@/popup/panes";
 import { runSequentially } from "@/utils/async";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
+import { debugLogSilently, ignoreRejection } from "@/utils/ignore_rejection";
 import {
   CONTEXT_MENU_LINK_FORMATS,
   coerceLinkFormat,
@@ -112,37 +113,39 @@ function handleExactMenuItemClick(
   info: chrome.contextMenus.OnClickData
 ): boolean {
   if (menuItemId === CONTEXT_MENU_QR_CODE_ID) {
-    handleQrCodeContextMenuClick({
-      pageUrl: info.pageUrl,
-      tab,
-      tabId,
-    }).catch(() => {
-      // no-op
-    });
+    ignoreRejection(
+      handleQrCodeContextMenuClick({
+        pageUrl: info.pageUrl,
+        tab,
+        tabId,
+      }),
+      "context_menu_registry: QR code click"
+    );
     return true;
   }
   if (menuItemId === CONTEXT_MENU_CALENDAR_ID) {
-    handleCalendarContextMenuClick({ info, tab, tabId }).catch(() => {
-      // no-op
-    });
+    ignoreRejection(
+      handleCalendarContextMenuClick({ info, tab, tabId }),
+      "context_menu_registry: calendar click"
+    );
     return true;
   }
   if (menuItemId === CONTEXT_MENU_GEMINI_RESEARCH_ID) {
-    handleGeminiResearchContextMenuClick({ info, tab, tabId }).catch(() => {
-      // no-op
-    });
+    ignoreRejection(
+      handleGeminiResearchContextMenuClick({ info, tab, tabId }),
+      "context_menu_registry: Gemini research click"
+    );
     return true;
   }
   if (menuItemId === CONTEXT_MENU_SETTINGS_ID) {
-    chrome.tabs
-      .create({
+    ignoreRejection(
+      chrome.tabs.create({
         url: chrome.runtime.getURL(
           `${getPaneSurfacePage("pane-settings")}#pane-settings`
         ),
-      })
-      .catch(() => {
-        // no-op
-      });
+      }),
+      "context_menu_registry: open settings"
+    );
     return true;
   }
   return false;
@@ -183,9 +186,10 @@ export function registerContextMenuHandlers(): void {
 
       if (menuItemId.startsWith(CONTEXT_MENU_SEARCH_PREFIX)) {
         const engineId = menuItemId.slice(CONTEXT_MENU_SEARCH_PREFIX.length);
-        handleSearchEngineClick(engineId, info, tab).catch(() => {
-          // no-op
-        });
+        ignoreRejection(
+          handleSearchEngineClick(engineId, info, tab),
+          "context_menu_registry: search engine click"
+        );
         return;
       }
 
@@ -193,9 +197,10 @@ export function registerContextMenuHandlers(): void {
         const groupId = menuItemId.slice(
           CONTEXT_MENU_BATCH_SEARCH_PREFIX.length
         );
-        handleBatchSearchClick(groupId, info, tab).catch(() => {
-          // no-op
-        });
+        ignoreRejection(
+          handleBatchSearchClick(groupId, info, tab),
+          "context_menu_registry: batch search click"
+        );
         return;
       }
 
@@ -203,9 +208,10 @@ export function registerContextMenuHandlers(): void {
         const templateId = menuItemId.slice(
           CONTEXT_MENU_TEMPLATE_PREFIX.length
         );
-        handleTemplateClick(tabId, templateId).catch(() => {
-          // no-op
-        });
+        ignoreRejection(
+          handleTemplateClick(tabId, templateId),
+          "context_menu_registry: template click"
+        );
         return;
       }
 
@@ -258,23 +264,15 @@ export async function refreshContextMenus(): Promise<boolean> {
     // Search engines section
     const enabledEngines = searchEngines.filter((engine) => engine.enabled);
 
-    debugLog("refreshContextMenus", "searchEngines loaded", {
+    debugLogSilently("refreshContextMenus", "searchEngines loaded", {
       searchEngines,
-    }).catch(() => {
-      // no-op
     });
-    debugLog("refreshContextMenus", "enabledEngines filtered", {
+    debugLogSilently("refreshContextMenus", "enabledEngines filtered", {
       enabledEngines,
-    }).catch(() => {
-      // no-op
     });
 
     if (enabledEngines.length > 0) {
-      debugLog("refreshContextMenus", "creating search parent menu").catch(
-        () => {
-          // no-op
-        }
-      );
+      debugLogSilently("refreshContextMenus", "creating search parent menu");
       await createMenuItem({
         contexts: ["selection"],
         id: CONTEXT_MENU_SEARCH_PARENT_ID,
@@ -283,10 +281,8 @@ export async function refreshContextMenus(): Promise<boolean> {
       });
 
       await runSequentially(enabledEngines, (engine) => {
-        debugLog("refreshContextMenus", "creating search engine menu", {
+        debugLogSilently("refreshContextMenus", "creating search engine menu", {
           engine,
-        }).catch(() => {
-          // no-op
         });
         return createMenuItem({
           contexts: ["selection"],
@@ -301,12 +297,10 @@ export async function refreshContextMenus(): Promise<boolean> {
       const enabledGroups = groups.filter((group) => group.enabled);
 
       if (enabledGroups.length > 0) {
-        debugLog(
+        debugLogSilently(
           "refreshContextMenus",
           "creating batch search parent menu"
-        ).catch(() => {
-          // no-op
-        });
+        );
         await createMenuItem({
           contexts: ["selection"],
           id: CONTEXT_MENU_BATCH_SEARCH_PARENT_ID,
@@ -315,11 +309,13 @@ export async function refreshContextMenus(): Promise<boolean> {
         });
 
         await runSequentially(enabledGroups, (group) => {
-          debugLog("refreshContextMenus", "creating batch search menu", {
-            group,
-          }).catch(() => {
-            // no-op
-          });
+          debugLogSilently(
+            "refreshContextMenus",
+            "creating batch search menu",
+            {
+              group,
+            }
+          );
           return createMenuItem({
             contexts: ["selection"],
             id: `${CONTEXT_MENU_BATCH_SEARCH_PREFIX}${group.id}`,
@@ -427,17 +423,19 @@ export async function refreshContextMenus(): Promise<boolean> {
 export function scheduleRefreshContextMenus(): Promise<void> {
   // 直前の更新が失敗しても次回を止めないようにしつつ、
   // 非標準の thenable 等が混入しても壊れないように Promise.resolve で正規化する。
-  contextMenuRefreshQueue = Promise.resolve(contextMenuRefreshQueue)
-    .catch(() => {
-      // no-op
-    })
-    .then(async () => {
+  contextMenuRefreshQueue = Promise.resolve(contextMenuRefreshQueue).then(
+    async () => {
       // SW 復帰ごとの再構築を廃止した分、失敗時の自己回復機会が減るため、
       // 途中失敗で空/部分メニューのまま固定されないよう1回だけ再試行する。
       const succeeded = await refreshContextMenus();
       if (!succeeded) {
         await refreshContextMenus();
       }
-    });
+    }
+  );
+  ignoreRejection(
+    contextMenuRefreshQueue,
+    "context_menu_registry: refresh queue error"
+  );
   return contextMenuRefreshQueue;
 }

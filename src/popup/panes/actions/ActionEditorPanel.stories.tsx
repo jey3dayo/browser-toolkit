@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useCallback, useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import type { ContextAction, ContextActionKind } from "@/context_actions";
+import { NOOP } from "@/utils/ignore_rejection";
 import { ActionEditorPanel } from "./ActionEditorPanel";
 
 function ActionEditorPanelStory(
@@ -124,30 +125,14 @@ export const EditExistingAction: Story = {
     editorKind: "text",
     editorPrompt: "要約してください",
     editorTitle: "要約",
-    onChangeKind: () => {
-      // noop for story
-    },
-    onChangePrompt: () => {
-      // noop for story
-    },
-    onChangeTitle: () => {
-      // noop for story
-    },
-    onClear: () => {
-      // noop for story
-    },
-    onDelete: () => {
-      // noop for story
-    },
-    onReset: () => {
-      // noop for story
-    },
-    onSave: () => {
-      // noop for story
-    },
-    onSelectActionId: () => {
-      // noop for story
-    },
+    onChangeKind: NOOP,
+    onChangePrompt: NOOP,
+    onChangeTitle: NOOP,
+    onClear: NOOP,
+    onDelete: NOOP,
+    onReset: NOOP,
+    onSave: NOOP,
+    onSelectActionId: NOOP,
   },
   play: ({ canvasElement }) => {
     const canvas = within(canvasElement);
@@ -172,30 +157,14 @@ export const TextKind: Story = {
     editorKind: "text",
     editorPrompt: "テキストプロンプト",
     editorTitle: "テキストアクション",
-    onChangeKind: () => {
-      // noop for story
-    },
-    onChangePrompt: () => {
-      // noop for story
-    },
-    onChangeTitle: () => {
-      // noop for story
-    },
-    onClear: () => {
-      // noop for story
-    },
-    onDelete: () => {
-      // noop for story
-    },
-    onReset: () => {
-      // noop for story
-    },
-    onSave: () => {
-      // noop for story
-    },
-    onSelectActionId: () => {
-      // noop for story
-    },
+    onChangeKind: NOOP,
+    onChangePrompt: NOOP,
+    onChangeTitle: NOOP,
+    onClear: NOOP,
+    onDelete: NOOP,
+    onReset: NOOP,
+    onSave: NOOP,
+    onSelectActionId: NOOP,
   },
   play: ({ canvasElement }) => {
     const textToggle = canvasElement.querySelector(
@@ -220,30 +189,14 @@ export const EventKind: Story = {
     editorKind: "event",
     editorPrompt: "イベントプロンプト",
     editorTitle: "イベントアクション",
-    onChangeKind: () => {
-      // noop for story
-    },
-    onChangePrompt: () => {
-      // noop for story
-    },
-    onChangeTitle: () => {
-      // noop for story
-    },
-    onClear: () => {
-      // noop for story
-    },
-    onDelete: () => {
-      // noop for story
-    },
-    onReset: () => {
-      // noop for story
-    },
-    onSave: () => {
-      // noop for story
-    },
-    onSelectActionId: () => {
-      // noop for story
-    },
+    onChangeKind: NOOP,
+    onChangePrompt: NOOP,
+    onChangeTitle: NOOP,
+    onClear: NOOP,
+    onDelete: NOOP,
+    onReset: NOOP,
+    onSave: NOOP,
+    onSelectActionId: NOOP,
   },
   play: ({ canvasElement }) => {
     const eventToggle = canvasElement.querySelector(

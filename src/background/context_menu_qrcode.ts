@@ -6,6 +6,7 @@ import type {
 import { t } from "@/i18n";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog, toErrorMessage } from "@/utils/errors";
+import { ignoreRejection } from "@/utils/ignore_rejection";
 import { showErrorNotification } from "@/utils/notifications";
 
 type QrCodeContextMenuTabParams = ContextMenuTabParams & {
@@ -96,14 +97,15 @@ export async function handleQrCodeContextMenuClick(
       }
     }
 
-    debugLog(
-      "handleQrCodeContextMenuClick",
-      "sendMessageToTab failed",
-      { error: formatErrorLog("", {}, error), tabId: params.tabId },
-      "error"
-    ).catch(() => {
-      // no-op
-    });
+    ignoreRejection(
+      debugLog(
+        "handleQrCodeContextMenuClick",
+        "sendMessageToTab failed",
+        { error: formatErrorLog("", {}, error), tabId: params.tabId },
+        "error"
+      ),
+      "context_menu_qrcode: sendMessageToTab error"
+    );
     await showErrorNotification({
       errorMessage: toErrorMessage(error, t("background.qrCode.displayFailed")),
       hint: t("background.qrCode.reloadAndRetry"),

@@ -10,12 +10,14 @@ import {
   useChatGptAccount,
 } from "@/popup/panes/settings/useChatGptAccount";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
+import { ignoreRejection } from "@/utils/ignore_rejection";
 
 function runSafely(action: () => Promise<void>): () => void {
   return () => {
-    action().catch(() => {
-      // no-op: failures are reported through notify
-    });
+    ignoreRejection(
+      action(),
+      "SettingsChatGptAccountSection: failures are reported through notify"
+    );
   };
 }
 

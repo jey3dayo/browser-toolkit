@@ -5,6 +5,7 @@ import {
   toFocusOverrideMatchPatterns,
 } from "@/focus-override/patterns";
 import { storageSyncGet } from "@/storage/helpers";
+import { debugLogSilently, ignoreRejection } from "@/utils/ignore_rejection";
 
 const FOCUS_OVERRIDE_CONTENT_SCRIPT_ID = "mbu-focus-override";
 const FOCUS_OVERRIDE_CONTENT_SCRIPT_JS = "dist/focus-override.js";
@@ -66,10 +67,19 @@ async function performFocusOverrideSync(): Promise<void> {
 let focusOverrideSyncQueue: Promise<void> = Promise.resolve();
 
 export function syncFocusOverrideContentScript(): Promise<void> {
-  focusOverrideSyncQueue = Promise.resolve(focusOverrideSyncQueue)
-    .catch(() => {
-      // no-op
+  focusOverrideSyncQueue = focusOverrideSyncQueue
+    .catch((error) => {
+      // 前回の失敗を吸収し、キューを継続可能にする
+      debugLogSilently(
+        "syncFocusOverrideContentScript",
+        "recovered from previous sync failure",
+        { error }
+      );
     })
     .then(() => performFocusOverrideSync());
+  ignoreRejection(
+    focusOverrideSyncQueue,
+    "focus_override_registration: sync queue error"
+  );
   return focusOverrideSyncQueue;
 }

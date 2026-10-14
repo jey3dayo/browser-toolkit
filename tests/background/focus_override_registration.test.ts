@@ -106,4 +106,38 @@ describe("background: focus override registration", () => {
       2
     );
   });
+
+  it("recovers from queue failures and allows subsequent syncs", async () => {
+    chromeStub.storage.sync.get.mockImplementation(
+      (_keys: unknown, callback?: (items: unknown) => void) => {
+        chromeStub.runtime.lastError = null;
+        callback?.({
+          focusOverridePatterns: ["https://pocket.shonenmagazine.com/title/*"],
+        });
+      }
+    );
+
+    let callCount = 0;
+    chromeStub.scripting.getRegisteredContentScripts
+      .mockRejectedValueOnce(new Error("First sync failed"))
+      .mockResolvedValueOnce([]);
+
+    chromeStub.scripting.registerContentScripts.mockImplementation(() => {
+      callCount += 1;
+      return Promise.resolve();
+    });
+
+    const { syncFocusOverrideContentScript } = await import(
+      "@/background/focus_override_registration"
+    );
+
+    // First sync fails but should not poison the queue
+    await expect(syncFocusOverrideContentScript()).rejects.toThrow(
+      "First sync failed"
+    );
+
+    // Second sync should succeed despite previous failure
+    await syncFocusOverrideContentScript();
+    expect(callCount).toBe(1);
+  });
 });

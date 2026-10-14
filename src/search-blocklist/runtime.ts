@@ -1,5 +1,6 @@
 import type { Result } from "@praha/byethrow";
 import type { StorageError } from "@/storage/helpers";
+import { ignoreRejection } from "@/utils/ignore_rejection";
 import { findAdapterForLocation } from "./engines/registry";
 import {
   type BlocklistStateController,
@@ -48,9 +49,10 @@ export function startSearchBlocklistRuntime(
       if (areaName !== "local" || !("searchBlocklistRules" in changes)) {
         return;
       }
-      controller.reloadRulesFromStorage().catch(() => {
-        // fail open: keep the previously loaded rule set
-      });
+      ignoreRejection(
+        controller.reloadRulesFromStorage(),
+        "search-blocklist: fail open: keep the previously loaded rule set"
+      );
     });
   }
 
