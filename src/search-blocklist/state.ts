@@ -7,6 +7,7 @@ import { searchBlocklistMutationFailureMessage } from "@/search-blocklist/mutati
 import { type StorageError, storageLocalGet } from "@/storage/helpers";
 import { debugLog } from "@/utils/debug_log";
 import { isRecord } from "@/utils/guards";
+import { ignoreRejection } from "@/utils/ignore_rejection";
 import {
   type CompiledSearchBlocklistPattern,
   compileSearchBlocklistPattern,
@@ -107,9 +108,12 @@ function validateStoredRules(
   const stored = isRecord(data) ? data.searchBlocklistRules : undefined;
   const partition = partitionStoredSearchBlocklistRules(stored);
   if (partition.skippedCount > 0) {
-    debugLog("search-blocklist", "invalid stored rules skipped", {
-      count: partition.skippedCount,
-    }).catch(() => undefined);
+    ignoreRejection(
+      debugLog("search-blocklist", "invalid stored rules skipped", {
+        count: partition.skippedCount,
+      }),
+      "search-blocklist: invalid stored rules skipped"
+    );
   }
   return validateSearchBlocklistRules(partition.valid);
 }
@@ -143,9 +147,12 @@ function compileRules(rules: SearchBlocklistRule[]): CompiledRule[] {
     });
   }
   if (failedCount > 0) {
-    debugLog("search-blocklist", "invalid rules skipped", {
-      count: failedCount,
-    }).catch(() => undefined);
+    ignoreRejection(
+      debugLog("search-blocklist", "invalid rules skipped", {
+        count: failedCount,
+      }),
+      "search-blocklist: invalid rules skipped"
+    );
   }
   return compiled;
 }

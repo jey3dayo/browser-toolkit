@@ -15,6 +15,7 @@ import type {
   SummaryOverlayRequest,
 } from "@/content-script-messages";
 import { storageLocalSet } from "@/storage/helpers";
+import { ignoreRejection } from "@/utils/ignore_rejection";
 import { parseNumericValue } from "@/utils/number_parser";
 import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
 
@@ -104,12 +105,11 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
     if (!supportsHtmlDocument) {
       return;
     }
-    loadNotificationModule().catch(() => {
-      // no-op
-    });
-    loadOverlayModule().catch(() => {
-      // no-op
-    });
+    ignoreRejection(
+      loadNotificationModule(),
+      "content: preload notification module"
+    );
+    ignoreRejection(loadOverlayModule(), "content: preload overlay module");
   }
 
   if (supportsHtmlDocument) {
@@ -119,9 +119,10 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
     });
   }
 
-  themeManager.refreshThemeFromStorage().catch(() => {
-    // no-op
-  });
+  ignoreRejection(
+    themeManager.refreshThemeFromStorage(),
+    "content: refresh theme from storage"
+  );
   themeManager.setupStorageListener();
 
   function bootstrapSearchBlocklistUi(): void {
@@ -132,11 +133,12 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
     if (!blocklistState) {
       return;
     }
-    loadSearchBlocklistUiModule()
-      .then((module) => module?.startSearchBlocklistUi(blocklistState))
-      .catch(() => {
-        // no-op
-      });
+    ignoreRejection(
+      loadSearchBlocklistUiModule().then((module) =>
+        module?.startSearchBlocklistUi(blocklistState)
+      ),
+      "content: bootstrap search blocklist UI"
+    );
   }
 
   bootstrapSearchBlocklistUi();
@@ -158,34 +160,32 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
   }
 
   function showNotification(message: string): void {
-    (async () => {
-      const module = await loadNotificationModule();
-      if (!module) {
-        return;
-      }
-      const mount = await getOrCreateToastMount();
-      if (!mount) {
-        return;
-      }
-      module.showNotification(mount.notify, message);
-    })().catch(() => {
-      // no-op
-    });
+    ignoreRejection(
+      (async () => {
+        const module = await loadNotificationModule();
+        if (!module) {
+          return;
+        }
+        const mount = await getOrCreateToastMount();
+        if (!mount) {
+          return;
+        }
+        module.showNotification(mount.notify, message);
+      })(),
+      "content: show notification"
+    );
   }
 
   document.addEventListener("mouseup", () => {
     const selectedText = window.getSelection()?.toString().trim() ?? "";
     if (selectedText) {
-      storageLocalSet({
-        selectedText,
-        selectedTextUpdatedAt: Date.now(),
-      })
-        .then(() => {
-          // no-op
-        })
-        .catch(() => {
-          // no-op
-        });
+      ignoreRejection(
+        storageLocalSet({
+          selectedText,
+          selectedTextUpdatedAt: Date.now(),
+        }),
+        "content: store selected text"
+      );
     }
   });
 
@@ -210,16 +210,17 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
   }
 
   function handleCloseOverlay(): void {
-    (async () => {
-      const module = await loadOverlayModule();
-      if (!module) {
-        return;
-      }
-      module.closeOverlay(globalState.overlayMount);
-      globalState.overlayMount = null;
-    })().catch(() => {
-      // no-op
-    });
+    ignoreRejection(
+      (async () => {
+        const module = await loadOverlayModule();
+        if (!module) {
+          return;
+        }
+        module.closeOverlay(globalState.overlayMount);
+        globalState.overlayMount = null;
+      })(),
+      "content: close overlay"
+    );
   }
 
   let overlayRequestSeq = 0;
@@ -228,50 +229,52 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
     overlayRequestSeq += 1;
     const requestId = overlayRequestSeq;
     const requestStartedAt = performance.now();
-    (async () => {
-      const module = await loadOverlayModule();
-      if (!module) {
-        return;
-      }
-      const mount = await getOrCreateOverlayMount();
-      if (!mount) {
-        return;
-      }
-      module.showActionOverlay(
-        mount,
-        request,
-        requestId,
-        requestStartedAt,
-        handleCloseOverlay
-      );
-    })().catch(() => {
-      // no-op
-    });
+    ignoreRejection(
+      (async () => {
+        const module = await loadOverlayModule();
+        if (!module) {
+          return;
+        }
+        const mount = await getOrCreateOverlayMount();
+        if (!mount) {
+          return;
+        }
+        module.showActionOverlay(
+          mount,
+          request,
+          requestId,
+          requestStartedAt,
+          handleCloseOverlay
+        );
+      })(),
+      "content: show action overlay"
+    );
   }
 
   function showSummaryOverlay(request: SummaryOverlayRequest): void {
     overlayRequestSeq += 1;
     const requestId = overlayRequestSeq;
     const requestStartedAt = performance.now();
-    (async () => {
-      const module = await loadOverlayModule();
-      if (!module) {
-        return;
-      }
-      const mount = await getOrCreateOverlayMount();
-      if (!mount) {
-        return;
-      }
-      module.showSummaryOverlay(
-        mount,
-        request,
-        requestId,
-        requestStartedAt,
-        handleCloseOverlay
-      );
-    })().catch(() => {
-      // no-op
-    });
+    ignoreRejection(
+      (async () => {
+        const module = await loadOverlayModule();
+        if (!module) {
+          return;
+        }
+        const mount = await getOrCreateOverlayMount();
+        if (!mount) {
+          return;
+        }
+        module.showSummaryOverlay(
+          mount,
+          request,
+          requestId,
+          requestStartedAt,
+          handleCloseOverlay
+        );
+      })(),
+      "content: show summary overlay"
+    );
   }
 
   function getSearchBlocklistDiagnostics(): SearchBlocklistDiagnosticsResponse {
@@ -280,18 +283,19 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
   }
 
   function showQrCodeOverlay(url: string): void {
-    (async () => {
-      if (!supportsHtmlDocument) {
-        return;
-      }
-      const module = await loadQrCodeOverlayModule();
-      if (!module) {
-        return;
-      }
-      module.showQrCodeOverlay(url, themeManager.getCurrentTheme());
-    })().catch(() => {
-      // no-op
-    });
+    ignoreRejection(
+      (async () => {
+        if (!supportsHtmlDocument) {
+          return;
+        }
+        const module = await loadQrCodeOverlayModule();
+        if (!module) {
+          return;
+        }
+        module.showQrCodeOverlay(url, themeManager.getCurrentTheme());
+      })(),
+      "content: show QR code overlay"
+    );
   }
 
   const tableSort = setupTableAutoExec({

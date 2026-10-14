@@ -11,6 +11,7 @@ import { syncFocusOverrideContentScript } from "@/background/focus_override_regi
 import { registerRuntimeMessageHandlers } from "@/background/runtime";
 import { runMigrations } from "@/storage/migrations";
 import { debugLog } from "@/utils/debug_log";
+import { ignoreRejection } from "@/utils/ignore_rejection";
 
 // Development-only auto-reload
 if (process.env.NODE_ENV === "development") {
@@ -19,11 +20,12 @@ if (process.env.NODE_ENV === "development") {
 
 chrome.runtime.onInstalled.addListener((details) => {
   console.log(`${APP_NAME} installed (reason: ${details.reason})`);
-  debugLog("background", "extension installed", {
-    reason: details.reason,
-  }).catch(() => {
-    // no-op
-  });
+  ignoreRejection(
+    debugLog("background", "extension installed", {
+      reason: details.reason,
+    }),
+    "background: extension installed"
+  );
 
   // 拡張機能インストール・更新時にストレージマイグレーションを実行
   if (details.reason === "install" || details.reason === "update") {
@@ -37,19 +39,22 @@ chrome.runtime.onInstalled.addListener((details) => {
   }
 
   scheduleRefreshContextMenus();
-  syncFocusOverrideContentScript().catch(() => {
-    // no-op
-  });
+  ignoreRejection(
+    syncFocusOverrideContentScript(),
+    "background: sync focus override on install"
+  );
 });
 
 chrome.runtime.onStartup.addListener(() => {
-  debugLog("background", "extension startup").catch(() => {
-    // no-op
-  });
+  ignoreRejection(
+    debugLog("background", "extension startup"),
+    "background: extension startup"
+  );
   scheduleRefreshContextMenus();
-  syncFocusOverrideContentScript().catch(() => {
-    // no-op
-  });
+  ignoreRejection(
+    syncFocusOverrideContentScript(),
+    "background: sync focus override on startup"
+  );
 });
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
@@ -63,18 +68,20 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
     "searchEngineGroups" in changes ||
     "textTemplates" in changes;
   if (hasMenuConfigChange) {
-    debugLog("background", "storage changed, refreshing menus", {
-      changes,
-    }).catch(() => {
-      // no-op
-    });
+    ignoreRejection(
+      debugLog("background", "storage changed, refreshing menus", {
+        changes,
+      }),
+      "background: storage changed, refreshing menus"
+    );
     scheduleRefreshContextMenus();
   }
 
   if ("focusOverridePatterns" in changes) {
-    syncFocusOverrideContentScript().catch(() => {
-      // no-op
-    });
+    ignoreRejection(
+      syncFocusOverrideContentScript(),
+      "background: sync focus override on storage change"
+    );
   }
 });
 
@@ -82,14 +89,15 @@ registerContextMenuHandlers();
 registerRuntimeMessageHandlers();
 
 function logChatGptTabFailure(message: string, error: unknown): void {
-  debugLog(
-    "background",
-    message,
-    { error: error instanceof Error ? error.message : "unknown" },
-    "error"
-  ).catch(() => {
-    // no-op
-  });
+  ignoreRejection(
+    debugLog(
+      "background",
+      message,
+      { error: error instanceof Error ? error.message : "unknown" },
+      "error"
+    ),
+    "background: ChatGPT tab failure"
+  );
 }
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {

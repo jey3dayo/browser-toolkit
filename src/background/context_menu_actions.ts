@@ -15,6 +15,7 @@ import type { ContextAction } from "@/context_actions";
 import { t } from "@/i18n";
 import type { CalendarRegistrationTarget, SummarySource } from "@/shared_types";
 import { resolveCalendarTargets } from "@/utils/calendar_targets";
+import { ignoreRejection } from "@/utils/ignore_rejection";
 import { showErrorNotification } from "@/utils/notifications";
 
 type ContextMenuSelectionContext = {
@@ -117,25 +118,26 @@ function buildResolvedTitle(
   return `${action.title}（${resolvedSuffix}）`;
 }
 
-export async function showContextMenuUnexpectedErrorOverlay(
+export function showContextMenuUnexpectedErrorOverlay(
   tabId: number,
   source: SummarySource,
   error: unknown
-): Promise<void> {
+): void {
   const message =
     error instanceof Error
       ? error.message
       : t("background.contextActions.summarizeFailed");
-  await sendMessageToTab(tabId, {
-    action: "showActionOverlay",
-    mode: "text",
-    primary: message,
-    source,
-    status: "error",
-    title: APP_NAME,
-  }).catch(() => {
-    // コンテンツスクリプトに送れないページでは、黙って諦める
-  });
+  ignoreRejection(
+    sendMessageToTab(tabId, {
+      action: "showActionOverlay",
+      mode: "text",
+      primary: message,
+      source,
+      status: "error",
+      title: APP_NAME,
+    }),
+    "context_menu_actions: コンテンツスクリプトに送れないページでは、黙って諦める"
+  );
 }
 
 export async function handleCalendarContextMenuClick(
@@ -172,38 +174,41 @@ export async function handleCalendarContextMenuClick(
       title: t("background.contextActions.calendarFailedTitle"),
     });
 
-    await sendMessageToTab(params.tabId, {
-      action: "showActionOverlay",
-      mode: "event",
-      primary: result.error,
-      secondary: context.selectionSecondary,
-      source: target.source,
-      status: "error",
-      title: resolvedTitle,
-    } satisfies ContentScriptMessage).catch(() => {
-      // no-op
-    });
+    ignoreRejection(
+      sendMessageToTab(params.tabId, {
+        action: "showActionOverlay",
+        mode: "event",
+        primary: result.error,
+        secondary: context.selectionSecondary,
+        source: target.source,
+        status: "error",
+        title: resolvedTitle,
+      } satisfies ContentScriptMessage),
+      "context_menu_actions: calendar extraction error overlay"
+    );
     return;
   }
 
   const calendarTargets = await loadCalendarTargets();
   if (calendarTargets.length === 0) {
-    await sendMessageToTab(params.tabId, {
-      action: "showNotification",
-      message: t("background.contextActions.calendarTargetMissing"),
-    } satisfies ContentScriptMessage).catch(() => {
-      // no-op
-    });
+    ignoreRejection(
+      sendMessageToTab(params.tabId, {
+        action: "showNotification",
+        message: t("background.contextActions.calendarTargetMissing"),
+      } satisfies ContentScriptMessage),
+      "context_menu_actions: calendar target missing notification"
+    );
   }
 
   const artifacts = buildCalendarArtifacts(result.value, calendarTargets);
   if (artifacts.errors.length > 0) {
-    await sendMessageToTab(params.tabId, {
-      action: "showNotification",
-      message: artifacts.errors.join("\n"),
-    } satisfies ContentScriptMessage).catch(() => {
-      // no-op
-    });
+    ignoreRejection(
+      sendMessageToTab(params.tabId, {
+        action: "showNotification",
+        message: artifacts.errors.join("\n"),
+      } satisfies ContentScriptMessage),
+      "context_menu_actions: calendar artifact errors notification"
+    );
   }
 
   await sendMessageToTab(params.tabId, {
@@ -249,17 +254,18 @@ export async function handleContextMenuClick(
       }),
     });
 
-    await sendMessageToTab(params.tabId, {
-      action: "showActionOverlay",
-      mode: action.kind,
-      primary: result.error,
-      secondary: context.selectionSecondary,
-      source: target.source,
-      status: "error",
-      title: resolvedTitle,
-    }).catch(() => {
-      // no-op
-    });
+    ignoreRejection(
+      sendMessageToTab(params.tabId, {
+        action: "showActionOverlay",
+        mode: action.kind,
+        primary: result.error,
+        secondary: context.selectionSecondary,
+        source: target.source,
+        status: "error",
+        title: resolvedTitle,
+      }),
+      "context_menu_actions: action execution error overlay"
+    );
     return;
   }
 

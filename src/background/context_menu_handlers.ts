@@ -11,6 +11,7 @@ import {
 import { buildSearchUrl } from "@/search_engines";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
+import { ignoreRejection } from "@/utils/ignore_rejection";
 
 /**
  * Handles search engine context menu click.
@@ -47,8 +48,8 @@ export async function handleSearchEngineClick(
   try {
     await chrome.tabs.create({ url: searchUrl });
   } catch (error) {
-    try {
-      await debugLog(
+    ignoreRejection(
+      debugLog(
         "handleSearchEngineClick",
         "chrome.tabs.create failed",
         {
@@ -58,10 +59,9 @@ export async function handleSearchEngineClick(
           selectionText,
         },
         "error"
-      );
-    } catch {
-      // no-op
-    }
+      ),
+      "context_menu_handlers: search engine click error"
+    );
   }
 }
 
@@ -122,19 +122,20 @@ export async function handleBatchSearchClick(
     (r): r is PromiseRejectedResult => r.status === "rejected"
   );
   if (failures.length > 0) {
-    debugLog(
-      "handleBatchSearchClick",
-      "Some tabs failed to open",
-      {
-        failures: failures.map((f) => formatErrorLog("", {}, f.reason)),
-        groupId,
-        selectionText,
-        totalEngines: enabledEngines.length,
-      },
-      "error"
-    ).catch(() => {
-      // no-op
-    });
+    ignoreRejection(
+      debugLog(
+        "handleBatchSearchClick",
+        "Some tabs failed to open",
+        {
+          failures: failures.map((f) => formatErrorLog("", {}, f.reason)),
+          groupId,
+          selectionText,
+          totalEngines: enabledEngines.length,
+        },
+        "error"
+      ),
+      "context_menu_handlers: batch search failures"
+    );
   }
 }
 
@@ -161,8 +162,8 @@ export async function handleTemplateClick(
       content: template.content,
     });
   } catch (error) {
-    try {
-      await debugLog(
+    ignoreRejection(
+      debugLog(
         "handleTemplateClick",
         "Failed to paste template. Content script may not be loaded on this page.",
         {
@@ -171,9 +172,8 @@ export async function handleTemplateClick(
           templateId,
         },
         "error"
-      );
-    } catch {
-      // no-op
-    }
+      ),
+      "context_menu_handlers: template click error"
+    );
   }
 }

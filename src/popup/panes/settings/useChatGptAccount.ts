@@ -15,6 +15,7 @@ import type {
   ChatGptSignOutRequest,
   TestAiTokenRequest,
 } from "@/popup/runtime";
+import { ignoreRejection } from "@/utils/ignore_rejection";
 
 const LOCAL_CREDENTIALS_KEY = "chatgptCredentials";
 const SESSION_SIGN_IN_KEY = "chatgptSignIn";
@@ -61,9 +62,10 @@ export function useChatGptAccount(
   }, [runtime]);
 
   useEffect(() => {
-    refresh().catch(() => {
-      // no-op: the card falls back to the failed state
-    });
+    ignoreRejection(
+      refresh(),
+      "useChatGptAccount: the card falls back to the failed state"
+    );
 
     const onChanged =
       typeof chrome === "undefined" ? undefined : chrome.storage?.onChanged;
@@ -77,9 +79,7 @@ export function useChatGptAccount(
       if (!relevant) {
         return;
       }
-      refresh().catch(() => {
-        // no-op: keep the previous state
-      });
+      ignoreRejection(refresh(), "useChatGptAccount: keep the previous state");
     };
     onChanged?.addListener(handleStorageChange);
 

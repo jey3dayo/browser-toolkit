@@ -16,6 +16,7 @@ import {
 } from "@/search-blocklist/rules";
 import type { SearchBlocklistRule } from "@/search-blocklist/types";
 import { isRecord } from "@/utils/guards";
+import { ignoreRejection } from "@/utils/ignore_rejection";
 
 export type UseSearchBlocklistRulesResult = {
   rules: SearchBlocklistRule[];
@@ -202,9 +203,10 @@ export function useSearchBlocklistRules(
       setOverLimit(exceedsRuleLimit(displayable));
     }
 
-    loadRules().catch(() => {
-      // no-op: fail open with an empty list
-    });
+    ignoreRejection(
+      loadRules(),
+      "useSearchBlocklistRules: fail open with an empty list"
+    );
 
     const onChanged =
       typeof chrome === "undefined" ? undefined : chrome.storage?.onChanged;
@@ -215,9 +217,10 @@ export function useSearchBlocklistRules(
       if (areaName !== "local" || !("searchBlocklistRules" in changes)) {
         return;
       }
-      loadRules().catch(() => {
-        // no-op: keep the previous list on reload failure
-      });
+      ignoreRejection(
+        loadRules(),
+        "useSearchBlocklistRules: keep the previous list on reload failure"
+      );
     };
     onChanged?.addListener(handleStorageChange);
 
