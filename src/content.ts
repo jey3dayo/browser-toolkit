@@ -1,5 +1,3 @@
-// Content Script - Webページに注入される
-
 import { createLazyLoader } from "@/content/lazy-loader";
 import {
   createMessageListener,
@@ -77,11 +75,6 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
 
   const themeManager = createThemeManager(globalState);
 
-  // ========================================
-  // 1. ユーティリティ関数（URLパターン）
-  // ========================================
-  // → @/utils/url-pattern に移動
-
   type ContentTestHooks = {
     patternToRegex?: (pattern: string) => RegExp;
     matchesAnyPattern?: (patterns: string[]) => boolean;
@@ -148,10 +141,6 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
 
   bootstrapSearchBlocklistUi();
 
-  // ========================================
-  // 4. 通知・クリップボード（モジュール化済み）
-  // ========================================
-
   async function getOrCreateToastMount(): Promise<ToastMount | null> {
     if (!supportsHtmlDocument) {
       return null;
@@ -183,10 +172,6 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
       // no-op
     });
   }
-
-  // ========================================
-  // 5. 選択範囲キャッシュ（モジュール化済み）
-  // ========================================
 
   document.addEventListener("mouseup", () => {
     const selectedText = window.getSelection()?.toString().trim() ?? "";
@@ -309,10 +294,6 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
     });
   }
 
-  // ========================================
-  // 7. 自動実行ロジック（SPA URL変化も含む）
-  // ========================================
-
   const tableSort = setupTableAutoExec({
     onContextActionsChange: async () => {
       const module = await loadOverlayModule();
@@ -322,10 +303,6 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
     },
     showNotification,
   });
-
-  // ========================================
-  // 8. メッセージリスナー
-  // ========================================
 
   const messageHandlerDeps: MessageHandlerDeps = {
     enableTableSort: tableSort.enable,

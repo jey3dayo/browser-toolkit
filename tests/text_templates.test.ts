@@ -16,12 +16,10 @@ describe("generateTemplateId", () => {
     const id2 = generateTemplateId("greptileai review");
     const id3 = generateTemplateId("Code Review");
 
-    // Should match slug-hash pattern
     expect(id1).toMatch(SLUG_HASH_PATTERN);
     expect(id2).toMatch(SLUG_HASH_PATTERN);
     expect(id3).toMatch(SLUG_HASH_PATTERN);
 
-    // Should have readable slugs
     expect(id1).toMatch(LGTM_PATTERN);
     expect(id2).toMatch(GREPTILEAI_REVIEW_PATTERN);
     expect(id3).toMatch(CODE_REVIEW_PATTERN);
@@ -31,27 +29,22 @@ describe("generateTemplateId", () => {
     const id1 = generateTemplateId("Hello World");
     const id2 = generateTemplateId("hello_world");
 
-    // Both should match slug-hash pattern
     expect(id1).toMatch(SLUG_HASH_PATTERN);
     expect(id2).toMatch(SLUG_HASH_PATTERN);
 
-    // Different titles should have different IDs (due to different hashes)
     expect(id1).not.toBe(id2);
   });
 
   it("generates hash-only IDs for non-ASCII titles", () => {
     const id1 = generateTemplateId("お願いします");
     const id2 = generateTemplateId("よろしく");
-    const id3 = generateTemplateId("お願いします"); // Same as id1
+    const id3 = generateTemplateId("お願いします");
 
-    // Should match hash-only pattern
     expect(id1).toMatch(HASH_ONLY_PATTERN);
     expect(id2).toMatch(HASH_ONLY_PATTERN);
 
-    // Different titles should have different IDs
     expect(id1).not.toBe(id2);
 
-    // Same title should have same ID
     expect(id1).toBe(id3);
   });
 
@@ -68,11 +61,9 @@ describe("generateTemplateId", () => {
     const id1 = generateTemplateId("Code-Review!!!");
     const id2 = generateTemplateId("@greptileai review");
 
-    // Should match slug-hash pattern
     expect(id1).toMatch(SLUG_HASH_PATTERN);
     expect(id2).toMatch(SLUG_HASH_PATTERN);
 
-    // Should have readable slugs
     expect(id1).toMatch(CODE_REVIEW_PATTERN);
     expect(id2).toMatch(GREPTILEAI_REVIEW_PATTERN);
   });

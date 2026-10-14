@@ -1,4 +1,3 @@
-// Toast通知機能
 import { createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { ensureShadowMount } from "@/content/shadow_mount";

@@ -1,4 +1,3 @@
-// 要約対象テキスト取得
 import { Result } from "@praha/byethrow";
 import { SELECTED_TEXT_CACHE_TIMEOUT_MS } from "@/constants/timeouts";
 import type { SummaryTarget } from "@/content-script-messages";

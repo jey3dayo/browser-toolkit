@@ -1,4 +1,3 @@
-// MutationObserver - 動的テーブル検出
 import type { Result } from "@praha/byethrow";
 import { t } from "@/i18n";
 import { enableSingleTable } from "./table-sort";

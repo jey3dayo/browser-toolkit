@@ -8,15 +8,12 @@ test.describe("Popup UI", () => {
     // it from src/popup/navigation-items.ts); panes no longer repeat it.
     await expect(page.locator("h1")).toHaveText("アクション");
 
-    // Navigate to site-specific features
     await page.click('button[aria-label="サイト別機能"]');
     await expect(page.locator("h1")).toHaveText("サイト別機能");
 
-    // Navigate to Create Link
     await page.click('button[aria-label="リンク作成"]');
     await expect(page.locator("h1")).toHaveText("リンク作成");
 
-    // Navigate back to Actions
     await page.click('button[aria-label="アクション"]');
     await expect(page.locator("h1")).toHaveText("アクション");
 
@@ -35,30 +32,23 @@ test.describe("Popup UI", () => {
 
     await expect(page.locator("h1")).toHaveText("設定");
 
-    // Get initial theme
     const initialTheme = await page.locator("html").getAttribute("data-theme");
 
-    // Switch to the theme option that differs from the current one
     const nextThemeLabel = initialTheme === "dark" ? "ライト" : "ダーク";
     await page.click(`label:has-text("${nextThemeLabel}")`);
 
-    // Wait for theme to change
     await page.waitForTimeout(300);
 
-    // Get new theme
     const newTheme = await page.locator("html").getAttribute("data-theme");
 
-    // Verify theme changed
     expect(newTheme).not.toBe(initialTheme);
 
-    // Close and reopen popup
     await page.close();
     const newPage = await page.context().newPage();
     await newPage.goto(
       `chrome-extension://${extensionId}/options.html#pane-settings`
     );
 
-    // Verify theme persisted
     const persistedTheme = await newPage
       .locator("html")
       .getAttribute("data-theme");
@@ -106,7 +96,6 @@ test.describe("Popup UI", () => {
     await expect(page.getByRole("combobox", { name: "モデル" })).toBeVisible();
     await expect(page.getByText("モデル", { exact: true })).toHaveCount(1);
 
-    // Verify token input is password type
     const tokenInput = page.locator('input[type="password"]');
     await expect(tokenInput).toBeVisible();
   });
@@ -120,29 +109,23 @@ test.describe("Popup UI", () => {
   }) => {
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
 
-    // Navigate to site-specific features
     await page.click('button[aria-label="サイト別機能"]');
     await expect(page.locator("h1")).toHaveText("サイト別機能");
 
-    // Add a new pattern
     const patternInput = page.locator('input[placeholder*="ドメイン"]');
     await patternInput.fill("example.com/test*");
 
     await page.click('button:has-text("追加")');
 
-    // Verify pattern was added
     await expect(page.locator("text=example.com/test*")).toBeVisible();
 
-    // Test global toggle
     const globalToggle = page.locator(
       'label:has-text("すべてのサイトで有効化")'
     );
     await globalToggle.click();
 
-    // Wait for storage update
     await page.waitForTimeout(300);
 
-    // Verify toggle state persists
     await page.close();
     const newPage = await page.context().newPage();
     await newPage.goto(`chrome-extension://${extensionId}/popup.html`);

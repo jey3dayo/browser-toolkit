@@ -1,5 +1,3 @@
-// 遅延ローダーファクトリ
-
 export function createLazyLoader<T>(
   importFn: () => Promise<T>
 ): () => Promise<T | null> {

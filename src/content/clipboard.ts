@@ -1,4 +1,3 @@
-// クリップボード操作
 import { Result } from "@praha/byethrow";
 import { t } from "@/i18n";
 import type { Notifier } from "@/ui/toast";

@@ -19,11 +19,9 @@ export const anthropicAdapter: ChatCompletionAdapter = {
   buildRequest(token: string, body: ChatRequestBody) {
     const url = `${PROVIDER_CONFIGS.anthropic.baseUrl}/messages`;
 
-    // systemメッセージを分離
     const systemMessages = body.messages.filter((m) => m.role === "system");
     const otherMessages = body.messages.filter((m) => m.role !== "system");
 
-    // Anthropic APIのボディ形式に変換
     const anthropicBody: Record<string, unknown> = {
       max_tokens: body.max_completion_tokens ?? DEFAULT_MAX_TOKENS,
       messages: otherMessages,
@@ -34,7 +32,6 @@ export const anthropicAdapter: ChatCompletionAdapter = {
       anthropicBody.output_config = body.output_config;
     }
 
-    // systemメッセージがあれば追加
     if (systemMessages.length > 0) {
       anthropicBody.system = systemMessages.map((m) => m.content).join("\n\n");
     }

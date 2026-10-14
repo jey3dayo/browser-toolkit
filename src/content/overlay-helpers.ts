@@ -1,4 +1,3 @@
-// オーバーレイヘルパー
 import { Result } from "@praha/byethrow";
 import { createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";

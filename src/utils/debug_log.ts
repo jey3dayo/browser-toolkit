@@ -95,7 +95,6 @@ export async function debugLog(
     timestamp,
   };
 
-  // コンソール出力（常に実行）
   const consoleMessage = formatConsoleMessage(logEntry);
 
   switch (level) {
@@ -112,7 +111,6 @@ export async function debugLog(
       console.log(consoleMessage);
   }
 
-  // デバッグモード確認
   try {
     const stored = await new Promise<{ debugMode?: boolean }>((resolve) => {
       chrome.storage.local.get(["debugMode"], (result) => {
@@ -122,14 +120,13 @@ export async function debugLog(
     const debugMode = stored.debugMode === true;
 
     if (!debugMode) {
-      return; // デバッグモードOFFの場合は、ストレージに保存しない
+      return;
     }
   } catch (error) {
     console.error("Failed to check debug mode:", error);
     return;
   }
 
-  // ストレージに保存（デバッグモードONの場合のみ）
   try {
     const stored = await new Promise<Record<string, unknown>>((resolve) => {
       chrome.storage.local.get([DEBUG_LOG_KEY], (result) => {
@@ -142,7 +139,6 @@ export async function debugLog(
 
     logs.push(logEntry);
 
-    // 最大数を超えたら古いログを削除
     if (logs.length > MAX_LOG_ENTRIES) {
       logs.splice(0, logs.length - MAX_LOG_ENTRIES);
     }

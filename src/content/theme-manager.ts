@@ -1,4 +1,3 @@
-// テーマ管理
 import { Result } from "@praha/byethrow";
 import type { GlobalContentState } from "@/content/types";
 import { storageLocalGet } from "@/storage/helpers";

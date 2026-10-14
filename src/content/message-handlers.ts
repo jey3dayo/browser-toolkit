@@ -1,5 +1,3 @@
-// Message Handlers for Content Script
-
 import { Result } from "@praha/byethrow";
 import {
   copyToClipboardWithNotification,

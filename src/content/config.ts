@@ -1,4 +1,3 @@
-// 設定管理
 import { Result } from "@praha/byethrow";
 import {
   type DomainPatternConfig,
