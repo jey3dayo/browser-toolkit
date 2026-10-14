@@ -1,8 +1,8 @@
 import type { TestAiTokenResponse } from "@/popup/runtime";
-import { isResultType } from "@/schemas/result";
+import { isTestAiTokenResponse as isTestAiTokenResponseSchema } from "@/schemas/test-ai-token-response";
 
 export function isTestAiTokenResponse(
   value: unknown
 ): value is TestAiTokenResponse {
-  return isResultType(value);
+  return isTestAiTokenResponseSchema(value);
 }
