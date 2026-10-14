@@ -3,10 +3,16 @@ import { describe, expect, it } from "vitest";
 import { isTestAiTokenResponse } from "@/schemas/test-ai-token-response";
 
 describe("isTestAiTokenResponse", () => {
-  it("accepts valid success response (void)", () => {
-    const valid = Result.succeed(undefined);
+  it("accepts valid success response (empty object)", () => {
+    const valid = Result.succeed({});
 
     expect(isTestAiTokenResponse(valid)).toBe(true);
+  });
+
+  it("rejects success with undefined value", () => {
+    const invalid = Result.succeed(undefined);
+
+    expect(isTestAiTokenResponse(invalid)).toBe(false);
   });
 
   it("accepts valid failure response", () => {
@@ -21,10 +27,10 @@ describe("isTestAiTokenResponse", () => {
     expect(isTestAiTokenResponse(invalid)).toBe(false);
   });
 
-  it("rejects success with object value", () => {
-    const invalid = Result.succeed({ data: "something" });
+  it("accepts success with object value", () => {
+    const valid = Result.succeed({ data: "something" });
 
-    expect(isTestAiTokenResponse(invalid)).toBe(false);
+    expect(isTestAiTokenResponse(valid)).toBe(true);
   });
 
   it("rejects success with null value", () => {
