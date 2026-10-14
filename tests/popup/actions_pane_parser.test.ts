@@ -69,9 +69,6 @@ describe("parseRunContextActionResponseToOutput", () => {
     }
   });
 
-  // Note: TypeScript type checking prevents invalid payload structures
-  // inside Result.succeed(), so we only test runtime edge cases
-
   it("returns error when resultType is invalid (runtime type mismatch)", () => {
     // @ts-expect-error: Testing runtime behavior with invalid type
     const invalidResult = Result.succeed({
@@ -87,11 +84,11 @@ describe("parseRunContextActionResponseToOutput", () => {
 
     expect(Result.isFailure(result)).toBe(true);
     if (Result.isFailure(result)) {
-      expect(result.error).toBe("結果の形式が不正です");
+      expect(result.error).toBe("バックグラウンドの応答が不正です");
     }
   });
 
-  it("handles missing source field gracefully with default label", () => {
+  it("rejects payloads with missing source field", () => {
     // @ts-expect-error: Testing runtime behavior with missing required field
     const resultWithMissingSource = Result.succeed({
       resultType: "text",
@@ -103,13 +100,13 @@ describe("parseRunContextActionResponseToOutput", () => {
       responseUnknown: resultWithMissingSource,
     });
 
-    expect(Result.isSuccess(result)).toBe(true);
-    if (Result.isSuccess(result)) {
-      expect(result.value.sourceLabel).toBe("-");
+    expect(Result.isFailure(result)).toBe(true);
+    if (Result.isFailure(result)) {
+      expect(result.error).toBe("バックグラウンドの応答が不正です");
     }
   });
 
-  it("handles unknown source value gracefully with default label", () => {
+  it("rejects payloads with invalid source value", () => {
     // @ts-expect-error: Testing runtime behavior with invalid source value
     const resultWithUnknownSource = Result.succeed({
       resultType: "text",
@@ -122,9 +119,9 @@ describe("parseRunContextActionResponseToOutput", () => {
       responseUnknown: resultWithUnknownSource,
     });
 
-    expect(Result.isSuccess(result)).toBe(true);
-    if (Result.isSuccess(result)) {
-      expect(result.value.sourceLabel).toBe("-");
+    expect(Result.isFailure(result)).toBe(true);
+    if (Result.isFailure(result)) {
+      expect(result.error).toBe("バックグラウンドの応答が不正です");
     }
   });
 });
