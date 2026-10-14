@@ -297,9 +297,9 @@ export async function refreshContextMenus(): Promise<boolean> {
       const enabledGroups = groups.filter((group) => group.enabled);
 
       if (enabledGroups.length > 0) {
-        debugLogSilently(
-          "refreshContextMenus",
-          "creating batch search parent menu"
+        ignoreRejection(
+          debugLog("refreshContextMenus", "creating batch search parent menu"),
+          "context_menu_registry: debug batch search parent menu"
         );
         await createMenuItem({
           contexts: ["selection"],
