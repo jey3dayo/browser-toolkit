@@ -37,8 +37,7 @@ wss.on("connection", (ws) => {
 function notifyClients(type) {
   let successCount = 0;
   for (const client of clients) {
-    if (client.readyState === 1) {
-      // WebSocket.OPEN
+    if (client.readyState === WebSocket.OPEN) {
       client.send(JSON.stringify({ type }));
       successCount += 1;
     }
