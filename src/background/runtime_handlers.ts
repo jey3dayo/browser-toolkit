@@ -361,10 +361,10 @@ function handleSearchBlocklistMutateRequest(
   request: SearchBlocklistMutateRequest,
   sendResponse: RuntimeSendResponse
 ): boolean {
-  const operation = mutationQueue.then(() =>
-    applySearchBlocklistMutation(request)
-  );
-  mutationQueue = operation.catch(() => undefined);
+  const operation = mutationQueue
+    .catch(() => undefined)
+    .then(() => applySearchBlocklistMutation(request));
+  mutationQueue = operation;
   operation
     .then((result) => {
       sendResponse(result);
