@@ -34,3 +34,18 @@ describe("create link formatLink", () => {
     );
   });
 });
+
+describe("formatLink with out-of-union format values", () => {
+  const source = { title: "Example", url: "https://example.com" };
+  const bbcode = formatLink(source, "bbcode");
+
+  it.each([
+    "__proto__",
+    "toString",
+    "constructor",
+    "hasOwnProperty",
+    "unknown",
+  ])("falls back to bbcode for %s", (value) => {
+    expect(formatLink(source, value as never)).toBe(bbcode);
+  });
+});

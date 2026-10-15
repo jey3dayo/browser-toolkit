@@ -80,6 +80,8 @@ export function formatLink(source: LinkSource, format: LinkFormat): string {
     return "";
   }
   // 型外の値が来た場合は従来どおり bbcode 扱いにする
-  const formatter = LINK_FORMATTERS[format] ?? LINK_FORMATTERS.bbcode;
+  const formatter = Object.hasOwn(LINK_FORMATTERS, format)
+    ? LINK_FORMATTERS[format]
+    : LINK_FORMATTERS.bbcode;
   return formatter(url, source.title.trim());
 }
