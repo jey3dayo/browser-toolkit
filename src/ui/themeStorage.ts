@@ -1,3 +1,5 @@
+import { Result } from "@praha/byethrow";
+import { storageLocalGet } from "@/storage/helpers";
 import { isTheme, type Theme } from "@/ui/theme";
 
 export function normalizeTheme(value: unknown): Theme {
@@ -11,25 +13,15 @@ export function themeFromHost(host: HTMLElement | null): Theme {
   return normalizeTheme(host.getAttribute("data-theme"));
 }
 
-export function loadStoredTheme(fallback: Theme): Promise<Theme> {
-  if (typeof chrome === "undefined") {
-    return Promise.resolve(fallback);
+export async function loadStoredTheme(fallback: Theme): Promise<Theme> {
+  const result = await storageLocalGet<{ overlayTheme?: unknown }>([
+    "overlayTheme",
+  ]);
+  if (Result.isFailure(result)) {
+    return fallback;
   }
-  const storage = chrome.storage?.local;
-  if (!storage) {
-    return Promise.resolve(fallback);
-  }
-  return new Promise((resolve) => {
-    storage.get(["theme"], (items) => {
-      const err = chrome.runtime?.lastError;
-      if (err) {
-        resolve(fallback);
-        return;
-      }
-      const data = items as { theme?: unknown };
-      resolve(normalizeTheme(data.theme));
-    });
-  });
+  const { overlayTheme } = result.value;
+  return normalizeTheme(overlayTheme);
 }
 
 export function persistTheme(theme: Theme): Promise<void> {
