@@ -29,6 +29,7 @@ import {
 import { debugLog } from "@/utils/debug_log";
 import { toErrorMessage } from "@/utils/errors";
 import { fetchWithTimeout } from "@/utils/fetch-with-timeout";
+import { ignoreRejection } from "@/utils/ignore_rejection";
 import { showErrorNotification, showNotification } from "@/utils/notifications";
 
 const SIGN_IN_STATE_KEY = "chatgptSignIn";
@@ -59,7 +60,7 @@ const completingTabIds = new Set<number>();
 
 function exclusive<T>(task: () => Promise<T>): Promise<T> {
   const run = queue.then(task);
-  queue = run.catch(() => undefined);
+  queue = ignoreRejection(run, "session-queue");
   return run;
 }
 
@@ -209,7 +210,7 @@ async function startOrFocusSignIn(): Promise<Result.Result<void, string>> {
 
 export function startChatGptSignIn(): Promise<Result.Result<void, string>> {
   const run = startQueue.then(startOrFocusSignIn);
-  startQueue = run.catch(() => undefined);
+  startQueue = ignoreRejection(run, "session-start");
   return run;
 }
 

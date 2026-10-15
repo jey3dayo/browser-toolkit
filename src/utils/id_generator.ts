@@ -6,6 +6,7 @@
 
 /**
  * 文字列の簡易ハッシュを生成（非ASCII文字対応）
+ * Math.imul使用で1つのbitwiseブロックに統合
  * @param str 入力文字列
  * @returns 8桁の16進数ハッシュ
  */
@@ -13,10 +14,8 @@ function simpleHash(str: string): string {
   let hash = 0;
   for (let i = 0; i < str.length; i += 1) {
     const char = str.charCodeAt(i);
-    // biome-ignore lint/suspicious/noBitwiseOperators: Required for hash calculation and 32-bit integer conversion
-    hash = (hash << 5) - hash + char;
-    // biome-ignore lint/suspicious/noBitwiseOperators: Required for 32-bit integer conversion
-    hash &= hash;
+    // biome-ignore lint/suspicious/noBitwiseOperators: Required for hash algorithm
+    hash = (Math.imul(31, hash) + char) | 0;
   }
   return Math.abs(hash).toString(16).padStart(8, "0");
 }
