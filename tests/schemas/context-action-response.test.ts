@@ -48,7 +48,7 @@ describe("isRunContextActionResponse", () => {
   it("rejects success with missing eventText field", () => {
     const invalid = Result.succeed({
       resultType: "event" as const,
-      source: "viewport" as const,
+      source: "page" as const,
       // missing eventText
     });
 
