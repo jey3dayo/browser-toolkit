@@ -158,17 +158,14 @@ function sortTable(
   const isAscending = table.dataset.sortOrder !== "asc";
   table.dataset.sortOrder = isAscending ? "asc" : "desc";
 
-  // Step 1: 拡張機能で非表示にした行のみ表示状態に復元（フィルタリングのリセット）
   resetHiddenRows(rows);
 
-  // Step 2: ソート実行
   sortRows(rows, columnIndex, isAscending);
 
   for (const row of rows) {
     targetBody.appendChild(row);
   }
 
-  // Step 3: 現在のURLのパターンの行フィルタリング設定を取得
   applyRowFilterIfEnabled({ columnIndex, getRowFilterSetting, rows });
 
   return isAscending;
