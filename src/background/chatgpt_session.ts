@@ -5,6 +5,7 @@ import {
   CHATGPT_RESOURCE,
   CHATGPT_REVOKE_URL,
   CHATGPT_TOKEN_URL,
+  type ChatGptTokenSet,
   createChatGptPkce,
   hasChatGptPlanScope,
   isChatGptRedirectUrl,
@@ -277,20 +278,12 @@ function keepIssuedClientId(
   });
 }
 
-async function exchangeAuthorizationCode(
+async function requestChatGptTokens(
   pending: PendingSignIn,
-  url: string,
+  clientId: string,
+  code: string,
   startGeneration: number
-): Promise<Result.Result<ExchangeOutcome, string>> {
-  const callback = parseChatGptCallback(url, {
-    clientId: pending.clientId,
-    state: pending.state,
-  });
-  if (Result.isFailure(callback)) {
-    return Result.fail(callback.error);
-  }
-  const { clientId, code } = callback.value;
-
+): Promise<Result.Result<ChatGptTokenSet, string>> {
   const response = await postForm(CHATGPT_TOKEN_URL, {
     client_id: clientId,
     code,
@@ -315,13 +308,35 @@ async function exchangeAuthorizationCode(
     }
     return Result.fail(tokens.error.message);
   }
-  const { value: tokenSet } = tokens;
+  return Result.succeed(tokens.value);
+}
+
+type VerifiedTokenSet = {
+  accessToken: string;
+  expiresIn: number;
+  idToken: string;
+  refreshToken: string;
+  scope: string;
+};
+
+type TokenVerification = {
+  grant: { clientId: string; refreshToken: string };
+  identity: { subject: string; email: string | null };
+  now: number;
+  tokenSet: VerifiedTokenSet;
+};
+
+async function verifyChatGptTokenSet(
+  tokenSet: ChatGptTokenSet,
+  clientId: string,
+  nonce: string
+): Promise<Result.Result<TokenVerification, string>> {
   const grant = { clientId, refreshToken: tokenSet.refreshToken };
   if (tokenSet.scope === null || !hasChatGptPlanScope(tokenSet.scope)) {
-    return rejectAndRevoke(grant, PLAN_REQUIRED_MESSAGE);
+    return await rejectAndRevoke(grant, PLAN_REQUIRED_MESSAGE);
   }
   if (tokenSet.idToken === null) {
-    return rejectAndRevoke(
+    return await rejectAndRevoke(
       grant,
       "ChatGPT のトークン応答に ID トークンが含まれていません"
     );
@@ -330,23 +345,70 @@ async function exchangeAuthorizationCode(
   const now = Date.now();
   const identity = validateChatGptIdToken(tokenSet.idToken, {
     clientId,
-    nonce: pending.nonce,
+    nonce,
     nowMs: now,
   });
   if (Result.isFailure(identity)) {
-    return rejectAndRevoke(grant, identity.error);
+    return await rejectAndRevoke(grant, identity.error);
   }
+  return Result.succeed({
+    grant,
+    identity: identity.value,
+    now,
+    tokenSet: {
+      accessToken: tokenSet.accessToken,
+      expiresIn: tokenSet.expiresIn,
+      idToken: tokenSet.idToken,
+      refreshToken: tokenSet.refreshToken,
+      scope: tokenSet.scope,
+    },
+  });
+}
+
+async function exchangeAuthorizationCode(
+  pending: PendingSignIn,
+  url: string,
+  startGeneration: number
+): Promise<Result.Result<ExchangeOutcome, string>> {
+  const callback = parseChatGptCallback(url, {
+    clientId: pending.clientId,
+    state: pending.state,
+  });
+  if (Result.isFailure(callback)) {
+    return Result.fail(callback.error);
+  }
+  const { clientId, code } = callback.value;
+
+  const tokens = await requestChatGptTokens(
+    pending,
+    clientId,
+    code,
+    startGeneration
+  );
+  if (Result.isFailure(tokens)) {
+    return Result.fail(tokens.error);
+  }
+
+  const verified = await verifyChatGptTokenSet(
+    tokens.value,
+    clientId,
+    pending.nonce
+  );
+  if (Result.isFailure(verified)) {
+    return Result.fail(verified.error);
+  }
+  const { grant, identity, now, tokenSet } = verified.value;
 
   const persisted = await persistSignedInCredentials(
     {
       accessToken: tokenSet.accessToken,
       clientId,
-      email: identity.value.email,
+      email: identity.email,
       expiresAt: now + tokenSet.expiresIn * 1000,
       idToken: tokenSet.idToken,
       refreshToken: tokenSet.refreshToken,
       scope: tokenSet.scope,
-      subject: identity.value.subject,
+      subject: identity.subject,
     },
     startGeneration
   );
@@ -354,7 +416,7 @@ async function exchangeAuthorizationCode(
     if (persisted.replaced) {
       await revokeRefreshToken(persisted.replaced);
     }
-    return Result.succeed({ email: identity.value.email, kind: "signedIn" });
+    return Result.succeed({ email: identity.email, kind: "signedIn" });
   }
   await revokeRefreshToken(grant);
   if (persisted.kind === "cancelled") {
