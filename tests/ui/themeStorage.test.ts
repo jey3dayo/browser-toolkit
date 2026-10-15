@@ -27,6 +27,7 @@ describe("normalizeTheme", () => {
 
 describe("loadStoredTheme", () => {
   it("loads stored dark theme correctly", async () => {
+<<<<<<< HEAD
     const mockGet = vi.fn((_, callback) => callback({ theme: "dark" }));
     globalThis.chrome = {
       storage: {
@@ -36,6 +37,8 @@ describe("loadStoredTheme", () => {
       },
     } as any;
 
+=======
+>>>>>>> origin/main
     const { storageLocalGet } = await import("@/storage/helpers");
     const { Result } = await import("@praha/byethrow");
 
@@ -49,6 +52,7 @@ describe("loadStoredTheme", () => {
   });
 
   it("loads stored light theme correctly", async () => {
+<<<<<<< HEAD
     const mockGet = vi.fn((_, callback) => callback({ theme: "light" }));
     globalThis.chrome = {
       storage: {
@@ -58,6 +62,8 @@ describe("loadStoredTheme", () => {
       },
     } as any;
 
+=======
+>>>>>>> origin/main
     const { storageLocalGet } = await import("@/storage/helpers");
     const { Result } = await import("@praha/byethrow");
 
@@ -70,6 +76,7 @@ describe("loadStoredTheme", () => {
   });
 
   it("returns fallback on storage failure", async () => {
+<<<<<<< HEAD
     const mockGet = vi.fn();
     globalThis.chrome = {
       storage: {
@@ -79,6 +86,8 @@ describe("loadStoredTheme", () => {
       },
     } as any;
 
+=======
+>>>>>>> origin/main
     const { storageLocalGet } = await import("@/storage/helpers");
     const { Result } = await import("@praha/byethrow");
 
@@ -89,6 +98,7 @@ describe("loadStoredTheme", () => {
   });
 
   it("normalizes invalid stored values to auto", async () => {
+<<<<<<< HEAD
     const mockGet = vi.fn((_, callback) => callback({ theme: "invalid" }));
     globalThis.chrome = {
       storage: {
@@ -98,6 +108,8 @@ describe("loadStoredTheme", () => {
       },
     } as any;
 
+=======
+>>>>>>> origin/main
     const { storageLocalGet } = await import("@/storage/helpers");
     const { Result } = await import("@praha/byethrow");
 
@@ -108,6 +120,7 @@ describe("loadStoredTheme", () => {
     const theme = await loadStoredTheme("light");
     expect(theme).toBe("auto");
   });
+<<<<<<< HEAD
 
   it("returns fallback when chrome is undefined", async () => {
     const originalChrome = globalThis.chrome;
@@ -130,6 +143,8 @@ describe("loadStoredTheme", () => {
 
     globalThis.chrome = originalChrome;
   });
+=======
+>>>>>>> origin/main
 });
 
 describe("persistTheme", () => {
