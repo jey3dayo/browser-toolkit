@@ -14,6 +14,7 @@ export function themeFromHost(host: HTMLElement | null): Theme {
 }
 
 export async function loadStoredTheme(fallback: Theme): Promise<Theme> {
+<<<<<<< HEAD
   if (typeof chrome === "undefined") {
     return fallback;
   }
@@ -26,6 +27,12 @@ export async function loadStoredTheme(fallback: Theme): Promise<Theme> {
   if (Result.isFailure(result)) {
     return fallback;
   }
+=======
+  const result = await storageLocalGet<{ theme?: unknown }>(["theme"]);
+  if (Result.isFailure(result)) {
+    return fallback;
+  }
+>>>>>>> origin/main
   const { theme } = result.value;
   return normalizeTheme(theme);
 }
