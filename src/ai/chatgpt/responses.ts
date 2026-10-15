@@ -4,6 +4,7 @@ import { CHATGPT_RESOURCE, CHATGPT_USAGE_URL } from "@/ai/chatgpt/oauth";
 import { isAllowedApiOrigin } from "@/constants/api-endpoints";
 import { API_FETCH_TIMEOUT_MS } from "@/constants/timeouts";
 import { isRecord } from "@/utils/guards";
+import { ignoreRejection } from "@/utils/ignore_rejection";
 
 export type ChatGptResponsesError = {
   status: number | null;
@@ -200,7 +201,9 @@ function createIdleGuard(idleTimeoutMs: number): IdleGuard {
       timer = setTimeout(() => {
         timedOut = true;
         controller.abort();
-        reader?.cancel().catch(() => undefined);
+        if (reader) {
+          ignoreRejection(reader.cancel(), "reader-cancel");
+        }
       }, idleTimeoutMs);
     },
     attachReader: (next) => {
@@ -340,7 +343,7 @@ async function requestResponsesText(
     parser: new SseParser(),
     reader,
   });
-  await reader.cancel().catch(() => undefined);
+  await ignoreRejection(reader.cancel(), "stream-cleanup");
   if (Result.isFailure(finished)) {
     return Result.fail(finished.error);
   }

@@ -19,7 +19,7 @@ export function storageSyncGet<T = unknown>(
     }
 
     chrome.storage.sync.get(keys, (items) => {
-      const err = chrome.runtime.lastError;
+      const err = chrome.runtime?.lastError;
       if (err) {
         resolve(
           Result.fail({
@@ -49,7 +49,7 @@ export function storageLocalGet<T = unknown>(
     }
 
     chrome.storage.local.get(keys, (items) => {
-      const err = chrome.runtime.lastError;
+      const err = chrome.runtime?.lastError;
       if (err) {
         resolve(
           Result.fail({
