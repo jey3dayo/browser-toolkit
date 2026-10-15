@@ -20,8 +20,8 @@ import {
   resolveActiveTabId,
 } from "@/popup/utils/summary_target";
 import type { Notifier } from "@/ui/toast";
-import { copyToClipboard } from "@/utils/clipboard";
 import { debugLog } from "@/utils/debug_log";
+import { copyReadyOutputText } from "../copyOutputText";
 import type { OutputState } from "./types";
 import { parseRunContextActionResponseToOutput } from "./types";
 
@@ -212,21 +212,14 @@ export function useActionRunner(params: {
     if (output.status !== "ready") {
       return;
     }
-    const text = output.text.trim();
-    if (!text) {
-      return;
-    }
-
-    const result = await copyToClipboard(text);
-    if (Result.isSuccess(result)) {
-      params.notify.success(t("notifications.copySuccess"));
-      return;
-    }
-    params.notify.error(
-      result.error.type === "unavailable"
-        ? t("clipboard.errors.unavailable")
-        : t("notifications.copyFailed")
-    );
+    await copyReadyOutputText(output.text, {
+      messages: {
+        failed: "notifications.copyFailed",
+        success: "notifications.copySuccess",
+        unavailable: "clipboard.errors.unavailable",
+      },
+      notify: params.notify,
+    });
   };
 
   return {
