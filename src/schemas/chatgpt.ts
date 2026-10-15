@@ -14,7 +14,7 @@ import {
   variant,
 } from "valibot";
 
-export const ChatGptCredentialsSchema = object({
+const ChatGptCredentialsSchema = object({
   accessToken: string(),
   clientId: string(),
   email: nullable(string()),
@@ -29,7 +29,7 @@ export const ChatGptCredentialsSchema = object({
 export type ChatGptCredentials = InferOutput<typeof ChatGptCredentialsSchema>;
 
 /** 認可タブの操作中に service worker が止まっても完了できるよう chrome.storage.session に置く */
-export const ChatGptSignInStateSchema = variant("status", [
+const ChatGptSignInStateSchema = variant("status", [
   object({
     clientId: nullable(string()),
     nonce: string(),

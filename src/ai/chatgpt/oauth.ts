@@ -1,8 +1,7 @@
 import { Result } from "@praha/byethrow";
 import { isRecord } from "@/utils/guards";
 
-export const CHATGPT_AUTHORIZE_URL =
-  "https://auth.openai.com/api/accounts/authorize";
+const CHATGPT_AUTHORIZE_URL = "https://auth.openai.com/api/accounts/authorize";
 export const CHATGPT_TOKEN_URL =
   "https://auth.openai.com/api/accounts/oauth/token";
 export const CHATGPT_REVOKE_URL =
@@ -11,7 +10,7 @@ export const CHATGPT_ISSUER = "https://auth.openai.com";
 export const CHATGPT_RESOURCE = "https://api.openai.com/v1";
 export const CHATGPT_REDIRECT_URI = "http://127.0.0.1:1455/auth/callback";
 export const CHATGPT_USAGE_URL = "https://chatgpt.com/settings/usage";
-export const CHATGPT_AGENT_NAME = "Browser Toolkit";
+const CHATGPT_AGENT_NAME = "Browser Toolkit";
 
 const DYNAMIC_CLIENT_ID = "dynamic_agent_client";
 const PLAN_SCOPE = "chatgpt.tokens.use.direct";
