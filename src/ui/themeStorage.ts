@@ -14,14 +14,12 @@ export function themeFromHost(host: HTMLElement | null): Theme {
 }
 
 export async function loadStoredTheme(fallback: Theme): Promise<Theme> {
-  const result = await storageLocalGet<{ overlayTheme?: unknown }>([
-    "overlayTheme",
-  ]);
+  const result = await storageLocalGet<{ theme?: unknown }>(["theme"]);
   if (Result.isFailure(result)) {
     return fallback;
   }
-  const { overlayTheme } = result.value;
-  return normalizeTheme(overlayTheme);
+  const { theme } = result.value;
+  return normalizeTheme(theme);
 }
 
 export function persistTheme(theme: Theme): Promise<void> {
