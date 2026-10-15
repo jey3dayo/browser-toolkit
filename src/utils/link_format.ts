@@ -60,36 +60,26 @@ function escapeMarkdownLinkText(value: string): string {
     .replace(/\]/g, "\\]");
 }
 
+type LinkFormatter = (url: string, title: string) => string;
+
+const LINK_FORMATTERS: Record<LinkFormat, LinkFormatter> = {
+  bbcode: (url, title) =>
+    title ? `[url=${url}]${title}[/url]` : `[url]${url}[/url]`,
+  html: (url, title) =>
+    `<a href="${escapeHtmlAttribute(url)}">${escapeHtmlText(title || url)}</a>`,
+  markdown: (url, title) =>
+    title ? `[${escapeMarkdownLinkText(title)}](<${url}>)` : `<${url}>`,
+  org: (url, title) => (title ? `[[${url}][${title}]]` : `[[${url}]]`),
+  text: (url, title) => (title ? `${title}\n${url}` : url),
+  url: (url) => url,
+};
+
 export function formatLink(source: LinkSource, format: LinkFormat): string {
   const url = source.url.trim();
   if (!url) {
     return "";
   }
-
-  const title = source.title.trim();
-
-  if (format === "url") {
-    return url;
-  }
-
-  if (format === "text") {
-    return title ? `${title}\n${url}` : url;
-  }
-
-  if (format === "markdown") {
-    return title ? `[${escapeMarkdownLinkText(title)}](<${url}>)` : `<${url}>`;
-  }
-
-  if (format === "html") {
-    const label = title || url;
-    return `<a href="${escapeHtmlAttribute(url)}">${escapeHtmlText(label)}</a>`;
-  }
-
-  if (format === "org") {
-    const label = title.trim();
-    return label ? `[[${url}][${label}]]` : `[[${url}]]`;
-  }
-
-  const label = title || url;
-  return title ? `[url=${url}]${label}[/url]` : `[url]${url}[/url]`;
+  // 型外の値が来た場合は従来どおり bbcode 扱いにする
+  const formatter = LINK_FORMATTERS[format] ?? LINK_FORMATTERS.bbcode;
+  return formatter(url, source.title.trim());
 }
