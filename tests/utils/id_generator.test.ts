@@ -36,6 +36,16 @@ describe("generateId", () => {
     expect(id).toMatch(TEMPLATE_HELLO_PATTERN);
   });
 
+  it("handles special characters like @#!", () => {
+    const id = generateId("Hello@World#123!", "template");
+    expect(id).toBe("template:hello-world-123-14ac1112");
+  });
+
+  it("handles leading and trailing hyphens", () => {
+    const id = generateId("-test-", "prefix");
+    expect(id).toBe("prefix:test-535c61ce");
+  });
+
   it("pins specific hash outputs for fixed inputs", () => {
     expect(generateId("test", "prefix")).toBe("prefix:test-00364492");
     expect(generateId("Hello World", "template")).toBe(
