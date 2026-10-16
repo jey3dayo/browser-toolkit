@@ -23,15 +23,6 @@ export function inputValue(
   el.dispatchEvent(new window.Event("change", { bubbles: true }));
 }
 
-export function selectValue(
-  window: Window,
-  el: HTMLSelectElement,
-  value: string
-): void {
-  setValue(el, value);
-  el.dispatchEvent(new window.Event("change", { bubbles: true }));
-}
-
 export async function selectBaseUiOption(
   window: Window,
   trigger: HTMLElement,
