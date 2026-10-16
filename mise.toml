@@ -55,6 +55,10 @@ run = "pnpm run build"
 description = "ビルド成果物を削除"
 run = "pnpm run clean"
 
+[tasks."report:knip"]
+description = "Knip で未使用のファイル・export・依存を報告（ゲートではなく人がトリアージする。分類は docs/knip.md）"
+run = "pnpm exec knip --no-exit-code --no-progress"
+
 [tasks."report:jev"]
 description = "jev-lint で origin/main との差分を LLM レビュー（TYPESAFE_API_KEY が必要、ゲートではなく人がトリアージする）"
 run = "pnpm run report:jev"

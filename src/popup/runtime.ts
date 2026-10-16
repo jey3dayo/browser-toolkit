@@ -10,10 +10,7 @@ import { toErrorMessage } from "@/utils/errors";
 import { matchesAnyPattern } from "@/utils/url-pattern";
 
 // Re-export types from background/types for popup components
-export type {
-  RunContextActionResponse,
-  SummaryTarget,
-} from "@/background/types";
+export type { SummaryTarget } from "@/background/types";
 export type { SyncStorageData } from "@/storage/types";
 
 export type EnableTableSortMessage = { action: "enableTableSort" };
@@ -44,7 +41,7 @@ export type TestAiTokenRequest = TestTokenFields & {
 };
 export type TestAiTokenResponse = Result.Result<void, string>;
 
-export type ChatGptAuthStatus = "signedOut" | "pending" | "signedIn" | "failed";
+type ChatGptAuthStatus = "signedOut" | "pending" | "signedIn" | "failed";
 export type ChatGptAuthState = {
   status: ChatGptAuthStatus;
   email: string | null;
