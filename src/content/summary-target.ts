@@ -62,7 +62,19 @@ async function getCachedSelectionTarget(): Promise<SummaryTarget | null> {
   // キャッシュは書き込んだページの origin 固定。別 origin のタブでは
   // 無関係ページのテキストが title/url 付きで AI に送られるのを防ぐ
   const isFresh = Date.now() - updatedAt <= SELECTED_TEXT_CACHE_TIMEOUT_MS;
-  if (!(isFresh && selection && origin && origin === window.location.origin)) {
+  // "null" は file: などの opaque origin の直列化結果で、別ページとの
+  // 区別が付かないため origin 一致扱いにはしない
+  const pageOrigin = window.location.origin;
+  if (
+    !(
+      isFresh &&
+      selection &&
+      origin &&
+      origin !== "null" &&
+      pageOrigin !== "null" &&
+      origin === pageOrigin
+    )
+  ) {
     return null;
   }
   return buildSelectionTarget(selection);

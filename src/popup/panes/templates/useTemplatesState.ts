@@ -10,8 +10,18 @@ import {
   type TextTemplate,
 } from "@/text_templates";
 import type { Notifier } from "@/ui/toast";
+import { runWithSharedLock } from "@/utils/async";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
+
+const TEMPLATE_MUTATION_MAX_ATTEMPTS = 5;
+
+type PreparedTemplateMutation = {
+  next: TextTemplate[];
+  applyNext: () => void;
+  onSuccess?: () => void;
+  onFailure: () => void;
+};
 
 export function useTemplatesState(params: {
   runtime: PopupRuntime;
@@ -122,28 +132,74 @@ export function useTemplatesState(params: {
       textTemplates: nextTemplates,
     });
 
-  const toggleTemplateHidden = async (
-    templateId: string,
-    hidden: boolean
-  ): Promise<void> => {
-    const latest = await readLatestTemplates();
-    const base = latest ?? templates;
-    const next = base.map((template) =>
-      template.id === templateId ? { ...template, hidden } : template
-    );
-    await persistWithRollback({
-      applyNext: () => {
-        setTemplates(next);
-      },
-      onFailure: () => {
-        notify.error(t("templatesPane.errors.saveFailed"));
-      },
-      persist: () => saveTemplates(next),
-      rollback: () => {
-        setTemplates(templates);
-      },
-    });
+  // 保存は同一 origin の各インスタンス（popup / options）間で共有される lock で
+  // 直列化する（Web Locks、テスト環境では realm 内共有 queue）。lock 内の
+  // read-latest → write → re-read verify が自分の書き込みと一致しない
+  // (別 popup が先んじた / 先に割り込んだ) 場合は最新 base でやり直す。
+  // persist 失敗時は既存の rollback / notify を維持し、再試行しない。
+  const verifyTemplatesPersisted = async (
+    next: TextTemplate[]
+  ): Promise<boolean> => {
+    const stored = await readLatestTemplates();
+    if (!stored) {
+      return true;
+    }
+    return JSON.stringify(stored) === JSON.stringify(next);
   };
+
+  const runTemplateMutationAttempts = async (
+    prepare: (base: TextTemplate[]) => PreparedTemplateMutation | null
+  ): Promise<void> => {
+    let attempt = 0;
+    while (attempt < TEMPLATE_MUTATION_MAX_ATTEMPTS) {
+      attempt += 1;
+      // biome-ignore lint/performance/noAwaitInLoops: intentional serial optimistic-concurrency retries
+      const latest = await readLatestTemplates();
+      const base = latest ?? templates;
+      const mutation = prepare(base);
+      if (!mutation) {
+        return;
+      }
+      const saved = await persistWithRollback({
+        applyNext: mutation.applyNext,
+        onFailure: mutation.onFailure,
+        persist: () => saveTemplates(mutation.next),
+        rollback: () => {
+          setTemplates(templates);
+        },
+      });
+      if (!saved) {
+        return;
+      }
+      if (await verifyTemplatesPersisted(mutation.next)) {
+        mutation.onSuccess?.();
+        return;
+      }
+    }
+  };
+
+  const runTemplateMutation = (
+    prepare: (base: TextTemplate[]) => PreparedTemplateMutation | null
+  ): Promise<void> =>
+    runWithSharedLock("textTemplates", () =>
+      runTemplateMutationAttempts(prepare)
+    );
+
+  const toggleTemplateHidden = (templateId: string, hidden: boolean) =>
+    runTemplateMutation((base) => {
+      const next = base.map((template) =>
+        template.id === templateId ? { ...template, hidden } : template
+      );
+      return {
+        applyNext: () => {
+          setTemplates(next);
+        },
+        next,
+        onFailure: () => {
+          notify.error(t("templatesPane.errors.saveFailed"));
+        },
+      };
+    });
 
   const startEdit = (template: TextTemplate): void => {
     updateEditingId(template.id);
@@ -224,110 +280,107 @@ export function useTemplatesState(params: {
     });
   };
 
-  const persistTemplatesUpdate = async (
-    next: TextTemplate[],
-    successMessage: string
-  ): Promise<void> => {
-    await persistWithRollback({
-      applyNext: () => {
-        setTemplates(next);
-        cancelEdit();
-      },
-      onFailure: () => {
-        notify.error(t("templatesPane.errors.saveFailed"));
-      },
-      onSuccess: () => {
-        notify.success(successMessage);
-      },
-      persist: () => saveTemplates(next),
-      rollback: () => {
-        setTemplates(templates);
-      },
-    });
-  };
-
-  const saveEdit = async (): Promise<void> => {
+  const saveEdit = (): Promise<void> => {
     const input = parseTemplateInput();
     if (!input) {
-      return;
+      return Promise.resolve();
     }
 
-    const latest = await readLatestTemplates();
-    const base = latest ?? templates;
-    const nextResult = buildNextTemplates(input, base);
-    if (Result.isFailure(nextResult)) {
-      notify.error(nextResult.error);
-      return;
-    }
-
-    await persistTemplatesUpdate(
-      nextResult.value.next,
-      nextResult.value.successMessage
-    );
-  };
-
-  const removeTemplate = async (templateId: string): Promise<void> => {
-    const latest = await readLatestTemplates();
-    const base = latest ?? templates;
-    const next = base.filter((template) => template.id !== templateId);
-    await persistWithRollback({
-      applyNext: () => {
-        setTemplates(next);
-        if (editingId === templateId) {
+    return runTemplateMutation((base) => {
+      const nextResult = buildNextTemplates(input, base);
+      if (Result.isFailure(nextResult)) {
+        notify.error(nextResult.error);
+        return null;
+      }
+      const { next } = nextResult.value;
+      return {
+        applyNext: () => {
+          setTemplates(next);
           cancelEdit();
-        }
-      },
-      onFailure: () => {
-        notify.error(t("templatesPane.errors.deleteFailed"));
-      },
-      onSuccess: () => {
-        notify.success(t("templatesPane.success.deleted"));
-      },
-      persist: () => saveTemplates(next),
-      rollback: () => {
-        setTemplates(templates);
-      },
+        },
+        next,
+        onFailure: () => {
+          notify.error(t("templatesPane.errors.saveFailed"));
+        },
+        onSuccess: () => {
+          notify.success(nextResult.value.successMessage);
+        },
+      };
     });
   };
 
-  const resetToDefaults = async (): Promise<void> => {
-    await persistWithRollback({
+  const removeTemplate = (templateId: string) =>
+    runTemplateMutation((base) => {
+      const next = base.filter((template) => template.id !== templateId);
+      return {
+        applyNext: () => {
+          setTemplates(next);
+          if (editingId === templateId) {
+            cancelEdit();
+          }
+        },
+        next,
+        onFailure: () => {
+          notify.error(t("templatesPane.errors.deleteFailed"));
+        },
+        onSuccess: () => {
+          notify.success(t("templatesPane.success.deleted"));
+        },
+      };
+    });
+
+  const resetToDefaults = () =>
+    runTemplateMutation(() => ({
       applyNext: () => {
         setTemplates(DEFAULT_TEXT_TEMPLATES);
         cancelEdit();
       },
+      next: DEFAULT_TEXT_TEMPLATES,
       onFailure: () => {
         notify.error(t("templatesPane.errors.resetFailed"));
       },
       onSuccess: () => {
         notify.success(t("templatesPane.success.reset"));
       },
-      persist: () => saveTemplates(DEFAULT_TEXT_TEMPLATES),
-      rollback: () => {
-        setTemplates(templates);
-      },
-    });
-  };
+    }));
 
-  const handleReorder = async (
-    reorderedTemplates: TextTemplate[]
-  ): Promise<void> => {
-    await persistWithRollback({
-      applyNext: () => {
-        setTemplates(reorderedTemplates);
-      },
-      onFailure: () => {
-        notify.error(t("templatesPane.errors.reorderFailed"));
-      },
-      onSuccess: () => {
-        notify.success(t("templatesPane.success.reordered"));
-      },
-      persist: () => saveTemplates(reorderedTemplates),
-      rollback: () => {
-        setTemplates(templates);
-      },
+  // 並び替えは drag handler が渡した全オブジェクトではなく、直近の storage の
+  // レコードを要求された ID 順に並べて保存する。別インスタンスの直後の
+  // hidden / 本文編集が並び替え write で戻されないようにするため。
+  const handleReorder = (reorderedTemplates: TextTemplate[]) =>
+    runTemplateMutation((base) => {
+      const byId = new Map(base.map((template) => [template.id, template]));
+      const consumed = new Set<string>();
+      const next: TextTemplate[] = [];
+      for (const template of reorderedTemplates) {
+        if (consumed.has(template.id)) {
+          continue;
+        }
+        const latest = byId.get(template.id);
+        if (!latest) {
+          continue;
+        }
+        consumed.add(template.id);
+        next.push(latest);
+      }
+      for (const template of base) {
+        if (!consumed.has(template.id)) {
+          next.push(template);
+        }
+      }
+      return {
+        applyNext: () => {
+          setTemplates(next);
+        },
+        next,
+        onFailure: () => {
+          notify.error(t("templatesPane.errors.reorderFailed"));
+        },
+        onSuccess: () => {
+          notify.success(t("templatesPane.success.reordered"));
+        },
+      };
     });
-  };
 
   return {
     cancelEdit,

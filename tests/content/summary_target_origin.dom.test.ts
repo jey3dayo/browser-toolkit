@@ -86,4 +86,19 @@ describe("cached selection origin binding", () => {
 
     expect(target.source).toBe("page");
   });
+
+  it("falls back to the page body on a file: URL with a cached opaque origin", async () => {
+    dom.window.close();
+    dom = new JSDOM("<!doctype html><html><body>page body</body></html>", {
+      url: "file:///tmp/a.html",
+    });
+    vi.stubGlobal("window", dom.window);
+    vi.stubGlobal("document", dom.window.document);
+    stubCachedSelection(freshPayload({ selectedTextOrigin: "null" }));
+
+    const target = await getSummaryTargetText();
+
+    expect(target.source).toBe("page");
+    expect(target.url).toBe("file:///tmp/a.html");
+  });
 });

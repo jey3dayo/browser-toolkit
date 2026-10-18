@@ -21,11 +21,18 @@ export type PopupSyncStorageStub = {
   };
 };
 
+export type SyncStorageStubOptions = {
+  holdFirstSetUntilNextSet?: boolean;
+};
+
 export function createSyncStorageStub(
-  initial: Partial<SyncStorageData>
+  initial: Partial<SyncStorageData>,
+  options?: SyncStorageStubOptions
 ): PopupSyncStorageStub {
   const store: Partial<SyncStorageData> = { ...initial };
   const listeners: SyncStorageChangeListener[] = [];
+  let holdRemaining = options?.holdFirstSetUntilNextSet === true ? 1 : 0;
+  let heldRelease: (() => void) | null = null;
 
   const get: PopupRuntime["storageSyncGet"] = (keys) => {
     const items: Partial<SyncStorageData> = {};
@@ -37,7 +44,18 @@ export function createSyncStorageStub(
     return Promise.resolve(Result.succeed(items));
   };
 
-  const set: PopupRuntime["storageSyncSet"] = (items) => {
+  const set: PopupRuntime["storageSyncSet"] = async (items) => {
+    const release = heldRelease;
+    heldRelease = null;
+    release?.();
+
+    if (holdRemaining > 0) {
+      holdRemaining -= 1;
+      await new Promise<void>((resolve) => {
+        heldRelease = resolve;
+      });
+    }
+
     const writes = Object.entries(items).map(([key, value]) => ({
       key,
       newValue: value,
@@ -54,7 +72,7 @@ export function createSyncStorageStub(
     for (const listener of [...listeners]) {
       listener(changes, "sync");
     }
-    return Promise.resolve(Result.succeed());
+    return Result.succeed();
   };
 
   return {

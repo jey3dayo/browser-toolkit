@@ -68,4 +68,22 @@ describe("selection cache write path", () => {
 
     expect(chrome.storage.local.set).not.toHaveBeenCalled();
   });
+
+  it("does not write on a file: URL (opaque origin)", () => {
+    dom.window.close();
+    dom = new JSDOM("<!doctype html><html><body></body></html>", {
+      url: "file:///tmp/b.html",
+    });
+    vi.stubGlobal("window", dom.window);
+    vi.stubGlobal("document", dom.window.document);
+
+    const text = dom.window.document.body.appendChild(
+      dom.window.document.createTextNode("selected content")
+    );
+    selectText(text);
+
+    cacheCurrentSelection();
+
+    expect(chrome.storage.local.set).not.toHaveBeenCalled();
+  });
 });

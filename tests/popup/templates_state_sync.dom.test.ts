@@ -139,6 +139,93 @@ describe("popup templates state across two instances (onChanged rehydration)", (
     await unmountHook({ dom, root: second.root });
   });
 
+  it("keeps both mutations when two instances mutate concurrently", async () => {
+    const initial = createInitialTemplates();
+    // 2つのインスタンスの mutation は realm 共有の shared lock で直列化され、
+    // 後続の mutation は readLatest で先行事象を含めて rebase される。
+    const storageStub = createSyncStorageStub({ textTemplates: initial });
+    vi.stubGlobal("chrome", { storage: { onChanged: storageStub.onChanged } });
+
+    const first = await mountHook({ dom, storageStub });
+    const second = await mountHook({ dom, storageStub });
+
+    await act(async () => {
+      second.output.current?.startNew();
+      second.output.current?.setTitleInput("added");
+      second.output.current?.setContentInput("added body");
+      await flush(dom.window);
+    });
+
+    await act(async () => {
+      const toggle = first.output.current?.toggleTemplateHidden(
+        initial[0].id,
+        true
+      );
+      const save = second.output.current?.saveEdit();
+      await Promise.all([
+        toggle ?? Promise.resolve(),
+        save ?? Promise.resolve(),
+      ]);
+      await flush(dom.window);
+    });
+
+    const expected: TextTemplate[] = [
+      { ...initial[0], hidden: true },
+      initial[1],
+      {
+        content: "added body",
+        hidden: false,
+        id: generateTemplateId("added"),
+        title: "added",
+      },
+    ];
+    expect(storageStub.store.textTemplates).toEqual(expected);
+    expect(first.output.current?.templates).toEqual(expected);
+
+    await unmountHook({ dom, root: first.root });
+    await unmountHook({ dom, root: second.root });
+  });
+
+  it("keeps a concurrent hidden toggle when another instance reorders", async () => {
+    const initial = createInitialTemplates();
+    const storageStub = createSyncStorageStub({
+      textTemplates: initial,
+    });
+    vi.stubGlobal("chrome", { storage: { onChanged: storageStub.onChanged } });
+
+    const first = await mountHook({ dom, storageStub });
+    const second = await mountHook({ dom, storageStub });
+
+    // drag handler が掴んだレコードは toggle 前の stale な値を持つ
+    const staleForDrag = createInitialTemplates();
+    await act(async () => {
+      const toggle = first.output.current?.toggleTemplateHidden(
+        initial[0].id,
+        true
+      );
+      const reorder = second.output.current?.handleReorder([
+        staleForDrag[1],
+        staleForDrag[0],
+      ]);
+      await Promise.all([
+        toggle ?? Promise.resolve(),
+        reorder ?? Promise.resolve(),
+      ]);
+      await flush(dom.window);
+    });
+
+    const expected: TextTemplate[] = [
+      initial[1],
+      { ...initial[0], hidden: true },
+    ];
+    expect(storageStub.store.textTemplates).toEqual(expected);
+    expect(first.output.current?.templates).toEqual(expected);
+    expect(second.output.current?.templates).toEqual(expected);
+
+    await unmountHook({ dom, root: first.root });
+    await unmountHook({ dom, root: second.root });
+  });
+
   it("rebases a save onto the latest storage after events skipped during editing", async () => {
     const storageStub = createSyncStorageStub({
       textTemplates: createInitialTemplates(),
