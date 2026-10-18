@@ -24,7 +24,6 @@ type Props = {
   themePopoverId: string;
 };
 
-/** Overlay panel header: title chip, drag handle, and header action buttons. */
 export function OverlayHeader(props: Props): React.JSX.Element {
   return (
     <div

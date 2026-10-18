@@ -1,7 +1,3 @@
-/**
- * AIアダプター共通ヘルパー
- */
-
 export function extractApiErrorMessage(json: unknown): string | null {
   if (typeof json !== "object" || json === null || !("error" in json)) {
     return null;

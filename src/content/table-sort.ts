@@ -19,11 +19,6 @@ function updateHeaderSortState(
   }
 }
 
-/**
- * 単一テーブルにソート機能を有効化
- * @param table - 対象テーブル
- * @param getRowFilterSetting - 行フィルタリング設定取得関数
- */
 export function enableSingleTable(
   table: HTMLTableElement,
   getRowFilterSetting?: () => Result.Result<boolean, string>
@@ -65,12 +60,6 @@ export function enableSingleTable(
   }
 }
 
-/**
- * ページ内の全テーブルにソート機能を有効化
- * @param onNotify - 通知コールバック
- * @param getRowFilterSetting - 行フィルタリング設定取得関数
- * @returns 有効化したテーブル数
- */
 export function enableTableSort(
   onNotify: (message: string) => void,
   getRowFilterSetting?: () => Result.Result<boolean, string>
@@ -140,12 +129,6 @@ function applyRowFilterIfEnabled(params: {
   }
 }
 
-/**
- * テーブルをソート
- * @param table - 対象テーブル
- * @param columnIndex - ソート対象の列インデックス
- * @param getRowFilterSetting - 行フィルタリング設定取得関数
- */
 function sortTable(
   table: HTMLTableElement,
   columnIndex: number,
@@ -173,18 +156,11 @@ function sortTable(
   return isAscending;
 }
 
-/**
- * 行フィルタリングを適用する
- * @param rows - フィルタリング対象の行配列
- * @param columnIndex - フィルタリング対象の列インデックス
- * @param enableRowFilter - 行フィルタリングを有効にするかどうか
- */
 function applyRowFiltering(
   rows: HTMLTableRowElement[],
   columnIndex: number,
   enableRowFilter: boolean
 ): void {
-  // enableRowFilterがtrueの場合のみ適用
   if (!enableRowFilter) {
     return;
   }

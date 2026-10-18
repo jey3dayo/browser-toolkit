@@ -5,9 +5,6 @@
  * HTTPリクエスト/レスポンスを変換する。
  */
 
-/**
- * チャットリクエストボディ（内部標準形式）
- */
 export type ChatRequestBody = {
   model: string;
   messages: Array<{ role: string; content: string }>;
@@ -19,13 +16,7 @@ export type ChatRequestBody = {
   output_config?: { format: { type: "json_schema"; schema: unknown } };
 };
 
-/**
- * チャット補完アダプター
- */
 export type ChatCompletionAdapter = {
-  /**
-   * fetch用のURL・headers・bodyを構築
-   */
   buildRequest: (
     token: string,
     body: ChatRequestBody
@@ -34,13 +25,7 @@ export type ChatCompletionAdapter = {
     init: RequestInit;
   };
 
-  /**
-   * レスポンスJSONからテキストを抽出
-   */
   extractText: (json: unknown) => string | null;
 
-  /**
-   * エラーレスポンスからメッセージを抽出
-   */
   extractError: (json: unknown, status: number) => string;
 };

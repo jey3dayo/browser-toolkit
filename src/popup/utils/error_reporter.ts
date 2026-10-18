@@ -9,9 +9,6 @@ export type ErrorReporterOptions = {
   navigate?: PaneNavigator;
 };
 
-/**
- * トークン関連のエラーかどうかを判定
- */
 function isTokenRelatedError(message: string): boolean {
   return (
     message.includes("Token") ||
@@ -21,9 +18,6 @@ function isTokenRelatedError(message: string): boolean {
   );
 }
 
-/**
- * エラーメッセージを表示し、トークン関連エラーの場合は設定画面への誘導を追加
- */
 function reportError(message: string, options: ErrorReporterOptions): void {
   const { notify, navigate } = options;
 
@@ -47,9 +41,6 @@ function reportError(message: string, options: ErrorReporterOptions): void {
   }
 }
 
-/**
- * エラー報告関数を作成するファクトリー
- */
 export function createErrorReporter(
   options: ErrorReporterOptions
 ): (message: string) => void {

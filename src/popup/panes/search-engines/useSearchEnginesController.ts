@@ -47,7 +47,6 @@ export function useSearchEnginesController(
         return;
       }
 
-      // ストレージ読み込み失敗時もデフォルト値を表示
       if (Result.isFailure(data)) {
         setEngines(DEFAULT_SEARCH_ENGINES);
         return;

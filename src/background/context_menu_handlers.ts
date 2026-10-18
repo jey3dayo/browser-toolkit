@@ -1,8 +1,3 @@
-/**
- * Context menu click handlers.
- * Handles search engine and text template menu item clicks.
- */
-
 import {
   ensureSearchEngineGroupsInitialized,
   ensureSearchEnginesInitialized,
@@ -13,13 +8,6 @@ import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
 import { ignoreRejection } from "@/utils/ignore_rejection";
 
-/**
- * Handles search engine context menu click.
- * Creates a new tab with the search URL for the selected text.
- *
- * @param engineId - Search engine ID
- * @param info - Context menu click data
- */
 export async function handleSearchEngineClick(
   engineId: string,
   info: chrome.contextMenus.OnClickData,
@@ -65,13 +53,6 @@ export async function handleSearchEngineClick(
   }
 }
 
-/**
- * Handles batch search context menu click.
- * Opens multiple tabs for all enabled engines in the group.
- *
- * @param groupId - Search engine group ID
- * @param info - Context menu click data
- */
 export async function handleBatchSearchClick(
   groupId: string,
   info: chrome.contextMenus.OnClickData,
@@ -92,7 +73,6 @@ export async function handleBatchSearchClick(
     return;
   }
 
-  // Filter to enabled engines that exist in the group
   const enabledEngines = group.engineIds
     .map((engineId) => engines.find((e) => e.id === engineId))
     .filter((e): e is NonNullable<typeof e> => e?.enabled ?? false);
@@ -101,7 +81,6 @@ export async function handleBatchSearchClick(
     return;
   }
 
-  // Open all tabs in parallel
   const results = await Promise.allSettled(
     enabledEngines.map((engine) => {
       const searchUrl = buildSearchUrl(
@@ -117,7 +96,6 @@ export async function handleBatchSearchClick(
     })
   );
 
-  // Log any failures
   const failures = results.filter(
     (r): r is PromiseRejectedResult => r.status === "rejected"
   );
@@ -139,13 +117,6 @@ export async function handleBatchSearchClick(
   }
 }
 
-/**
- * Handles text template context menu click.
- * Sends a message to the content script to paste the template content.
- *
- * @param tabId - Tab ID where the template should be pasted
- * @param templateId - Template ID
- */
 export async function handleTemplateClick(
   tabId: number,
   templateId: string

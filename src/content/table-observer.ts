@@ -34,11 +34,6 @@ export function observeTables(
   };
 }
 
-/**
- * 新しいテーブルのソートを有効化して通知
- * @param onNotify - 通知コールバック
- * @param getRowFilterSetting - 行フィルタリング設定取得関数
- */
 function enableNewTables(
   onNotify: (message: string) => void,
   getRowFilterSetting?: () => Result.Result<boolean, string>

@@ -27,12 +27,10 @@ export function parseNumericValue(text: string): number {
     return Number.NaN;
   }
 
-  // 通貨記号を含む数値形式かチェック
   const hasCurrency = CURRENCY_SYMBOLS_REGEX.test(trimmed);
   const isNumericLike = NUMBER_WITH_SEPARATORS_REGEX.test(trimmed);
 
   if (hasCurrency || isNumericLike) {
-    // 通貨記号とカンマを削除
     const cleaned = trimmed
       .replace(CURRENCY_SYMBOLS_REGEX, "")
       .replace(SEPARATOR_CHARS_REGEX, "")
@@ -41,6 +39,5 @@ export function parseNumericValue(text: string): number {
     return Number.parseFloat(cleaned);
   }
 
-  // 通常の数値パース（指数表記などもサポート）
   return Number.parseFloat(trimmed);
 }

@@ -6,10 +6,6 @@ import { FetchTimeoutError } from "@/utils/custom-errors";
 import { toErrorMessage } from "@/utils/errors";
 import { fetchWithTimeout } from "@/utils/fetch-with-timeout";
 
-/**
- * Fetch エラーを統一的に処理する
- * タイムアウトエラーの場合はそのメッセージを、それ以外はデフォルトメッセージを返す
- */
 function handleFetchError(error: unknown, defaultMessage: string): string {
   if (error instanceof FetchTimeoutError) {
     return error.message;
@@ -55,9 +51,6 @@ function buildChatCompletionOkResult(
   return Result.fail(extractError(json, response.status));
 }
 
-/**
- * アダプター経由でチャット補完テキストを取得
- */
 export function fetchChatCompletionText(
   fetchFn: typeof fetch,
   adapter: ChatCompletionAdapter,
@@ -115,9 +108,6 @@ function fetchChatCompletionJson(
   );
 }
 
-/**
- * アダプター経由でチャット補完の成否を確認
- */
 export function fetchChatCompletionOk(
   fetchFn: typeof fetch,
   adapter: ChatCompletionAdapter,

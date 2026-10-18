@@ -16,17 +16,11 @@ export type DragOffset = { x: number; y: number };
 export type PanelSize = Size;
 type StateSetter<T> = React.Dispatch<React.SetStateAction<T>>;
 
-/**
- * Get panel size from DOM element
- */
 export function getPanelSize(panel: HTMLDivElement | null): PanelSize {
   const rect = panel?.getBoundingClientRect();
   return { height: rect?.height || 300, width: rect?.width || 520 };
 }
 
-/**
- * Update toast surface inset based on panel position
- */
 export function updateOverlayToastSurfaceInset(params: {
   host: HTMLDivElement;
   panel: HTMLDivElement | null;
@@ -69,9 +63,6 @@ export function updateOverlayToastSurfaceInset(params: {
   );
 }
 
-/**
- * Update host position with boundary clamping
- */
 function updateHostPosition(
   host: HTMLDivElement,
   size: PanelSize,
@@ -82,9 +73,6 @@ function updateHostPosition(
   host.style.top = `${Math.round(top)}px`;
 }
 
-/**
- * Get pinned corner position (top-right)
- */
 function getPinnedCornerPoint(size: PanelSize): Point {
   return {
     left: window.innerWidth - size.width - OVERLAY_PINNED_MARGIN_PX,
@@ -92,9 +80,6 @@ function getPinnedCornerPoint(size: PanelSize): Point {
   };
 }
 
-/**
- * Position overlay host based on state (pinned, dragged, or anchored)
- */
 export function positionOverlayHost(params: {
   open: boolean;
   host: HTMLDivElement;
@@ -134,9 +119,6 @@ export function positionOverlayHost(params: {
   });
 }
 
-/**
- * Drag handler parameter types
- */
 type OverlayDragBaseParams = {
   event: React.PointerEvent<HTMLElement>;
   dragOffsetRef: React.MutableRefObject<DragOffset | null>;
@@ -182,9 +164,6 @@ function clampPointToViewport(point: Point, size: PanelSize): Point {
   };
 }
 
-/**
- * Start overlay drag operation
- */
 export function startOverlayDrag(params: OverlayDragStartParams): void {
   if (params.event.button !== 0) {
     return;
@@ -215,9 +194,6 @@ export function startOverlayDrag(params: OverlayDragStartParams): void {
   }
 }
 
-/**
- * Move overlay during drag operation
- */
 export function moveOverlayDrag(
   params: {
     event: React.PointerEvent<HTMLElement>;
@@ -246,9 +222,6 @@ export function moveOverlayDrag(
   );
 }
 
-/**
- * End overlay drag operation
- */
 export function endOverlayDrag(params: OverlayDragEndParams): void {
   if (!params.dragging) {
     return;
@@ -262,9 +235,6 @@ export function endOverlayDrag(params: OverlayDragEndParams): void {
   }
 }
 
-/**
- * Toggle overlay pinned state
- */
 export function toggleOverlayPinned(params: OverlayPinnedParams): void {
   if (!params.pinned) {
     params.setPinned(true);

@@ -1,7 +1,3 @@
-/**
- * Chrome通知を表示するユーティリティ関数
- */
-
 export type NotificationParams = {
   title: string;
   message: string;
@@ -16,9 +12,6 @@ export type NotificationParams = {
 const MAX_TITLE_LENGTH = 256;
 const MAX_MESSAGE_LENGTH = 512;
 
-/**
- * 通知タイトルをフォーマット（文字数制限を適用）
- */
 function formatTitle(title: unknown): string {
   const text = String(title ?? "");
   if (text.length > MAX_TITLE_LENGTH) {
@@ -27,9 +20,6 @@ function formatTitle(title: unknown): string {
   return text;
 }
 
-/**
- * 通知メッセージをフォーマット（文字数制限を適用）
- */
 function formatMessage(message: unknown): string {
   const text = String(message ?? "");
   if (text.length > MAX_MESSAGE_LENGTH) {
@@ -38,14 +28,10 @@ function formatMessage(message: unknown): string {
   return text;
 }
 
-/**
- * システム通知を表示する
- */
 export async function showNotification(
   params: NotificationParams
 ): Promise<void> {
   try {
-    // バリデーションとフォーマットを適用
     const formattedTitle = formatTitle(params.title);
     const formattedMessage = formatMessage(params.message);
 
@@ -75,9 +61,6 @@ export async function showNotification(
   }
 }
 
-/**
- * エラー通知を表示する（汎用）
- */
 export async function showErrorNotification(params: {
   title: string;
   errorMessage: string;

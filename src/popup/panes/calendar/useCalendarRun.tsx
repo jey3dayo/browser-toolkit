@@ -79,7 +79,6 @@ export function useCalendarRun(params: {
           return;
         }
 
-        // NotificationOptions with action
         const options: NotificationOptions = messageOrOptions;
         if (type === "error") {
           notify.error({

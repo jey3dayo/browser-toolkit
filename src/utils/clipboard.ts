@@ -5,11 +5,6 @@ export type ClipboardError =
   | { type: "unavailable" }
   | { type: "copy-failed" };
 
-/**
- * クリップボードにテキストをコピー
- * @param text - コピーするテキスト
- * @returns Result<void, ClipboardError>
- */
 export async function copyToClipboard(
   text: string
 ): Promise<Result.Result<void, ClipboardError>> {

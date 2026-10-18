@@ -179,7 +179,6 @@ export async function testAiToken(
     "chatgptCredentials",
   ]);
 
-  // tokenOverrideがある場合は、ストレージの設定に上書き
   let effectiveStorage = storage;
   const provider = safeParseAiProvider(storage.aiProvider) ?? "openai";
   if (tokenOverride && isApiKeyProvider(provider)) {

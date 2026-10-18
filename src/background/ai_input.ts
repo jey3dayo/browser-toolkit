@@ -5,9 +5,6 @@ import type { SummaryTarget } from "@/background/types";
 
 const MAX_INPUT_CHARS = 20_000;
 
-/**
- * 入力テキストを最大文字数に制限
- */
 export function clipInputText(rawText: string): string {
   const trimmed = rawText.trim();
   if (!trimmed) {
@@ -19,9 +16,6 @@ export function clipInputText(rawText: string): string {
   return `${trimmed.slice(0, MAX_INPUT_CHARS)}\n\n(以下略)`;
 }
 
-/**
- * タイトルとURLのメタ情報を構築
- */
 function buildTitleUrlMeta(
   target: SummaryTarget,
   options?: { includeMissing?: boolean }
@@ -47,9 +41,6 @@ function buildTitleUrlMeta(
   return metaLines.length > 0 ? `\n\n---\n${metaLines.join("\n")}` : "";
 }
 
-/**
- * テンプレート変数を適用
- */
 export function applyTemplateVariables(
   template: string,
   variables: Record<string, string>
@@ -73,18 +64,12 @@ export function buildTemplateVariables(
   };
 }
 
-/**
- * AI入力の準備済みデータ
- */
 export type PreparedAiInput = {
   settings: AiSettings;
   clippedText: string;
   meta: string;
 };
 
-/**
- * AI呼び出しのための入力を準備
- */
 export async function prepareAiInput(params: {
   target: SummaryTarget;
   missingTextMessage: string;
@@ -119,9 +104,6 @@ export async function prepareAiInput(params: {
   return Result.succeed({ clippedText, meta, settings });
 }
 
-/**
- * システムメッセージを構築（カスタムプロンプトを含む）
- */
 export function buildSystemMessage(
   baseContent: string,
   customPrompt?: string,

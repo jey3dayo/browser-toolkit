@@ -6,9 +6,6 @@ import {
 import type { ToastMount } from "@/content/notification";
 import { t } from "@/i18n";
 
-/**
- * input/textarea要素にテキストを挿入
- */
 export function pasteToInputElement(
   element: HTMLInputElement | HTMLTextAreaElement,
   content: string
@@ -56,9 +53,6 @@ export function pasteToContentEditable(
   element.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
-/**
- * クリップボードにテキストをコピー（フォールバック）
- */
 export async function copyToClipboardFallback(
   content: string,
   toastMount: ToastMount,

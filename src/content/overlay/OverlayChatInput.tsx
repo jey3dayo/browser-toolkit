@@ -33,7 +33,6 @@ type OverlayChatInputProps = {
   onSend: (text: string) => void;
 };
 
-/** Chat input component for inline follow-up questions */
 export function OverlayChatInput(
   props: OverlayChatInputProps
 ): React.JSX.Element {

@@ -9,7 +9,6 @@ import type { LocalStorageData, SyncStorageData } from "@/storage/types";
 import { toErrorMessage } from "@/utils/errors";
 import { matchesAnyPattern } from "@/utils/url-pattern";
 
-// Re-export types from background/types for popup components
 export type { SummaryTarget } from "@/background/types";
 export type { SyncStorageData } from "@/storage/types";
 
@@ -164,7 +163,7 @@ function fallbackStorageSet(
         JSON.stringify(value)
       );
     } catch {
-      // no-op
+      // Best-effort fallback: quota/disabled storage can make this throw.
     }
   }
 }
@@ -180,14 +179,11 @@ function fallbackStorageRemove(
         `${FALLBACK_STORAGE_PREFIX}${scope}:${key}`
       );
     } catch {
-      // no-op
+      // Best-effort fallback: quota/disabled storage can make this throw.
     }
   }
 }
 
-/**
- * Check if Chrome API is available
- */
 function hasChromeApi<T extends keyof typeof chrome>(
   isExtensionPage: boolean,
   apiName: T
@@ -197,9 +193,6 @@ function hasChromeApi<T extends keyof typeof chrome>(
   );
 }
 
-/**
- * Wrap Chrome API call with Result pattern
- */
 async function wrapChromeApi<T>(
   operation: (
     resolve: (value: T) => void,

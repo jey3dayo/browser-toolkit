@@ -1,6 +1,3 @@
-/**
- * AI設定読み込みモジュール
- */
 import { Result } from "@praha/byethrow";
 import { getAiProviderToken } from "@/ai/provider-token";
 import { safeParseChatGptCredentials } from "@/schemas/chatgpt";
@@ -13,9 +10,6 @@ import {
 } from "@/schemas/provider";
 import type { LocalStorageData } from "@/storage/types";
 
-/**
- * AI設定
- */
 type AiSettingsCommon = {
   customPrompt: string;
   model: string;
@@ -29,15 +23,9 @@ export type AiSettings =
 export const CHATGPT_NOT_SIGNED_IN_MESSAGE =
   "ChatGPT にサインインしていません。設定画面からサインインしてください";
 
-/**
- * AI設定の読み込み
- *
- * プロバイダー別トークンキーを使用
- */
 export function loadAiSettings(
   storage: LocalStorageData
 ): Result.Result<AiSettings, string> {
-  // プロバイダー（新キー優先）
   const providerValue = storage.aiProvider ?? "openai";
   const provider = safeParseAiProvider(providerValue) ?? "openai";
 
@@ -54,15 +42,12 @@ export function loadAiSettings(
     return Result.fail(CHATGPT_NOT_SIGNED_IN_MESSAGE);
   }
 
-  // カスタムプロンプト（新キー優先、旧キーフォールバック）
   const customPrompt =
     storage.aiCustomPrompt ?? storage.openaiCustomPrompt ?? "";
 
-  // モデル（新キー優先、旧キーフォールバック、プロバイダー別に正規化）
   const modelValue = storage.aiModel ?? storage.openaiModel;
   const model = normalizeAiModel(provider, modelValue);
 
-  // ベースURL
   const { baseUrl } = PROVIDER_CONFIGS[provider];
 
   const common = { baseUrl, customPrompt, model };
@@ -74,8 +59,6 @@ export function loadAiSettings(
 }
 
 /**
- * 旧キーから新キーへのマイグレーション
- *
  * @deprecated This function is now integrated into the Migration System (src/storage/migrations.ts).
  * See migration v1 for the implementation.
  */

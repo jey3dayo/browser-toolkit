@@ -16,11 +16,6 @@ export type ToastMount = {
   notify: Notifier;
 };
 
-/**
- * Toast通知のマウントポイントを確保
- * @param currentTheme - 適用するテーマ
- * @returns ToastMount
- */
 export function ensureToastMount(currentTheme: Theme): ToastMount {
   const mount = ensureShadowMount({
     hostId: TOAST_HOST_ID,
@@ -46,11 +41,6 @@ export function ensureToastMount(currentTheme: Theme): ToastMount {
   };
 }
 
-/**
- * 通知を表示
- * @param notify - Notifierインスタンス
- * @param message - 表示するメッセージ
- */
 export function showNotification(notify: Notifier, message: string): void {
   const text = message.trim();
   if (!text) {

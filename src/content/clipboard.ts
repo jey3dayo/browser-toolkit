@@ -3,13 +3,6 @@ import { t } from "@/i18n";
 import type { Notifier } from "@/ui/toast";
 import { type ClipboardError, copyToClipboard } from "@/utils/clipboard";
 
-/**
- * クリップボードにコピーし、成功時に通知を表示
- * @param text - コピーするテキスト
- * @param notify - Notifierインスタンス
- * @param successMessage - 成功時のメッセージ
- * @returns Result<void, ClipboardError>
- */
 export async function copyToClipboardWithNotification(
   text: string,
   notify: Notifier,
@@ -22,11 +15,6 @@ export async function copyToClipboardWithNotification(
   return result;
 }
 
-/**
- * ClipboardErrorから人間が読めるメッセージに変換
- * @param error - ClipboardError
- * @returns エラーメッセージ
- */
 export function getClipboardErrorMessage(error: ClipboardError): string {
   switch (error.type) {
     case "empty-text":

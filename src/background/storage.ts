@@ -7,19 +7,13 @@ import type { LocalStorageData } from "@/storage/types";
  */
 export const QUOTA_BYTES_PER_ITEM = 8192; // 8KB
 export const QUOTA_BYTES = 102_400; // 100KB
-const QUOTA_WARNING_THRESHOLD = 0.8; // 80%
-const QUOTA_ERROR_THRESHOLD = 0.9; // 90%
+const QUOTA_WARNING_THRESHOLD = 0.8;
+const QUOTA_ERROR_THRESHOLD = 0.9;
 
-/**
- * ストレージクォータチェック結果
- */
 type QuotaCheckResult =
   | { ok: true }
   | { ok: false; sizeBytes: number; key: string };
 
-/**
- * ストレージ使用量の情報
- */
 type StorageUsageInfo = {
   bytesInUse: number;
   quotaBytes: number;
@@ -27,11 +21,6 @@ type StorageUsageInfo = {
   warningLevel: "safe" | "warning" | "danger";
 };
 
-/**
- * 保存前にクォータ制限をチェック
- * @param items - 保存するデータ
- * @returns チェック結果
- */
 export function checkStorageQuota(
   items: Record<string, unknown>
 ): QuotaCheckResult {
@@ -46,11 +35,6 @@ export function checkStorageQuota(
   return { ok: true };
 }
 
-/**
- * chrome.storage.sync の現在の使用量を取得
- * @param keys - 使用量を取得するキー（省略時は全体）
- * @returns 使用量情報
- */
 export function getStorageSyncBytesInUse(
   keys?: string | string[]
 ): Promise<StorageUsageInfo> {
@@ -97,9 +81,6 @@ function createStorageWrapper<TArgs extends unknown[], TResult>(
     });
 }
 
-/**
- * Storage reserved keys (internal use only)
- */
 export const STORAGE_RESERVED_KEYS = {
   BACKUP_PREFIX: "backup_",
   FALLBACK_KEYS_MARKER: "__storage_fallback_keys__",
@@ -110,9 +91,6 @@ export const STORAGE_RESERVED_KEYS = {
 type ReservedKey =
   (typeof STORAGE_RESERVED_KEYS)[keyof typeof STORAGE_RESERVED_KEYS];
 
-/**
- * Check if a key is a reserved storage key
- */
 export function isReservedStorageKey(key: string): key is ReservedKey {
   return (
     Object.values(STORAGE_RESERVED_KEYS).includes(key as ReservedKey) ||
@@ -272,15 +250,12 @@ export const storageSyncSet = createStorageWrapper<
   [Record<string, unknown>],
   void
 >((resolve, reject, items) => {
-  // 保存前にクォータチェック
   const quotaCheck = checkStorageQuota(items);
   if (!quotaCheck.ok) {
-    // クォータ超過時はローカルストレージにフォールバック
     console.warn(
       `Storage quota exceeded for key '${quotaCheck.key}' (${quotaCheck.sizeBytes} bytes). Falling back to local storage.`
     );
 
-    // ユーザーに通知
     chrome.notifications
       .create({
         iconUrl: chrome.runtime.getURL("images/icon48.png"),
@@ -304,7 +279,6 @@ export const storageSyncSet = createStorageWrapper<
   chrome.storage.sync.set(items, () => {
     const err = chrome.runtime.lastError;
     if (err) {
-      // QUOTA_BYTES エラーの場合もフォールバック
       if (err.message?.includes("QUOTA")) {
         console.warn(
           `Storage quota error: ${err.message}. Falling back to local storage.`

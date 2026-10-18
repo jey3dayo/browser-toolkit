@@ -20,7 +20,6 @@ export function isResultType<T, E>(
   errorSchema: BaseSchema<unknown, E, BaseIssue<unknown>>
 ): value is Result.Result<T, E> {
   try {
-    // First check basic structure - must be an object with type field
     if (typeof value !== "object" || value === null) {
       return false;
     }
@@ -30,9 +29,7 @@ export function isResultType<T, E>(
       return false;
     }
 
-    // Use Result type guards for structural check
     if (Result.isSuccess(value as Result.Result<unknown, unknown>)) {
-      // Must have value field
       if (!("value" in record)) {
         return false;
       }
@@ -41,7 +38,6 @@ export function isResultType<T, E>(
     }
 
     if (Result.isFailure(value as Result.Result<unknown, unknown>)) {
-      // Must have error field
       if (!("error" in record)) {
         return false;
       }
