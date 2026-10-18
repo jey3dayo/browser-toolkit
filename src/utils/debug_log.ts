@@ -25,14 +25,14 @@ function redactSensitiveData(
 ): unknown {
   if (Array.isArray(value)) {
     if (seen.has(value)) {
-      return value;
+      return [];
     }
     seen.add(value);
     return value.map((v) => redactSensitiveData(v, seen));
   }
   if (value && typeof value === "object") {
     if (seen.has(value)) {
-      return value;
+      return "[REDACTED]";
     }
     seen.add(value);
     return Object.fromEntries(

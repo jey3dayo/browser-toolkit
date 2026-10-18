@@ -53,7 +53,7 @@ describe("utils/debug_log", () => {
 
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      "[ERROR] [context] action failed [unserializable data]"
+      '[ERROR] [context] action failed {"self":"[REDACTED]"}'
     );
   });
 
@@ -107,6 +107,27 @@ describe("utils/debug_log", () => {
     const consoleOutput = consoleErrorSpy.mock.calls[0]?.[0] as string;
     expect(consoleOutput).not.toContain(token);
     expect(consoleOutput).toContain("[REDACTED");
+  });
+
+  it("同一オブジェクト参照の再登場でも token が平文で出ない", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {
+        // no-op
+      });
+    const credentials = { chatgptToken: "TEST-FAKE-TOKEN" };
+
+    await debugLog(
+      "context",
+      "action failed",
+      { a: credentials, b: credentials },
+      "error"
+    );
+
+    const consoleOutput = consoleErrorSpy.mock.calls[0]?.[0] as string;
+    expect(consoleOutput).not.toContain("TEST-FAKE-TOKEN");
+    expect(consoleOutput).toContain("[REDACTED len=15]");
+    expect(consoleOutput).toContain('"b":"[REDACTED]"');
   });
 
   it("機微でないフィールドはそのまま残る", async () => {

@@ -6,7 +6,7 @@ import { shouldHideRow } from "@/utils/row_filter";
 const ROW_HIDDEN_BY_EXTENSION_DATASET_KEY = "mbuHiddenByExtension";
 
 function updateHeaderSortState(
-  headers: NodeListOf<HTMLTableCellElement>,
+  headers: readonly HTMLTableCellElement[],
   activeHeader: HTMLTableCellElement,
   isAscending: boolean
 ): void {
@@ -33,11 +33,14 @@ export function enableSingleTable(
   }
 
   table.dataset.sortable = "true";
-  const headers = table.querySelectorAll<HTMLTableCellElement>("th");
+  // th closest table === table で、ネストした table の th を外側テーブルの
+  // ヘッダー列挙から除外する（外側由来の誤ソート/listener 二重付与の防止）
+  const headers = Array.from(
+    table.querySelectorAll<HTMLTableCellElement>("th")
+  ).filter((header) => header.closest("table") === table);
 
-  let headerIndex = 0;
   for (const header of headers) {
-    const columnIndex = headerIndex;
+    const columnIndex = header.cellIndex;
     Object.assign(header.style, {
       cursor: "pointer",
       userSelect: "none",
@@ -59,7 +62,6 @@ export function enableSingleTable(
       event.preventDefault();
       sortByHeader();
     });
-    headerIndex += 1;
   }
 }
 

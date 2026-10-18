@@ -1,5 +1,5 @@
 import { Result } from "@praha/byethrow";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { t } from "@/i18n";
 import type { PopupRuntime } from "@/popup/runtime";
 import { persistWithRollback } from "@/popup/utils/persist";
@@ -37,6 +37,12 @@ export function useTemplatesState(params: {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [titleInput, setTitleInput] = useState("");
   const [contentInput, setContentInput] = useState("");
+  const editingIdRef = useRef<string | null>(null);
+
+  const updateEditingId = (value: string | null): void => {
+    editingIdRef.current = value;
+    setEditingId(value);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -52,9 +58,10 @@ export function useTemplatesState(params: {
         return;
       }
 
-      const existing = data.value.textTemplates || [];
-      const templatesResult =
-        existing.length > 0 ? existing : DEFAULT_TEXT_TEMPLATES;
+      const existing = data.value.textTemplates;
+      const templatesResult = Array.isArray(existing)
+        ? existing
+        : DEFAULT_TEXT_TEMPLATES;
       setTemplates(templatesResult);
     };
 
@@ -73,10 +80,40 @@ export function useTemplatesState(params: {
 
     loadTemplates().catch(reportLoadFailure);
 
+    const onChanged =
+      typeof chrome === "undefined" ? undefined : chrome.storage?.onChanged;
+    const handleStorageChange = (
+      changes: Record<string, chrome.storage.StorageChange>,
+      areaName: string
+    ): void => {
+      if (areaName !== "sync" || !("textTemplates" in changes)) {
+        return;
+      }
+      const next = changes.textTemplates?.newValue;
+      if (editingIdRef.current !== null || !Array.isArray(next)) {
+        return;
+      }
+      setTemplates(next);
+    };
+    onChanged?.addListener(handleStorageChange);
+
     return () => {
       cancelled = true;
+      onChanged?.removeListener(handleStorageChange);
     };
   }, [runtime]);
+
+  // 保存前に storage を再読込し、直近の配列（自分の保存結果または別タブの更新）に
+  // local mutation を再適用する。複数編集画面・連打保存での lost update を止めるため。
+  // 読み込み失敗時は直前のローカル state にフォールバックする。
+  const readLatestTemplates = async (): Promise<TextTemplate[] | null> => {
+    const data = await runtime.storageSyncGet(["textTemplates"]);
+    if (Result.isFailure(data)) {
+      return null;
+    }
+    const existing = data.value.textTemplates;
+    return Array.isArray(existing) ? existing : DEFAULT_TEXT_TEMPLATES;
+  };
 
   const saveTemplates = async (
     nextTemplates: TextTemplate[]
@@ -89,7 +126,9 @@ export function useTemplatesState(params: {
     templateId: string,
     hidden: boolean
   ): Promise<void> => {
-    const next = templates.map((template) =>
+    const latest = await readLatestTemplates();
+    const base = latest ?? templates;
+    const next = base.map((template) =>
       template.id === templateId ? { ...template, hidden } : template
     );
     await persistWithRollback({
@@ -107,19 +146,19 @@ export function useTemplatesState(params: {
   };
 
   const startEdit = (template: TextTemplate): void => {
-    setEditingId(template.id);
+    updateEditingId(template.id);
     setTitleInput(template.title);
     setContentInput(template.content);
   };
 
   const startNew = (): void => {
-    setEditingId("new");
+    updateEditingId("new");
     setTitleInput("");
     setContentInput("");
   };
 
   const cancelEdit = (): void => {
-    setEditingId(null);
+    updateEditingId(null);
     setTitleInput("");
     setContentInput("");
   };
@@ -144,10 +183,13 @@ export function useTemplatesState(params: {
     return { content, title };
   };
 
-  const buildNextTemplates = (params2: {
-    title: string;
-    content: string;
-  }): Result.Result<
+  const buildNextTemplates = (
+    params2: {
+      title: string;
+      content: string;
+    },
+    base: TextTemplate[]
+  ): Result.Result<
     { next: TextTemplate[]; successMessage: string },
     string
   > => {
@@ -157,7 +199,7 @@ export function useTemplatesState(params: {
 
     if (editingId === "new") {
       const id = generateTemplateId(params2.title);
-      if (templates.some((template) => template.id === id)) {
+      if (base.some((template) => template.id === id)) {
         return Result.fail(t("templatesPane.errors.duplicateTitle"));
       }
       const newTemplate: TextTemplate = {
@@ -167,13 +209,13 @@ export function useTemplatesState(params: {
         title: params2.title,
       };
       return Result.succeed({
-        next: [...templates, newTemplate],
+        next: [...base, newTemplate],
         successMessage: t("templatesPane.success.added"),
       });
     }
 
     return Result.succeed({
-      next: templates.map((template) =>
+      next: base.map((template) =>
         template.id === editingId
           ? { ...template, content: params2.content, title: params2.title }
           : template
@@ -210,7 +252,9 @@ export function useTemplatesState(params: {
       return;
     }
 
-    const nextResult = buildNextTemplates(input);
+    const latest = await readLatestTemplates();
+    const base = latest ?? templates;
+    const nextResult = buildNextTemplates(input, base);
     if (Result.isFailure(nextResult)) {
       notify.error(nextResult.error);
       return;
@@ -223,7 +267,9 @@ export function useTemplatesState(params: {
   };
 
   const removeTemplate = async (templateId: string): Promise<void> => {
-    const next = templates.filter((template) => template.id !== templateId);
+    const latest = await readLatestTemplates();
+    const base = latest ?? templates;
+    const next = base.filter((template) => template.id !== templateId);
     await persistWithRollback({
       applyNext: () => {
         setTemplates(next);
