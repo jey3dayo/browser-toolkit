@@ -1,5 +1,5 @@
 import { Result } from "@praha/byethrow";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { t } from "@/i18n";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { persistWithRollback } from "@/popup/utils/persist";
@@ -60,6 +60,12 @@ export function useSearchGroupsState(
   const [newGroupNameError, setNewGroupNameError] = useState<string | null>(
     null
   );
+  const editingNameGroupIdRef = useRef<string | null>(null);
+
+  const updateEditingNameGroupId = (value: string | null): void => {
+    editingNameGroupIdRef.current = value;
+    setEditingNameGroupId(value);
+  };
 
   const setNewGroupNameInput = (value: string): void => {
     setNewGroupNameInputValue(value);
@@ -115,10 +121,49 @@ export function useSearchGroupsState(
 
     loadGroups().catch(reportLoadFailure);
 
+    const onChanged =
+      typeof chrome === "undefined" ? undefined : chrome.storage?.onChanged;
+    const handleStorageChange = (
+      changes: Record<string, chrome.storage.StorageChange>,
+      areaName: string
+    ): void => {
+      if (areaName !== "sync" || !("searchEngineGroups" in changes)) {
+        return;
+      }
+      const raw = changes.searchEngineGroups?.newValue;
+      if (!Array.isArray(raw) || editingNameGroupIdRef.current !== null) {
+        return;
+      }
+      const existingGroups = normalizeSearchEngineGroups(raw);
+      setGroups(
+        existingGroups.length > 0
+          ? existingGroups
+          : DEFAULT_SEARCH_ENGINE_GROUPS
+      );
+    };
+    onChanged?.addListener(handleStorageChange);
+
     return () => {
       cancelled = true;
+      onChanged?.removeListener(handleStorageChange);
     };
   }, [props.runtime]);
+
+  // 保存前に storage を再読込し、直近の配列（自分の保存結果または別タブの更新）に
+  // local mutation を再適用する。複数編集画面・連打保存での lost update を止めるため。
+  // 読み込み失敗時は直前のローカル state にフォールバックする。
+  const readLatestGroups = async (): Promise<SearchEngineGroup[] | null> => {
+    const data = await props.runtime.storageSyncGet(["searchEngineGroups"]);
+    if (Result.isFailure(data)) {
+      return null;
+    }
+    const existingGroups = normalizeSearchEngineGroups(
+      data.value.searchEngineGroups
+    );
+    return existingGroups.length > 0
+      ? existingGroups
+      : DEFAULT_SEARCH_ENGINE_GROUPS;
+  };
 
   const enginesById = useMemo(
     () => new Map(engines.map((engine) => [engine.id, engine])),
@@ -138,7 +183,9 @@ export function useSearchGroupsState(
     groupId: string,
     checked: boolean
   ): Promise<void> => {
-    const next = groups.map((group) =>
+    const latest = await readLatestGroups();
+    const base = latest ?? groups;
+    const next = base.map((group) =>
       group.id === groupId ? { ...group, enabled: checked } : group
     );
     await persistWithRollback({
@@ -160,12 +207,12 @@ export function useSearchGroupsState(
   };
 
   const startEditingGroupName = (group: SearchEngineGroup): void => {
-    setEditingNameGroupId(group.id);
+    updateEditingNameGroupId(group.id);
     setEditingNameValue(group.name);
   };
 
   const cancelEditingGroupName = (): void => {
-    setEditingNameGroupId(null);
+    updateEditingNameGroupId(null);
     setEditingNameValue("");
   };
 
@@ -179,12 +226,14 @@ export function useSearchGroupsState(
       return;
     }
 
-    if (groups.some((g) => g.name === name && g.id !== groupId)) {
+    const latest = await readLatestGroups();
+    const base = latest ?? groups;
+    if (base.some((g) => g.name === name && g.id !== groupId)) {
       props.notify.info(t("searchGroups.info.duplicate"));
       return;
     }
 
-    const next = groups.map((g) => (g.id === groupId ? { ...g, name } : g));
+    const next = base.map((g) => (g.id === groupId ? { ...g, name } : g));
     await persistWithRollback({
       applyNext: () => {
         setGroups(next);
@@ -205,7 +254,9 @@ export function useSearchGroupsState(
     engineId: string,
     isIncluded: boolean
   ): Promise<void> => {
-    const group = groups.find((g) => g.id === groupId);
+    const latest = await readLatestGroups();
+    const base = latest ?? groups;
+    const group = base.find((g) => g.id === groupId);
     if (!group) {
       return;
     }
@@ -225,7 +276,7 @@ export function useSearchGroupsState(
       nextEngineIds = group.engineIds.filter((id) => id !== engineId);
     }
 
-    const next = groups.map((g) =>
+    const next = base.map((g) =>
       g.id === groupId ? { ...g, engineIds: nextEngineIds } : g
     );
     await persistWithRollback({
@@ -254,12 +305,14 @@ export function useSearchGroupsState(
       return;
     }
 
-    if (groups.some((g) => g.name === name)) {
+    const latest = await readLatestGroups();
+    const base = latest ?? groups;
+    if (base.some((g) => g.name === name)) {
       setNewGroupNameError(t("searchGroups.info.duplicate"));
       return;
     }
 
-    if (groups.length >= MAX_SEARCH_ENGINE_GROUPS) {
+    if (base.length >= MAX_SEARCH_ENGINE_GROUPS) {
       props.notify.error(
         t("searchGroups.errors.max", { count: MAX_SEARCH_ENGINE_GROUPS })
       );
@@ -274,7 +327,7 @@ export function useSearchGroupsState(
       name,
     };
 
-    const next = [...groups, newGroup];
+    const next = [...base, newGroup];
     await persistWithRollback({
       applyNext: () => {
         setGroups(next);
@@ -295,7 +348,9 @@ export function useSearchGroupsState(
   };
 
   const removeGroup = async (groupId: string): Promise<void> => {
-    const next = groups.filter((group) => group.id !== groupId);
+    const latest = await readLatestGroups();
+    const base = latest ?? groups;
+    const next = base.filter((group) => group.id !== groupId);
     await persistWithRollback({
       applyNext: () => {
         setGroups(next);

@@ -1,7 +1,9 @@
 import { Result } from "@praha/byethrow";
+import { safeParse } from "valibot";
 import { SELECTED_TEXT_CACHE_TIMEOUT_MS } from "@/constants/timeouts";
 import type { SummaryTarget } from "@/content-script-messages";
 import { t } from "@/i18n";
+import { SelectedTextCacheSchema } from "@/schemas/selected_text";
 import { storageLocalGet } from "@/storage/helpers";
 
 /**
@@ -53,20 +55,29 @@ function getLiveSelectionTarget(): SummaryTarget | null {
  * キャッシュされた選択範囲からターゲットを取得
  */
 async function getCachedSelectionTarget(): Promise<SummaryTarget | null> {
-  const result = await storageLocalGet<{
-    selectedText?: string;
-    selectedTextUpdatedAt?: number;
-  }>(["selectedText", "selectedTextUpdatedAt"]);
+  const result = await storageLocalGet<unknown>([
+    "selectedText",
+    "selectedTextOrigin",
+    "selectedTextUpdatedAt",
+  ]);
 
   if (Result.isFailure(result)) {
     return null;
   }
 
-  const stored = result.value;
+  const parsed = safeParse(SelectedTextCacheSchema, result.value);
+  if (!parsed.success) {
+    return null;
+  }
+
+  const stored = parsed.output;
   const selection = stored.selectedText?.trim() ?? "";
   const updatedAt = stored.selectedTextUpdatedAt ?? 0;
+  const origin = stored.selectedTextOrigin;
+  // キャッシュは書き込んだページの origin 固定。別 origin のタブでは
+  // 無関係ページのテキストが title/url 付きで AI に送られるのを防ぐ
   const isFresh = Date.now() - updatedAt <= SELECTED_TEXT_CACHE_TIMEOUT_MS;
-  if (!(isFresh && selection)) {
+  if (!(isFresh && selection && origin && origin === window.location.origin)) {
     return null;
   }
   return buildSelectionTarget(selection);

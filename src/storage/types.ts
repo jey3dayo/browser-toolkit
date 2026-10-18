@@ -50,6 +50,11 @@ export type LocalStorageData = {
   debugMode?: boolean;
   actionHistory?: ActionHistoryEntry[];
   searchBlocklistRules?: SearchBlocklistRule[];
+  // 選択範囲キャッシュ。selectedTextOrigin は書き込んだページの origin で、
+  // 消費側（content/summary-target.ts）は同一 origin のときだけ fallback に使う
+  selectedText?: string;
+  selectedTextOrigin?: string;
+  selectedTextUpdatedAt?: number;
 };
 
 export type SyncStorageData = {

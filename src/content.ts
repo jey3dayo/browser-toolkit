@@ -6,6 +6,7 @@ import {
 import type { ToastMount } from "@/content/notification";
 import type { OverlayMount } from "@/content/overlay-helpers";
 import { buildDiagnosticsResponse } from "@/content/search-blocklist-ui/diagnostics";
+import { setupSelectionCache } from "@/content/selection-cache";
 import { setupTableAutoExec } from "@/content/table-auto-exec";
 import { createThemeManager } from "@/content/theme-manager";
 import type { GlobalContentState } from "@/content/types";
@@ -14,7 +15,6 @@ import type {
   SearchBlocklistDiagnosticsResponse,
   SummaryOverlayRequest,
 } from "@/content-script-messages";
-import { storageLocalSet } from "@/storage/helpers";
 import { ignoreRejection } from "@/utils/ignore_rejection";
 import { parseNumericValue } from "@/utils/number_parser";
 import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
@@ -176,18 +176,7 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
     );
   }
 
-  document.addEventListener("mouseup", () => {
-    const selectedText = window.getSelection()?.toString().trim() ?? "";
-    if (selectedText) {
-      ignoreRejection(
-        storageLocalSet({
-          selectedText,
-          selectedTextUpdatedAt: Date.now(),
-        }),
-        "content: store selected text"
-      );
-    }
-  });
+  setupSelectionCache();
 
   // ========================================
   // 6. Overlay (React + Shadow DOM)（モジュール化済み）
