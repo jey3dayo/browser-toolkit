@@ -30,9 +30,6 @@ export type MessageHandlerDeps = {
   getSearchBlocklistDiagnostics: () => SearchBlocklistDiagnosticsResponse;
 };
 
-/**
- * enableTableSortアクションのハンドラー
- */
 function handleEnableTableSort(
   deps: MessageHandlerDeps,
   sendResponse: (response: { success: boolean }) => void
@@ -41,9 +38,6 @@ function handleEnableTableSort(
   sendResponse({ success: true });
 }
 
-/**
- * showNotificationアクションのハンドラー
- */
 function handleShowNotification(
   deps: MessageHandlerDeps,
   message: string,
@@ -53,9 +47,6 @@ function handleShowNotification(
   sendResponse({ ok: true });
 }
 
-/**
- * copyToClipboardアクションのハンドラー
- */
 function handleCopyToClipboard(
   deps: MessageHandlerDeps,
   text: string,
@@ -96,9 +87,6 @@ function handleCopyToClipboard(
   return true;
 }
 
-/**
- * pasteTemplateアクションのハンドラー
- */
 function handlePasteTemplate(
   deps: MessageHandlerDeps,
   content: string,
@@ -125,7 +113,6 @@ function handlePasteTemplate(
   (async () => {
     const { activeElement } = document;
 
-    // input/textarea要素への挿入
     if (
       activeElement &&
       (activeElement instanceof HTMLInputElement ||
@@ -136,7 +123,6 @@ function handlePasteTemplate(
       return;
     }
 
-    // contenteditable要素への挿入
     if (
       activeElement &&
       activeElement instanceof HTMLElement &&
@@ -147,13 +133,11 @@ function handlePasteTemplate(
         sendResponse({ ok: true });
         return;
       } catch {
-        // Selection API失敗時はクリップボードにフォールバック
         await copyFallback();
         return;
       }
     }
 
-    // フォーカスがない場合はクリップボードにコピー
     await copyFallback();
   })().catch(() => {
     sendResponse({
@@ -164,9 +148,6 @@ function handlePasteTemplate(
   return true;
 }
 
-/**
- * getSummaryTargetTextアクションのハンドラー
- */
 function handleGetSummaryTargetText(
   ignoreSelection: boolean | undefined,
   sendResponse: (response: SummaryTarget) => void
@@ -189,9 +170,6 @@ function handleGetSummaryTargetText(
   return true;
 }
 
-/**
- * showSummaryOverlayアクションのハンドラー
- */
 function handleShowSummaryOverlay(
   deps: MessageHandlerDeps,
   request: SummaryOverlayRequest,
@@ -201,9 +179,6 @@ function handleShowSummaryOverlay(
   sendResponse({ ok: true });
 }
 
-/**
- * showActionOverlayアクションのハンドラー
- */
 function handleShowActionOverlay(
   deps: MessageHandlerDeps,
   request: ActionOverlayRequest,
@@ -213,9 +188,6 @@ function handleShowActionOverlay(
   sendResponse({ ok: true });
 }
 
-/**
- * getSearchBlocklistDiagnosticsアクションのハンドラー
- */
 function handleGetSearchBlocklistDiagnostics(
   deps: MessageHandlerDeps,
   sendResponse: (response: SearchBlocklistDiagnosticsResponse) => void
@@ -223,9 +195,6 @@ function handleGetSearchBlocklistDiagnostics(
   sendResponse(deps.getSearchBlocklistDiagnostics());
 }
 
-/**
- * メッセージリスナーのメインディスパッチャー
- */
 export function createMessageListener(deps: MessageHandlerDeps) {
   return (
     request: ContentRequest,

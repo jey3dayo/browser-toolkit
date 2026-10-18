@@ -25,22 +25,18 @@ export function shouldHideRow(
 ): boolean {
   const trimmed = cellText.trim();
 
-  // 空文字列チェック
   if (!trimmed) {
     return true;
   }
 
-  // ハイフンチェック（"-" または "−"）
   if (HYPHEN_REGEX.test(trimmed)) {
     return true;
   }
 
-  // N/A、null、undefined等のチェック
   if (EMPTY_NA_REGEX.test(trimmed)) {
     return true;
   }
 
-  // ゼロ値チェック（数値として0）
   const numericValue = parseNumericValue(trimmed);
   if (numericValue === 0) {
     return true;

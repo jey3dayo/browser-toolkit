@@ -105,7 +105,6 @@ export function useSettingsState(params: PopupPaneBaseProps): UseSettingsState {
       const resolvedProvider = safeParseAiProvider(providerValue) ?? "openai";
       setProvider(resolvedProvider);
 
-      // プロバイダー別トークン
       const tokenValue = isApiKeyProvider(resolvedProvider)
         ? raw[getAiProviderTokenKey(resolvedProvider)]
         : undefined;
@@ -119,7 +118,6 @@ export function useSettingsState(params: PopupPaneBaseProps): UseSettingsState {
       const resolvedModel = normalizeAiModel(resolvedProvider, modelValue);
       setModel(resolvedModel);
 
-      // テーマ
       const resolvedTheme: Theme = isTheme(raw.theme) ? raw.theme : "auto";
       setTheme(resolvedTheme);
       applyTheme(resolvedTheme, document);

@@ -1,12 +1,5 @@
-/**
- * デバッグログユーティリティ
- * - コンソールに出力
- * - chrome.storage.local に蓄積
- * - ファイルとしてダウンロード可能
- */
-
 const DEBUG_LOG_KEY = "debugLogs";
-const MAX_LOG_ENTRIES = 1000; // 最大ログ数
+const MAX_LOG_ENTRIES = 1000;
 
 export type DebugLogEntry = {
   timestamp: string;
@@ -68,9 +61,6 @@ function formatConsoleMessage(entry: DebugLogEntry): string {
   return `${baseMessage} ${safeStringify(entry.data)}`;
 }
 
-/**
- * デバッグログを出力（コンソール + ストレージ）
- */
 export async function debugLog(
   context: string,
   message: string,
@@ -153,24 +143,18 @@ export async function debugLog(
   }
 }
 
-/**
- * すべてのデバッグログを取得（storage 失敗時は reject）
- */
+/** storage 失敗時は reject */
 export async function getDebugLogs(): Promise<DebugLogEntry[]> {
   const stored = await chrome.storage.local.get([DEBUG_LOG_KEY]);
   return Array.isArray(stored[DEBUG_LOG_KEY]) ? stored[DEBUG_LOG_KEY] : [];
 }
 
-/**
- * デバッグログをクリア（storage 失敗時は reject）
- */
+/** storage 失敗時は reject */
 export async function clearDebugLogs(): Promise<void> {
   await chrome.storage.local.remove([DEBUG_LOG_KEY]);
 }
 
-/**
- * デバッグログの統計情報を取得（storage 失敗時は reject）
- */
+/** storage 失敗時は reject */
 export async function getDebugLogStats(): Promise<{
   entryCount: number;
   sizeBytes: number;
@@ -188,9 +172,6 @@ export async function getDebugLogStats(): Promise<{
   };
 }
 
-/**
- * デバッグログをファイルとしてダウンロード
- */
 export async function downloadDebugLogs(): Promise<void> {
   const logs = await getDebugLogs();
   const content = logs

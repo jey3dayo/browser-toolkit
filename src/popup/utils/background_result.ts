@@ -14,11 +14,6 @@ type ErrorHandler = (message: string) => void;
  */
 type TimeoutConfig = number | null | undefined;
 
-/**
- * タイムアウト設定を実際のミリ秒数またはnullに解決する
- * @param timeoutMs - タイムアウト設定
- * @returns 実際のタイムアウト値（ミリ秒）またはnull（タイムアウト無効）
- */
 function resolveTimeout(timeoutMs: TimeoutConfig): number | null {
   if (timeoutMs === null) {
     return null;

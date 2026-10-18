@@ -1,6 +1,3 @@
-/**
- * AIプロバイダー設定スキーマ
- */
 import { check, pipe, safeParse, string } from "valibot";
 import {
   ANTHROPIC_MODEL_LIST,
@@ -58,9 +55,6 @@ export const PROVIDER_CONFIGS: Record<
   },
 };
 
-/**
- * AIプロバイダースキーマ
- */
 const aiProviderSchema = pipe(
   string(),
   check(
@@ -69,17 +63,11 @@ const aiProviderSchema = pipe(
   )
 );
 
-/**
- * AIプロバイダーの安全なパース
- */
 export function safeParseAiProvider(value: unknown): AiProvider | null {
   const result = safeParse(aiProviderSchema, value);
   return result.success ? (result.output as AiProvider) : null;
 }
 
-/**
- * プロバイダーに応じたモデルの正規化
- */
 export function normalizeAiModel(
   provider: AiProvider,
   value: string | undefined

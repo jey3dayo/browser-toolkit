@@ -4,11 +4,6 @@ export type StorageError =
   | { type: "unavailable" }
   | { type: "runtime-error"; message: string };
 
-/**
- * chrome.storage.syncから値を取得
- * @param keys - 取得するキーの配列
- * @returns Result型でラップされた取得結果
- */
 export function storageSyncGet<T = unknown>(
   keys: string[]
 ): Promise<Result.Result<T, StorageError>> {
@@ -34,11 +29,6 @@ export function storageSyncGet<T = unknown>(
   });
 }
 
-/**
- * chrome.storage.localから値を取得
- * @param keys - 取得するキーの配列
- * @returns Result型でラップされた取得結果
- */
 export function storageLocalGet<T = unknown>(
   keys: string[]
 ): Promise<Result.Result<T, StorageError>> {
@@ -64,11 +54,6 @@ export function storageLocalGet<T = unknown>(
   });
 }
 
-/**
- * chrome.storage.localに値を保存
- * @param items - 保存する値のオブジェクト
- * @returns Result型でラップされた保存結果
- */
 export function storageLocalSet(
   items: Record<string, unknown>
 ): Promise<Result.Result<void, StorageError>> {

@@ -3,9 +3,6 @@ import type { createNotifications } from "@/ui/toast-manager";
 
 type OverlayNotify = ReturnType<typeof createNotifications>["notify"];
 
-/**
- * Copy text to clipboard with notification
- */
 export async function copyTextToClipboard(
   notify: OverlayNotify,
   text: string
@@ -26,9 +23,6 @@ export async function copyTextToClipboard(
   }
 }
 
-/**
- * Open URL in new tab
- */
 export function openUrlInNewTab(url: string): void {
   const trimmed = url.trim();
   if (!trimmed) {
@@ -37,9 +31,6 @@ export function openUrlInNewTab(url: string): void {
   window.open(trimmed, "_blank", "noopener,noreferrer");
 }
 
-/**
- * Download ICS file with notification
- */
 export function downloadIcsFile(notify: OverlayNotify, ics: string): void {
   const trimmed = ics.trim();
   if (!trimmed) {

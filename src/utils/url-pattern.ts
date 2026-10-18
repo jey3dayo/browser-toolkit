@@ -1,11 +1,6 @@
 const QUERY_OR_HASH_REGEX = /[?#]/;
 const HTTP_PROTOCOL_REGEX = /^https?:\/\//;
 
-/**
- * ワイルドカード文字列パターンを正規表現に変換
- * @param pattern - ワイルドカード文字列パターン（* がワイルドカード）
- * @returns 正規表現オブジェクト
- */
 export function patternToRegex(pattern: string): RegExp {
   const escaped = pattern
     .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
@@ -27,12 +22,6 @@ export function patternToRegex(pattern: string): RegExp {
   );
 }
 
-/**
- * 現在のURLが指定されたパターンのいずれかにマッチするかチェック
- * @param patterns - URLパターン配列
- * @param url - チェック対象のURL（指定しない場合は現在のページのURL）
- * @returns マッチした場合true
- */
 export function matchesAnyPattern(
   patterns: string[],
   url: string = window.location.href

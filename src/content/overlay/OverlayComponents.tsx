@@ -15,9 +15,6 @@ import type { OverlayViewModel } from "./OverlayApp";
 import { OverlayProgressStatus } from "./OverlayProgressStatus";
 import { overlayClassNames } from "./overlayClassNames";
 
-/**
- * Copy button component
- */
 type OverlayCopyButtonProps = {
   disabled: boolean;
   onCopy: () => void;
@@ -39,9 +36,6 @@ function OverlayCopyButton(props: OverlayCopyButtonProps): React.JSX.Element {
   );
 }
 
-/**
- * Popover component for tooltips
- */
 type OverlayPopoverProps = {
   id: string;
   title: string;
@@ -65,9 +59,6 @@ function OverlayPopover(props: OverlayPopoverProps): React.JSX.Element {
   );
 }
 
-/**
- * Event mode action buttons (Calendar, ICS, Copy)
- */
 type OverlayEventModeActionsProps = {
   canOpenCalendar: boolean;
   canDownloadIcs: boolean;
@@ -113,9 +104,6 @@ function OverlayEventModeActions(
   );
 }
 
-/**
- * Event details table component
- */
 type OverlayEventDetailsProps = {
   event: ExtractedEvent;
   selectionText: string;
@@ -163,9 +151,6 @@ function OverlayEventDetails(
   );
 }
 
-/**
- * Text mode details component
- */
 type OverlayTextDetailsProps = {
   mode: OverlayViewModel["mode"];
   requestId: OverlayViewModel["requestId"];
@@ -269,9 +254,6 @@ function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {
   );
 }
 
-/**
- * Overlay body component (combines text and event modes)
- */
 type OverlayBodyProps = OverlayTextDetailsProps & {
   readyEvent: ExtractedEvent | null;
   canOpenCalendar: boolean;
@@ -318,9 +300,6 @@ export function OverlayBody(props: OverlayBodyProps): React.JSX.Element {
   );
 }
 
-/**
- * Overlay header actions component (pin, theme, markdown, close buttons)
- */
 type OverlayHeaderActionsProps = {
   pinPopoverId: string;
   themePopoverId: string;

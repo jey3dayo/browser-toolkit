@@ -84,7 +84,6 @@ export function useSearchGroupsState(
         return;
       }
 
-      // ストレージ読み込み失敗時もデフォルト値を表示
       if (Result.isFailure(data)) {
         setGroups(DEFAULT_SEARCH_ENGINE_GROUPS);
         setEngines(DEFAULT_SEARCH_ENGINES);
@@ -261,7 +260,6 @@ export function useSearchGroupsState(
       return;
     }
 
-    // OFFにしようとした時、最後の1つなら防ぐ
     if (!isIncluded && group.engineIds.length <= 1) {
       props.notify.error(t("searchGroups.errors.minEngine"));
       return;
@@ -319,7 +317,6 @@ export function useSearchGroupsState(
       return;
     }
 
-    // デフォルトで最初のエンジンのみON
     const newGroup: SearchEngineGroup = {
       enabled: true,
       engineIds: [engines[0].id],

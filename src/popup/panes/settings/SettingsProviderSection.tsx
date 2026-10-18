@@ -39,11 +39,9 @@ export function SettingsProviderSection({
         return;
       }
       setProvider(newProvider);
-      // プロバイダー変更時にモデルをデフォルトにリセット
       const { defaultModel } = PROVIDER_CONFIGS[newProvider];
       setModel(defaultModel);
 
-      // プロバイダー別トークンをロード（完了を待つ）
       if (isApiKeyProvider(newProvider)) {
         const tokenKey = getAiProviderTokenKey(newProvider);
         try {
@@ -60,7 +58,6 @@ export function SettingsProviderSection({
         setToken("");
       }
 
-      // トークンロード完了後に保存
       try {
         await saveProvider(newProvider);
         await saveModel(defaultModel, newProvider);

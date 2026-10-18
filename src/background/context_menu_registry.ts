@@ -1,8 +1,3 @@
-/**
- * Context menu registry orchestrator.
- * Coordinates menu creation, refresh, and click event handling.
- */
-
 import { APP_NAME } from "@/app_meta";
 import {
   buildContextMenuSelectionContext,
@@ -151,10 +146,6 @@ function handleExactMenuItemClick(
   return false;
 }
 
-/**
- * Registers click handlers for all context menu items.
- * Routes clicks to appropriate handlers based on menu item ID.
- */
 export function registerContextMenuHandlers(): void {
   chrome.contextMenus.onClicked.addListener(
     (info: chrome.contextMenus.OnClickData, tab?: chrome.tabs.Tab) => {
@@ -241,10 +232,6 @@ export function registerContextMenuHandlers(): void {
   );
 }
 
-/**
- * Refreshes all context menus by rebuilding them from current settings.
- * Uses builder utilities to reduce code duplication.
- */
 export async function refreshContextMenus(): Promise<boolean> {
   try {
     await removeAllMenus();
@@ -261,7 +248,6 @@ export async function refreshContextMenus(): Promise<boolean> {
       ensureContextActionsInitialized(),
     ]);
 
-    // Search engines section
     const enabledEngines = searchEngines.filter((engine) => engine.enabled);
 
     debugLogSilently("refreshContextMenus", "searchEngines loaded", {
@@ -292,7 +278,6 @@ export async function refreshContextMenus(): Promise<boolean> {
         });
       });
 
-      // Batch search groups section
       const groups = await ensureSearchEngineGroupsInitialized();
       const enabledGroups = groups.filter((group) => group.enabled);
 
@@ -332,7 +317,6 @@ export async function refreshContextMenus(): Promise<boolean> {
       );
     }
 
-    // Built-in actions
     await createMenuItem({
       contexts: ROOT_MENU_CONTEXTS,
       id: CONTEXT_MENU_COPY_TITLE_LINK_ID,
@@ -352,7 +336,6 @@ export async function refreshContextMenus(): Promise<boolean> {
 
     await runSequentially(createBuiltinRootMenuItems(), createMenuItem);
 
-    // Custom context actions
     await runSequentially(actions, (action) =>
       createMenuItem({
         contexts: ROOT_MENU_CONTEXTS,
@@ -368,7 +351,6 @@ export async function refreshContextMenus(): Promise<boolean> {
       ROOT_MENU_CONTEXTS
     );
 
-    // Text templates section
     const visibleTemplates = templates.filter((template) => !template.hidden);
 
     if (visibleTemplates.length > 0) {
@@ -395,7 +377,6 @@ export async function refreshContextMenus(): Promise<boolean> {
       );
     }
 
-    // Settings menu
     await createMenuItem({
       contexts: ROOT_MENU_CONTEXTS,
       id: CONTEXT_MENU_SETTINGS_ID,

@@ -28,9 +28,6 @@ export type OverlayMount = {
   root: Root;
 };
 
-/**
- * Overlayマウントポイントを確保
- */
 export function ensureOverlayMount(currentTheme: Theme): OverlayMount {
   const mount = ensureShadowMount({
     hostId: OVERLAY_HOST_ID,
@@ -42,9 +39,6 @@ export function ensureOverlayMount(currentTheme: Theme): OverlayMount {
   return { host: mount.host, root, shadow: mount.shadow };
 }
 
-/**
- * Overlayを閉じる
- */
 export function closeOverlay(mount: OverlayMount | null): void {
   if (!mount) {
     return;
@@ -57,9 +51,6 @@ export function closeOverlay(mount: OverlayMount | null): void {
   mount.host.remove();
 }
 
-/**
- * 選択範囲のアンカー矩形を取得
- */
 export function getSelectionAnchorRect(): OverlayViewModel["anchorRect"] {
   const selection = window.getSelection();
   if (!selection || selection.rangeCount === 0) {
@@ -81,9 +72,6 @@ export function getSelectionAnchorRect(): OverlayViewModel["anchorRect"] {
   };
 }
 
-/**
- * Overlayをレンダリング
- */
 export function renderOverlay(
   mount: OverlayMount,
   viewModel: OverlayViewModel,
@@ -99,9 +87,6 @@ export function renderOverlay(
   );
 }
 
-/**
- * ソースサフィックスを削除
- */
 function stripSourceSuffix(title: string): string {
   return title.replace(SOURCE_SUFFIX_REGEX, "").trim();
 }
@@ -114,9 +99,6 @@ function getTrimmedStringProp(
   return typeof value === "string" ? value.trim() : "";
 }
 
-/**
- * コンテキストアクションからタイトルを検索
- */
 export function findContextActionTitle(
   actions: unknown,
   id: string
@@ -140,9 +122,6 @@ export function findContextActionTitle(
 let summarizeOverlayTitleCache: string | null = null;
 let summarizeOverlayTitleInFlight: Promise<string> | null = null;
 
-/**
- * 要約オーバーレイのタイトルを取得
- */
 export function getSummarizeOverlayTitle(): Promise<string> {
   if (summarizeOverlayTitleCache) {
     return Promise.resolve(summarizeOverlayTitleCache);
@@ -174,9 +153,6 @@ export function getSummarizeOverlayTitle(): Promise<string> {
   return summarizeOverlayTitleInFlight;
 }
 
-/**
- * 要約オーバーレイタイトルのキャッシュをリセット
- */
 export function resetSummarizeOverlayTitleState(): void {
   summarizeOverlayTitleCache = null;
   summarizeOverlayTitleInFlight = null;
@@ -230,9 +206,6 @@ function actionOverlayEventPayload(
   return event;
 }
 
-/**
- * アクションオーバーレイを表示
- */
 export function showActionOverlay(
   mount: OverlayMount,
   request: ActionOverlayRequest,
@@ -268,9 +241,6 @@ export function showActionOverlay(
   );
 }
 
-/**
- * 要約オーバーレイをタイトル付きでレンダリング
- */
 export function renderSummaryOverlayWithTitle(
   mount: OverlayMount,
   request: SummaryOverlayRequest,
@@ -317,9 +287,6 @@ export function renderSummaryOverlayWithTitle(
   );
 }
 
-/**
- * 要約オーバーレイを表示
- */
 export function showSummaryOverlay(
   mount: OverlayMount,
   request: SummaryOverlayRequest,

@@ -93,6 +93,5 @@ function scheduleReconnect() {
   }, RECONNECT_INTERVAL);
 }
 
-// Initial connection
 console.log("[dev-reload] 🚀 Auto-reload enabled");
 connect();

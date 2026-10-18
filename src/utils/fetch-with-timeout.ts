@@ -8,19 +8,6 @@
 import { API_FETCH_TIMEOUT_MS } from "@/constants/timeouts";
 import { FetchTimeoutError } from "@/utils/custom-errors";
 
-/**
- * タイムアウト付きfetch
- *
- * Service Workerの30秒タイムアウトより短い時間（デフォルト25秒）で
- * API呼び出しを中断します。
- *
- * @param fetchFn - fetch関数（テストではモック可能）
- * @param url - リクエストURL
- * @param init - fetchオプション
- * @param timeoutMs - タイムアウト時間（ミリ秒）デフォルト25000ms（25秒）
- * @returns Response Promise
- * @throws FetchTimeoutError タイムアウト時
- */
 export function fetchWithTimeout(
   fetchFn: typeof fetch,
   url: string,

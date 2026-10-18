@@ -28,11 +28,9 @@ export type CopyTitleLinkFailure = {
 };
 
 export type LocalStorageData = {
-  // 新しいマルチプロバイダー設定キー
   aiProvider?: string; // "openai" | "chatgpt" | "anthropic" | "zai"
   aiModel?: string; // アクティブプロバイダーのモデル
   aiCustomPrompt?: string; // 共有カスタムプロンプト
-  // プロバイダー別トークンキー
   openaiApiToken?: string;
   anthropicApiToken?: string;
   zaiApiToken?: string;
@@ -44,7 +42,6 @@ export type LocalStorageData = {
   // 旧OpenAI専用キー（マイグレーション用に維持）
   openaiCustomPrompt?: string;
   openaiModel?: string;
-  // その他の設定
   theme?: Theme;
   lastCopyTitleLinkFailure?: CopyTitleLinkFailure;
   debugMode?: boolean;

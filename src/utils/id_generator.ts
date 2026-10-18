@@ -1,15 +1,3 @@
-/**
- * ID生成ユーティリティ
- *
- * プロジェクト全体で一貫したID生成ロジックを提供します。
- */
-
-/**
- * 文字列の簡易ハッシュを生成（非ASCII文字対応）
- * Math.imul使用で1つのbitwiseブロックに統合
- * @param str 入力文字列
- * @returns 8桁の16進数ハッシュ
- */
 function simpleHash(str: string): string {
   let hash = 0;
   for (let i = 0; i < str.length; i += 1) {
@@ -21,14 +9,9 @@ function simpleHash(str: string): string {
 }
 
 /**
- * 一意なIDを生成
- * @param name 名前（日本語やスペースを含む可能性がある）
- * @param prefix IDのプレフィックス（例: "group", "template"）
- * @returns "{prefix}:{slug}-{hash}" 形式のID
- *
- * 名前の衝突を防ぐため、slugの末尾にハッシュsuffixを追加します。
+ * 名前の衝突を防ぐため、slugの末尾にハッシュsuffixを追加する。
+ * 日本語などslug化できない名前は `prefix:hash` になる。
  * 例: generateId("お買い物", "group") → "group:9f3b2d1a"
- * 例: generateId("Hello World", "template") → "template:hello-world-a1b2c3d4"
  */
 export function generateId(name: string, prefix: string): string {
   const slug = name

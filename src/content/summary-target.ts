@@ -6,9 +6,6 @@ import { t } from "@/i18n";
 import { SelectedTextCacheSchema } from "@/schemas/selected_text";
 import { storageLocalGet } from "@/storage/helpers";
 
-/**
- * テキストを正規化（改行・空白の整理）
- */
 function normalizeText(text: string): string {
   return text
     .replace(/\r\n/g, "\n")
@@ -16,9 +13,6 @@ function normalizeText(text: string): string {
     .trim();
 }
 
-/**
- * 選択範囲ターゲットを構築
- */
 function buildSelectionTarget(text: string): SummaryTarget {
   return {
     source: "selection",
@@ -28,9 +22,6 @@ function buildSelectionTarget(text: string): SummaryTarget {
   };
 }
 
-/**
- * ページターゲットを構築
- */
 function buildPageTarget(text: string): SummaryTarget {
   return {
     source: "page",
@@ -40,9 +31,6 @@ function buildPageTarget(text: string): SummaryTarget {
   };
 }
 
-/**
- * 現在の選択範囲からターゲットを取得
- */
 function getLiveSelectionTarget(): SummaryTarget | null {
   const selection = window.getSelection()?.toString().trim() ?? "";
   if (!selection) {
@@ -51,9 +39,6 @@ function getLiveSelectionTarget(): SummaryTarget | null {
   return buildSelectionTarget(selection);
 }
 
-/**
- * キャッシュされた選択範囲からターゲットを取得
- */
 async function getCachedSelectionTarget(): Promise<SummaryTarget | null> {
   const result = await storageLocalGet<unknown>([
     "selectedText",
@@ -83,11 +68,6 @@ async function getCachedSelectionTarget(): Promise<SummaryTarget | null> {
   return buildSelectionTarget(selection);
 }
 
-/**
- * 要約対象テキストを取得
- * @param options - オプション
- * @returns SummaryTarget
- */
 export async function getSummaryTargetText(options?: {
   ignoreSelection?: boolean;
 }): Promise<SummaryTarget> {

@@ -1,8 +1,3 @@
-/**
- * Context menu storage utilities.
- * Handles loading and initialization of context actions, search engines, and text templates.
- */
-
 import { storageSyncGet, storageSyncSet } from "@/background/storage";
 import type { SyncStorageData } from "@/background/types";
 import {
@@ -24,9 +19,6 @@ import { DEFAULT_TEXT_TEMPLATES, type TextTemplate } from "@/text_templates";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
 
-/**
- * Options for generic storage initialization.
- */
 type EnsureStorageInitializedOptions<T> = {
   storageKey: keyof SyncStorageData;
   normalize?: (raw: unknown) => T[];
@@ -36,10 +28,6 @@ type EnsureStorageInitializedOptions<T> = {
   logDetails?: boolean;
 };
 
-/**
- * Handles storage initialization for patterns that initialize on empty array.
- * Used by contextActions and searchEngines.
- */
 async function initializeOnEmptyPattern<T>(
   raw: unknown,
   normalize: ((raw: unknown) => T[]) | undefined,
@@ -103,10 +91,6 @@ async function initializeOnUndefinedPattern<T>(
   return defaults;
 }
 
-/**
- * Generic helper to ensure storage is initialized with defaults.
- * Handles the common pattern of checking storage, normalizing, and initializing defaults.
- */
 async function ensureStorageInitialized<T>({
   storageKey,
   normalize,
@@ -160,12 +144,6 @@ async function ensureStorageInitialized<T>({
   }
 }
 
-/**
- * Ensures context actions are initialized in storage.
- * If no actions exist, saves and returns default actions.
- *
- * @returns Promise resolving to context actions array
- */
 export function ensureContextActionsInitialized(): Promise<ContextAction[]> {
   return ensureStorageInitialized({
     defaults: DEFAULT_CONTEXT_ACTIONS,
@@ -177,12 +155,6 @@ export function ensureContextActionsInitialized(): Promise<ContextAction[]> {
   });
 }
 
-/**
- * Ensures search engines are initialized in storage.
- * If no engines exist, saves and returns default engines.
- *
- * @returns Promise resolving to search engines array
- */
 export function ensureSearchEnginesInitialized(): Promise<SearchEngine[]> {
   return ensureStorageInitialized({
     defaults: DEFAULT_SEARCH_ENGINES,
@@ -194,12 +166,6 @@ export function ensureSearchEnginesInitialized(): Promise<SearchEngine[]> {
   });
 }
 
-/**
- * Ensures search engine groups are initialized in storage.
- * If no groups exist, saves and returns default groups.
- *
- * @returns Promise resolving to search engine groups array
- */
 export function ensureSearchEngineGroupsInitialized(): Promise<
   SearchEngineGroup[]
 > {
@@ -230,12 +196,6 @@ export function ensureTextTemplatesInitialized(): Promise<TextTemplate[]> {
   });
 }
 
-/**
- * Loads context actions from storage.
- * Normalizes the loaded actions before returning.
- *
- * @returns Promise resolving to normalized context actions
- */
 export async function loadContextActions(): Promise<ContextAction[]> {
   const data = (await storageSyncGet(["contextActions"])) as SyncStorageData;
   return normalizeContextActions(data.contextActions);

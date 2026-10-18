@@ -1,12 +1,6 @@
 /**
- * API Endpoints - ホワイトリスト管理
- *
- * セキュリティ: すべての外部API呼び出しはこのホワイトリストで管理されます。
- * manifest.jsonのcontent_security_policyと一致させる必要があります。
- */
-
-/**
- * 許可されたAPIエンドポイント（Origin）
+ * セキュリティ: すべての外部API呼び出しはこのホワイトリストで管理する。
+ * manifest.json の content_security_policy と一致させること。
  */
 export const ALLOWED_API_ORIGINS = [
   "https://api.openai.com",
@@ -15,23 +9,13 @@ export const ALLOWED_API_ORIGINS = [
   "https://auth.openai.com",
 ] as const;
 
-/**
- * 許可されたAPIエンドポイント型
- */
 type AllowedApiOrigin = (typeof ALLOWED_API_ORIGINS)[number];
 
-/**
- * URLがホワイトリストに含まれているかチェック
- *
- * @param url - チェックするURL
- * @returns ホワイトリストに含まれている場合はtrue
- */
 export function isAllowedApiOrigin(url: string): boolean {
   try {
     const { origin } = new URL(url);
     return ALLOWED_API_ORIGINS.includes(origin as AllowedApiOrigin);
   } catch {
-    // 無効なURL
     return false;
   }
 }

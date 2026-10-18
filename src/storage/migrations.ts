@@ -20,9 +20,6 @@ import {
 import type { LocalStorageData } from "@/storage/types";
 import { runSequentially } from "@/utils/async";
 
-/**
- * Migration function interface
- */
 interface Migration {
   description: string;
   migrate: () => Promise<void>;
@@ -80,9 +77,6 @@ function appendSoundHouseToShoppingGroup(
   });
 }
 
-/**
- * All migrations in order
- */
 const migrations: Migration[] = [
   {
     description: "Migrate legacy OpenAI settings to unified AI settings",
@@ -110,7 +104,6 @@ const migrations: Migration[] = [
         updates.aiProvider = "openai";
       }
 
-      // Apply updates if any
       if (Object.keys(updates).length > 0) {
         await storageLocalSet(updates);
         console.log("[migration v1] AI settings migrated:", updates);
@@ -185,9 +178,6 @@ const migrations: Migration[] = [
   },
 ];
 
-/**
- * Migration log entry
- */
 interface MigrationLogEntry {
   description: string;
   error?: string;
@@ -196,9 +186,6 @@ interface MigrationLogEntry {
   version: number;
 }
 
-/**
- * Backup data structure
- */
 export interface BackupData {
   localData: Record<string, unknown>;
   syncData: Record<string, unknown>;
@@ -211,9 +198,6 @@ const MIGRATION_LOG_KEY = STORAGE_RESERVED_KEYS.MIGRATION_LOG;
 const BACKUP_KEY_PREFIX = STORAGE_RESERVED_KEYS.BACKUP_PREFIX;
 const MAX_BACKUPS = 3;
 
-/**
- * Get current schema version
- */
 export async function getCurrentSchemaVersion(): Promise<number> {
   const data = (await storageLocalGet([SCHEMA_VERSION_KEY])) as Record<
     string,
@@ -222,16 +206,10 @@ export async function getCurrentSchemaVersion(): Promise<number> {
   return (data[SCHEMA_VERSION_KEY] as number | undefined) ?? 0;
 }
 
-/**
- * Set schema version
- */
 export async function setSchemaVersion(version: number): Promise<void> {
   await storageLocalSet({ [SCHEMA_VERSION_KEY]: version });
 }
 
-/**
- * Log migration execution
- */
 async function logMigration(entry: MigrationLogEntry): Promise<void> {
   const data = (await storageLocalGet([MIGRATION_LOG_KEY])) as Record<
     string,
@@ -243,9 +221,6 @@ async function logMigration(entry: MigrationLogEntry): Promise<void> {
   await storageLocalSet({ [MIGRATION_LOG_KEY]: log });
 }
 
-/**
- * Get migration log
- */
 export async function getMigrationLog(): Promise<MigrationLogEntry[]> {
   const data = (await storageLocalGet([MIGRATION_LOG_KEY])) as Record<
     string,
@@ -254,9 +229,6 @@ export async function getMigrationLog(): Promise<MigrationLogEntry[]> {
   return (data[MIGRATION_LOG_KEY] as MigrationLogEntry[] | undefined) ?? [];
 }
 
-/**
- * Backup storage data before migration
- */
 export async function backupBeforeMigration(version: number): Promise<void> {
   try {
     const syncData = await storageSyncGet(null);
@@ -272,7 +244,6 @@ export async function backupBeforeMigration(version: number): Promise<void> {
     const backupKey = `${BACKUP_KEY_PREFIX}${version}_${backup.timestamp}`;
     await storageLocalSet({ [backupKey]: backup });
 
-    // Clean old backups
     await cleanOldBackups();
   } catch (error) {
     console.error("[migrations] Backup failed:", error);
@@ -283,9 +254,6 @@ export async function backupBeforeMigration(version: number): Promise<void> {
   }
 }
 
-/**
- * Clean old backups (keep only last MAX_BACKUPS)
- */
 export async function cleanOldBackups(): Promise<void> {
   const allData = await storageLocalGet(null);
   const backupKeys = Object.keys(allData as Record<string, unknown>)
@@ -302,9 +270,6 @@ export async function cleanOldBackups(): Promise<void> {
   }
 }
 
-/**
- * List all backups
- */
 export async function listBackups(): Promise<BackupData[]> {
   const allData = await storageLocalGet(null);
   const backupEntries: BackupData[] = [];
@@ -320,9 +285,6 @@ export async function listBackups(): Promise<BackupData[]> {
   return backupEntries;
 }
 
-/**
- * Restore from backup
- */
 export async function restoreFromBackup(timestamp: number): Promise<void> {
   const backups = await listBackups();
   const backup = backups.find((b) => b.timestamp === timestamp);
@@ -363,12 +325,10 @@ export async function restoreFromBackup(timestamp: number): Promise<void> {
       await storageLocalSet(removeLocal);
     }
 
-    // Restore sync data
     if (backup.syncData && Object.keys(backup.syncData).length > 0) {
       await storageSyncSet(backup.syncData);
     }
 
-    // Restore local data (excluding reserved keys)
     const localDataToRestore = Object.fromEntries(
       Object.entries(backup.localData).filter(
         ([key]) => !isReservedStorageKey(key)
@@ -391,9 +351,6 @@ export async function restoreFromBackup(timestamp: number): Promise<void> {
   }
 }
 
-/**
- * Run all pending migrations
- */
 export async function runMigrations(): Promise<void> {
   if (migrations.length === 0) {
     console.log("[migrations] No migrations defined");
@@ -412,7 +369,6 @@ export async function runMigrations(): Promise<void> {
     `[migrations] Running migrations from v${currentVersion} to v${targetVersion}`
   );
 
-  // Backup before migration
   await backupBeforeMigration(currentVersion);
 
   const runMigration = async (migration: Migration): Promise<void> => {

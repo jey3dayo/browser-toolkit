@@ -115,7 +115,6 @@ export function useDebugLogs(props: PopupPaneBaseProps): UseDebugLogsResult {
       setDebugMode(checked);
       notify.success(t("debug.success.saved"));
 
-      // ログ統計を更新
       if (checked) {
         await loadLogStats();
       } else {
