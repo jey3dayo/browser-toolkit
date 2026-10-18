@@ -10,7 +10,7 @@ import {
   type TextTemplate,
 } from "@/text_templates";
 import type { Notifier } from "@/ui/toast";
-import { createExclusiveQueue, type ExclusiveQueue } from "@/utils/async";
+import { runWithSharedLock } from "@/utils/async";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
 
@@ -48,11 +48,6 @@ export function useTemplatesState(params: {
   const [titleInput, setTitleInput] = useState("");
   const [contentInput, setContentInput] = useState("");
   const editingIdRef = useRef<string | null>(null);
-  const mutationQueueRef = useRef<ExclusiveQueue | null>(null);
-  if (!mutationQueueRef.current) {
-    mutationQueueRef.current = createExclusiveQueue();
-  }
-  const mutationQueue = mutationQueueRef.current;
 
   const updateEditingId = (value: string | null): void => {
     editingIdRef.current = value;
@@ -137,7 +132,9 @@ export function useTemplatesState(params: {
       textTemplates: nextTemplates,
     });
 
-  // 保存は排他 queue で直列化し、書き込み後の re-read が自分の書き込みと一致しない
+  // 保存は同一 origin の各インスタンス（popup / options）間で共有される lock で
+  // 直列化する（Web Locks、テスト環境では realm 内共有 queue）。lock 内の
+  // read-latest → write → re-read verify が自分の書き込みと一致しない
   // (別 popup が先んじた / 先に割り込んだ) 場合は最新 base でやり直す。
   // persist 失敗時は既存の rollback / notify を維持し、再試行しない。
   const verifyTemplatesPersisted = async (
@@ -184,7 +181,9 @@ export function useTemplatesState(params: {
   const runTemplateMutation = (
     prepare: (base: TextTemplate[]) => PreparedTemplateMutation | null
   ): Promise<void> =>
-    mutationQueue.runExclusive(() => runTemplateMutationAttempts(prepare));
+    runWithSharedLock("textTemplates", () =>
+      runTemplateMutationAttempts(prepare)
+    );
 
   const toggleTemplateHidden = (templateId: string, hidden: boolean) =>
     runTemplateMutation((base) => {
@@ -345,19 +344,43 @@ export function useTemplatesState(params: {
       },
     }));
 
+  // 並び替えは drag handler が渡した全オブジェクトではなく、直近の storage の
+  // レコードを要求された ID 順に並べて保存する。別インスタンスの直後の
+  // hidden / 本文編集が並び替え write で戻されないようにするため。
   const handleReorder = (reorderedTemplates: TextTemplate[]) =>
-    runTemplateMutation(() => ({
-      applyNext: () => {
-        setTemplates(reorderedTemplates);
-      },
-      next: reorderedTemplates,
-      onFailure: () => {
-        notify.error(t("templatesPane.errors.reorderFailed"));
-      },
-      onSuccess: () => {
-        notify.success(t("templatesPane.success.reordered"));
-      },
-    }));
+    runTemplateMutation((base) => {
+      const byId = new Map(base.map((template) => [template.id, template]));
+      const consumed = new Set<string>();
+      const next: TextTemplate[] = [];
+      for (const template of reorderedTemplates) {
+        if (consumed.has(template.id)) {
+          continue;
+        }
+        const latest = byId.get(template.id);
+        if (!latest) {
+          continue;
+        }
+        consumed.add(template.id);
+        next.push(latest);
+      }
+      for (const template of base) {
+        if (!consumed.has(template.id)) {
+          next.push(template);
+        }
+      }
+      return {
+        applyNext: () => {
+          setTemplates(next);
+        },
+        next,
+        onFailure: () => {
+          notify.error(t("templatesPane.errors.reorderFailed"));
+        },
+        onSuccess: () => {
+          notify.success(t("templatesPane.success.reordered"));
+        },
+      };
+    });
 
   return {
     cancelEdit,

@@ -16,7 +16,7 @@ import {
   DEFAULT_SEARCH_ENGINES,
   normalizeSearchEngines,
 } from "@/search_engines";
-import { createExclusiveQueue, type ExclusiveQueue } from "@/utils/async";
+import { runWithSharedLock } from "@/utils/async";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
 
@@ -71,11 +71,6 @@ export function useSearchGroupsState(
     null
   );
   const editingNameGroupIdRef = useRef<string | null>(null);
-  const mutationQueueRef = useRef<ExclusiveQueue | null>(null);
-  if (!mutationQueueRef.current) {
-    mutationQueueRef.current = createExclusiveQueue();
-  }
-  const mutationQueue = mutationQueueRef.current;
 
   const updateEditingNameGroupId = (value: string | null): void => {
     editingNameGroupIdRef.current = value;
@@ -193,7 +188,9 @@ export function useSearchGroupsState(
     });
   };
 
-  // 保存は排他 queue で直列化し、書き込み後の re-read が自分の書き込みと一致しない
+  // 保存は同一 origin の各インスタンス（popup / options）間で共有される lock で
+  // 直列化する（Web Locks、テスト環境では realm 内共有 queue）。lock 内の
+  // read-latest → write → re-read verify が自分の書き込みと一致しない
   // (別 popup が先んじた / 先に割り込んだ) 場合は最新 base でやり直す。
   // persist 失敗時は既存の rollback / notify を維持し、再試行しない。
   const verifyGroupsPersisted = async (
@@ -243,7 +240,9 @@ export function useSearchGroupsState(
   const runGroupMutation = (
     prepare: (base: SearchEngineGroup[]) => PreparedGroupMutation | null
   ): Promise<void> =>
-    mutationQueue.runExclusive(() => runGroupMutationAttempts(prepare));
+    runWithSharedLock("searchEngineGroups", () =>
+      runGroupMutationAttempts(prepare)
+    );
 
   const toggleGroupEnabled = (groupId: string, checked: boolean) =>
     runGroupMutation((base) => {
@@ -430,19 +429,43 @@ export function useSearchGroupsState(
       },
     }));
 
+  // 並び替えは drag handler が渡した全オブジェクトではなく、直近の storage の
+  // レコードを要求された ID 順に並べて保存する。別インスタンスの直後の
+  // 有効 / 名前編集が並び替え write で戻されないようにするため。
   const handleReorder = (reorderedGroups: SearchEngineGroup[]) =>
-    runGroupMutation(() => ({
-      applyNext: () => {
-        setGroups(reorderedGroups);
-      },
-      next: reorderedGroups,
-      onFailure: () => {
-        props.notify.error(t("searchGroups.errors.reorderFailed"));
-      },
-      onSuccess: () => {
-        props.notify.success(t("searchGroups.success.reordered"));
-      },
-    }));
+    runGroupMutation((base) => {
+      const byId = new Map(base.map((group) => [group.id, group]));
+      const consumed = new Set<string>();
+      const next: SearchEngineGroup[] = [];
+      for (const group of reorderedGroups) {
+        if (consumed.has(group.id)) {
+          continue;
+        }
+        const latest = byId.get(group.id);
+        if (!latest) {
+          continue;
+        }
+        consumed.add(group.id);
+        next.push(latest);
+      }
+      for (const group of base) {
+        if (!consumed.has(group.id)) {
+          next.push(group);
+        }
+      }
+      return {
+        applyNext: () => {
+          setGroups(next);
+        },
+        next,
+        onFailure: () => {
+          props.notify.error(t("searchGroups.errors.reorderFailed"));
+        },
+        onSuccess: () => {
+          props.notify.success(t("searchGroups.success.reordered"));
+        },
+      };
+    });
 
   return {
     addNewGroup,

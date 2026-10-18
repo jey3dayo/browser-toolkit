@@ -141,12 +141,9 @@ describe("popup templates state across two instances (onChanged rehydration)", (
 
   it("keeps both mutations when two instances mutate concurrently", async () => {
     const initial = createInitialTemplates();
-    const storageStub = createSyncStorageStub(
-      { textTemplates: initial },
-      {
-        holdFirstSetUntilNextSet: true,
-      }
-    );
+    // 2つのインスタンスの mutation は realm 共有の shared lock で直列化され、
+    // 後続の mutation は readLatest で先行事象を含めて rebase される。
+    const storageStub = createSyncStorageStub({ textTemplates: initial });
     vi.stubGlobal("chrome", { storage: { onChanged: storageStub.onChanged } });
 
     const first = await mountHook({ dom, storageStub });
@@ -184,6 +181,46 @@ describe("popup templates state across two instances (onChanged rehydration)", (
     ];
     expect(storageStub.store.textTemplates).toEqual(expected);
     expect(first.output.current?.templates).toEqual(expected);
+
+    await unmountHook({ dom, root: first.root });
+    await unmountHook({ dom, root: second.root });
+  });
+
+  it("keeps a concurrent hidden toggle when another instance reorders", async () => {
+    const initial = createInitialTemplates();
+    const storageStub = createSyncStorageStub({
+      textTemplates: initial,
+    });
+    vi.stubGlobal("chrome", { storage: { onChanged: storageStub.onChanged } });
+
+    const first = await mountHook({ dom, storageStub });
+    const second = await mountHook({ dom, storageStub });
+
+    // drag handler が掴んだレコードは toggle 前の stale な値を持つ
+    const staleForDrag = createInitialTemplates();
+    await act(async () => {
+      const toggle = first.output.current?.toggleTemplateHidden(
+        initial[0].id,
+        true
+      );
+      const reorder = second.output.current?.handleReorder([
+        staleForDrag[1],
+        staleForDrag[0],
+      ]);
+      await Promise.all([
+        toggle ?? Promise.resolve(),
+        reorder ?? Promise.resolve(),
+      ]);
+      await flush(dom.window);
+    });
+
+    const expected: TextTemplate[] = [
+      initial[1],
+      { ...initial[0], hidden: true },
+    ];
+    expect(storageStub.store.textTemplates).toEqual(expected);
+    expect(first.output.current?.templates).toEqual(expected);
+    expect(second.output.current?.templates).toEqual(expected);
 
     await unmountHook({ dom, root: first.root });
     await unmountHook({ dom, root: second.root });
