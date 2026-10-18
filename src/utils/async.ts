@@ -7,3 +7,22 @@ export function runSequentially<T>(
     Promise.resolve()
   );
 }
+
+export type ExclusiveQueue = {
+  runExclusive: <T>(task: () => Promise<T>) => Promise<T>;
+};
+
+export function createExclusiveQueue(): ExclusiveQueue {
+  let tail: Promise<unknown> = Promise.resolve();
+
+  return {
+    runExclusive: <T>(task: () => Promise<T>): Promise<T> => {
+      const run = tail.then(() => task());
+      tail = run.then(
+        () => undefined,
+        () => undefined
+      );
+      return run;
+    },
+  };
+}

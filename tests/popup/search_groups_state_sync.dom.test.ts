@@ -135,6 +135,54 @@ describe("popup search groups state across two instances (onChanged rehydration)
     await unmountHook({ dom, root: second.root });
   });
 
+  it("keeps both mutations when two instances mutate concurrently", async () => {
+    const storageStub = createSyncStorageStub(
+      {
+        searchEngineGroups: [...DEFAULT_SEARCH_ENGINE_GROUPS],
+        searchEngines: [...DEFAULT_SEARCH_ENGINES],
+      },
+      { holdFirstSetUntilNextSet: true }
+    );
+    vi.stubGlobal("chrome", { storage: { onChanged: storageStub.onChanged } });
+
+    const first = await mountHook({ dom, storageStub });
+    const second = await mountHook({ dom, storageStub });
+
+    await act(async () => {
+      second.output.current?.startEditingGroupName(
+        DEFAULT_SEARCH_ENGINE_GROUPS[1]
+      );
+      second.output.current?.setEditingNameValue("お買物改");
+      await flush(dom.window);
+    });
+
+    const [shopping, trend] = DEFAULT_SEARCH_ENGINE_GROUPS;
+    await act(async () => {
+      const toggle = first.output.current?.toggleGroupEnabled(
+        shopping.id,
+        false
+      );
+      const save = second.output.current?.saveGroupName(trend.id);
+      await Promise.all([
+        toggle ?? Promise.resolve(),
+        save ?? Promise.resolve(),
+      ]);
+      await flush(dom.window);
+    });
+
+    const expected = [
+      { ...shopping, enabled: false },
+      { ...trend, name: "お買物改" },
+    ];
+    expect(
+      normalizeSearchEngineGroups(storageStub.store.searchEngineGroups)
+    ).toEqual(expected);
+    expect(first.output.current?.groups).toEqual(expected);
+
+    await unmountHook({ dom, root: first.root });
+    await unmountHook({ dom, root: second.root });
+  });
+
   it("rebases a save onto the latest storage after events skipped during editing", async () => {
     const storageStub = createDefaultStorageStub();
     vi.stubGlobal("chrome", { storage: { onChanged: storageStub.onChanged } });

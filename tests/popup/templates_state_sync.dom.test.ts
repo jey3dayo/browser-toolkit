@@ -139,6 +139,56 @@ describe("popup templates state across two instances (onChanged rehydration)", (
     await unmountHook({ dom, root: second.root });
   });
 
+  it("keeps both mutations when two instances mutate concurrently", async () => {
+    const initial = createInitialTemplates();
+    const storageStub = createSyncStorageStub(
+      { textTemplates: initial },
+      {
+        holdFirstSetUntilNextSet: true,
+      }
+    );
+    vi.stubGlobal("chrome", { storage: { onChanged: storageStub.onChanged } });
+
+    const first = await mountHook({ dom, storageStub });
+    const second = await mountHook({ dom, storageStub });
+
+    await act(async () => {
+      second.output.current?.startNew();
+      second.output.current?.setTitleInput("added");
+      second.output.current?.setContentInput("added body");
+      await flush(dom.window);
+    });
+
+    await act(async () => {
+      const toggle = first.output.current?.toggleTemplateHidden(
+        initial[0].id,
+        true
+      );
+      const save = second.output.current?.saveEdit();
+      await Promise.all([
+        toggle ?? Promise.resolve(),
+        save ?? Promise.resolve(),
+      ]);
+      await flush(dom.window);
+    });
+
+    const expected: TextTemplate[] = [
+      { ...initial[0], hidden: true },
+      initial[1],
+      {
+        content: "added body",
+        hidden: false,
+        id: generateTemplateId("added"),
+        title: "added",
+      },
+    ];
+    expect(storageStub.store.textTemplates).toEqual(expected);
+    expect(first.output.current?.templates).toEqual(expected);
+
+    await unmountHook({ dom, root: first.root });
+    await unmountHook({ dom, root: second.root });
+  });
+
   it("rebases a save onto the latest storage after events skipped during editing", async () => {
     const storageStub = createSyncStorageStub({
       textTemplates: createInitialTemplates(),

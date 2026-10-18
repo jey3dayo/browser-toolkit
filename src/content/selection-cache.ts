@@ -11,6 +11,11 @@ export function cacheCurrentSelection(): void {
   if (!selectedText) {
     return;
   }
+  // file: などの opaque origin は "null" と直列化され、別ページの
+  // キャッシュと区別が付かないため書き込まない
+  if (window.location.origin === "null") {
+    return;
+  }
   ignoreRejection(
     storageLocalSet({
       selectedText,
