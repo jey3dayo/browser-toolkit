@@ -1,7 +1,9 @@
 allowBuilds:
+  "@parcel/watcher": true
   "@swc/core": false
   esbuild: true
   lefthook: true
+  ultracite: true
   unrs-resolver: true
 minimumReleaseAge: 10080
 # pnpm does not enforce the pinned packageManager version; mise reads it from
