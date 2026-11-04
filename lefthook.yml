@@ -14,6 +14,9 @@ pre-commit:
     - name: lint workflows
       glob: ".github/workflows/*.{yml,yaml}"
       run: jactionlint {staged_files}
+    - name: actions lock
+      glob: ".github/**"
+      run: mise run actions-lock:verify
 
 pre-push:
   jobs:

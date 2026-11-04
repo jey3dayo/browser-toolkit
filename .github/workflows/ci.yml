@@ -22,13 +22,13 @@ jobs:
       docs-only: ${{ steps.changes.outputs.docs-only }}
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
       - name: Detect file changes
         id: changes
-        uses: ./.github/actions/detect-changes
+        uses: $/.github/actions/detect-changes
 
   actionlint:
     name: "Check: Actionlint"
@@ -39,10 +39,23 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
 
       - name: Run jactionlint
-        uses: jdx/jactionlint@a0bb9f012b6b5760c17c9ccd040001d08002a10e # v2.1.0
+        uses: jdx/jactionlint@v2.3.0
+
+      - name: Setup mise
+        uses: jdx/mise-action@v4.3.0
+        with:
+          install: false
+
+      - name: Install gh-actions-lock
+        run: mise install gh-actions-lock
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Verify actions.lock
+        run: mise run actions-lock:verify
 
   lint:
     name: "Check: Lint"
@@ -53,10 +66,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
 
       - name: Setup Node environment
-        uses: ./.github/actions/setup-node-env
+        uses: $/.github/actions/setup-node-env
 
       - name: Run lint
         run: pnpm lint
@@ -70,10 +83,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
 
       - name: Setup Node environment
-        uses: ./.github/actions/setup-node-env
+        uses: $/.github/actions/setup-node-env
 
       - name: Run tests
         run: pnpm test
@@ -87,10 +100,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
 
       - name: Setup Node environment
-        uses: ./.github/actions/setup-node-env
+        uses: $/.github/actions/setup-node-env
 
       - name: Run build
         run: pnpm build
@@ -104,10 +117,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
 
       - name: Setup Node environment
-        uses: ./.github/actions/setup-node-env
+        uses: $/.github/actions/setup-node-env
 
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium

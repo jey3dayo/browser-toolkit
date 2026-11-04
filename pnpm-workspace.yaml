@@ -14,5 +14,7 @@ pmOnFail: ignore
 trustPolicy: no-downgrade
 trustPolicyExclude:
   - semver@6.3.1
+# GitHub Actions は .github/workflows/actions.lock（gh-actions-lock）で固定する。
+# pnpm update が uses: を SHA + コメントに戻すと lockfile とぶつかるので無効にする。
 update:
-  githubActions: true
+  githubActions: false
