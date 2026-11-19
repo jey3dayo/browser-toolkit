@@ -1,20 +1,16 @@
 import { Result } from "@praha/byethrow";
 import { APP_NAME } from "@/app_meta";
 import { executeContextAction } from "@/background/action_executor";
-import { extractEventWithAi } from "@/background/ai_requests";
-import { buildCalendarArtifacts } from "@/background/calendar";
+import { extractCalendarArtifacts } from "@/background/calendar_extraction";
 import { sendMessageToTab } from "@/background/messaging";
-import { storageSyncGet } from "@/background/storage";
 import type {
   ContentScriptMessage,
   ContextMenuTabParams,
   SummaryTarget,
-  SyncStorageData,
 } from "@/background/types";
 import type { ContextAction } from "@/context_actions";
 import { t } from "@/i18n";
-import type { CalendarRegistrationTarget, SummarySource } from "@/shared_types";
-import { resolveCalendarTargets } from "@/utils/calendar_targets";
+import type { SummarySource } from "@/shared_types";
 import { ignoreRejection } from "@/utils/ignore_rejection";
 import { showErrorNotification } from "@/utils/notifications";
 
@@ -167,7 +163,7 @@ export async function handleCalendarContextMenuClick(
     source: titleSuffixBySource(target.source),
   });
 
-  const result = await extractEventWithAi(target);
+  const result = await extractCalendarArtifacts({ target });
   if (Result.isFailure(result)) {
     await showErrorNotification({
       errorMessage: result.error,
@@ -189,8 +185,8 @@ export async function handleCalendarContextMenuClick(
     return;
   }
 
-  const calendarTargets = await loadCalendarTargets();
-  if (calendarTargets.length === 0) {
+  const artifacts = result.value;
+  if (artifacts.targets.length === 0) {
     ignoreRejection(
       sendMessageToTab(params.tabId, {
         action: "showNotification",
@@ -200,7 +196,6 @@ export async function handleCalendarContextMenuClick(
     );
   }
 
-  const artifacts = buildCalendarArtifacts(result.value, calendarTargets);
   if (artifacts.errors.length > 0) {
     ignoreRejection(
       sendMessageToTab(params.tabId, {
@@ -214,7 +209,7 @@ export async function handleCalendarContextMenuClick(
   await sendMessageToTab(params.tabId, {
     action: "showActionOverlay",
     calendarUrl: artifacts.calendarUrl,
-    event: result.value,
+    event: artifacts.event,
     ics: artifacts.ics,
     mode: "event",
     primary: artifacts.eventText,
@@ -280,9 +275,4 @@ export async function handleContextMenuClick(
     status: "ready",
     title: resolvedTitle,
   });
-}
-
-async function loadCalendarTargets(): Promise<CalendarRegistrationTarget[]> {
-  const stored = (await storageSyncGet(["calendarTargets"])) as SyncStorageData;
-  return resolveCalendarTargets(stored.calendarTargets);
 }

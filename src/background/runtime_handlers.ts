@@ -2,14 +2,9 @@ import { Result } from "@praha/byethrow";
 import { executeContextAction } from "@/background/action_executor";
 import {
   chatFollowUpWithAi,
-  extractEventWithAi,
   testAiToken,
 } from "@/background/ai_requests";
-import {
-  buildGoogleCalendarUrl,
-  buildGoogleCalendarUrlFailureMessage,
-  formatEventText,
-} from "@/background/calendar";
+import { extractCalendarArtifacts } from "@/background/calendar_extraction";
 import {
   getChatGptAuthState,
   signOutChatGpt,
@@ -104,22 +99,22 @@ async function handleSummarizeEventInMessage(
   target: SummaryTarget,
   sendResponse: (response: SummarizeEventResponse) => void
 ): Promise<void> {
-  const result = await extractEventWithAi(target);
+  const result = await extractCalendarArtifacts({
+    target,
+    targets: ["google"],
+  });
   if (Result.isFailure(result)) {
     sendResponse(Result.fail(result.error));
     return;
   }
 
-  const eventText = formatEventText(result.value);
-  const calendarUrl = buildGoogleCalendarUrl(result.value) ?? undefined;
-  const calendarError = calendarUrl
-    ? undefined
-    : buildGoogleCalendarUrlFailureMessage(result.value);
+  const { event, eventText, calendarUrl, errors } = result.value;
+  const calendarError = calendarUrl ? undefined : errors[0];
   sendResponse(
     Result.succeed({
       calendarError,
       calendarUrl,
-      event: result.value,
+      event,
       eventText,
     })
   );
