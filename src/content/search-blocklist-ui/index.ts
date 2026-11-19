@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { ensureShadowMount } from "@/content/shadow_mount";
 import type { BlocklistState } from "@/search-blocklist/types";
 import { applyTheme } from "@/ui/theme";
-import { loadStoredTheme, normalizeTheme } from "@/ui/themeStorage";
+import { loadStoredTheme, subscribeStoredTheme } from "@/ui/themeStorage";
 import { CountBar } from "./CountBar";
 import {
   SEARCH_BLOCKLIST_COUNT_BAR_HOST_ID,
@@ -16,14 +16,7 @@ import { FloatingWidget } from "./FloatingWidget";
 let started = false;
 
 function setupThemeSync(shadows: ShadowRoot[]): void {
-  if (!chrome.storage?.onChanged) {
-    return;
-  }
-  chrome.storage.onChanged.addListener((changes, areaName) => {
-    if (areaName !== "local" || !("theme" in changes)) {
-      return;
-    }
-    const nextTheme = normalizeTheme(changes.theme?.newValue);
+  subscribeStoredTheme((nextTheme) => {
     for (const shadow of shadows) {
       applyTheme(nextTheme, shadow);
     }

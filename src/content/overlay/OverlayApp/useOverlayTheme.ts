@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { applyTheme, type Theme } from "@/ui/theme";
 import {
   loadStoredTheme,
-  normalizeTheme,
+  subscribeStoredTheme,
   themeFromHost,
 } from "@/ui/themeStorage";
 
@@ -32,40 +32,14 @@ export function useOverlayTheme(
         // no-op
       });
 
-    if (typeof chrome === "undefined") {
-      return () => {
-        disposed = true;
-      };
-    }
-
-    const onChanged = chrome.storage?.onChanged;
-    if (!onChanged?.addListener) {
-      return () => {
-        disposed = true;
-      };
-    }
-
-    const handleChange = (
-      changes: Record<string, chrome.storage.StorageChange>,
-      areaName: string
-    ): void => {
-      if (areaName !== "local") {
-        return;
-      }
-      if (!("theme" in changes)) {
-        return;
-      }
-      const change = changes.theme as chrome.storage.StorageChange | undefined;
-      const nextValue = normalizeTheme(change?.newValue);
-      setTheme(nextValue);
-      applyTheme(nextValue, portalContainer);
-    };
-
-    onChanged.addListener(handleChange);
+    const unsubscribe = subscribeStoredTheme((nextTheme) => {
+      setTheme(nextTheme);
+      applyTheme(nextTheme, portalContainer);
+    });
 
     return () => {
       disposed = true;
-      onChanged.removeListener?.(handleChange);
+      unsubscribe();
     };
   }, [host, portalContainer]);
 
