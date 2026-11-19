@@ -122,20 +122,6 @@ describe("Storage Migrations", () => {
     });
   });
 
-  describe("chrome.storage mock parity with real Chrome", () => {
-    it("returns an empty object when local.get is called with []", async () => {
-      mockStorage.set("someKey", "someValue");
-
-      const result = await new Promise<Record<string, unknown>>((resolve) => {
-        chrome.storage.local.get([], (items) => {
-          resolve(items as Record<string, unknown>);
-        });
-      });
-
-      expect(result).toEqual({});
-    });
-  });
-
   describe("backupBeforeMigration", () => {
     it("should create backup with current data", async () => {
       mockStorage.set("testKey", "testValue");
@@ -146,6 +132,7 @@ describe("Storage Migrations", () => {
       const backups = listStoredBackups();
       expect(backups.length).toBeGreaterThanOrEqual(1);
       expect(backups[0].version).toBe(3);
+      expect(backups[0].localData).toMatchObject({ testKey: "testValue" });
     });
 
     it("should not create an empty snapshot when sync/local data exists", async () => {
@@ -180,25 +167,30 @@ describe("Storage Migrations", () => {
       await cleanOldBackups();
 
       const backups = listStoredBackups();
-      expect(backups.length).toBeLessThanOrEqual(3);
+      expect(backups).toHaveLength(3);
+      expect(backups.map((backup) => backup.version)).toEqual([4, 3, 2]);
     });
   });
 
   describe("runMigrations", () => {
-    it("should do nothing when no migrations defined", async () => {
-      // migrations array is empty by default
+    it("should complete without error on empty storage", async () => {
       await expect(runMigrations()).resolves.not.toThrow();
+
+      // All defined migrations ran: the schema version advanced from 0
+      expect(await getCurrentSchemaVersion()).toBeGreaterThan(0);
     });
 
     it("should skip completed migrations", async () => {
-      // Set current version to 5
+      // Set current version to 5 (past every defined migration)
       await setSchemaVersion(5);
+      mockStorage.set("openaiModel", "gpt-4");
 
       await runMigrations();
 
-      // Should complete without error (no migrations to run)
       const version = await getCurrentSchemaVersion();
       expect(version).toBe(5);
+      // The v1 migration must not re-apply: openaiModel stays unmigrated
+      expect(mockStorage.has("aiModel")).toBe(false);
     });
   });
 

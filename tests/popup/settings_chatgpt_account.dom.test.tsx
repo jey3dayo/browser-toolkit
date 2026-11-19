@@ -196,6 +196,21 @@ describe("SettingsChatGptAccountSection", () => {
     expect(link?.getAttribute("rel")).toBe("noopener noreferrer");
     expect(query(container, "chatgpt-test")).not.toBeNull();
     expect(query(container, "chatgpt-sign-out")).not.toBeNull();
+
+    const nullEmailBg = backgroundFor({
+      authState: () =>
+        Result.succeed({
+          email: null,
+          errorMessage: null,
+          status: "signedIn" as const,
+        }),
+    });
+    const nullEmailContainer = await mountSection(
+      buildRuntime({ sendMessageToBackground: nullEmailBg.send })
+    );
+    const nullEmailStatus = query(nullEmailContainer, "chatgpt-status");
+    expect(nullEmailStatus.textContent).toContain("ChatGPT プランを使用中");
+    expect(nullEmailStatus.textContent).not.toContain("@");
   });
 
   it("failed: errorMessage と再サインインを描画する", async () => {

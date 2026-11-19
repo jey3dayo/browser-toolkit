@@ -50,14 +50,17 @@ describe("domain-pattern-configs", () => {
 
   describe("getCurrentPatternRowFilterSetting", () => {
     it("matches URL patterns regardless of protocol", () => {
-      const result = getCurrentPatternRowFilterSetting(
-        [{ enableRowFilter: true, pattern: "example.com/path*" }],
-        "https://example.com/path/to/page"
-      );
+      const configs = [{ enableRowFilter: true, pattern: "example.com/path*" }];
+      for (const url of [
+        "https://example.com/path/to/page",
+        "http://example.com/path/to/page",
+      ]) {
+        const result = getCurrentPatternRowFilterSetting(configs, url);
 
-      expect(Result.isSuccess(result)).toBe(true);
-      if (Result.isSuccess(result)) {
-        expect(result.value).toBe(true);
+        expect(Result.isSuccess(result)).toBe(true);
+        if (Result.isSuccess(result)) {
+          expect(result.value).toBe(true);
+        }
       }
     });
   });
