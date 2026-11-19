@@ -1,5 +1,7 @@
 # TablePane Layout Refactor Implementation Plan
 
+> **ARCHIVED (2026-11-20):** この計画は当時の実行用チェックリストであり、未チェックの checkbox は未実施を意味しない。現在の正本は実装と `plans/README.md` を参照すること。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 Goal: `サイト別機能` ペインを `header summary + URLパターン card + フォーカス維持 card` 構成に整理し、主 CTA と診断状態を初見で把握しやすくする。

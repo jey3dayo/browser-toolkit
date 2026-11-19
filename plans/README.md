@@ -10,6 +10,9 @@ Three audit rounds by the improve skill:
   on the un-audited delta since Round 2 (plans 010–014 plus commits `fde5e29`, `c4aa820`,
   `da5cf02`, `9c49e9b`), plus verification-baseline and release-hygiene findings.
 
+> **Status (2026-11-20): plans 001–019 は完了済みの監査記録**（009 のみ PARTIAL）。
+> 実行待ちの計画ではないので、新規作業の起点にしないこと。経緯の参照用に残す。
+
 Execute in the order below unless dependencies say otherwise. Each executor:
 read the plan fully before starting, honor its STOP conditions, and update your
 row when done.

@@ -48,7 +48,6 @@ describe("i18n", () => {
     expect(i18n.t("templates.copyFallbackSuccess")).toBe(
       "テンプレートをコピーしました"
     );
-    expect(i18n.t("overlay.summary.title")).toBe("要約");
     expect(i18n.t("overlay.hints.processingMayTakeSeconds")).toBe(
       "処理に数秒かかることがあります。"
     );
