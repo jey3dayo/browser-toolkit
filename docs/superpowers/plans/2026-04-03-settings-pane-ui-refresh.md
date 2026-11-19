@@ -1,5 +1,7 @@
 # SettingsPane UI Refresh Implementation Plan
 
+> **ARCHIVED (2026-11-20):** この計画は当時の実行用チェックリストであり、未チェックの checkbox は未実施を意味しない。現在の正本は実装と `plans/README.md` を参照すること。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 Goal: `設定` ペインを `overview + 5 setting cards` 構成に再編し、保存/確認/削除の強弱と `ダーク / ライト / 自動` のテーマ導線を見た目で理解しやすくする。

@@ -1,4 +1,3 @@
-import { Result } from "@praha/byethrow";
 import { createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import {
@@ -6,15 +5,10 @@ import {
   type OverlayViewModel,
 } from "@/content/overlay/OverlayApp";
 import { ensureShadowMount } from "@/content/shadow_mount";
-import type {
-  ActionOverlayRequest,
-  SummaryOverlayRequest,
-} from "@/content-script-messages";
+import type { ActionOverlayRequest } from "@/content-script-messages";
 import { t } from "@/i18n";
 import type { ExtractedEvent, SummarySource } from "@/shared_types";
-import { storageSyncGet } from "@/storage/helpers";
 import type { Theme } from "@/ui/theme";
-import { isRecord } from "@/utils/guards";
 
 const OVERLAY_HOST_ID = "browser-toolkit-overlay";
 const OVERLAY_ROOT_ID = "mtk-overlay-react-root";
@@ -89,73 +83,6 @@ export function renderOverlay(
 
 function stripSourceSuffix(title: string): string {
   return title.replace(SOURCE_SUFFIX_REGEX, "").trim();
-}
-
-function getTrimmedStringProp(
-  record: Record<string, unknown>,
-  key: string
-): string {
-  const value = record[key];
-  return typeof value === "string" ? value.trim() : "";
-}
-
-export function findContextActionTitle(
-  actions: unknown,
-  id: string
-): string | null {
-  if (!Array.isArray(actions)) {
-    return null;
-  }
-  for (const item of actions) {
-    if (!isRecord(item)) {
-      continue;
-    }
-    if (getTrimmedStringProp(item, "id") !== id) {
-      continue;
-    }
-    const title = getTrimmedStringProp(item, "title");
-    return title || null;
-  }
-  return null;
-}
-
-let summarizeOverlayTitleCache: string | null = null;
-let summarizeOverlayTitleInFlight: Promise<string> | null = null;
-
-export function getSummarizeOverlayTitle(): Promise<string> {
-  if (summarizeOverlayTitleCache) {
-    return Promise.resolve(summarizeOverlayTitleCache);
-  }
-  if (summarizeOverlayTitleInFlight) {
-    return summarizeOverlayTitleInFlight;
-  }
-
-  summarizeOverlayTitleInFlight = (async () => {
-    const result = await storageSyncGet<{ contextActions?: unknown }>([
-      "contextActions",
-    ]);
-
-    if (Result.isSuccess(result)) {
-      const title = findContextActionTitle(
-        result.value.contextActions,
-        "builtin:summarize"
-      );
-      summarizeOverlayTitleCache =
-        stripSourceSuffix(title ?? "") || t("overlay.summary.title");
-    } else {
-      summarizeOverlayTitleCache = t("overlay.summary.title");
-    }
-
-    summarizeOverlayTitleInFlight = null;
-    return summarizeOverlayTitleCache;
-  })();
-
-  return summarizeOverlayTitleInFlight;
-}
-
-export function resetSummarizeOverlayTitleState(): void {
-  summarizeOverlayTitleCache = null;
-  summarizeOverlayTitleInFlight = null;
 }
 
 function trimmedOrEmpty(value: string | undefined): string {
@@ -239,86 +166,4 @@ export function showActionOverlay(
     },
     onDismiss
   );
-}
-
-export function renderSummaryOverlayWithTitle(
-  mount: OverlayMount,
-  request: SummaryOverlayRequest,
-  requestId: number,
-  requestStartedAt: number,
-  title: string,
-  onDismiss: () => void
-): void {
-  const summary = request.summary?.trim() ?? "";
-  const error = request.error?.trim() ?? "";
-
-  const anchorRect =
-    request.source === "selection" ? getSelectionAnchorRect() : null;
-
-  let primaryText = "";
-  if (request.status === "ready") {
-    primaryText = summary || t("overlay.summary.empty");
-  } else if (request.status === "error") {
-    primaryText = error || t("overlay.summary.failed");
-  }
-
-  let secondaryText = "";
-  if (request.status === "loading") {
-    secondaryText = t("overlay.hints.processingMayTakeSeconds");
-  } else if (request.status === "error") {
-    secondaryText = t("overlay.hints.openAiTokenMissing");
-  }
-
-  renderOverlay(
-    mount,
-    {
-      anchorRect,
-      mode: "text",
-      open: true,
-      primary: primaryText,
-      requestId,
-      requestStartedAt,
-      secondary: secondaryText,
-      source: request.source,
-      status: request.status,
-      title,
-    },
-    onDismiss
-  );
-}
-
-export function showSummaryOverlay(
-  mount: OverlayMount,
-  request: SummaryOverlayRequest,
-  requestId: number,
-  requestStartedAt: number,
-  onDismiss: () => void
-): void {
-  const fallbackTitle =
-    summarizeOverlayTitleCache ?? t("overlay.summary.title");
-  renderSummaryOverlayWithTitle(
-    mount,
-    request,
-    requestId,
-    requestStartedAt,
-    fallbackTitle,
-    onDismiss
-  );
-
-  (async () => {
-    const title = await getSummarizeOverlayTitle();
-    if (title === fallbackTitle) {
-      return;
-    }
-    renderSummaryOverlayWithTitle(
-      mount,
-      request,
-      requestId,
-      requestStartedAt,
-      title,
-      onDismiss
-    );
-  })().catch(() => {
-    // no-op
-  });
 }

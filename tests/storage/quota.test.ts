@@ -1,10 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  checkStorageQuota,
-  getStorageSyncBytesInUse,
-  QUOTA_BYTES,
-  QUOTA_BYTES_PER_ITEM,
-} from "@/background/storage";
+import { checkStorageQuota, QUOTA_BYTES_PER_ITEM } from "@/background/storage";
 
 // Chrome API のモック
 global.chrome = {
@@ -53,58 +48,6 @@ describe("Storage Quota Management", () => {
       if (!result.ok) {
         expect(result.key).toBe("key2");
       }
-    });
-  });
-
-  describe("getStorageSyncBytesInUse", () => {
-    it("should return safe level for low usage", async () => {
-      const bytesInUse = QUOTA_BYTES * 0.5; // 50%
-      vi.mocked(chrome.storage.sync.getBytesInUse).mockImplementation(
-        (_keys, callback) => {
-          callback(bytesInUse);
-        }
-      );
-
-      const usage = await getStorageSyncBytesInUse();
-      expect(usage.bytesInUse).toBe(bytesInUse);
-      expect(usage.warningLevel).toBe("safe");
-    });
-
-    it("should return warning level for 80-90% usage", async () => {
-      const bytesInUse = QUOTA_BYTES * 0.85; // 85%
-      vi.mocked(chrome.storage.sync.getBytesInUse).mockImplementation(
-        (_keys, callback) => {
-          callback(bytesInUse);
-        }
-      );
-
-      const usage = await getStorageSyncBytesInUse();
-      expect(usage.warningLevel).toBe("warning");
-    });
-
-    it("should return danger level for >90% usage", async () => {
-      const bytesInUse = QUOTA_BYTES * 0.95; // 95%
-      vi.mocked(chrome.storage.sync.getBytesInUse).mockImplementation(
-        (_keys, callback) => {
-          callback(bytesInUse);
-        }
-      );
-
-      const usage = await getStorageSyncBytesInUse();
-      expect(usage.warningLevel).toBe("danger");
-    });
-
-    it("should handle Chrome runtime errors", async () => {
-      vi.mocked(chrome.storage.sync.getBytesInUse).mockImplementation(
-        (_keys, callback) => {
-          chrome.runtime.lastError = { message: "Storage unavailable" };
-          callback(0); // Call the callback even with error
-        }
-      );
-
-      await expect(getStorageSyncBytesInUse()).rejects.toThrow(
-        "Storage unavailable"
-      );
     });
   });
 });

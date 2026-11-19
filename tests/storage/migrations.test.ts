@@ -5,8 +5,6 @@ import {
   cleanOldBackups,
   getCurrentSchemaVersion,
   getMigrationLog,
-  listBackups,
-  restoreFromBackup,
   runMigrations,
   setSchemaVersion,
 } from "@/storage/migrations";
@@ -90,6 +88,13 @@ function setupChromeMocks() {
   } as any;
 }
 
+function listStoredBackups(): BackupData[] {
+  return [...mockStorage.entries()]
+    .filter(([key]) => key.startsWith("backup_"))
+    .map(([, value]) => value as BackupData)
+    .sort((a, b) => b.timestamp - a.timestamp);
+}
+
 describe("Storage Migrations", () => {
   beforeEach(() => {
     mockStorage.clear();
@@ -138,7 +143,7 @@ describe("Storage Migrations", () => {
 
       await backupBeforeMigration(3);
 
-      const backups = await listBackups();
+      const backups = listStoredBackups();
       expect(backups.length).toBeGreaterThanOrEqual(1);
       expect(backups[0].version).toBe(3);
     });
@@ -149,7 +154,7 @@ describe("Storage Migrations", () => {
 
       await backupBeforeMigration(3);
 
-      const backups = await listBackups();
+      const backups = listStoredBackups();
       const [backup] = backups;
       expect(backup.localData.searchEngines).toEqual([
         { id: "builtin:amazon-jp" },
@@ -174,80 +179,8 @@ describe("Storage Migrations", () => {
 
       await cleanOldBackups();
 
-      const backups = await listBackups();
+      const backups = listStoredBackups();
       expect(backups.length).toBeLessThanOrEqual(3);
-    });
-  });
-
-  describe("listBackups", () => {
-    it("should list all backups sorted by timestamp", async () => {
-      const backup1: BackupData = {
-        localData: {},
-        syncData: {},
-        timestamp: 1000,
-        version: 1,
-      };
-      const backup2: BackupData = {
-        localData: {},
-        syncData: {},
-        timestamp: 2000,
-        version: 2,
-      };
-
-      mockStorage.set("backup_1_1000", backup1);
-      mockStorage.set("backup_2_2000", backup2);
-
-      const backups = await listBackups();
-      expect(backups).toHaveLength(2);
-      expect(backups[0].timestamp).toBe(2000); // newest first
-      expect(backups[1].timestamp).toBe(1000);
-    });
-  });
-
-  describe("restoreFromBackup", () => {
-    it("should restore data from backup", async () => {
-      const backup: BackupData = {
-        localData: { localKey: "localValue" },
-        syncData: { syncKey: "syncValue" },
-        timestamp: 1000,
-        version: 1,
-      };
-
-      mockStorage.set("backup_1_1000", backup);
-
-      await restoreFromBackup(1000);
-
-      const version = await getCurrentSchemaVersion();
-      expect(version).toBe(1);
-
-      // Check if data was restored
-      expect(mockStorage.get("syncKey")).toBe("syncValue");
-      expect(mockStorage.get("localKey")).toBe("localValue");
-    });
-
-    it("should throw error for non-existent backup", async () => {
-      await expect(restoreFromBackup(9999)).rejects.toThrow(
-        "Backup not found: 9999"
-      );
-    });
-
-    it("should only remove keys added after the backup, not all data", async () => {
-      const backup: BackupData = {
-        localData: { keptLocalKey: "kept" },
-        syncData: { keptSyncKey: "kept" },
-        timestamp: 1000,
-        version: 1,
-      };
-      mockStorage.set("backup_1_1000", backup);
-      mockStorage.set("keptSyncKey", "kept");
-      mockStorage.set("keptLocalKey", "kept");
-      mockStorage.set("addedAfterBackup", "shouldBeRemoved");
-
-      await restoreFromBackup(1000);
-
-      expect(mockStorage.get("keptSyncKey")).toBe("kept");
-      expect(mockStorage.get("keptLocalKey")).toBe("kept");
-      expect(mockStorage.has("addedAfterBackup")).toBe(false);
     });
   });
 

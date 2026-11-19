@@ -1,5 +1,4 @@
 import {
-  isReservedStorageKey,
   STORAGE_RESERVED_KEYS,
   storageLocalGet,
   storageLocalSet,
@@ -267,87 +266,6 @@ export async function cleanOldBackups(): Promise<void> {
       keysToRemove.map((key) => [key, undefined])
     );
     await storageLocalSet(removeObj);
-  }
-}
-
-export async function listBackups(): Promise<BackupData[]> {
-  const allData = await storageLocalGet(null);
-  const backupEntries: BackupData[] = [];
-  for (const [key, value] of Object.entries(
-    allData as Record<string, unknown>
-  )) {
-    if (key.startsWith(BACKUP_KEY_PREFIX)) {
-      backupEntries.push(value as BackupData);
-    }
-  }
-  backupEntries.sort((a, b) => b.timestamp - a.timestamp);
-
-  return backupEntries;
-}
-
-export async function restoreFromBackup(timestamp: number): Promise<void> {
-  const backups = await listBackups();
-  const backup = backups.find((b) => b.timestamp === timestamp);
-
-  if (!backup) {
-    throw new Error(`Backup not found: ${timestamp}`);
-  }
-
-  try {
-    const currentSyncData = (await storageSyncGet(null)) as Record<
-      string,
-      unknown
-    >;
-    const currentLocalData = (await storageLocalGet(null)) as Record<
-      string,
-      unknown
-    >;
-
-    // Clear keys that don't exist in backup (except reserved keys)
-    const syncKeysToRemove = Object.keys(currentSyncData).filter(
-      (key) => !(key in backup.syncData)
-    );
-    const localKeysToRemove = Object.keys(currentLocalData).filter(
-      (key) => !(key in backup.localData || isReservedStorageKey(key))
-    );
-
-    if (syncKeysToRemove.length > 0) {
-      const removeSync = Object.fromEntries(
-        syncKeysToRemove.map((key) => [key, undefined])
-      );
-      await storageSyncSet(removeSync);
-    }
-
-    if (localKeysToRemove.length > 0) {
-      const removeLocal = Object.fromEntries(
-        localKeysToRemove.map((key) => [key, undefined])
-      );
-      await storageLocalSet(removeLocal);
-    }
-
-    if (backup.syncData && Object.keys(backup.syncData).length > 0) {
-      await storageSyncSet(backup.syncData);
-    }
-
-    const localDataToRestore = Object.fromEntries(
-      Object.entries(backup.localData).filter(
-        ([key]) => !isReservedStorageKey(key)
-      )
-    );
-
-    if (Object.keys(localDataToRestore).length > 0) {
-      await storageLocalSet(localDataToRestore);
-    }
-
-    await setSchemaVersion(backup.version);
-
-    console.log(`[migrations] Restored from backup: ${timestamp}`);
-  } catch (error) {
-    console.error("[migrations] Restore failed:", error);
-    throw new Error(
-      `Restore failed: ${error instanceof Error ? error.message : String(error)}`,
-      { cause: error }
-    );
   }
 }
 

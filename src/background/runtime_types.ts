@@ -1,7 +1,6 @@
 import type { Result } from "@praha/byethrow";
 import type {
   BackgroundRequest,
-  BackgroundResponse,
   RunContextActionResponse,
   SummarizeEventResponse,
   SummaryTarget,
@@ -57,10 +56,8 @@ type ChatGptSignOutResponse = Result.Result<
 
 export type RuntimeRequest =
   | BackgroundRequest
-  | { action: "summarizeText"; target: SummaryTarget }
   | { action: "testOpenAiToken"; token?: string }
   | { action: "summarizeEvent"; target: SummaryTarget }
-  | { action: "openPopupSettings" }
   | OpenPopupPaneRequest
   | SearchBlocklistMutateRequest
   | DownloadImageRequest
@@ -78,7 +75,6 @@ type DownloadDebugLogsResponse = Result.Result<Record<string, never>, string>;
 type ClearDebugLogsResponse = Result.Result<Record<string, never>, string>;
 
 type RuntimeResponse =
-  | BackgroundResponse
   | RunContextActionResponse
   | SummarizeEventResponse
   | TestOpenAiTokenResponse
@@ -121,10 +117,6 @@ export type DebugLogRequest<TAction extends DebugLogAction> = {
   action: TAction;
 };
 
-export type SummarizeTextRequest = Extract<
-  RuntimeRequest,
-  { action: "summarizeText" }
->;
 export type SummarizeEventRequest = Extract<
   RuntimeRequest,
   { action: "summarizeEvent" }

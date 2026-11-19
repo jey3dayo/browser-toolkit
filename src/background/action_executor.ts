@@ -1,10 +1,9 @@
 import { Result } from "@praha/byethrow";
 import {
-  extractEventWithAi,
   renderInstructionTemplate,
   runPromptActionWithAi,
 } from "@/background/ai_requests";
-import { formatEventText } from "@/background/calendar";
+import { extractCalendarArtifacts } from "@/background/calendar_extraction";
 import type { SummaryTarget } from "@/background/types";
 import type { ContextAction } from "@/context_actions";
 import { t } from "@/i18n";
@@ -36,16 +35,20 @@ export async function executeContextAction({
     const extraInstruction = prompt
       ? renderInstructionTemplate(action.prompt, target)
       : undefined;
-    const result = await extractEventWithAi(target, extraInstruction);
+    const result = await extractCalendarArtifacts({
+      extraInstruction,
+      target,
+      targets: [],
+    });
     if (Result.isFailure(result)) {
       return Result.fail(result.error);
     }
 
     return Result.succeed({
-      event: result.value,
+      event: result.value.event,
       kind: "event",
       source: target.source,
-      text: formatEventText(result.value),
+      text: result.value.eventText,
     });
   }
 

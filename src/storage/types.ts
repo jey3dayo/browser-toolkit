@@ -47,6 +47,8 @@ export type LocalStorageData = {
   debugMode?: boolean;
   actionHistory?: ActionHistoryEntry[];
   searchBlocklistRules?: SearchBlocklistRule[];
+  // background が採番する単調増加 revision。SW 再起動で巻き戻らないよう永続化する
+  searchBlocklistRevision?: number;
   // 選択範囲キャッシュ。selectedTextOrigin は書き込んだページの origin で、
   // 消費側（content/summary-target.ts）は同一 origin のときだけ fallback に使う
   selectedText?: string;

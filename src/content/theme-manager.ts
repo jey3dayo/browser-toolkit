@@ -1,8 +1,6 @@
-import { Result } from "@praha/byethrow";
 import type { GlobalContentState } from "@/content/types";
-import { storageLocalGet } from "@/storage/helpers";
 import { applyTheme, type Theme } from "@/ui/theme";
-import { normalizeTheme } from "@/ui/themeStorage";
+import { loadStoredTheme, subscribeStoredTheme } from "@/ui/themeStorage";
 
 export type ThemeManager = {
   getCurrentTheme: () => Theme;
@@ -25,28 +23,15 @@ export function createThemeManager(
   }
 
   async function refreshThemeFromStorage(): Promise<void> {
-    const result = await storageLocalGet<{ theme?: unknown }>(["theme"]);
-    if (Result.isSuccess(result)) {
-      currentTheme = normalizeTheme(result.value.theme);
-    } else {
-      currentTheme = "auto";
-    }
-    applyThemeToMounts();
-  }
-
-  function handleThemeChange(newValue: unknown): void {
-    currentTheme = normalizeTheme(newValue);
+    currentTheme = await loadStoredTheme("auto");
     applyThemeToMounts();
   }
 
   function setupStorageListener(): void {
-    if (chrome.storage?.onChanged) {
-      chrome.storage.onChanged.addListener((changes, areaName) => {
-        if (areaName === "local" && "theme" in changes) {
-          handleThemeChange(changes.theme.newValue);
-        }
-      });
-    }
+    subscribeStoredTheme((theme) => {
+      currentTheme = theme;
+      applyThemeToMounts();
+    });
   }
 
   return {

@@ -166,9 +166,11 @@ type OverlayTextDetailsProps = {
 };
 
 function openSettings(): void {
-  chrome.runtime.sendMessage({ action: "openPopupSettings" }).catch((error) => {
-    console.error("Failed to open settings:", error);
-  });
+  chrome.runtime
+    .sendMessage({ action: "openPopupPane", paneId: "pane-settings" })
+    .catch((error) => {
+      console.error("Failed to open settings:", error);
+    });
 }
 
 function OverlayTextDetails(props: OverlayTextDetailsProps): React.JSX.Element {

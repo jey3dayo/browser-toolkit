@@ -197,15 +197,14 @@ X の全ページ読み込みで注入されるため parse コストを抑え�
 ```typescript
 // src/background/runtime_types.ts
 type RuntimeRequest =
-  | { action: "summarizeText"; target: SummaryTarget }
   | { action: "testAiToken"; token?: string }
   | { action: "summarizeEvent"; target: SummaryTarget }
-  | { action: "openPopupSettings" };
+  | { action: "openPopupPane"; paneId: string };
 // ...
 
 // 送信側（Content Script）
 chrome.runtime.sendMessage(
-  { action: "summarizeText", target: { text, source, title, url } },
+  { action: "summarizeEvent", target: { text, source, title, url } },
   (response) => {
     /* 結果処理 */
   },
@@ -213,8 +212,8 @@ chrome.runtime.sendMessage(
 
 // 受信側（Background Worker）
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "summarizeText") {
-    handleSummarizeTextRequest(request, sendResponse);
+  if (request.action === "summarizeEvent") {
+    handleSummarizeEventRequest(request, sendResponse);
     return true; // 非同期レスポンス
   }
 });

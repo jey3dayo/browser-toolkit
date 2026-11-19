@@ -2,7 +2,7 @@ import { Accordion } from "@/components/shared/Accordion";
 import { PaneCard } from "@/components/shared/Layout";
 import { Hint } from "@/components/shared/Typography";
 import { t } from "@/i18n";
-import { DebugPane } from "@/popup/panes/DebugPane";
+import { DebugSection } from "@/popup/panes/debug/DebugSection";
 import { SettingsChatGptAccountSection } from "@/popup/panes/settings/SettingsChatGptAccountSection";
 import { SettingsModelSection } from "@/popup/panes/settings/SettingsModelSection";
 import { SettingsPaneOverview } from "@/popup/panes/settings/SettingsPaneLayout";
@@ -89,7 +89,7 @@ export function SettingsPane(props: SettingsPaneProps): React.JSX.Element {
           itemValue="debug"
           title={t("settings.debugSection")}
         >
-          <DebugPane notify={props.notify} runtime={props.runtime} />
+          <DebugSection notify={props.notify} runtime={props.runtime} />
         </Accordion>
       </section>
     </PaneCard>

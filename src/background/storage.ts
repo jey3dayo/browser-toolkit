@@ -6,20 +6,10 @@ import type { LocalStorageData } from "@/storage/types";
  * @see https://developer.chrome.com/docs/extensions/reference/api/storage#property-sync-QUOTA_BYTES_PER_ITEM
  */
 export const QUOTA_BYTES_PER_ITEM = 8192; // 8KB
-export const QUOTA_BYTES = 102_400; // 100KB
-const QUOTA_WARNING_THRESHOLD = 0.8;
-const QUOTA_ERROR_THRESHOLD = 0.9;
 
 type QuotaCheckResult =
   | { ok: true }
   | { ok: false; sizeBytes: number; key: string };
-
-type StorageUsageInfo = {
-  bytesInUse: number;
-  quotaBytes: number;
-  usagePercent: number;
-  warningLevel: "safe" | "warning" | "danger";
-};
 
 export function checkStorageQuota(
   items: Record<string, unknown>
@@ -33,35 +23,6 @@ export function checkStorageQuota(
     }
   }
   return { ok: true };
-}
-
-export function getStorageSyncBytesInUse(
-  keys?: string | string[]
-): Promise<StorageUsageInfo> {
-  return new Promise((resolve, reject) => {
-    chrome.storage.sync.getBytesInUse(keys ?? null, (bytesInUse) => {
-      const err = chrome.runtime.lastError;
-      if (err) {
-        reject(new Error(err.message));
-        return;
-      }
-
-      const usagePercent = bytesInUse / QUOTA_BYTES;
-      let warningLevel: StorageUsageInfo["warningLevel"] = "safe";
-      if (usagePercent >= QUOTA_ERROR_THRESHOLD) {
-        warningLevel = "danger";
-      } else if (usagePercent >= QUOTA_WARNING_THRESHOLD) {
-        warningLevel = "warning";
-      }
-
-      resolve({
-        bytesInUse,
-        quotaBytes: QUOTA_BYTES,
-        usagePercent,
-        warningLevel,
-      });
-    });
-  });
 }
 
 /**

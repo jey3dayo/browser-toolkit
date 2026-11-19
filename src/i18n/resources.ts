@@ -118,7 +118,6 @@ export const resources = {
           chatFailed: "チャット応答に失敗しました",
           eventSummaryFailed: "イベント要約に失敗しました",
           openSettingsFailed: "設定画面を開けませんでした",
-          summarizeFailed: "要約に失敗しました",
           tokenHint:
             "OpenAI API Tokenが未設定の場合は、拡張機能のポップアップ「設定」タブで設定してください。",
           tokenTestFailed: "トークン確認に失敗しました",
@@ -376,11 +375,6 @@ export const resources = {
           elapsedSeconds: "{{seconds}}秒",
           error: "エラー",
           loading: "処理中...",
-        },
-        summary: {
-          empty: "要約結果が空でした",
-          failed: "要約に失敗しました",
-          title: "要約",
         },
         theme: {
           description: "自動・ライト・ダークを順に切り替えます。",

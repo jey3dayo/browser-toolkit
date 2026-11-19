@@ -10,6 +10,9 @@ Three audit rounds by the improve skill:
   on the un-audited delta since Round 2 (plans 010–014 plus commits `fde5e29`, `c4aa820`,
   `da5cf02`, `9c49e9b`), plus verification-baseline and release-hygiene findings.
 
+> **Status (2026-11-20): plans 001–019 は完了済みの監査記録**（009 のみ PARTIAL）。
+> 実行待ちの計画ではないので、新規作業の起点にしないこと。経緯の参照用に残す。
+
 Execute in the order below unless dependencies say otherwise. Each executor:
 read the plan fully before starting, honor its STOP conditions, and update your
 row when done.
@@ -167,7 +170,7 @@ Round 2 で検出したが今回プラン化しなかったもの。再監査を
 ### Direction findings（メンテナ判断・未プラン化）
 
 - DIR-01 Gemini を第一級 API provider に昇格（HIGH grounded）: 現状 web タブ handoff のみで overlay/history UX から外れている。API key 必須化のトレードオフあり。設計/spike プラン向き。
-- DIR-02 設定 backup/restore UI（MED）: `restoreFromBackup`/`listBackups` 実装・テスト済みだが未配線。
+- DIR-02 設定 backup/restore UI（MED）: **削除で確定**（2026-11-20、本人判断）。`restoreFromBackup`/`listBackups` とそのテストは削除済み。backup の生成側（`backupBeforeMigration`/`cleanOldBackups`）は、migration 失敗時に storage を直接読んで手動復旧するための snapshot として残す（UI は作らない）。
 - DIR-03 未完 superpowers plan 2件（MED）: status マーカー無し。完了 or archive。
 - DIR-04 OpenAI model shim の集約（MED）: model 処理が4ファイルに分散・高 churn。registry へ集約検討。**一部進捗**: legacy モデル読み替え表は plan 017（`bb18e46`）で `src/constants/models.ts` の `LEGACY_OPENAI_MODEL_MAP` に一元化済み。残るのは `src/ai/openai-compatible-adapter.ts` の `startsWith("gpt-5")` によるサンプリングパラメータ判定（モデル追加時に壊れやすい分岐）と、strict パース（`safeParseOpenAiModel` は未知値で失敗）と fallback（`normalizeAiModel` は default へ）の非対称性。
 

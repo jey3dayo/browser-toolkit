@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { fn } from "storybook/test";
-import { DebugPane } from "@/popup/panes/DebugPane";
+import { DebugSection } from "@/popup/panes/debug/DebugSection";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import { createStoryPopupRuntime } from "@/popup/storybook/createStoryPopupRuntime";
 
-function DebugPaneStory(props: PopupPaneBaseProps): React.JSX.Element {
-  return <DebugPane notify={props.notify} runtime={props.runtime} />;
+function DebugSectionStory(props: PopupPaneBaseProps): React.JSX.Element {
+  return <DebugSection notify={props.notify} runtime={props.runtime} />;
 }
 
 const meta = {
@@ -14,10 +14,10 @@ const meta = {
     notify: { control: false },
     runtime: { control: false },
   },
-  component: DebugPaneStory,
+  component: DebugSectionStory,
   tags: ["test"],
   title: "Popup/Panes/Debug",
-} satisfies Meta<typeof DebugPaneStory>;
+} satisfies Meta<typeof DebugSectionStory>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

@@ -9,7 +9,7 @@ import {
   toOriginalUrl,
 } from "@/image-zoom/x-adapter";
 import type { Theme } from "@/ui/theme";
-import { loadStoredTheme, normalizeTheme } from "@/ui/themeStorage";
+import { loadStoredTheme, subscribeStoredTheme } from "@/ui/themeStorage";
 
 let started = false;
 let currentTheme: Theme = "auto";
@@ -45,14 +45,8 @@ function handleClick(e: MouseEvent): void {
 }
 
 function setupThemeSync(): void {
-  if (!chrome.storage?.onChanged) {
-    return;
-  }
-  chrome.storage.onChanged.addListener((changes, areaName) => {
-    if (areaName !== "local" || !("theme" in changes)) {
-      return;
-    }
-    currentTheme = normalizeTheme(changes.theme?.newValue);
+  subscribeStoredTheme((nextTheme) => {
+    currentTheme = nextTheme;
     setImageViewerTheme(currentTheme);
   });
 }

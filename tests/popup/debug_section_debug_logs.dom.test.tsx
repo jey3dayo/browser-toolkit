@@ -2,7 +2,7 @@ import { Result } from "@praha/byethrow";
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { DebugPane } from "@/popup/panes/DebugPane";
+import { DebugSection } from "@/popup/panes/debug/DebugSection";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import type { PopupRuntime } from "@/popup/runtime";
 import { flush } from "../helpers/async";
@@ -50,7 +50,7 @@ function buildProps(runtime: PopupRuntime): PopupPaneBaseProps {
 
 const mountedRoots: Root[] = [];
 
-async function renderDebugPane(
+async function renderDebugSection(
   props: PopupPaneBaseProps
 ): Promise<HTMLDivElement> {
   const container = document.createElement("div");
@@ -58,7 +58,7 @@ async function renderDebugPane(
   const root = createRoot(container);
   mountedRoots.push(root);
   await act(async () => {
-    root.render(createElement(DebugPane, props));
+    root.render(createElement(DebugSection, props));
     await flush(setTimeout);
   });
   return container;
@@ -73,7 +73,7 @@ function debugModeRuntime(
   });
 }
 
-describe("DebugPane debug log loading failures", () => {
+describe("DebugSection debug log loading failures", () => {
   afterEach(async () => {
     await act(async () => {
       for (const root of mountedRoots.splice(0)) {
@@ -89,7 +89,7 @@ describe("DebugPane debug log loading failures", () => {
       Result.succeed({ error: "x", ok: false })
     );
     const props = buildProps(runtime);
-    await renderDebugPane(props);
+    await renderDebugSection(props);
 
     expect(props.notify.error).toHaveBeenCalledWith(
       "ログ統計の読み込みに失敗しました"
@@ -105,7 +105,7 @@ describe("DebugPane debug log loading failures", () => {
       )
     );
     const props = buildProps(runtime);
-    const container = await renderDebugPane(props);
+    const container = await renderDebugSection(props);
 
     const button = container.querySelector<HTMLButtonElement>(
       '[data-testid="show-debug-logs"]'
@@ -133,7 +133,7 @@ describe("DebugPane debug log loading failures", () => {
       )
     );
     const props = buildProps(runtime);
-    const container = await renderDebugPane(props);
+    const container = await renderDebugSection(props);
 
     const button = container.querySelector<HTMLButtonElement>(
       '[data-testid="show-debug-logs"]'
