@@ -92,24 +92,43 @@ describe("fetchWithTimeout", () => {
   });
 
   it("デフォルトタイムアウトは25秒", async () => {
-    const mockFetch = vi.fn().mockResolvedValue(new Response("ok"));
-    await fetchWithTimeout(
-      mockFetch as unknown as typeof fetch,
-      "https://example.com",
-      {}
-    );
-    expect(mockFetch).toHaveBeenCalled();
+    const setTimeoutSpy = vi.spyOn(globalThis, "setTimeout");
+    try {
+      const mockFetch = vi.fn().mockResolvedValue(new Response("ok"));
+      await fetchWithTimeout(
+        mockFetch as unknown as typeof fetch,
+        "https://example.com",
+        {}
+      );
+      expect(mockFetch).toHaveBeenCalled();
+      expect(setTimeoutSpy).toHaveBeenCalledWith(
+        expect.any(Function),
+        API_FETCH_TIMEOUT_MS
+      );
+    } finally {
+      setTimeoutSpy.mockRestore();
+    }
   });
 
   it("カスタムタイムアウトを設定可能", async () => {
-    const mockFetch = vi.fn().mockResolvedValue(new Response("ok"));
-    await fetchWithTimeout(
-      mockFetch as unknown as typeof fetch,
-      "https://example.com",
-      {},
-      10_000
-    );
-    expect(mockFetch).toHaveBeenCalled();
+    const customTimeoutMs = 10_000;
+    const setTimeoutSpy = vi.spyOn(globalThis, "setTimeout");
+    try {
+      const mockFetch = vi.fn().mockResolvedValue(new Response("ok"));
+      await fetchWithTimeout(
+        mockFetch as unknown as typeof fetch,
+        "https://example.com",
+        {},
+        customTimeoutMs
+      );
+      expect(mockFetch).toHaveBeenCalled();
+      expect(setTimeoutSpy).toHaveBeenCalledWith(
+        expect.any(Function),
+        customTimeoutMs
+      );
+    } finally {
+      setTimeoutSpy.mockRestore();
+    }
   });
 
   it("FetchTimeoutErrorのメッセージが正しい", () => {

@@ -12,6 +12,8 @@ import {
   safeParseAiProvider,
 } from "@/schemas/provider";
 import type { LocalStorageData } from "@/storage/types";
+import { debugLog } from "@/utils/debug_log";
+import { formatErrorLog } from "@/utils/errors";
 
 export type SettingsProviderSectionProps = {
   runtime: PopupRuntime;
@@ -61,8 +63,17 @@ export function SettingsProviderSection({
       try {
         await saveProvider(newProvider);
         await saveModel(defaultModel, newProvider);
-      } catch {
-        // no-op
+      } catch (error) {
+        try {
+          await debugLog(
+            "SettingsProviderSection.handleValueChange[saveProvider/saveModel]",
+            "failed",
+            { error: formatErrorLog("", {}, error) },
+            "error"
+          );
+        } catch {
+          // no-op
+        }
       }
     },
     [runtime, setProvider, setModel, setToken, saveProvider, saveModel]
