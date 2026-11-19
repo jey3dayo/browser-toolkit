@@ -1,8 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  checkStorageQuota,
-  QUOTA_BYTES_PER_ITEM,
-} from "@/background/storage";
+import { checkStorageQuota, QUOTA_BYTES_PER_ITEM } from "@/background/storage";
 
 // Chrome API のモック
 global.chrome = {

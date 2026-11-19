@@ -88,7 +88,6 @@ function setupChromeMocks() {
   } as any;
 }
 
-
 function listStoredBackups(): BackupData[] {
   return [...mockStorage.entries()]
     .filter(([key]) => key.startsWith("backup_"))

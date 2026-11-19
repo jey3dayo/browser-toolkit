@@ -105,7 +105,10 @@ function createDelayedStorage(initialRules: unknown[] = []): DelayedStorage {
         if (isRecord(items) && Array.isArray(items.searchBlocklistRules)) {
           rules = [...items.searchBlocklistRules];
         }
-        if (isRecord(items) && typeof items.searchBlocklistRevision === "number") {
+        if (
+          isRecord(items) &&
+          typeof items.searchBlocklistRevision === "number"
+        ) {
           revision = items.searchBlocklistRevision;
         }
         chrome.runtime.lastError = null;

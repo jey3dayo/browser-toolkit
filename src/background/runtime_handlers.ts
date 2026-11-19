@@ -1,25 +1,17 @@
 import { Result } from "@praha/byethrow";
 import { executeContextAction } from "@/background/action_executor";
-import {
-  chatFollowUpWithAi,
-  testAiToken,
-} from "@/background/ai_requests";
+import { chatFollowUpWithAi, testAiToken } from "@/background/ai_requests";
 import { extractCalendarArtifacts } from "@/background/calendar_extraction";
-import {
-  getChatGptAuthState,
-  signOutChatGpt,
-  startChatGptSignIn,
-} from "@/background/chatgpt_session";
 import { loadContextActions } from "@/background/context_menu_storage";
 import { sendMessageToTab } from "@/background/messaging";
+import { chatGptRuntimeHandlers } from "@/background/runtime_chatgpt_handlers";
 import { debugRuntimeHandlers } from "@/background/runtime_debug_handlers";
+import { searchBlocklistRuntimeHandlers } from "@/background/runtime_search_blocklist_handlers";
 import type {
   ChatFollowUpRequest,
   DownloadImageRequest,
   OpenPopupPaneRequest,
   RuntimeSendResponse,
-  SearchBlocklistMutateRequest,
-  SearchBlocklistMutateResponse,
   SummarizeEventRequest,
 } from "@/background/runtime_types";
 import type {
@@ -35,93 +27,8 @@ import {
   validateTwimgMediaUrl,
 } from "@/image-zoom/download-url";
 import { coercePaneId, getPaneSurfacePage } from "@/popup/panes";
-import { searchBlocklistMutationFailureMessage } from "@/search-blocklist/mutation_failure_message";
-import {
-  applySearchBlocklistRuleMutation,
-  partitionStoredSearchBlocklistRules,
-  type SearchBlocklistRulePartition,
-} from "@/search-blocklist/rules";
-import { storageLocalGet, storageLocalSet } from "@/storage/helpers";
 import { debugLog } from "@/utils/debug_log";
-import { isRecord } from "@/utils/guards";
 import { showErrorNotification } from "@/utils/notifications";
-
-let mutationQueue: Promise<unknown> = Promise.resolve();
-
-const SEARCH_BLOCKLIST_REVISION_KEY = "searchBlocklistRevision";
-
-type LoadedSearchBlocklist = {
-  partition: SearchBlocklistRulePartition;
-  revision: number;
-};
-
-function parseStoredSearchBlocklistRevision(value: unknown): number {
-  return typeof value === "number" &&
-    Number.isSafeInteger(value) &&
-    value >= 0
-    ? value
-    : 0;
-}
-
-async function loadSearchBlocklistRules(
-  op: SearchBlocklistMutateRequest["op"]
-): Promise<Result.Result<LoadedSearchBlocklist, string>> {
-  const loaded = await storageLocalGet<unknown>([
-    "searchBlocklistRules",
-    SEARCH_BLOCKLIST_REVISION_KEY,
-  ]);
-  if (Result.isFailure(loaded)) {
-    return Result.fail(searchBlocklistMutationFailureMessage(op));
-  }
-  const stored = isRecord(loaded.value)
-    ? loaded.value.searchBlocklistRules
-    : undefined;
-  const revision = parseStoredSearchBlocklistRevision(
-    isRecord(loaded.value)
-      ? loaded.value[SEARCH_BLOCKLIST_REVISION_KEY]
-      : undefined
-  );
-  return Result.succeed({
-    partition: partitionStoredSearchBlocklistRules(stored),
-    revision,
-  });
-}
-
-async function applySearchBlocklistMutation(
-  request: SearchBlocklistMutateRequest
-): Promise<SearchBlocklistMutateResponse> {
-  const loaded = await loadSearchBlocklistRules(request.op);
-  if (Result.isFailure(loaded)) {
-    return loaded;
-  }
-
-  const mutated = applySearchBlocklistRuleMutation(loaded.value.partition, {
-    op: request.op,
-    pattern: request.pattern,
-    ruleId: request.ruleId,
-    ruleIds: request.ruleIds,
-  });
-  if (Result.isFailure(mutated)) {
-    return mutated;
-  }
-
-  // Persist the next revision together with the rules so a service worker
-  // restart can never roll the revision back below what clients have seen.
-  const nextRevision = loaded.value.revision + 1;
-  const saved = await storageLocalSet({
-    [SEARCH_BLOCKLIST_REVISION_KEY]: nextRevision,
-    searchBlocklistRules: mutated.value.persisted,
-  });
-  if (Result.isFailure(saved)) {
-    return Result.fail(searchBlocklistMutationFailureMessage(request.op));
-  }
-
-  return Result.succeed({
-    revision: nextRevision,
-    rules: mutated.value.rules,
-    skippedCount: mutated.value.skippedCount,
-  });
-}
 
 async function handleSummarizeEventInMessage(
   target: SummaryTarget,
@@ -306,30 +213,6 @@ function handleOpenPopupPaneRequest(
   return true;
 }
 
-function handleSearchBlocklistMutateRequest(
-  request: SearchBlocklistMutateRequest,
-  sendResponse: RuntimeSendResponse
-): boolean {
-  const operation = mutationQueue
-    .catch(() => undefined)
-    .then(() => applySearchBlocklistMutation(request));
-  mutationQueue = operation;
-  operation
-    .then((result) => {
-      sendResponse(result);
-    })
-    .catch((error: unknown) => {
-      sendResponse(
-        Result.fail(
-          error instanceof Error
-            ? error.message
-            : searchBlocklistMutationFailureMessage(request.op)
-        )
-      );
-    });
-  return true;
-}
-
 function handleChatFollowUpRequest(
   request: ChatFollowUpRequest,
   sendResponse: RuntimeSendResponse
@@ -406,95 +289,15 @@ function handleDownloadImageRequest(
   return true;
 }
 
-async function failChatGptRequest(
-  action: string,
-  error: unknown,
-  fallbackMessage: string,
-  sendResponse: RuntimeSendResponse
-): Promise<void> {
-  await debugLog(
-    "handleChatGptRequest",
-    "ChatGPT request failed",
-    { action, error },
-    "error"
-  );
-  sendResponse(
-    Result.fail(error instanceof Error ? error.message : fallbackMessage)
-  );
-}
-
-function handleChatGptAuthStateRequest(
-  _request: { action: "chatgptAuthState" },
-  sendResponse: RuntimeSendResponse
-): boolean {
-  getChatGptAuthState()
-    .then((state) => {
-      sendResponse(Result.succeed(state));
-    })
-    .catch((error: unknown) =>
-      failChatGptRequest(
-        "chatgptAuthState",
-        error,
-        "ChatGPT のサインイン状態を取得できませんでした",
-        sendResponse
-      )
-    );
-  return true;
-}
-
-function handleChatGptSignInRequest(
-  _request: { action: "chatgptSignIn" },
-  sendResponse: RuntimeSendResponse
-): boolean {
-  startChatGptSignIn()
-    .then((result) => {
-      sendResponse(
-        Result.isFailure(result)
-          ? Result.fail(result.error)
-          : Result.succeed({})
-      );
-    })
-    .catch((error: unknown) =>
-      failChatGptRequest(
-        "chatgptSignIn",
-        error,
-        "サインインを開始できませんでした",
-        sendResponse
-      )
-    );
-  return true;
-}
-
-function handleChatGptSignOutRequest(
-  _request: { action: "chatgptSignOut" },
-  sendResponse: RuntimeSendResponse
-): boolean {
-  signOutChatGpt()
-    .then((result) => {
-      sendResponse(result);
-    })
-    .catch((error: unknown) =>
-      failChatGptRequest(
-        "chatgptSignOut",
-        error,
-        "サインアウトに失敗しました",
-        sendResponse
-      )
-    );
-  return true;
-}
-
 export const runtimeHandlers = {
   chatFollowUp: handleChatFollowUpRequest,
-  chatgptAuthState: handleChatGptAuthStateRequest,
-  chatgptSignIn: handleChatGptSignInRequest,
-  chatgptSignOut: handleChatGptSignOutRequest,
   downloadImage: handleDownloadImageRequest,
   openPopupPane: handleOpenPopupPaneRequest,
   runContextAction: handleRunContextActionRequest,
-  searchBlocklistMutate: handleSearchBlocklistMutateRequest,
   summarizeEvent: handleSummarizeEventRequest,
   testAiToken: handleTestAiTokenRequest,
   testOpenAiToken: handleTestAiTokenRequest,
+  ...chatGptRuntimeHandlers,
+  ...searchBlocklistRuntimeHandlers,
   ...debugRuntimeHandlers,
 } as const;
