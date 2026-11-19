@@ -21,5 +21,5 @@ i18n.init({
 });
 
 export function t(key: TranslationKey, options?: TranslationOptions): string {
-  return i18n.t(key, options);
+  return i18n.t(key, options ?? {});
 }
