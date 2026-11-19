@@ -78,13 +78,17 @@ type DelayedStorage = {
 function createDelayedStorage(initialRules: unknown[] = []): DelayedStorage {
   const chrome = createChromeStub();
   let rules: unknown[] = [...initialRules];
+  let revision = 0;
   let shouldFailNextWrite = false;
 
   chrome.storage.local.get.mockImplementation(
     (_keys: unknown, callback?: (items: Record<string, unknown>) => void) => {
       setTimeout(() => {
         chrome.runtime.lastError = null;
-        callback?.({ searchBlocklistRules: [...rules] });
+        callback?.({
+          searchBlocklistRevision: revision,
+          searchBlocklistRules: [...rules],
+        });
       }, 5);
     }
   );
@@ -100,6 +104,9 @@ function createDelayedStorage(initialRules: unknown[] = []): DelayedStorage {
         }
         if (isRecord(items) && Array.isArray(items.searchBlocklistRules)) {
           rules = [...items.searchBlocklistRules];
+        }
+        if (isRecord(items) && typeof items.searchBlocklistRevision === "number") {
+          revision = items.searchBlocklistRevision;
         }
         chrome.runtime.lastError = null;
         callback?.();
@@ -401,5 +408,36 @@ describe("background search blocklist mutation queue", () => {
     expect(new Set(storage.getRules().map((rule) => rule.id)).size).toBe(
       storage.getRules().length
     );
+  });
+
+  it("keeps the revision monotonic across a service worker restart", async () => {
+    const storage = createDelayedStorage();
+    vi.stubGlobal("chrome", storage.chrome);
+    const first = await import("@/background/runtime_handlers");
+
+    const firstResponse = await sendMutationForResponse(
+      first.runtimeHandlers.searchBlocklistMutate,
+      {
+        action: "searchBlocklistMutate",
+        op: "add",
+        pattern: "first.example.com",
+      }
+    );
+    expect(successPayload(firstResponse).revision).toBe(1);
+
+    // Simulate an MV3 service worker restart: module state is dropped,
+    // storage.local (including the persisted revision) survives.
+    vi.resetModules();
+    const second = await import("@/background/runtime_handlers");
+
+    const secondResponse = await sendMutationForResponse(
+      second.runtimeHandlers.searchBlocklistMutate,
+      {
+        action: "searchBlocklistMutate",
+        op: "add",
+        pattern: "second.example.com",
+      }
+    );
+    expect(successPayload(secondResponse).revision).toBe(2);
   });
 });
