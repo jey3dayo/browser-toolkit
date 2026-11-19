@@ -413,6 +413,69 @@ describe("background search blocklist mutation queue", () => {
     );
   });
 
+  it("purges every corrupted stored entry and keeps valid rules", async () => {
+    const shapeInvalidEntries: unknown[] = [
+      "garbage",
+      null,
+      { createdAt: "not-a-number", id: "broken" },
+      { pattern: "*://*.no-id.example.com/*" },
+    ];
+    const storage = createDelayedStorage([
+      ...shapeInvalidEntries,
+      REGEXP_RULE,
+      VALID_RULE,
+    ]);
+    vi.stubGlobal("chrome", storage.chrome);
+    const { runtimeHandlers } = await import("@/background/runtime_handlers");
+
+    const response = await sendMutationForResponse(
+      runtimeHandlers.searchBlocklistMutate,
+      { action: "searchBlocklistMutate", op: "purgeCorrupted" }
+    );
+
+    expect(successPayload(response).skippedCount).toBe(0);
+    expect(successPayload(response).rules).toEqual([
+      expect.objectContaining({ id: VALID_RULE.id }),
+    ]);
+    expect(storage.getRules()).toEqual([
+      expect.objectContaining({ id: VALID_RULE.id }),
+    ]);
+  });
+
+  it("purges storage that holds only shape-invalid entries", async () => {
+    const storage = createDelayedStorage([
+      "garbage",
+      { createdAt: "not-a-number", id: "broken" },
+      { noPattern: true },
+    ]);
+    vi.stubGlobal("chrome", storage.chrome);
+    const { runtimeHandlers } = await import("@/background/runtime_handlers");
+
+    const response = await sendMutationForResponse(
+      runtimeHandlers.searchBlocklistMutate,
+      { action: "searchBlocklistMutate", op: "purgeCorrupted" }
+    );
+
+    expect(successPayload(response).skippedCount).toBe(0);
+    expect(successPayload(response).rules).toEqual([]);
+    expect(storage.getRules()).toEqual([]);
+  });
+
+  it("returns purgeFailed when persisting a purge fails", async () => {
+    const storage = createDelayedStorage([REGEXP_RULE, VALID_RULE]);
+    storage.failNextWrite();
+    vi.stubGlobal("chrome", storage.chrome);
+    const { runtimeHandlers } = await import("@/background/runtime_handlers");
+
+    const response = await sendMutationForResponse(
+      runtimeHandlers.searchBlocklistMutate,
+      { action: "searchBlocklistMutate", op: "purgeCorrupted" }
+    );
+
+    expect(failureError(response)).toBe("読めないルールの削除に失敗しました");
+    expect(storage.getRules()).toHaveLength(2);
+  });
+
   it("keeps the revision monotonic across a service worker restart", async () => {
     const storage = createDelayedStorage();
     vi.stubGlobal("chrome", storage.chrome);
