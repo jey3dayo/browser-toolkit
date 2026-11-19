@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { Button } from "@/components/shared/Button";
 import { PaneCard } from "@/components/shared/Layout";
 import { PatternAddForm } from "@/components/shared/PatternAddForm";
 import { PatternList } from "@/components/shared/PatternListItem";
@@ -23,6 +24,7 @@ export function SearchBlocklistPane(
     setPatternInput,
     addRule,
     removeRule,
+    purgeCorrupted,
     editingId,
     editingValue,
     setEditingValue,
@@ -35,6 +37,12 @@ export function SearchBlocklistPane(
     props.notify.error(t("common.unknownError"));
   }, [props.notify]);
 
+  const handlePurgeCorrupted = useCallback(() => {
+    purgeCorrupted().catch(() => {
+      props.notify.error(t("searchBlocklist.errors.purgeFailed"));
+    });
+  }, [props.notify, purgeCorrupted]);
+
   return (
     <PaneCard className="search-blocklist-pane">
       <Hint as="div">{t("searchBlocklist.description")}</Hint>
@@ -46,6 +54,17 @@ export function SearchBlocklistPane(
                 count: corruptedCount,
               })
             : t("searchBlocklist.errors.corrupted")}
+          {corruptedCount > 0 ? (
+            <Button
+              data-testid="search-blocklist-purge-corrupted"
+              onClick={handlePurgeCorrupted}
+              size="small"
+              type="button"
+              variant="danger"
+            >
+              {t("searchBlocklist.purgeCorrupted")}
+            </Button>
+          ) : null}
         </Hint>
       ) : null}
 

@@ -10,5 +10,8 @@ export function searchBlocklistMutationFailureMessage(
   if (op === "remove") {
     return t("searchBlocklist.errors.deleteFailed");
   }
+  if (op === "purgeCorrupted") {
+    return t("searchBlocklist.errors.purgeFailed");
+  }
   return t("searchBlocklist.errors.saveFailed");
 }

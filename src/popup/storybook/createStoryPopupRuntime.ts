@@ -99,7 +99,12 @@ function isSearchBlocklistMutateRequest(
   if (!isRecord(value) || value.action !== "searchBlocklistMutate") {
     return false;
   }
-  if (value.op !== "add" && value.op !== "remove" && value.op !== "update") {
+  if (
+    value.op !== "add" &&
+    value.op !== "remove" &&
+    value.op !== "update" &&
+    value.op !== "purgeCorrupted"
+  ) {
     return false;
   }
   return (

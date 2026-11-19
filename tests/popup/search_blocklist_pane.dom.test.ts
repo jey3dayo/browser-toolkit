@@ -438,4 +438,83 @@ describe("popup Search Blocklist pane", { timeout: 15_000 }, () => {
     expect(chromeStub.storage.local.set).not.toHaveBeenCalled();
     expect(store.rules).toHaveLength(1);
   });
+
+  it("purges corrupted rules from the banner and hides it", async () => {
+    const shapeInvalidEntries = [
+      "garbage",
+      { createdAt: "not-a-number", id: "broken" },
+    ] as unknown as StoredRule[];
+    const { dom, chromeStub } = await setupSearchBlocklistPane([
+      ...shapeInvalidEntries,
+      { createdAt: 3, id: "sbl-valid", pattern: "keep.example.com" },
+    ]);
+    mockMutationResponse(
+      chromeStub,
+      successMutationResponse(
+        [
+          {
+            createdAt: 3,
+            id: "sbl-valid",
+            pattern: "*://*.keep.example.com/*",
+          },
+        ],
+        1,
+        0
+      )
+    );
+
+    expect(corruptedBannerText(dom)).toContain("2件");
+    const purge = dom.window.document.querySelector<HTMLButtonElement>(
+      '[data-testid="search-blocklist-purge-corrupted"]'
+    );
+    expect(purge).not.toBeNull();
+
+    await act(async () => {
+      purge?.click();
+      await flush(dom.window);
+    });
+
+    expect(chromeStub.runtime.sendMessage).toHaveBeenCalledWith(
+      { action: "searchBlocklistMutate", op: "purgeCorrupted" },
+      expect.any(Function)
+    );
+    expect(
+      dom.window.document.querySelector(
+        '[data-testid="search-blocklist-corrupted"]'
+      )
+    ).toBeNull();
+    expect(listedPatterns(dom)).toEqual(["*://*.keep.example.com/*"]);
+  });
+
+  it("clears the banner when storage holds only shape-invalid entries", async () => {
+    const shapeInvalidEntries = [
+      "garbage",
+      { createdAt: "not-a-number", id: "broken" },
+      { noPattern: true },
+    ] as unknown as StoredRule[];
+    const { dom, chromeStub } =
+      await setupSearchBlocklistPane(shapeInvalidEntries);
+    mockMutationResponse(chromeStub, successMutationResponse([], 1, 0));
+
+    expect(corruptedBannerText(dom)).toContain("3件");
+    expect(listedPatterns(dom)).toEqual([]);
+
+    const purge = dom.window.document.querySelector<HTMLButtonElement>(
+      '[data-testid="search-blocklist-purge-corrupted"]'
+    );
+    await act(async () => {
+      purge?.click();
+      await flush(dom.window);
+    });
+
+    expect(chromeStub.runtime.sendMessage).toHaveBeenCalledWith(
+      { action: "searchBlocklistMutate", op: "purgeCorrupted" },
+      expect.any(Function)
+    );
+    expect(
+      dom.window.document.querySelector(
+        '[data-testid="search-blocklist-corrupted"]'
+      )
+    ).toBeNull();
+  });
 });

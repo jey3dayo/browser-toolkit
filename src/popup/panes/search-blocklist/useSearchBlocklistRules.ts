@@ -27,6 +27,7 @@ export type UseSearchBlocklistRulesResult = {
   setPatternInput: (value: string) => void;
   addRule: () => Promise<void>;
   removeRule: (id: string) => Promise<void>;
+  purgeCorrupted: () => Promise<void>;
   editingId: string | null;
   editingValue: string;
   setEditingValue: (value: string) => void;
@@ -298,6 +299,20 @@ export function useSearchBlocklistRules(
     props.notify.success(t("searchBlocklist.success.deleted"));
   };
 
+  const purgeCorrupted = async (): Promise<void> => {
+    const response = await sendSearchBlocklistMutation(props, {
+      action: "searchBlocklistMutate",
+      op: "purgeCorrupted",
+    });
+    if (Result.isFailure(response)) {
+      props.notify.error(response.error);
+      return;
+    }
+
+    applyPayload(response.value);
+    props.notify.success(t("searchBlocklist.success.purged"));
+  };
+
   const saveEditing = async (id: string): Promise<void> => {
     const latest = rules;
     await submitSearchBlocklistRulePattern(
@@ -339,6 +354,7 @@ export function useSearchBlocklistRules(
     editingId,
     editingValue,
     patternInput,
+    purgeCorrupted,
     removeRule,
     rules,
     saveEditing,

@@ -182,7 +182,7 @@ export function listDisplayableSearchBlocklistRules(
 }
 
 export type SearchBlocklistRuleMutation = {
-  op: "add" | "remove" | "update";
+  op: "add" | "remove" | "update" | "purgeCorrupted";
   pattern?: string;
   ruleIds?: string[];
   ruleId?: string;
@@ -300,6 +300,20 @@ function updateSearchBlocklistRule(
   });
 }
 
+function purgeCorruptedSearchBlocklistRules(
+  partition: SearchBlocklistRulePartition
+): Result.Result<SearchBlocklistRulePartition, string> {
+  // Drop every entry the partition counted as skipped (invalid) and keep
+  // only the valid rules. This is the only way to remove stored entries
+  // whose shape is too broken to appear in the popup list, since those
+  // entries cannot be targeted by id.
+  return Result.succeed({
+    invalid: [],
+    skippedCount: 0,
+    valid: partition.valid,
+  });
+}
+
 export type SearchBlocklistMutationOutcome = {
   persisted: unknown[];
   rules: SearchBlocklistRule[];
@@ -318,6 +332,8 @@ export function applySearchBlocklistRuleMutation(
       : Result.succeed({ ...partition, valid: added.value });
   } else if (mutation.op === "remove") {
     next = removeSearchBlocklistRules(partition, mutation.ruleIds);
+  } else if (mutation.op === "purgeCorrupted") {
+    next = purgeCorruptedSearchBlocklistRules(partition);
   } else {
     next = updateSearchBlocklistRule(
       partition,
