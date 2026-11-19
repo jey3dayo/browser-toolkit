@@ -8,9 +8,9 @@ import { useDebugLogs } from "@/popup/panes/debug/useDebugLogs";
 import { useSearchBlocklistDiagnostics } from "@/popup/panes/debug/useSearchBlocklistDiagnostics";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 
-export type DebugPaneProps = PopupPaneBaseProps;
+export type DebugSectionProps = PopupPaneBaseProps;
 
-export function DebugPane(props: DebugPaneProps): React.JSX.Element {
+export function DebugSection(props: DebugSectionProps): React.JSX.Element {
   const debugLogs = useDebugLogs(props);
   const searchBlocklistDiagnostics = useSearchBlocklistDiagnostics(
     props.runtime

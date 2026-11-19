@@ -2,7 +2,7 @@ import { Result } from "@praha/byethrow";
 import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { DebugPane } from "@/popup/panes/DebugPane";
+import { DebugSection } from "@/popup/panes/debug/DebugSection";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
 import type { PopupRuntime } from "@/popup/runtime";
 import { flush } from "../helpers/async";
@@ -48,20 +48,20 @@ function buildProps(runtime: PopupRuntime): PopupPaneBaseProps {
   };
 }
 
-async function renderDebugPane(
+async function renderDebugSection(
   props: PopupPaneBaseProps
 ): Promise<HTMLDivElement> {
   const container = document.createElement("div");
   document.body.append(container);
   const root = createRoot(container);
   await act(async () => {
-    root.render(createElement(DebugPane, props));
+    root.render(createElement(DebugSection, props));
     await flush(setTimeout);
   });
   return container;
 }
 
-describe("DebugPane search blocklist diagnostics", () => {
+describe("DebugSection search blocklist diagnostics", () => {
   afterEach(() => {
     document.body.innerHTML = "";
   });
@@ -77,7 +77,7 @@ describe("DebugPane search blocklist diagnostics", () => {
       })
     );
     const runtime = buildRuntime({ sendMessageToTab });
-    const container = await renderDebugPane(buildProps(runtime));
+    const container = await renderDebugSection(buildProps(runtime));
 
     expect(sendMessageToTab).toHaveBeenCalledWith(1, {
       action: "getSearchBlocklistDiagnostics",
@@ -93,7 +93,7 @@ describe("DebugPane search blocklist diagnostics", () => {
       getSearchResultTabId: async () => Result.succeed(null),
       sendMessageToTab,
     });
-    const container = await renderDebugPane(buildProps(runtime));
+    const container = await renderDebugSection(buildProps(runtime));
 
     expect(sendMessageToTab).not.toHaveBeenCalled();
     expect(container.textContent).toContain(
@@ -105,7 +105,7 @@ describe("DebugPane search blocklist diagnostics", () => {
     const runtime = buildRuntime({
       getSearchResultTabId: async () => Result.fail("query failed"),
     });
-    const container = await renderDebugPane(buildProps(runtime));
+    const container = await renderDebugSection(buildProps(runtime));
 
     expect(container.textContent).toContain("取得できませんでした");
   });
@@ -114,7 +114,7 @@ describe("DebugPane search blocklist diagnostics", () => {
     const runtime = buildRuntime({
       sendMessageToTab: async () => Result.succeed({ available: false }),
     });
-    const container = await renderDebugPane(buildProps(runtime));
+    const container = await renderDebugSection(buildProps(runtime));
 
     expect(container.textContent).toContain(
       "対象のタブでは検索結果ブロックが動作していません"
@@ -132,7 +132,7 @@ describe("DebugPane search blocklist diagnostics", () => {
           ruleRevision: 2,
         }),
     });
-    const container = await renderDebugPane(buildProps(runtime));
+    const container = await renderDebugSection(buildProps(runtime));
 
     expect(container.textContent).toContain("取得できませんでした");
   });
@@ -148,7 +148,7 @@ describe("DebugPane search blocklist diagnostics", () => {
           ruleRevision: 1,
         }),
     });
-    const container = await renderDebugPane(buildProps(runtime));
+    const container = await renderDebugSection(buildProps(runtime));
 
     expect(container.textContent).toContain("取得できませんでした");
   });
@@ -157,7 +157,7 @@ describe("DebugPane search blocklist diagnostics", () => {
     const runtime = buildRuntime({
       sendMessageToTab: async () => Result.fail("no receiving end"),
     });
-    const container = await renderDebugPane(buildProps(runtime));
+    const container = await renderDebugSection(buildProps(runtime));
 
     expect(container.textContent).toContain("取得できませんでした");
   });
