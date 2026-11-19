@@ -13,6 +13,7 @@
     "build": "pnpm run clean && pnpm run typecheck && pnpm run bundle && pnpm run copy:styles",
     "build-storybook": "storybook build",
     "bundle": "node scripts/bundle.mjs",
+    "check:jev": "pnpm dlx --config.minimum-release-age=0 --allow-build=@ast-grep/cli jev-lint@latest check",
     "clean": "node scripts/clean.mjs",
     "copy:styles": "node scripts/copy-styles.mjs",
     "dev": "node scripts/dev-server.mjs",

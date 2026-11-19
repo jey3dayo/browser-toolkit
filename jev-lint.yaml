@@ -1,4 +1,27 @@
-# Advisory only: findings are candidates for human triage, never a gate.
+# jev-lint configuration (https://github.com/mizchi/jev-lint).
+#
+# Advisory only: an ast-grep matcher picks the code, and the Jev decision
+# model answers one plain-language question per rule about each match.
+# Findings are candidates for human triage, never a gate — this is NOT
+# part of CI and must not be wired into one. The judged code is sent to
+# the TypeSafe API, so a run needs a key in the environment (never in
+# this file):
+#
+#   export TYPESAFE_API_KEY=<redacted>
+#   pnpm report:jev   # judge only what a diff touched (vs origin/main)
+#   pnpm check:jev    # judge the whole tree; refreshes the cache below
+#
+# `cache:` is a verdict cache (despite the file name): verdicts for
+# unchanged subjects are reused, so a re-run judges only what changed
+# and surfaces new findings against the already-judged set. The cache
+# lives under tmp/ (gitignored) on purpose — it is a local record of
+# what has been judged, not a source artifact, so it is not committed.
+# Findings that survive a full run are the known set: triage them, fix
+# the real ones, and leave the rest as known.
+#
+# A `rules:` map is an allowlist: only the rules listed `on` here run.
+# Shipped cutoffs were fitted to the upstream corpus, not to this
+# repository: read a finding as a candidate for a human to judge.
 files: [src, tests, scripts, package.json]
 exclude:
   - tests/fixtures
