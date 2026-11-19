@@ -14,7 +14,6 @@ import type {
   ActionOverlayRequest,
   ContentRequest,
   SearchBlocklistDiagnosticsResponse,
-  SummaryOverlayRequest,
   SummaryTarget,
 } from "@/content-script-messages";
 import { t } from "@/i18n";
@@ -25,7 +24,6 @@ export type MessageHandlerDeps = {
   showNotification: (message: string) => void;
   getOrCreateToastMount: () => Promise<ToastMount | null>;
   showActionOverlay: (request: ActionOverlayRequest) => void;
-  showSummaryOverlay: (request: SummaryOverlayRequest) => void;
   showQrCodeOverlay: (url: string) => void;
   getSearchBlocklistDiagnostics: () => SearchBlocklistDiagnosticsResponse;
 };
@@ -170,15 +168,6 @@ function handleGetSummaryTargetText(
   return true;
 }
 
-function handleShowSummaryOverlay(
-  deps: MessageHandlerDeps,
-  request: SummaryOverlayRequest,
-  sendResponse: (response: { ok: boolean }) => void
-): void {
-  deps.showSummaryOverlay(request);
-  sendResponse({ ok: true });
-}
-
 function handleShowActionOverlay(
   deps: MessageHandlerDeps,
   request: ActionOverlayRequest,
@@ -226,10 +215,6 @@ export function createMessageListener(deps: MessageHandlerDeps) {
           request.ignoreSelection,
           sendResponse
         );
-      }
-      case "showSummaryOverlay": {
-        handleShowSummaryOverlay(deps, request, sendResponse);
-        return;
       }
       case "showActionOverlay": {
         handleShowActionOverlay(deps, request, sendResponse);

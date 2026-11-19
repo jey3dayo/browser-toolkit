@@ -17,7 +17,7 @@ import {
 import { normalizeEvent } from "@/background/calendar";
 import type { ChatMessage } from "@/background/runtime_types";
 import { storageLocalGetTyped } from "@/background/storage";
-import type { BackgroundResponse, SummaryTarget } from "@/background/types";
+import type { SummaryTarget } from "@/background/types";
 import {
   EXTRACTED_EVENT_JSON_SCHEMA,
   ExtractedEventSchema,
@@ -58,53 +58,6 @@ async function requestAiText(
   });
 
   return await requestAiCompletionText(settings, body, emptyContentMessage);
-}
-
-export async function summarizeWithAi(
-  target: SummaryTarget
-): Promise<BackgroundResponse> {
-  const summaryResult = await requestAiText({
-    buildBody: ({ settings, clippedText, meta }) => ({
-      body: {
-        messages: [
-          {
-            content: buildSystemMessage(
-              "あなたは日本語の要約アシスタントです。入力テキストを読み、要点を短く整理して出力してください。",
-              settings.customPrompt
-            ),
-            role: "system",
-          },
-          {
-            content: [
-              "次のテキストを日本語で要約してください。",
-              "",
-              "要件:",
-              "- 重要ポイントを箇条書き(3〜7個)",
-              "- 最後に一文で結論/要約",
-              "- 事実と推測を混同しない",
-              "",
-              clippedText + meta,
-            ].join("\n"),
-            role: "user",
-          },
-        ],
-        model: settings.model,
-        temperature: 0.2,
-      },
-      emptyContentMessage: "要約結果の取得に失敗しました",
-    }),
-    includeMissingMeta: true,
-    missingTextMessage: "要約対象のテキストが見つかりませんでした",
-    target,
-  });
-  if (Result.isFailure(summaryResult)) {
-    return Result.fail(summaryResult.error);
-  }
-
-  return Result.succeed({
-    source: target.source,
-    summary: summaryResult.value,
-  });
 }
 
 export async function runPromptActionWithAi(

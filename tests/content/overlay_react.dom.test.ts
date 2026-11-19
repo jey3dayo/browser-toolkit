@@ -26,13 +26,6 @@ type ContentRequest =
         description?: string;
       };
     }
-  | {
-      action: "showSummaryOverlay";
-      status: "loading" | "ready" | "error";
-      source: "selection" | "page";
-      summary?: string;
-      error?: string;
-    }
   | { action: "enableTableSort" };
 
 const ELAPSED_LABEL_REGEX = /^\d+\.\d秒$/;
@@ -501,7 +494,7 @@ describe("content overlay (React + Shadow DOM)", () => {
     expect(themeButton.getAttribute("aria-label")).toContain("ライト");
   });
 
-  it("does not duplicate the source label in summary overlay titles", async () => {
+  it("does not duplicate the source label in action overlay titles", async () => {
     await import("@/content.ts");
     const [listener] = listeners;
     if (!listener) {
@@ -511,10 +504,12 @@ describe("content overlay (React + Shadow DOM)", () => {
     await dispatchMessage(
       listener,
       {
-        action: "showSummaryOverlay",
+        action: "showActionOverlay",
+        mode: "text",
+        primary: "hello",
         source: "page",
         status: "ready",
-        summary: "hello",
+        title: "要約（ページ本文）",
       },
       dom.window
     );

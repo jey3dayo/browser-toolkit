@@ -9,7 +9,6 @@ import { matchesAnyPattern } from "@/utils/url-pattern";
 
 export type TableAutoExecDeps = {
   showNotification: (message: string) => void;
-  onContextActionsChange: () => Promise<void>;
 };
 
 export type TableAutoExecResult = {
@@ -60,12 +59,6 @@ export function setupTableAutoExec(
   function handleSyncStorageChange(
     changes: Record<string, chrome.storage.StorageChange>
   ): void {
-    if ("contextActions" in changes) {
-      deps.onContextActionsChange().catch(() => {
-        // no-op
-      });
-    }
-
     const hasTableConfigChange =
       "domainPatternConfigs" in changes || "domainPatterns" in changes;
     if (!hasTableConfigChange) {

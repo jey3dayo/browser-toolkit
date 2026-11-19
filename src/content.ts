@@ -13,7 +13,6 @@ import type { GlobalContentState } from "@/content/types";
 import type {
   ActionOverlayRequest,
   SearchBlocklistDiagnosticsResponse,
-  SummaryOverlayRequest,
 } from "@/content-script-messages";
 import { ignoreRejection } from "@/utils/ignore_rejection";
 import { parseNumericValue } from "@/utils/number_parser";
@@ -240,32 +239,6 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
     );
   }
 
-  function showSummaryOverlay(request: SummaryOverlayRequest): void {
-    overlayRequestSeq += 1;
-    const requestId = overlayRequestSeq;
-    const requestStartedAt = performance.now();
-    ignoreRejection(
-      (async () => {
-        const module = await loadOverlayModule();
-        if (!module) {
-          return;
-        }
-        const mount = await getOrCreateOverlayMount();
-        if (!mount) {
-          return;
-        }
-        module.showSummaryOverlay(
-          mount,
-          request,
-          requestId,
-          requestStartedAt,
-          handleCloseOverlay
-        );
-      })(),
-      "content: show summary overlay"
-    );
-  }
-
   function getSearchBlocklistDiagnostics(): SearchBlocklistDiagnosticsResponse {
     const blocklistState = globalThis.__MBU_BLOCKLIST_STATE__;
     return buildDiagnosticsResponse(blocklistState?.getSnapshot() ?? null);
@@ -288,12 +261,6 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
   }
 
   const tableSort = setupTableAutoExec({
-    onContextActionsChange: async () => {
-      const module = await loadOverlayModule();
-      if (module) {
-        module.resetSummarizeOverlayTitleState();
-      }
-    },
     showNotification,
   });
 
@@ -304,7 +271,6 @@ import { matchesAnyPattern, patternToRegex } from "@/utils/url-pattern";
     showActionOverlay,
     showNotification,
     showQrCodeOverlay,
-    showSummaryOverlay,
   };
 
   chrome.runtime.onMessage.addListener(

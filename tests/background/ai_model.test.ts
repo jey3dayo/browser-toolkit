@@ -79,7 +79,7 @@ describe("background: OpenAI model selection", () => {
       const sendResponse = vi.fn();
       listener(
         {
-          action: "summarizeText",
+          action: "summarizeEvent",
           target: { source: "page", text: "hello", title: "t", url: "u" },
         },
         {},

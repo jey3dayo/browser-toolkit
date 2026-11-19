@@ -77,7 +77,7 @@ describe("background: search blocklist runtime requests", () => {
     expect(sendResponse).toHaveBeenCalledWith({ ok: true });
   });
 
-  it("keeps openPopupSettings opening the settings pane", async () => {
+  it("opens the settings pane via openPopupPane", async () => {
     const chromeStub = stubChromeWithTabsCreate(listeners);
     const { registerRuntimeMessageHandlers } = await import(
       "@/background/runtime"
@@ -86,7 +86,11 @@ describe("background: search blocklist runtime requests", () => {
     const [listener] = listeners;
 
     const sendResponse = vi.fn();
-    listener({ action: "openPopupSettings" }, {}, sendResponse);
+    listener(
+      { action: "openPopupPane", paneId: "pane-settings" },
+      {},
+      sendResponse
+    );
     await Promise.resolve();
     await Promise.resolve();
 

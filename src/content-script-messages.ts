@@ -28,14 +28,6 @@ type PasteTemplateMessage = {
   content: string;
 };
 
-export type SummaryOverlayRequest = {
-  action: "showSummaryOverlay";
-  status: "loading" | "ready" | "error";
-  source: SummarySource;
-  summary?: string;
-  error?: string;
-};
-
 export type ActionOverlayRequest = {
   action: "showActionOverlay";
   status: "loading" | "ready" | "error";
@@ -73,7 +65,6 @@ export type ContentScriptMessage =
   | GetSummaryTargetTextMessage
   | CopyToClipboardMessage
   | PasteTemplateMessage
-  | SummaryOverlayRequest
   | ActionOverlayRequest
   | ShowQrCodeOverlayMessage
   | GetSearchBlocklistDiagnosticsMessage;

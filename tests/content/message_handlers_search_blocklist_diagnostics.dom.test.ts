@@ -15,7 +15,6 @@ function buildDeps(
     showActionOverlay: vi.fn(),
     showNotification: vi.fn(),
     showQrCodeOverlay: vi.fn(),
-    showSummaryOverlay: vi.fn(),
   };
 }
 

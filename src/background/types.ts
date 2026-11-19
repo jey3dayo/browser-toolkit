@@ -8,25 +8,13 @@ export type {
 } from "@/content-script-messages";
 export type { SyncStorageData } from "@/storage/types";
 
-export type BackgroundRequest =
-  | { action: "summarizeTab"; tabId: number }
-  | {
-      action: "runContextAction";
-      tabId: number;
-      actionId: string;
-      target?: SharedSummaryTarget;
-      source?: "popup" | "contextMenu";
-    };
-
-type BackgroundSuccessPayload = {
-  summary: string;
-  source: SummarySource;
+export type BackgroundRequest = {
+  action: "runContextAction";
+  tabId: number;
+  actionId: string;
+  target?: SharedSummaryTarget;
+  source?: "popup" | "contextMenu";
 };
-
-export type BackgroundResponse = Result.Result<
-  BackgroundSuccessPayload,
-  string
->;
 
 export type RunContextActionSuccessPayload =
   | { resultType: "text"; text: string; source: SummarySource }

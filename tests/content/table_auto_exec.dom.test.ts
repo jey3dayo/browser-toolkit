@@ -21,12 +21,8 @@ describe("table activation lifecycle", () => {
   let configs: DomainPatternConfig[];
   let storageListeners: StorageListener[];
   const showNotification = vi.fn();
-  const onContextActionsChange = vi
-    .fn<() => Promise<void>>()
-    .mockResolvedValue(undefined);
-
   function setup() {
-    return setupTableAutoExec({ onContextActionsChange, showNotification });
+    return setupTableAutoExec({ showNotification });
   }
 
   function appendTable(): HTMLTableElement {
@@ -107,7 +103,6 @@ describe("table activation lifecycle", () => {
       showActionOverlay: vi.fn(),
       showNotification,
       showQrCodeOverlay: vi.fn(),
-      showSummaryOverlay: vi.fn(),
     });
     const sendResponse = vi.fn();
 
@@ -231,7 +226,7 @@ describe("table activation lifecycle", () => {
   });
 
   it.each(["domainPatternConfigs", "domainPatterns"])(
-    "reacts to sync %s changes but not local changes and preserves the context-action callback",
+    "reacts to sync %s changes but not local changes",
     async (key) => {
       const table = appendTable();
       setup();
@@ -241,10 +236,9 @@ describe("table activation lifecycle", () => {
       await vi.advanceTimersByTimeAsync(0);
       expect(table.querySelector("th")?.getAttribute("aria-sort")).toBeNull();
 
-      emitStorageChange({ [key]: {}, contextActions: {} });
+      emitStorageChange({ [key]: {} });
       await vi.advanceTimersByTimeAsync(0);
       expect(table.querySelector("th")?.getAttribute("aria-sort")).toBe("none");
-      expect(onContextActionsChange).toHaveBeenCalled();
     }
   );
 

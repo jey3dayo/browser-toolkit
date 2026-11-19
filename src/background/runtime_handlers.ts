@@ -3,7 +3,6 @@ import { executeContextAction } from "@/background/action_executor";
 import {
   chatFollowUpWithAi,
   extractEventWithAi,
-  summarizeWithAi,
   testAiToken,
 } from "@/background/ai_requests";
 import {
@@ -27,7 +26,6 @@ import type {
   SearchBlocklistMutateRequest,
   SearchBlocklistMutateResponse,
   SummarizeEventRequest,
-  SummarizeTextRequest,
 } from "@/background/runtime_types";
 import type {
   BackgroundRequest,
@@ -125,68 +123,6 @@ async function handleSummarizeEventInMessage(
       eventText,
     })
   );
-}
-
-function handleSummarizeTabRequest(
-  request: { action: "summarizeTab"; tabId: number },
-  sendResponse: RuntimeSendResponse
-): boolean {
-  (async () => {
-    try {
-      const target = await sendMessageToTab<
-        ContentScriptMessage,
-        SummaryTarget
-      >(request.tabId, {
-        action: "getSummaryTargetText",
-        ignoreSelection: true,
-      });
-
-      const result = await summarizeWithAi(target);
-      sendResponse(result);
-    } catch (error) {
-      await debugLog(
-        "handleSummarizeTabRequest",
-        "Failed to summarize tab",
-        { error, request },
-        "error"
-      );
-      sendResponse({
-        error:
-          error instanceof Error
-            ? error.message
-            : t("background.runtime.summarizeFailed"),
-        ok: false,
-      });
-    }
-  })();
-  return true;
-}
-
-function handleSummarizeTextRequest(
-  request: SummarizeTextRequest,
-  sendResponse: RuntimeSendResponse
-): boolean {
-  (async () => {
-    try {
-      const result = await summarizeWithAi(request.target);
-      sendResponse(result);
-    } catch (error) {
-      await debugLog(
-        "handleSummarizeTextRequest",
-        "Failed to summarize text",
-        { error, request },
-        "error"
-      );
-      sendResponse({
-        error:
-          error instanceof Error
-            ? error.message
-            : t("background.runtime.summarizeFailed"),
-        ok: false,
-      });
-    }
-  })();
-  return true;
 }
 
 function handleRunContextActionRequest(
@@ -345,16 +281,6 @@ function handleOpenPopupPaneRequest(
       });
     });
   return true;
-}
-
-function handleOpenPopupSettingsRequest(
-  _request: { action: "openPopupSettings" },
-  sendResponse: RuntimeSendResponse
-): boolean {
-  return handleOpenPopupPaneRequest(
-    { action: "openPopupPane", paneId: "pane-settings" },
-    sendResponse
-  );
 }
 
 function handleSearchBlocklistMutateRequest(
@@ -542,12 +468,9 @@ export const runtimeHandlers = {
   chatgptSignOut: handleChatGptSignOutRequest,
   downloadImage: handleDownloadImageRequest,
   openPopupPane: handleOpenPopupPaneRequest,
-  openPopupSettings: handleOpenPopupSettingsRequest,
   runContextAction: handleRunContextActionRequest,
   searchBlocklistMutate: handleSearchBlocklistMutateRequest,
   summarizeEvent: handleSummarizeEventRequest,
-  summarizeTab: handleSummarizeTabRequest,
-  summarizeText: handleSummarizeTextRequest,
   testAiToken: handleTestAiTokenRequest,
   testOpenAiToken: handleTestAiTokenRequest,
   ...debugRuntimeHandlers,
