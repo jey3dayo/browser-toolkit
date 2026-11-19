@@ -1,6 +1,6 @@
 import { Result } from "@praha/byethrow";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { AiSettings } from "@/ai/settings";
+import { type AiSettings, CHATGPT_NOT_SIGNED_IN_MESSAGE } from "@/ai/settings";
 import { isRecord } from "@/utils/guards";
 import {
   installChatGptChrome,
@@ -247,6 +247,8 @@ describe("background: ai_requests with chatgpt", () => {
     expect(Result.isSuccess(result) && result.value).toBe("reply");
     const urls = fetchSpy.mock.calls.map(([url]) => String(url));
     expect(urls).toEqual(["https://api.openai.com/v1/responses"]);
+    const [, init] = fetchSpy.mock.calls[0] ?? [];
+    expect(bearerOf(init)).toBe("Bearer access-1");
   });
 
   it("ignores the token override when testing chatgpt", async () => {
@@ -277,6 +279,9 @@ describe("background: ai_requests with chatgpt", () => {
     const result = await testAiToken();
 
     expect(Result.isFailure(result)).toBe(true);
+    expect(Result.isFailure(result) && result.error).toBe(
+      CHATGPT_NOT_SIGNED_IN_MESSAGE
+    );
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 });

@@ -107,6 +107,7 @@ describe("image-zoom viewer", () => {
     const closeButton = getCloseButton();
     expect(closeButton.tagName).toBe("BUTTON");
     expect(closeButton.textContent).toBe(t("imageZoom.close"));
+    expect(closeButton.nextElementSibling).toBe(getDownloadButton());
   });
 
   it("initial scale is min(fitScale, 1) for a large image", () => {
@@ -344,6 +345,8 @@ describe("image-zoom viewer", () => {
   it("does nothing when setImageViewerTheme is called while closed", () => {
     expect(isImageViewerOpen()).toBe(false);
     expect(() => setImageViewerTheme("dark")).not.toThrow();
+    expect(isImageViewerOpen()).toBe(false);
+    expect(getHost()).toBeNull();
   });
 
   it("sends a download request on button click without closing, and shows a failure message", async () => {
