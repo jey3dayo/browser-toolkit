@@ -66,6 +66,36 @@ describe("create link formatLink github", () => {
     );
   });
 
+  it("cleans the real pull request tab title with author and GitHub suffix", () => {
+    expect(
+      formatLink(
+        {
+          title:
+            "Apply `font-variation-settings` to the suggestion widget (fix #199954) by chengluyu · Pull Request #200000 · microsoft/vscode · GitHub",
+          url: "https://github.com/microsoft/vscode/pull/200000",
+        },
+        "github"
+      )
+    ).toBe(
+      "[#200000 Apply `font-variation-settings` to the suggestion widget (fix #199954)](<https://github.com/microsoft/vscode/pull/200000>)"
+    );
+  });
+
+  it("cleans the real issue tab title with GitHub suffix", () => {
+    expect(
+      formatLink(
+        {
+          title:
+            "feat: Save to Notion 風 Webクリップ機能 (MVP: Bookmark保存) · Issue #247 · jey3dayo/browser-toolkit · GitHub",
+          url: "https://github.com/jey3dayo/browser-toolkit/issues/247",
+        },
+        "github"
+      )
+    ).toBe(
+      "[#247 feat: Save to Notion 風 Webクリップ機能 (MVP: Bookmark保存)](<https://github.com/jey3dayo/browser-toolkit/issues/247>)"
+    );
+  });
+
   it("drops a trailing number that matches the URL number", () => {
     expect(
       formatLink(
