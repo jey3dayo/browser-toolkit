@@ -293,6 +293,7 @@ export const resources = {
       },
       linkFormat: {
         bbcode: "BBCode",
+        github: "GitHub（#番号 + タイトル）",
         html: "HTML <a>",
         markdown: "Markdown",
         org: "Org-mode",
