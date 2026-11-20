@@ -72,6 +72,9 @@ function formatMarkdownLink(url: string, title: string): string {
 const GITHUB_PR_ISSUE_URL_PATTERN =
   /^https:\/\/github\.com\/[^/]+\/[^/]+\/(pull|issues)\/(\d+)(?:[?#].*)?$/;
 
+const GITHUB_TAB_TITLE_GITHUB_SUFFIX_PATTERN = /\s*·\s*GitHub$/;
+const GITHUB_PR_TAB_TITLE_AUTHOR_PATTERN = /\s+by\s+\S+$/;
+
 // GitHub のタブタイトルは PR が "タイトル by 著者 · Pull Request #123 · owner/repo · GitHub"、
 // Issue が "タイトル · Issue #123 · owner/repo · GitHub" という形式になる。
 // 末尾のメタ情報を取り除き、タイトル本文だけを残す。著者名は PR のサフィックスが
@@ -85,11 +88,11 @@ function cleanGitHubTitle(
   const suffixPattern = new RegExp(
     `\\s*·\\s*(?:Pull Request|Issue) #${number} · [^·]+$`
   );
-  let cleaned = title.replace(/\s*·\s*GitHub$/, "");
+  let cleaned = title.replace(GITHUB_TAB_TITLE_GITHUB_SUFFIX_PATTERN, "");
   const hadSuffix = suffixPattern.test(cleaned);
   cleaned = cleaned.replace(suffixPattern, "");
   if (isPullRequest && hadSuffix) {
-    cleaned = cleaned.replace(/\s+by\s+\S+$/, "");
+    cleaned = cleaned.replace(GITHUB_PR_TAB_TITLE_AUTHOR_PATTERN, "");
   }
   return cleaned.replace(new RegExp(`\\s+#${number}$`), "").trim();
 }
