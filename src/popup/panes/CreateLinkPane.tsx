@@ -43,6 +43,7 @@ type CreateLinkInitialState = {
 
 const LINK_FORMAT_LABEL_KEYS: Record<LinkFormat, TranslationKey> = {
   bbcode: "linkFormat.bbcode",
+  github: "linkFormat.github",
   html: "linkFormat.html",
   markdown: "linkFormat.markdown",
   org: "linkFormat.org",

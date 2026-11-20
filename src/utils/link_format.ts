@@ -2,6 +2,7 @@ const LINK_FORMATS = [
   "url",
   "text",
   "markdown",
+  "github",
   "html",
   "org",
   "bbcode",
@@ -27,6 +28,7 @@ export const CONTEXT_MENU_LINK_FORMATS: readonly LinkFormat[] = [
   "url",
   "text",
   "markdown",
+  "github",
   "html",
 ];
 
@@ -37,6 +39,7 @@ export const LINK_FORMAT_OPTIONS: ReadonlyArray<{
   { label: "URL", value: "url" },
   { label: "テキスト（タイトル + URL）", value: "text" },
   { label: "Markdown", value: "markdown" },
+  { label: "GitHub（#番号 + タイトル）", value: "github" },
   { label: "HTML <a>", value: "html" },
   { label: "Org-mode", value: "org" },
   { label: "BBCode", value: "bbcode" },
@@ -62,13 +65,55 @@ function escapeMarkdownLinkText(value: string): string {
 
 type LinkFormatter = (url: string, title: string) => string;
 
+function formatMarkdownLink(url: string, title: string): string {
+  return title ? `[${escapeMarkdownLinkText(title)}](<${url}>)` : `<${url}>`;
+}
+
+const GITHUB_PR_ISSUE_URL_PATTERN =
+  /^https:\/\/github\.com\/[^/]+\/[^/]+\/(pull|issues)\/(\d+)(?:[?#].*)?$/;
+
+const GITHUB_TAB_TITLE_GITHUB_SUFFIX_PATTERN = /\s*·\s*GitHub$/;
+const GITHUB_PR_TAB_TITLE_AUTHOR_PATTERN = /\s+by\s+\S+$/;
+
+// GitHub のタブタイトルは PR が "タイトル by 著者 · Pull Request #123 · owner/repo · GitHub"、
+// Issue が "タイトル · Issue #123 · owner/repo · GitHub" という形式になる。
+// 末尾のメタ情報を取り除き、タイトル本文だけを残す。著者名は PR のサフィックスが
+// 実際に付いていた場合のみ落とす（タイトル本文が "by ..." で終わるケースを壊さない）。
+// 末尾の " #123" は URL の番号と一致する場合のみ落とす（本文中の参照番号を誤って消さない）。
+function cleanGitHubTitle(
+  title: string,
+  number: string,
+  isPullRequest: boolean
+): string {
+  const suffixPattern = new RegExp(
+    `\\s*·\\s*(?:Pull Request|Issue) #${number} · [^·]+$`
+  );
+  let cleaned = title.replace(GITHUB_TAB_TITLE_GITHUB_SUFFIX_PATTERN, "");
+  const hadSuffix = suffixPattern.test(cleaned);
+  cleaned = cleaned.replace(suffixPattern, "");
+  if (isPullRequest && hadSuffix) {
+    cleaned = cleaned.replace(GITHUB_PR_TAB_TITLE_AUTHOR_PATTERN, "");
+  }
+  return cleaned.replace(new RegExp(`\\s+#${number}$`), "").trim();
+}
+
+function formatGitHubLink(url: string, title: string): string {
+  const [, kind, number] = GITHUB_PR_ISSUE_URL_PATTERN.exec(url) ?? [];
+  if (!number) {
+    return formatMarkdownLink(url, title);
+  }
+  const cleanedTitle = cleanGitHubTitle(title, number, kind === "pull");
+  const label = cleanedTitle ? `#${number} ${cleanedTitle}` : `#${number}`;
+  return `[${escapeMarkdownLinkText(label)}](<${url}>)`;
+}
+
 const LINK_FORMATTERS: Record<LinkFormat, LinkFormatter> = {
   bbcode: (url, title) =>
     title ? `[url=${url}]${title}[/url]` : `[url]${url}[/url]`,
+  github: formatGitHubLink,
   html: (url, title) =>
     `<a href="${escapeHtmlAttribute(url)}">${escapeHtmlText(title || url)}</a>`,
-  markdown: (url, title) =>
-    title ? `[${escapeMarkdownLinkText(title)}](<${url}>)` : `<${url}>`,
+  markdown: formatMarkdownLink,
   org: (url, title) => (title ? `[[${url}][${title}]]` : `[[${url}]]`),
   text: (url, title) => (title ? `${title}\n${url}` : url),
   url: (url) => url,
