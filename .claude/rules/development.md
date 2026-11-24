@@ -4,33 +4,33 @@ paths:
   - "manifest.json"
 ---
 
-# Chrome拡張機能 開発ルール
+# Chrome 拡張機能 開発ルール
 
-このプロジェクトの開発における基本ルールとガイドラインです。
+このプロジェクトの開発における基本ルールとガイドラインをまとめています。
 
-> **セキュリティガイドライン**: XSS対策、APIトークン保護、入力検証などの詳細は [security.md](security.md) を参照してください。
+> **セキュリティガイドライン**: XSS 対策、API トークン保護、入力検証などの詳細は [security.md](security.md) を参照してください。
 
-## 🏗️ プロジェクト構造
+## プロジェクト構造
 
 ```
 browser-toolkit/
 ├── .claude/
-│   └── rules/          # 開発ルール（このディレクトリ）
-├── dist/               # ビルド出力（自動生成）
-├── docs/               # プロジェクトドキュメント
-├── images/             # ロゴ/拡張機能アイコン
-├── manifest.json       # 拡張機能マニフェスト
-├── content.css         # コンテンツスクリプト用スタイル
-├── popup.html          # ポップアップUI
-├── popup_bootstrap.js  # popup読み込み（dist未生成時のガード含む）
-├── options.html        # オプションページUI
-├── options_bootstrap.js # options読み込み（dist未生成時のガード含む）
-└── src/                # TypeScriptソース
+│   └── rules/           # 開発ルール（このディレクトリ）
+├── dist/                # ビルド出力（自動生成）
+├── docs/                # プロジェクトドキュメント
+├── images/              # ロゴ・拡張機能アイコン
+├── manifest.json        # 拡張機能マニフェスト
+├── content.css          # コンテンツスクリプト用スタイル
+├── popup.html           # ポップアップ UI
+├── popup_bootstrap.js   # ポップアップ読み込み（dist 未生成時のガードを含む）
+├── options.html         # オプションページ UI
+├── options_bootstrap.js # オプションページ読み込み（dist 未生成時のガードを含む）
+└── src/                 # TypeScript ソース
     ├── background.ts
     ├── content.ts
     ├── popup.ts
     ├── options.ts
-    └── styles/         # ポップアップ/共通UIスタイル（Design Tokens）
+    └── styles/          # ポップアップ・共通 UI スタイル（Design Tokens）
         ├── base.css
         ├── layout.css
         ├── utilities.css
@@ -40,133 +40,132 @@ browser-toolkit/
             └── components.css
 ```
 
-## 📝 コーディング規約
+## コーディング規約
 
 ### TypeScript
 
-- strict mode 前提。`any` と型アサーションを入れない（`unknown` + 型ガードへ）
-- エラーは握りつぶさず、境界で `Result` / `ResultAsync`（`@praha/byethrow`）として返す
-- 非同期は async/await
-- フォーマットは Ultracite (Biome)
+- strict mode 前提で実装し、`any` や型アサーションは使わない（`unknown` と型ガードで絞る）
+- エラーを握りつぶさず、境界では `Result` / `ResultAsync`（`@praha/byethrow`）として返す
+- 非同期処理は `async` / `await` を使う
+- フォーマットは Ultracite（Biome）に従う
 
-### HTML/CSS
+### HTML / CSS
 
-- セマンティックHTML: 適切なタグを使用（div乱用を避ける）
-- スタイルは `src/styles/tokens/` の design token 経由で当てる（生の値を直書きしない）
-- ポップアップ幅は `--layout-popup-width`（`src/styles/tokens/semantic.css`）が正本
-- アクセシビリティ: alt属性、aria属性を適切に設定
+- セマンティックな HTML を書き、`div` の乱用を避ける
+- スタイルは `src/styles/tokens/` の Design Token 経由で指定し、生の値を直書きしない
+- ポップアップ幅の正本は `--layout-popup-width`（`src/styles/tokens/semantic.css`）とする
+- `alt` 属性や `aria` 属性を適切に設定し、アクセシビリティを保つ
 
-## 🎨 デザインガイドライン
+## デザインガイドライン
 
-カラー・タイポグラフィ・spacing の値は [DESIGN.md](../../DESIGN.md) と
-`src/styles/tokens/` が正本。ここには重複させない（ライト/ダークで別 token を持つため、
-単一の hex を書くと必ずずれる）。
+カラー、タイポグラフィ、余白の値は [DESIGN.md](../../DESIGN.md) と `src/styles/tokens/` を正本とします。ライト・ダークテーマで別々のトークンを持つため、単一のカラーコードなどをここに重複記載しないでください。
 
-## 🔒 セキュリティガイドライン
+## セキュリティガイドライン
 
-### XSS対策
+### XSS 対策
 
-- ユーザー入力のエスケープ必須: DOMに挿入する前に必ず処理
-- innerHTML禁止: textContentまたはcreateElementを使用
+- ユーザー入力は DOM へ挿入する前に必ずエスケープする
+- `innerHTML` は使用せず、`textContent` や `createElement` を使う
 - HTML 文字列を組み立てる箇所では `src/utils/link_format.ts` のエスケープ関数を使う
 
 ### バリデーション
 
-- 入力検証: 長さ、文字種、形式をチェック
-- ホワイトリスト方式: 許可する文字のみを受け入れる
-- エラーメッセージ: ユーザーフレンドリーな表示
+- 入力値の長さ・文字種・形式を検証する
+- 許可する値のみを受け入れるホワイトリスト方式を基本とする
+- エラー時はユーザーが状況を理解しやすいメッセージを返す
 
 ### ストレージ
 
-- chrome.storage.sync: 同期したいユーザー設定（1 item 8,192 bytes 上限。`QUOTA_BYTES_PER_ITEM`）
-- chrome.storage.local: API トークンとデバイスローカルなデータ
-- API トークンは `chrome.storage.local` のみに保存し、`sync` へは置かない（詳細は [security.md](security.md)）
+- `chrome.storage.sync`: デバイス間で同期したいユーザー設定（1 キーあたり 8,192 bytes 上限 / `QUOTA_BYTES_PER_ITEM`）
+- `chrome.storage.local`: API トークンとデバイス固有のデータ
+- API トークンは必ず `chrome.storage.local` に保存し、`sync` には置かない（詳細は [security.md](security.md)）
 
-## 🧪 テスト方針
+## テスト方針
 
-自動テストは `mise run ci`（format / lint / vitest / Storybook test / build）が正本。
-テストは対象の `src/<dir>/` に対応する `tests/<dir>/` に置く。エントリーポイント `src/<dir>.ts`（`background.ts` / `content.ts` など）も同名の `tests/<dir>/` へ置き、対応するディレクトリが無い `src/` 直下モジュールだけ `tests/` 直下、ビルド契約は `tests/build/` とする。jsdom が要るものは `*.dom.test.ts(x)` にする。
-以下はその上で手動確認する項目。
+自動テストは `mise run ci`（format / lint / Vitest / Storybook テスト / build）を基準とします。
+
+テストファイルの配置ルールは次のとおりです。
+
+- 対象となる `src/<dir>/` に対応する `tests/<dir>/` へ配置する
+- エントリポイント `src/<dir>.ts`（`background.ts`、`content.ts` など）のテストも同名の `tests/<dir>/` へ配置する
+- 対応するディレクトリが無い `src/` 直下のモジュールのみ `tests/` 直下に配置する
+- ビルド契約のテストは `tests/build/` に配置する
+- jsdom が必要なテストは `*.dom.test.ts(x)` とする
+
+自動テストに加えて、以下の項目は必要に応じて手動で確認します。
 
 ### 手動テスト項目
 
-1. パターン登録・削除: 正常系、異常系（重複、上限）
-2. URLマッチング: ワイルドカード、プロトコル
-3. MutationObserver: 動的テーブル追加
-4. 既存機能: 手動ボタン、グローバルフラグ
-5. ブラウザ互換性: Chrome最新版で動作確認
+1. パターン登録・削除: 正常系および異常系（重複、件数上限）
+2. URL マッチング: ワイルドカード、プロトコルの扱い
+3. `MutationObserver`: 動的に追加されるテーブルへの適用
+4. 既存機能: 手動有効化ボタン、グローバル有効化フラグ
+5. ブラウザ互換性: 最新の Chrome での動作確認
 
-### テストページ推奨
+### テスト用ページの目安
 
-- [HTML Table Generator](https://www.tablesgenerator.com/html_tables)でテスト用テーブルを作成
-- 動的追加テスト用のHTMLページを用意
+- [HTML Table Generator](https://www.tablesgenerator.com/html_tables) でテスト用テーブルを作成して確認する
+- 動的テーブル追加の確認には、スクリプトでテーブルを後挿入する HTML ページを使う
 
-## 📦 リリースフロー
+## リリースフロー
 
 ### バージョニング
 
-セマンティックバージョニング（SemVer）に従う:
+セマンティックバージョニング（SemVer）に従います。
 
 - MAJOR: 破壊的変更
-- MINOR: 新機能追加
-- PATCH: バグ修正
+- MINOR: 後方互換性のある機能追加
+- PATCH: 後方互換性のあるバグ修正
 
 ### リリース前チェックリスト
 
-- [ ] すべての機能が正常動作
-- [ ] manifest.jsonのバージョン更新
-- [ ] README.mdの更新
-- [ ] 不要なconsole.logを削除
-- [ ] アイコン・ロゴが正しく表示
+- [ ] すべての機能が正常に動作することを確認した
+- [ ] `manifest.json` のバージョンを更新した
+- [ ] 必要に応じて `README.md` を更新した
+- [ ] デバッグ用の不要な `console.log` を削除した
+- [ ] アイコンやロゴが正しく表示されることを確認した
 
-## 🛠️ 開発Tips
+## 開発のヒント
 
 ### 拡張機能のリロード
 
-```bash
-# Chrome Extensions画面
-chrome://extensions/
-
-# 「更新」ボタンをクリック
-# または Cmd+R（Mac）、Ctrl+R（Windows）
-```
+Chrome で `chrome://extensions/` を開き、拡張機能の「更新」ボタンをクリックします（ショートカット: Mac は `Cmd+R`、Windows は `Ctrl+R`）。
 
 ### デバッグ方法
 
-- ポップアップ: 右クリック → 検証
-- コンテンツスクリプト: ページの開発者ツール → Consoleタブ
-- バックグラウンド: 拡張機能管理 → 「Service Workerを検証」
+- ポップアップ: ポップアップ上で右クリック →「検証」
+- コンテンツスクリプト: 対象ページの開発者ツール → Console タブ
+- バックグラウンド: `chrome://extensions/` →「Service Worker を検証」
 
 ### よくあるエラー
 
-#### "Could not load icon"
+#### `"Could not load icon"`
 
-→ `images/` ディレクトリにアイコンファイルが存在するか確認
+`images/` ディレクトリに必要なアイコンファイルが揃っているか確認してください。
 
-#### "Extension context invalidated"
+#### `"Extension context invalidated"`
 
-→ 拡張機能がリロードされた。ページを再読み込み
+拡張機能がリロードされたことで古いコンテンツスクリプトとの接続が切れています。対象ページを再読み込みしてください。
 
-#### chrome.storage is undefined
+#### `chrome.storage is undefined`
 
-→ manifest.jsonに `"storage"` パーミッションがあるか確認
+`manifest.json` に `"storage"` 権限が含まれているか確認してください。
 
-## 🔄 アセット更新
+## アセット更新
 
 ### アイコン更新
 
-詳細は `docs/icon-setup.md` を参照
+詳しい手順は `docs/icon-setup.md` を参照してください。
 
 ```bash
-# 透過アイコン生成
+# 透過アイコンの生成
 magick images/logo.png -fuzz 10% -transparent white -resize 16x16 images/icon16.png
 magick images/logo.png -fuzz 10% -transparent white -resize 48x48 images/icon48.png
 magick images/logo.png -fuzz 10% -transparent white -resize 128x128 images/icon128.png
 ```
 
-## 📚 参考リンク
+## 参考リンク
 
 - [Chrome Extension Manifest V3](https://developer.chrome.com/docs/extensions/mv3/)
 - [Chrome Extension APIs](https://developer.chrome.com/docs/extensions/reference/)
 - [Web Accessible Resources](https://developer.chrome.com/docs/extensions/mv3/manifest/web_accessible_resources/)
-
