@@ -35,28 +35,34 @@ export function useDebugLogs(props: PopupPaneBaseProps): UseDebugLogsResult {
   const [showLogs, setShowLogs] = useState(false);
   const [logContent, setLogContent] = useState("");
 
-  const loadLogStats = useCallback(async (): Promise<void> => {
-    const result = await runtime.sendMessageToBackground<
-      { action: "getDebugLogStats" },
-      unknown
-    >({
-      action: "getDebugLogStats",
-    });
+  const loadLogStats = useCallback(
+    async (shouldContinue?: () => boolean): Promise<void> => {
+      const result = await runtime.sendMessageToBackground<
+        { action: "getDebugLogStats" },
+        unknown
+      >({
+        action: "getDebugLogStats",
+      });
 
-    if (Result.isFailure(result)) {
-      notify.error(t("debug.errors.statsLoadFailed"));
-      return;
-    }
-    const parsed = safeParse(DebugLogStatsResponseSchema, result.value);
-    if (!parsed.success) {
-      notify.error(t("debug.errors.statsLoadFailed"));
-      return;
-    }
-    setLogStats({
-      entryCount: parsed.output.entryCount,
-      sizeKB: parsed.output.sizeKB,
-    });
-  }, [notify, runtime]);
+      if (shouldContinue && !shouldContinue()) {
+        return;
+      }
+      if (Result.isFailure(result)) {
+        notify.error(t("debug.errors.statsLoadFailed"));
+        return;
+      }
+      const parsed = safeParse(DebugLogStatsResponseSchema, result.value);
+      if (!parsed.success) {
+        notify.error(t("debug.errors.statsLoadFailed"));
+        return;
+      }
+      setLogStats({
+        entryCount: parsed.output.entryCount,
+        sizeKB: parsed.output.sizeKB,
+      });
+    },
+    [notify, runtime]
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -70,7 +76,7 @@ export function useDebugLogs(props: PopupPaneBaseProps): UseDebugLogsResult {
         const nextDebugMode = raw.debugMode ?? false;
         setDebugMode(nextDebugMode);
         if (nextDebugMode) {
-          await loadLogStats();
+          await loadLogStats(() => !cancelled);
         }
       })(),
       "useDebugLogs: load debug mode"
@@ -80,7 +86,7 @@ export function useDebugLogs(props: PopupPaneBaseProps): UseDebugLogsResult {
     };
   }, [loadLogStats, runtime]);
 
-  const loadAndShowLogs = async (): Promise<void> => {
+  const loadAndShowLogs = useCallback(async (): Promise<void> => {
     const result = await runtime.sendMessageToBackground<
       { action: "getDebugLogs" },
       unknown
@@ -107,47 +113,53 @@ export function useDebugLogs(props: PopupPaneBaseProps): UseDebugLogsResult {
       .join("\n\n");
     setLogContent(formatted);
     setShowLogs(true);
-  };
+  }, [notify, runtime]);
 
-  const toggleDebugMode = async (checked: boolean): Promise<void> => {
-    const saved = await runtime.storageLocalSet({ debugMode: checked });
-    if (Result.isSuccess(saved)) {
-      setDebugMode(checked);
-      notify.success(t("debug.success.saved"));
+  const toggleDebugMode = useCallback(
+    async (checked: boolean): Promise<void> => {
+      const saved = await runtime.storageLocalSet({ debugMode: checked });
+      if (Result.isSuccess(saved)) {
+        setDebugMode(checked);
+        notify.success(t("debug.success.saved"));
 
-      if (checked) {
-        await loadLogStats();
-      } else {
-        setLogStats(null);
-        setShowLogs(false);
+        if (checked) {
+          await loadLogStats();
+        } else {
+          setLogStats(null);
+          setShowLogs(false);
+        }
+        return;
       }
-      return;
-    }
-    notify.error(t("debug.errors.saveFailed"));
-  };
+      notify.error(t("debug.errors.saveFailed"));
+    },
+    [loadLogStats, notify, runtime]
+  );
 
-  const runDebugAction = async (
-    action: "downloadDebugLogs" | "clearDebugLogs"
-  ): Promise<boolean> => {
-    const result = await sendBackgroundResult({
-      message: { action },
-      onError: notify.error,
-      runtime,
-      // downloadDebugLogs はユーザーのファイル保存ダイアログを待つため
-      // タイムアウトを無効化
-      timeoutMs: action === "downloadDebugLogs" ? null : undefined,
-    });
-    return result !== null;
-  };
+  const runDebugAction = useCallback(
+    async (
+      action: "downloadDebugLogs" | "clearDebugLogs"
+    ): Promise<boolean> => {
+      const result = await sendBackgroundResult({
+        message: { action },
+        onError: notify.error,
+        runtime,
+        // downloadDebugLogs はユーザーのファイル保存ダイアログを待つため
+        // タイムアウトを無効化
+        timeoutMs: action === "downloadDebugLogs" ? null : undefined,
+      });
+      return result !== null;
+    },
+    [notify, runtime]
+  );
 
-  const downloadLogs = async (): Promise<void> => {
+  const downloadLogs = useCallback(async (): Promise<void> => {
     const ok = await runDebugAction("downloadDebugLogs");
     if (ok) {
       notify.success(t("debug.success.downloaded"));
     }
-  };
+  }, [notify, runDebugAction]);
 
-  const clearLogs = async (): Promise<void> => {
+  const clearLogs = useCallback(async (): Promise<void> => {
     const ok = await runDebugAction("clearDebugLogs");
     if (!ok) {
       return;
@@ -156,7 +168,7 @@ export function useDebugLogs(props: PopupPaneBaseProps): UseDebugLogsResult {
     setShowLogs(false);
     setLogContent("");
     notify.success(t("debug.success.cleared"));
-  };
+  }, [notify, runDebugAction]);
 
   const handleToggleDebugMode = useCallback(
     (checked: boolean) => {

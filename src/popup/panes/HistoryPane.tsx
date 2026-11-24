@@ -95,7 +95,7 @@ export function HistoryPane(props: PopupPaneBaseProps): React.JSX.Element {
     };
   }, [props.runtime]);
 
-  const clearHistory = async (): Promise<void> => {
+  const clearHistory = useCallback(async (): Promise<void> => {
     try {
       await props.runtime.storageLocalSet({ actionHistory: [] });
       setHistory([]);
@@ -103,16 +103,19 @@ export function HistoryPane(props: PopupPaneBaseProps): React.JSX.Element {
     } catch {
       props.notify.error(t("history.errors.clearFailed"));
     }
-  };
+  }, [props.notify, props.runtime, t]);
 
-  const copyEntry = async (text: string): Promise<void> => {
-    const result = await copyToClipboard(text);
-    if (Result.isSuccess(result)) {
-      props.notify.success(t("history.success.copied"));
-      return;
-    }
-    props.notify.error(t("history.errors.copyFailed"));
-  };
+  const copyEntry = useCallback(
+    async (text: string): Promise<void> => {
+      const result = await copyToClipboard(text);
+      if (Result.isSuccess(result)) {
+        props.notify.success(t("history.success.copied"));
+        return;
+      }
+      props.notify.error(t("history.errors.copyFailed"));
+    },
+    [props.notify, t]
+  );
 
   const handleClearHistoryClick = useCallback(() => {
     clearHistory().catch(() => {});

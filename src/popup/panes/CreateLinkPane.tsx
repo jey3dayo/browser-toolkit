@@ -199,7 +199,7 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
     setShowQr((prev) => !prev);
   }, []);
 
-  const copyOutput = async (): Promise<void> => {
+  const copyOutput = useCallback(async (): Promise<void> => {
     const text = output.trim();
     if (!text) {
       notify.error(
@@ -220,7 +220,7 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
         ? t("createLink.errors.clipboardUnavailable")
         : t("createLink.errors.copyFailed")
     );
-  };
+  }, [notify, output, t, url]);
 
   const handleCopyClick = useCallback(() => {
     copyOutput().catch(() => {});
