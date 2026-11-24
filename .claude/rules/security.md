@@ -6,82 +6,82 @@ paths:
 
 # セキュリティガイドライン
 
-このドキュメントは、Browser Toolkit開発におけるセキュリティベストプラクティスを定義します。
+Browser Toolkit の開発で守るべきセキュリティ上のルールと実践方針をまとめています。
 
-## 🎯 目的
+## 目的
 
-- XSS（クロスサイトスクリプティング）攻撃の防止
+- XSS（クロスサイトスクリプティング）の防止
 - ユーザーデータとプライバシーの保護
-- Chrome拡張機能特有のセキュリティリスクの軽減
+- Chrome 拡張機能特有のセキュリティリスクの軽減
 
-## 🚫 XSS対策: 禁止事項
+## XSS 対策: 禁止事項
 
-以下のAPIは**例外なく使用禁止**です：
+以下の API は**原則として使用禁止**です。
 
-### DOM操作
+### DOM 操作
 
-- ❌ `innerHTML` への代入
-- ❌ `outerHTML` への代入
-- ❌ `document.write()`
-- ❌ `insertAdjacentHTML()`（未サニタイズの場合）
+- `innerHTML` への代入
+- `outerHTML` への代入
+- `document.write()`
+- `insertAdjacentHTML()`（未サニタイズの文字列を渡す場合）
 
-### JavaScript実行
+### JavaScript の動的実行
 
-- ❌ `eval()`
-- ❌ `Function()` コンストラクタ
-- ❌ `setTimeout(stringCode)`、`setInterval(stringCode)`
+- `eval()`
+- `Function()` コンストラクタ
+- 文字列を引数に取る `setTimeout(stringCode)`、`setInterval(stringCode)`
 
 ### React
 
-- ❌ `dangerouslySetInnerHTML`（未サニタイズの場合）
+- `dangerouslySetInnerHTML`（未サニタイズの文字列を渡す場合）
 
-## ✅ XSS対策: 推奨事項
+## XSS 対策: 推奨パターン
 
-### 1. テキストコンテンツの挿入
+### 1. テキストの挿入
 
-推奨: `textContent` または `innerText`
+`textContent` または `innerText` を使用します。
 
 ```typescript
-// ✅ 安全
+// 安全
 element.textContent = userInput;
 
-// ❌ 危険
+// 危険
 element.innerHTML = userInput;
 ```
 
-### 2. DOM要素の動的生成
+### 2. DOM 要素の動的生成
 
-推奨: `createElement()` + `appendChild()`
+`createElement()` と `appendChild()` を組み合わせて構築します。
 
 ```typescript
-// ✅ 安全
+// 安全
 const div = document.createElement("div");
 div.textContent = userInput;
 parent.appendChild(div);
 
-// ❌ 危険
+// 危険
 parent.innerHTML = `<div>${userInput}</div>`;
 ```
 
-### 3. Markdown表示
+### 3. Markdown の表示
 
-推奨: `react-markdown`（既に使用中）
+既に導入している `react-markdown` を使用します。
 
 ```tsx
-// ✅ 安全（src/content/overlay/OverlayComponents.tsx）
+// 安全（src/content/overlay/OverlayComponents.tsx）
 import ReactMarkdown from "react-markdown";
 
 <ReactMarkdown remarkPlugins={[remarkGfm]}>{aiResponse}</ReactMarkdown>;
 ```
 
-### 4. HTMLサニタイズが必要な場合
+### 4. やむを得ず HTML を描画する場合
 
-推奨: DOMPurify（必要に応じて導入）
+必要に応じて `DOMPurify` を導入し、サニタイズした文字列のみを扱います。
 
 ```typescript
 import DOMPurify from "dompurify";
 
-// ✅ サニタイズ後のみ使用可能
+// サニタイズ後のみ使用可能
 const cleanHtml = DOMPurify.sanitize(userInput, {
   ALLOWED_TAGS: ["b", "i", "em", "strong", "a", "p", "ul", "li"],
   ALLOWED_ATTR: ["href", "title"],
@@ -89,60 +89,41 @@ const cleanHtml = DOMPurify.sanitize(userInput, {
 element.innerHTML = cleanHtml;
 ```
 
-注意: DOMPurifyを使用する場合も：
+`DOMPurify` を使う場合も、以下の 3 点を徹底してください。
 
-1. コードレビューで承認必須
-2. ユニットテストでXSSケースを追加必須
-3. 許可するタグ・属性を最小限に限定
+1. コードレビューで必要性と安全性を確認する
+2. ユニットテストに XSS を想定したケースを追加する
+3. 許可するタグと属性を必要最小限に絞る
 
-## 🔍 影響範囲と対策状況
+## 既存コードの対策状況
 
-### ✅ 正しく実装されている箇所
+### 安全に実装されている箇所
 
-#### テーブルソート（src/content/table-sort.ts）
+- **テーブルソート（`src/content/table-sort.ts`）**: `cell.textContent = value` でテキストとして扱っています。
+- **オーバーレイ（`src/content/overlay/`）**: `react-markdown`（生 HTML 無効）で描画しています。
+- **ポップアップ（`src/popup/`）**: React の自動エスケープに任せて描画しています。
 
-```typescript
-// ✅ textContent使用
-cell.textContent = value;
-```
+### 変更時に注意が必要な箇所
 
-#### オーバーレイ（src/content/overlay/）
+- **テキスト挿入（`src/content/template-paste.ts`、`src/background/context_menu_gemini.ts`）**: いずれも `element.value` への代入や contenteditable への `execCommand("insertText")` によるプレーンテキスト挿入のみを行っており、現状は安全です。`innerHTML` や `insertAdjacentHTML` に置き換えないでください。
 
-```tsx
-// ✅ react-markdown使用
-<ReactMarkdown>{summary}</ReactMarkdown>
-```
+## その他のセキュリティ方針
 
-#### ポップアップ（src/popup/）
+### 1. API トークンの保護
 
-```tsx
-// ✅ React の自動エスケープ
-<input value={customPrompt} />
-```
-
-### ⚠️ 要注意箇所
-
-#### テキスト挿入（src/content/template-paste.ts, src/background/context_menu_gemini.ts）
-
-いずれもプレーンテキストしか挿入しない経路（`element.value` への代入、
-contenteditable への `execCommand("insertText")`）で現状は安全。
-`innerHTML` / `insertAdjacentHTML` へ置き換えないこと。
-
-## 🛡️ その他のセキュリティベストプラクティス
-
-### 1. APIトークンの保護
+API トークンや認証情報は必ずローカルストレージに保存し、同期ストレージには書き込まないでください。
 
 ```typescript
-// ✅ ローカルストレージに保存（同期しない）
+// 安全: ローカルストレージに保存（同期しない）
 await chrome.storage.local.set({ openaiApiToken });
 
-// ❌ 同期ストレージに保存
-await chrome.storage.sync.set({ openaiApiToken }); // 危険！
+// 危険: 同期ストレージに保存
+await chrome.storage.sync.set({ openaiApiToken });
 ```
 
 ### 2. Content Security Policy（CSP）の遵守
 
-manifest.jsonのCSPを厳格化（Issue #143）：
+`manifest.json` では以下のように厳格な CSP を設定しています（Issue #143）。
 
 ```json
 {
@@ -152,99 +133,96 @@ manifest.jsonのCSPを厳格化（Issue #143）：
 }
 ```
 
-`connect-src` は拡張機能ページが `fetch`/`XMLHttpRequest` で接続できるホストを制限する、このCSPの中核的な制約です。AIプロバイダのエンドポイントを追加・変更する場合は、`src/constants/api-endpoints.ts` の `ALLOWED_API_ORIGINS`、`manifest.json` の `host_permissions`、`content_security_policy.connect-src` を必ず同じ差分で揃えてください（詳細は `AGENTS.md` の「Release / Permission Review」を参照）。
+`connect-src` は、拡張機能ページから `fetch` や `XMLHttpRequest` で接続できるホストを制限する重要な制約です。AI プロバイダーのエンドポイントを追加・変更する場合は、`src/constants/api-endpoints.ts` の `ALLOWED_API_ORIGINS`、`manifest.json` の `host_permissions`、`content_security_policy.connect-src` を必ず同じ差分で揃えてください（詳細は `AGENTS.md` の「Release / Permission Review」を参照）。
 
 ### 3. 入力検証
 
+外部入力やユーザー入力には、長さ・型・形式のチェックを入れます。
+
 ```typescript
-// ✅ 長さ制限
+// 長さ制限
 if (userInput.length > 10000) {
   throw new Error("入力が長すぎます");
 }
 
-// ✅ 型検証
+// 型検証
 if (typeof userInput !== "string") {
   throw new Error("無効な入力");
 }
 
-// ✅ URLバリデーション
-const url = new URL(userInput); // 例外を投げる
+// URL バリデーション
+const url = new URL(userInput); // 不正な場合は例外を送出
 ```
 
-### 4. プライバシー保護
+### 4. ログ出力とプライバシー保護
+
+ユーザー入力や機密情報はログに出力しないでください。デバッグログが必要な場合も開発環境のみに限定し、文字列の内容ではなく長さなどのメタ情報にとどめます。
 
 ```typescript
-// ❌ ユーザー入力をログに出力
+// 危険: ユーザー入力をそのままログに出力
 console.log("User input:", userInput);
 
-// ✅ デバッグ時のみ、開発環境でのみ
+// 安全: 開発環境のみ、内容を含めない形で出力
 if (import.meta.env.DEV) {
   console.debug("Input length:", userInput.length);
 }
 ```
 
-## 🛡️ ユーザー入力から URL 判定器を構築する場合（ReDoS 対策）
+## ユーザー入力から URL 判定器を構築する場合（ReDoS 対策）
 
-検索結果ブロックリストのように、ユーザーが入力した match pattern から URL を判定する
-機能を実装する場合、パターンを `RegExp` へ変換して使うと ReDoS（正規表現の破局的
-バックトラッキング）の入口になります。
+検索結果ブロックリストのように、ユーザーが入力した match pattern で URL を判定する機能では、パターンを `RegExp` へ変換すると ReDoS（正規表現の破局的バックトラッキング）の原因になります。
 
-- ❌ ユーザー入力の glob / match pattern をそのまま `RegExp` へコンパイルして判定に使う
-- ✅ URL パース（`new URL()`）+ ホストラベル単位の接尾辞比較 + 線形時間の path glob
-  マッチャー（バックトラッキングしない実装）で判定する
+- **避けるべき実装**: ユーザー入力の glob や match pattern をそのまま `RegExp` にコンパイルして判定する
+- **推奨する実装**: `new URL()` によるパース、ホストラベル単位の接尾辞比較、およびバックトラッキングしない線形時間のパス glob マッチャーで判定する
 
-上限を設けず無制限のパターン・ルールを受け付けると、判定コストが利用者の入力に比例して
-膨らみます。以下の上限を設け、超過時は**切り捨てず明示エラー**を返してください（暗黙の
-切り捨ては、ユーザーが「保存したつもり」のルールが実は保存されていない事故につながる）。
+また、パターンやルールに上限を設けないと、入力量に比例して判定コストが増大します。以下の上限を設定し、超過時は**暗黙に切り捨てず明示的なエラー**を返してください（暗黙の切り捨ては、保存できたつもりのルールが欠落する事故につながります）。
 
 ```typescript
-// src/search-blocklist/rules.ts の上限
+// src/search-blocklist/rules.ts の上限値
 const SEARCH_BLOCKLIST_RULE_LIMIT = 2000;
 const SEARCH_BLOCKLIST_PATTERN_MAX_LENGTH = 255;
 const SEARCH_BLOCKLIST_PATTERN_MAX_WILDCARDS = 3;
 const SEARCH_BLOCKLIST_URL_MAX_LENGTH = 2048;
 ```
 
-## 📋 コードレビューチェックリスト
+## コードレビューチェックリスト
 
-PRレビュー時に以下を確認してください：
+PR レビュー時は以下の観点を確認してください。
 
-### XSS対策
+### XSS 対策
 
-- [ ] ユーザー入力やAPI応答を `innerHTML` で挿入していないか？
-- [ ] `textContent`、`createElement`、`react-markdown` を使用しているか？
-- [ ] `dangerouslySetInnerHTML` を使用していないか？
-- [ ] URLパラメータやクエリ文字列をそのままDOMに挿入していないか？
+- [ ] ユーザー入力や API 応答を `innerHTML` で挿入していないか
+- [ ] `textContent`、`createElement`、`react-markdown` を使っているか
+- [ ] `dangerouslySetInnerHTML` を使っていないか
+- [ ] URL パラメータやクエリ文字列を未処理のまま DOM へ挿入していないか
 
 ### データ保護
 
-- [ ] APIトークンは `chrome.storage.local` に保存しているか？
-- [ ] 機密情報をコンソールログに出力していないか？
-- [ ] ユーザー入力をサードパーティに送信する前に確認しているか？
+- [ ] API トークンは `chrome.storage.local` に保存しているか
+- [ ] 機密情報をコンソールログに出力していないか
+- [ ] ユーザー入力を外部サービスへ送信する経路が意図どおりか
 
 ### 入力検証
 
-- [ ] ユーザー入力の長さ制限を設けているか？
-- [ ] 型検証を実施しているか？
-- [ ] URLや数値の妥当性検証を行っているか？
-- [ ] ユーザー入力から `RegExp` を構築していないか？（件数・長さの上限と、超過時の明示エラーがあるか）
+- [ ] ユーザー入力の長さ制限を設けているか
+- [ ] 型検証を行っているか
+- [ ] URL や数値の妥当性を検証しているか
+- [ ] ユーザー入力から `RegExp` を構築していないか（件数・長さの上限と、超過時の明示エラーがあるか）
 
-## 🔧 自動チェック
-
-### 定期的なセキュリティ監査
+## 定期チェックコマンド
 
 ```bash
 # 依存関係の脆弱性チェック
 pnpm audit
 
-# innerHTML使用箇所の検索
+# innerHTML の使用箇所を検索
 grep -r "innerHTML" src/
 
-# eval使用箇所の検索
+# eval の使用箇所を検索
 grep -r "eval(" src/
 ```
 
-## 📚 参考資料
+## 参考資料
 
 - [OWASP XSS Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html)
 - [Chrome Extension Security](https://developer.chrome.com/docs/extensions/develop/concepts/security)
@@ -252,16 +230,14 @@ grep -r "eval(" src/
 - [DOMPurify](https://github.com/cure53/DOMPurify)
 - [React Security Best Practices](https://react.dev/reference/react-dom/components/common#dangerously-setting-the-inner-html)
 
-## 🚨 インシデント対応
+## 脆弱性を見つけたときの対応
 
-XSSや脆弱性を発見した場合：
+XSS やセキュリティ上の問題を発見した場合は、以下の手順で優先的に対処します。
 
-1. 即座に報告: プロジェクトメンテナーに連絡
-2. 影響範囲の特定: どの機能が影響を受けるか
-3. 緊急パッチ作成: 修正PRを最優先で作成
-4. ユーザーへの通知: 必要に応じてアップデート案内
+1. 影響範囲の特定: どの機能・権限に影響するかを切り分ける
+2. 修正と検証: 再現テストを追加したうえで修正パッチを最優先で作成する
+3. 反映と周知: 必要に応じてバージョンを更新し、変更履歴や案内を残す
 
 ---
 
-最終更新: 2026-02-13
-レビュー: セキュリティガイドラインは定期的に見直してください
+最終更新: 2026-02-13（ガイドラインは実装の変化に合わせて定期的に見直してください）
