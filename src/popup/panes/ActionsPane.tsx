@@ -88,15 +88,16 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
     resetEditorStateRef.current = resetEditorState;
   });
 
-  const handleReorder = async (
-    reorderedActions: ContextAction[]
-  ): Promise<void> => {
-    await persistActionsUpdate(
-      reorderedActions,
-      t("actions.reorder.saved"),
-      t("actions.reorder.saveFailed")
-    );
-  };
+  const handleReorder = useCallback(
+    async (reorderedActions: ContextAction[]): Promise<void> => {
+      await persistActionsUpdate(
+        reorderedActions,
+        t("actions.reorder.saved"),
+        t("actions.reorder.saveFailed")
+      );
+    },
+    [persistActionsUpdate]
+  );
 
   const handleRunAction = useCallback(
     (actionId: string) => {

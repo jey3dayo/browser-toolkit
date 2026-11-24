@@ -1,5 +1,5 @@
 import { Result } from "@praha/byethrow";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   type ContextAction,
   DEFAULT_CONTEXT_ACTIONS,
@@ -62,40 +62,43 @@ export function useActions(params: {
     };
   }, [params.runtime]);
 
-  const persistActionsUpdate = async (
-    nextActions: ContextAction[],
-    successMessage: string,
-    failureMessage: string
-  ): Promise<void> => {
-    const previous = actions;
-    await persistWithRollback({
-      applyNext: () => {
-        setActions(nextActions);
-        params.onEditorReset?.();
-      },
-      onFailure: () => {
-        params.notify.error(failureMessage);
-      },
-      onSuccess: () => {
-        params.notify.success(successMessage);
-      },
-      persist: () =>
-        params.runtime.storageSyncSet({
-          contextActions: nextActions,
-        }),
-      rollback: () => {
-        setActions(previous);
-      },
-    });
-  };
+  const persistActionsUpdate = useCallback(
+    async (
+      nextActions: ContextAction[],
+      successMessage: string,
+      failureMessage: string
+    ): Promise<void> => {
+      const previous = actions;
+      await persistWithRollback({
+        applyNext: () => {
+          setActions(nextActions);
+          params.onEditorReset?.();
+        },
+        onFailure: () => {
+          params.notify.error(failureMessage);
+        },
+        onSuccess: () => {
+          params.notify.success(successMessage);
+        },
+        persist: () =>
+          params.runtime.storageSyncSet({
+            contextActions: nextActions,
+          }),
+        rollback: () => {
+          setActions(previous);
+        },
+      });
+    },
+    [actions, params.notify, params.onEditorReset, params.runtime]
+  );
 
-  const resetActions = async (): Promise<void> => {
+  const resetActions = useCallback(async (): Promise<void> => {
     await persistActionsUpdate(
       DEFAULT_CONTEXT_ACTIONS,
       t("actions.success.reset"),
       t("actions.errors.resetFailed")
     );
-  };
+  }, [persistActionsUpdate]);
 
   return {
     actions,

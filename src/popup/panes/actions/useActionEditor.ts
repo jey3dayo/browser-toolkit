@@ -51,24 +51,27 @@ export function useActionEditor(params: {
     setEditor(EMPTY_EDITOR_STATE);
   }, []);
 
-  const selectActionForEdit = (nextId: string): void => {
-    if (!nextId) {
-      resetEditorState();
-      return;
-    }
-    const action = params.actionsById.get(nextId);
-    if (!action) {
-      return;
-    }
-    setEditor({
-      id: action.id,
-      kind: action.kind,
-      prompt: action.prompt,
-      title: action.title,
-    });
-  };
+  const selectActionForEdit = useCallback(
+    (nextId: string): void => {
+      if (!nextId) {
+        resetEditorState();
+        return;
+      }
+      const action = params.actionsById.get(nextId);
+      if (!action) {
+        return;
+      }
+      setEditor({
+        id: action.id,
+        kind: action.kind,
+        prompt: action.prompt,
+        title: action.title,
+      });
+    },
+    [params.actionsById, resetEditorState]
+  );
 
-  const saveEditor = async (): Promise<void> => {
+  const saveEditor = useCallback(async (): Promise<void> => {
     const title = requireTrimmedString({
       emptyMessage: t("actions.errors.titleRequired"),
       notify: params.notify,
@@ -124,9 +127,15 @@ export function useActionEditor(params: {
         params.setActions(previous);
       },
     });
-  };
+  }, [
+    editor,
+    params.actions,
+    params.notify,
+    params.runtime,
+    params.setActions,
+  ]);
 
-  const deleteEditor = async (): Promise<void> => {
+  const deleteEditor = useCallback(async (): Promise<void> => {
     if (!editor.id) {
       return;
     }
@@ -139,7 +148,7 @@ export function useActionEditor(params: {
       t("actions.success.deleted"),
       t("actions.errors.deleteFailed")
     );
-  };
+  }, [editor.id, params.actions, params.persistActionsUpdate]);
 
   return {
     deleteEditor,
