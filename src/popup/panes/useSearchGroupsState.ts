@@ -2,8 +2,8 @@ import { Result } from "@praha/byethrow";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { t } from "@/i18n";
 import type { PopupPaneBaseProps } from "@/popup/panes/types";
-import { persistWithRollback } from "@/popup/utils/persist";
 import { requireTrimmedString } from "@/popup/utils/required-input";
+import { createVerifiedMutationRunner } from "@/popup/utils/verified_mutation";
 import {
   DEFAULT_SEARCH_ENGINE_GROUPS,
   generateGroupId,
@@ -16,18 +16,8 @@ import {
   DEFAULT_SEARCH_ENGINES,
   normalizeSearchEngines,
 } from "@/search_engines";
-import { runWithSharedLock } from "@/utils/async";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
-
-const GROUP_MUTATION_MAX_ATTEMPTS = 5;
-
-type PreparedGroupMutation = {
-  next: SearchEngineGroup[];
-  applyNext: () => void;
-  onSuccess?: () => void;
-  onFailure: () => void;
-};
 
 export type SearchGroupsState = {
   groups: SearchEngineGroup[];
@@ -181,56 +171,18 @@ export function useSearchGroupsState(
       searchEngineGroups: nextGroups,
     });
 
-  const verifyGroupsPersisted = async (
-    next: SearchEngineGroup[]
-  ): Promise<boolean> => {
-    const stored = await readLatestGroups();
-    if (!stored) {
-      return true;
-    }
-    return (
+  const runGroupMutation = createVerifiedMutationRunner<SearchEngineGroup[]>({
+    applyRollback: (previous) => {
+      setGroups(previous);
+    },
+    getCurrent: () => groups,
+    isPersisted: (stored, next) =>
       JSON.stringify(normalizeSearchEngineGroups(stored)) ===
-      JSON.stringify(normalizeSearchEngineGroups(next))
-    );
-  };
-
-  const runGroupMutationAttempts = async (
-    prepare: (base: SearchEngineGroup[]) => PreparedGroupMutation | null
-  ): Promise<void> => {
-    let attempt = 0;
-    while (attempt < GROUP_MUTATION_MAX_ATTEMPTS) {
-      attempt += 1;
-      // biome-ignore lint/performance/noAwaitInLoops: intentional serial optimistic-concurrency retries
-      const latest = await readLatestGroups();
-      const base = latest ?? groups;
-      const mutation = prepare(base);
-      if (!mutation) {
-        return;
-      }
-      const saved = await persistWithRollback({
-        applyNext: mutation.applyNext,
-        onFailure: mutation.onFailure,
-        persist: () => saveGroups(mutation.next),
-        rollback: () => {
-          setGroups(groups);
-        },
-      });
-      if (!saved) {
-        return;
-      }
-      if (await verifyGroupsPersisted(mutation.next)) {
-        mutation.onSuccess?.();
-        return;
-      }
-    }
-  };
-
-  const runGroupMutation = (
-    prepare: (base: SearchEngineGroup[]) => PreparedGroupMutation | null
-  ): Promise<void> =>
-    runWithSharedLock("searchEngineGroups", () =>
-      runGroupMutationAttempts(prepare)
-    );
+      JSON.stringify(normalizeSearchEngineGroups(next)),
+    lockName: "searchEngineGroups",
+    readLatest: readLatestGroups,
+    save: saveGroups,
+  });
 
   const toggleGroupEnabled = (groupId: string, checked: boolean) =>
     runGroupMutation((base) => {

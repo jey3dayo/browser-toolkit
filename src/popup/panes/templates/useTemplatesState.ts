@@ -2,26 +2,16 @@ import { Result } from "@praha/byethrow";
 import { useEffect, useRef, useState } from "react";
 import { t } from "@/i18n";
 import type { PopupRuntime } from "@/popup/runtime";
-import { persistWithRollback } from "@/popup/utils/persist";
 import { requireTrimmedString } from "@/popup/utils/required-input";
+import { createVerifiedMutationRunner } from "@/popup/utils/verified_mutation";
 import {
   DEFAULT_TEXT_TEMPLATES,
   generateTemplateId,
   type TextTemplate,
 } from "@/text_templates";
 import type { Notifier } from "@/ui/toast";
-import { runWithSharedLock } from "@/utils/async";
 import { debugLog } from "@/utils/debug_log";
 import { formatErrorLog } from "@/utils/errors";
-
-const TEMPLATE_MUTATION_MAX_ATTEMPTS = 5;
-
-type PreparedTemplateMutation = {
-  next: TextTemplate[];
-  applyNext: () => void;
-  onSuccess?: () => void;
-  onFailure: () => void;
-};
 
 export function useTemplatesState(params: {
   runtime: PopupRuntime;
@@ -127,53 +117,17 @@ export function useTemplatesState(params: {
       textTemplates: nextTemplates,
     });
 
-  const verifyTemplatesPersisted = async (
-    next: TextTemplate[]
-  ): Promise<boolean> => {
-    const stored = await readLatestTemplates();
-    if (!stored) {
-      return true;
-    }
-    return JSON.stringify(stored) === JSON.stringify(next);
-  };
-
-  const runTemplateMutationAttempts = async (
-    prepare: (base: TextTemplate[]) => PreparedTemplateMutation | null
-  ): Promise<void> => {
-    let attempt = 0;
-    while (attempt < TEMPLATE_MUTATION_MAX_ATTEMPTS) {
-      attempt += 1;
-      // biome-ignore lint/performance/noAwaitInLoops: intentional serial optimistic-concurrency retries
-      const latest = await readLatestTemplates();
-      const base = latest ?? templates;
-      const mutation = prepare(base);
-      if (!mutation) {
-        return;
-      }
-      const saved = await persistWithRollback({
-        applyNext: mutation.applyNext,
-        onFailure: mutation.onFailure,
-        persist: () => saveTemplates(mutation.next),
-        rollback: () => {
-          setTemplates(templates);
-        },
-      });
-      if (!saved) {
-        return;
-      }
-      if (await verifyTemplatesPersisted(mutation.next)) {
-        mutation.onSuccess?.();
-        return;
-      }
-    }
-  };
-
-  const runTemplateMutation = (
-    prepare: (base: TextTemplate[]) => PreparedTemplateMutation | null
-  ): Promise<void> =>
-    runWithSharedLock("textTemplates", () =>
-      runTemplateMutationAttempts(prepare)
-    );
+  const runTemplateMutation = createVerifiedMutationRunner<TextTemplate[]>({
+    applyRollback: (previous) => {
+      setTemplates(previous);
+    },
+    getCurrent: () => templates,
+    isPersisted: (stored, next) =>
+      JSON.stringify(stored) === JSON.stringify(next),
+    lockName: "textTemplates",
+    readLatest: readLatestTemplates,
+    save: saveTemplates,
+  });
 
   const toggleTemplateHidden = (templateId: string, hidden: boolean) =>
     runTemplateMutation((base) => {
