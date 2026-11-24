@@ -1,7 +1,3 @@
-/**
- * セキュリティ: すべての外部API呼び出しはこのホワイトリストで管理する。
- * manifest.json の content_security_policy と一致させること。
- */
 export const ALLOWED_API_ORIGINS = [
   "https://api.openai.com",
   "https://api.anthropic.com",

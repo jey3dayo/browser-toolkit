@@ -1,8 +1,13 @@
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   ALLOWED_API_ORIGINS,
   isAllowedApiOrigin,
 } from "@/constants/api-endpoints";
+
+const WHITESPACE_REGEX = /\s+/;
 
 describe("API Endpoints Whitelist", () => {
   describe("isAllowedApiOrigin", () => {
@@ -58,6 +63,29 @@ describe("API Endpoints Whitelist", () => {
       expect(ALLOWED_API_ORIGINS).toContain("https://api.anthropic.com");
       expect(ALLOWED_API_ORIGINS).toContain("https://api.z.ai");
       expect(ALLOWED_API_ORIGINS).toContain("https://auth.openai.com");
+    });
+  });
+
+  describe("manifest.json content_security_policy sync", () => {
+    const manifestPath = path.resolve(
+      path.dirname(fileURLToPath(import.meta.url)),
+      "../../manifest.json"
+    );
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8")) as {
+      content_security_policy?: { extension_pages?: string };
+    };
+    const connectSrcTokens =
+      manifest.content_security_policy?.extension_pages
+        ?.split(";")
+        .map((directive) => directive.trim())
+        .find((directive) => directive.startsWith("connect-src"))
+        ?.split(WHITESPACE_REGEX)
+        .slice(1) ?? [];
+
+    it("should allow every whitelisted origin in the manifest connect-src", () => {
+      for (const origin of ALLOWED_API_ORIGINS) {
+        expect(connectSrcTokens).toContain(origin);
+      }
     });
   });
 });
