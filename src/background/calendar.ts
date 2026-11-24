@@ -112,7 +112,7 @@ export function normalizeEvent(event: ExtractedEvent): ExtractedEvent {
   return { allDay, description, end, location, start, title };
 }
 
-export function formatEventText(event: ExtractedEvent): string {
+function formatEventText(event: ExtractedEvent): string {
   const lines: string[] = [];
   lines.push(`タイトル: ${event.title}`);
   lines.push(`日時: ${event.start}${event.end ? ` 〜 ${event.end}` : ""}`);

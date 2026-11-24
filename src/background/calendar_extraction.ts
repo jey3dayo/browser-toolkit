@@ -17,9 +17,7 @@ export type ExtractedCalendarArtifacts = CalendarArtifacts & {
   targets: CalendarRegistrationTarget[];
 };
 
-export async function loadCalendarTargets(): Promise<
-  CalendarRegistrationTarget[]
-> {
+async function loadCalendarTargets(): Promise<CalendarRegistrationTarget[]> {
   const stored = (await storageSyncGet(["calendarTargets"])) as SyncStorageData;
   return resolveCalendarTargets(stored.calendarTargets);
 }

@@ -4,9 +4,9 @@ import type { PopupRuntime } from "@/popup/runtime";
 import type { SyncStorageData } from "@/storage/types";
 import type { Notifier } from "@/ui/toast";
 
-export type StorageChange = { newValue: unknown; oldValue: unknown };
+type StorageChange = { newValue: unknown; oldValue: unknown };
 
-export type SyncStorageChangeListener = (
+type SyncStorageChangeListener = (
   changes: Record<string, StorageChange>,
   areaName: string
 ) => void;
