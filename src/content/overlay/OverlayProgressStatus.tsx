@@ -23,9 +23,6 @@ const LOADER_CELLS: LoaderCell[] = Array.from(
   }
 );
 
-/**
- * 3x3 pixel-grid loading indicator
- */
 function OverlayLoaderGrid(): React.JSX.Element {
   return (
     <span aria-hidden="true" className={overlayClassNames.loaderGrid}>
@@ -44,9 +41,6 @@ type OverlayElapsedProps = {
   startedAt?: number;
 };
 
-/**
- * Elapsed time indicator, isolated so its 100ms ticks don't re-render the parent overlay
- */
 function OverlayElapsed(props: OverlayElapsedProps): React.JSX.Element {
   const [startedAt] = useState(() => props.startedAt ?? performance.now());
   const [elapsedMs, setElapsedMs] = useState(
@@ -72,9 +66,6 @@ type OverlayProgressStatusProps = {
   startedAt?: number;
 };
 
-/**
- * Loader grid, shimmering label and elapsed time, shared by the primary status row and chat "thinking" row
- */
 export function OverlayProgressStatus(
   props: OverlayProgressStatusProps
 ): React.JSX.Element {

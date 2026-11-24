@@ -203,9 +203,7 @@ export function useFocusDiagnostic(
     runFocusDiagnosticRef.current = runFocusDiagnostic;
   });
   const requestFocusDiagnostic = useCallback((showToast: boolean) => {
-    runFocusDiagnosticRef.current(showToast).catch(() => {
-      // no-op
-    });
+    runFocusDiagnosticRef.current(showToast).catch(() => {});
   }, []);
 
   const reloadCurrentTab = async (): Promise<void> => {

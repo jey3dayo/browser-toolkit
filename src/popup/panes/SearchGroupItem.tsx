@@ -45,9 +45,7 @@ function InlineEditRow({
   onCancel,
 }: InlineEditRowProps): React.JSX.Element {
   const save = useCallback(() => {
-    onSave(groupId).catch(() => {
-      // no-op
-    });
+    onSave(groupId).catch(() => {});
   }, [groupId, onSave]);
 
   const handleKeyDown = useCallback(
@@ -110,9 +108,7 @@ function GroupEngineMembershipRow({
 }: GroupEngineMembershipRowProps): React.JSX.Element {
   const handleCheckedChange = useCallback(
     (nextChecked: boolean) => {
-      onCheckedChange(group.id, engine.id, nextChecked).catch(() => {
-        // no-op
-      });
+      onCheckedChange(group.id, engine.id, nextChecked).catch(() => {});
     },
     [onCheckedChange, group.id, engine.id]
   );
@@ -190,9 +186,7 @@ export function SearchGroupItem(
 
   const handleToggleGroupEnabled = useCallback(
     (checked: boolean) => {
-      toggleGroupEnabled(group.id, checked).catch(() => {
-        // no-op
-      });
+      toggleGroupEnabled(group.id, checked).catch(() => {});
     },
     [toggleGroupEnabled, group.id]
   );
@@ -204,9 +198,7 @@ export function SearchGroupItem(
     [startEditingGroupName, group]
   );
   const handleRemoveGroup = useCallback(() => {
-    removeGroup(group.id).catch(() => {
-      // no-op
-    });
+    removeGroup(group.id).catch(() => {});
   }, [removeGroup, group.id]);
   const handleToggleGroupExpand = useCallback(() => {
     toggleGroupExpand(group.id);

@@ -47,9 +47,7 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
   });
 
   const handleCopy = useCallback(() => {
-    copyOutput().catch(() => {
-      // no-op
-    });
+    copyOutput().catch(() => {});
   }, [copyOutput]);
 
   const handleDownloadIcs = useCallback(() => {
@@ -61,9 +59,7 @@ export function CalendarPane(props: CalendarPaneProps): React.JSX.Element {
   }, [openCalendar]);
 
   const handleRun = useCallback(() => {
-    runCalendar().catch(() => {
-      // no-op
-    });
+    runCalendar().catch(() => {});
   }, [runCalendar]);
 
   return (

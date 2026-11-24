@@ -180,7 +180,6 @@ export async function extractEventWithAi(
         "description はイベントの概要を日本語で短くまとめる。",
       ].join("\n");
 
-      // 構造化出力の指定方法はプロバイダーごとに違う（下で分岐）
       const body: ChatRequestBody = {
         messages: [
           {

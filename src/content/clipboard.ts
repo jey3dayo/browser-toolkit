@@ -24,7 +24,6 @@ export function getClipboardErrorMessage(error: ClipboardError): string {
     case "copy-failed":
       return t("clipboard.errors.copyFailed");
     default:
-      // すべてのケースを網羅しているため、ここには到達しない
       return t("clipboard.errors.unknown");
   }
 }

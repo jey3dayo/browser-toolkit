@@ -141,8 +141,6 @@ describe("popup templates state across two instances (onChanged rehydration)", (
 
   it("keeps both mutations when two instances mutate concurrently", async () => {
     const initial = createInitialTemplates();
-    // 2つのインスタンスの mutation は realm 共有の shared lock で直列化され、
-    // 後続の mutation は readLatest で先行事象を含めて rebase される。
     const storageStub = createSyncStorageStub({ textTemplates: initial });
     vi.stubGlobal("chrome", { storage: { onChanged: storageStub.onChanged } });
 
@@ -196,7 +194,6 @@ describe("popup templates state across two instances (onChanged rehydration)", (
     const first = await mountHook({ dom, storageStub });
     const second = await mountHook({ dom, storageStub });
 
-    // drag handler が掴んだレコードは toggle 前の stale な値を持つ
     const staleForDrag = createInitialTemplates();
     await act(async () => {
       const toggle = first.output.current?.toggleTemplateHidden(

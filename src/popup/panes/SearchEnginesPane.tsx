@@ -18,16 +18,12 @@ export function SearchEnginesPane(
   const controller = useSearchEnginesController(props);
 
   const handleReset = useCallback(() => {
-    controller.resetToDefaults().catch(() => {
-      // no-op
-    });
+    controller.resetToDefaults().catch(() => {});
   }, [controller.resetToDefaults]);
 
   const handleReorder = useCallback(
     (reordered: SearchEngine[]) => {
-      controller.handleReorder(reordered).catch(() => {
-        // no-op
-      });
+      controller.handleReorder(reordered).catch(() => {});
     },
     [controller.handleReorder]
   );

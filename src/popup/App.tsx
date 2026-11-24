@@ -78,9 +78,7 @@ export function PopupApp({
     window.setTimeout(() => {
       try {
         tokenInputRef.current?.focus();
-      } catch {
-        // no-op
-      }
+      } catch {}
     }, 0);
   }, []);
 
@@ -176,9 +174,7 @@ export function PopupApp({
       notify: notifications.notify,
       runtime,
       setCreateLinkInitial: (value) => setCreateLinkInitial(value),
-    }).catch(() => {
-      // no-op
-    });
+    }).catch(() => {});
   }, [notifications.notify, runtime, surface]);
 
   return (

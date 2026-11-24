@@ -19,10 +19,6 @@ type Params = {
   panelRef: React.RefObject<HTMLDivElement | null>;
 };
 
-/**
- * Manage overlay drag/pin/position state: panel size tracking via
- * ResizeObserver, host position updates, and pointer-drag handlers.
- */
 export function useOverlayPositioning(params: Params) {
   const { host, viewModel, panelRef } = params;
   const panelSizeRef = useRef<PanelSize>({ height: 300, width: 520 });

@@ -22,9 +22,7 @@ function buildRuntime(overrides: Partial<PopupRuntime> = {}): PopupRuntime {
     isExtensionPage: true,
     matchesFocusOverridePatterns: () => false,
     openOptionsPane: async () => Result.succeed(),
-    openUrl: () => {
-      // no-op
-    },
+    openUrl: () => {},
     reloadTab: async () => Result.succeed(),
     sendMessageToBackground: async () => Result.succeed({}),
     sendMessageToTab: async () => Result.succeed({ available: false }),

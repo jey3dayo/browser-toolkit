@@ -74,9 +74,7 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
   );
 
   const onCopyPrimary = useCallback((): void => {
-    copyTextToClipboard(notify, viewModel.primary).catch(() => {
-      // no-op
-    });
+    copyTextToClipboard(notify, viewModel.primary).catch(() => {});
   }, [notify, viewModel.primary]);
 
   const openCalendar = useCallback((): void => {
@@ -91,9 +89,7 @@ export function OverlayApp(props: Props): React.JSX.Element | null {
     const next = nextTheme(theme);
     setTheme(next);
     applyTheme(next, props.portalContainer);
-    persistTheme(next).catch(() => {
-      // no-op
-    });
+    persistTheme(next).catch(() => {});
   }, [theme, setTheme, props.portalContainer]);
 
   const toggleMarkdownView = useCallback((): void => {

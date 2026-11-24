@@ -68,9 +68,7 @@ function resolveStyleHref(path: string): string {
     if (runtime?.getURL) {
       return runtime.getURL(path);
     }
-  } catch {
-    // non-extension contexts (tests/storybook)
-  }
+  } catch {}
   return path;
 }
 
@@ -79,9 +77,7 @@ function getPopupStyleRoot(doc: Document): string {
     if (doc.location?.protocol === "chrome-extension:") {
       return POPUP_STYLE_ROOT_DIST;
     }
-  } catch {
-    // ignore non-browser contexts
-  }
+  } catch {}
   return POPUP_STYLE_ROOT_DEV;
 }
 

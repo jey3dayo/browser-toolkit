@@ -83,9 +83,7 @@ export function useTemplatesState(params: {
           { error: formatErrorLog("", {}, error) },
           "error"
         );
-      } catch {
-        // no-op
-      }
+      } catch {}
     };
 
     loadTemplates().catch(reportLoadFailure);
@@ -113,9 +111,6 @@ export function useTemplatesState(params: {
     };
   }, [runtime]);
 
-  // 保存前に storage を再読込し、直近の配列（自分の保存結果または別タブの更新）に
-  // local mutation を再適用する。複数編集画面・連打保存での lost update を止めるため。
-  // 読み込み失敗時は直前のローカル state にフォールバックする。
   const readLatestTemplates = async (): Promise<TextTemplate[] | null> => {
     const data = await runtime.storageSyncGet(["textTemplates"]);
     if (Result.isFailure(data)) {
@@ -132,11 +127,6 @@ export function useTemplatesState(params: {
       textTemplates: nextTemplates,
     });
 
-  // 保存は同一 origin の各インスタンス（popup / options）間で共有される lock で
-  // 直列化する（Web Locks、テスト環境では realm 内共有 queue）。lock 内の
-  // read-latest → write → re-read verify が自分の書き込みと一致しない
-  // (別 popup が先んじた / 先に割り込んだ) 場合は最新 base でやり直す。
-  // persist 失敗時は既存の rollback / notify を維持し、再試行しない。
   const verifyTemplatesPersisted = async (
     next: TextTemplate[]
   ): Promise<boolean> => {
@@ -344,9 +334,6 @@ export function useTemplatesState(params: {
       },
     }));
 
-  // 並び替えは drag handler が渡した全オブジェクトではなく、直近の storage の
-  // レコードを要求された ID 順に並べて保存する。別インスタンスの直後の
-  // hidden / 本文編集が並び替え write で戻されないようにするため。
   const handleReorder = (reorderedTemplates: TextTemplate[]) =>
     runTemplateMutation((base) => {
       const byId = new Map(base.map((template) => [template.id, template]));

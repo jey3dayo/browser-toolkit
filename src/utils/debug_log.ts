@@ -67,8 +67,6 @@ export async function debugLog(
   data?: unknown,
   level: "debug" | "info" | "warn" | "error" = "debug"
 ): Promise<void> {
-  // テスト環境ではdebug/infoレベルのログを抑制
-  // error/warnは重要な問題の検出のため出力を継続
   const isTest =
     (globalThis as unknown as { __MBU_IS_VITEST__?: boolean })
       .__MBU_IS_VITEST__ === true;
@@ -143,18 +141,15 @@ export async function debugLog(
   }
 }
 
-/** storage 失敗時は reject */
 export async function getDebugLogs(): Promise<DebugLogEntry[]> {
   const stored = await chrome.storage.local.get([DEBUG_LOG_KEY]);
   return Array.isArray(stored[DEBUG_LOG_KEY]) ? stored[DEBUG_LOG_KEY] : [];
 }
 
-/** storage 失敗時は reject */
 export async function clearDebugLogs(): Promise<void> {
   await chrome.storage.local.remove([DEBUG_LOG_KEY]);
 }
 
-/** storage 失敗時は reject */
 export async function getDebugLogStats(): Promise<{
   entryCount: number;
   sizeBytes: number;

@@ -30,40 +30,30 @@ export function TemplatesPane(props: TemplatesPaneProps): React.JSX.Element {
   } = useTemplatesState({ notify: props.notify, runtime: props.runtime });
 
   const handleResetToDefaults = useCallback(() => {
-    resetToDefaults().catch(() => {
-      // no-op
-    });
+    resetToDefaults().catch(() => {});
   }, [resetToDefaults]);
 
   const handleSaveEdit = useCallback(() => {
-    saveEdit().catch(() => {
-      // no-op
-    });
+    saveEdit().catch(() => {});
   }, [saveEdit]);
 
   const handleRemoveTemplate = useCallback(
     (templateId: string) => {
-      removeTemplate(templateId).catch(() => {
-        // no-op
-      });
+      removeTemplate(templateId).catch(() => {});
     },
     [removeTemplate]
   );
 
   const handleReorderTemplates = useCallback(
     (reordered: TextTemplate[]) => {
-      handleReorder(reordered).catch(() => {
-        // no-op
-      });
+      handleReorder(reordered).catch(() => {});
     },
     [handleReorder]
   );
 
   const handleToggleTemplateHidden = useCallback(
     (templateId: string, hidden: boolean) => {
-      toggleTemplateHidden(templateId, hidden).catch(() => {
-        // no-op
-      });
+      toggleTemplateHidden(templateId, hidden).catch(() => {});
     },
     [toggleTemplateHidden]
   );

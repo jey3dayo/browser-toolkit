@@ -68,6 +68,5 @@ export function migrateToAiSettings(
   console.warn(
     "[migrateToAiSettings] This function is deprecated. Migration is now handled by the Migration System."
   );
-  // No-op: マイグレーションはsrc/storage/migrations.tsで処理される
   return Promise.resolve();
 }

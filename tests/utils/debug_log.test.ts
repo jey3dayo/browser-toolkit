@@ -27,9 +27,7 @@ describe("utils/debug_log", () => {
   it("errorレベルで構造化データを出すときも console.error には文字列だけ渡す", async () => {
     const consoleErrorSpy = vi
       .spyOn(console, "error")
-      .mockImplementation(() => {
-        // no-op
-      });
+      .mockImplementation(() => {});
     const data = { reason: "copy failed", tabId: 123 };
 
     await debugLog("context", "action failed", data, "error");
@@ -43,9 +41,7 @@ describe("utils/debug_log", () => {
   it("循環参照を含む構造化データでも console.error の追加引数にしない", async () => {
     const consoleErrorSpy = vi
       .spyOn(console, "error")
-      .mockImplementation(() => {
-        // no-op
-      });
+      .mockImplementation(() => {});
     const data: { self?: unknown } = {};
     data.self = data;
 
@@ -76,9 +72,7 @@ describe("utils/debug_log", () => {
     } as any;
     const consoleErrorSpy = vi
       .spyOn(console, "error")
-      .mockImplementation(() => {
-        // no-op
-      });
+      .mockImplementation(() => {});
     const token = "sk-dummy-value-000";
 
     await debugLog("context", "action failed", { token }, "error");
@@ -97,9 +91,7 @@ describe("utils/debug_log", () => {
   it("ネストしたオブジェクト内の token も redact される", async () => {
     const consoleErrorSpy = vi
       .spyOn(console, "error")
-      .mockImplementation(() => {
-        // no-op
-      });
+      .mockImplementation(() => {});
     const token = "sk-dummy-value-111";
 
     await debugLog("context", "action failed", { request: { token } }, "error");
@@ -112,9 +104,7 @@ describe("utils/debug_log", () => {
   it("同一オブジェクト参照の再登場でも token が平文で出ない", async () => {
     const consoleErrorSpy = vi
       .spyOn(console, "error")
-      .mockImplementation(() => {
-        // no-op
-      });
+      .mockImplementation(() => {});
     const credentials = { chatgptToken: "TEST-FAKE-TOKEN" };
 
     await debugLog(
@@ -133,9 +123,7 @@ describe("utils/debug_log", () => {
   it("機微でないフィールドはそのまま残る", async () => {
     const consoleErrorSpy = vi
       .spyOn(console, "error")
-      .mockImplementation(() => {
-        // no-op
-      });
+      .mockImplementation(() => {});
 
     await debugLog(
       "context",

@@ -28,7 +28,6 @@ export function setupTableAutoExec(
     );
   }
 
-  // 手動実行はURL設定に関係なく有効化する。
   function enable(): void {
     enableTableSort(deps.showNotification, getCurrentPatternRowFilterSetting);
     stopObserving ??= observeTables(
@@ -65,14 +64,10 @@ export function setupTableAutoExec(
       return;
     }
 
-    refreshTableConfigAndMaybeEnable().catch(() => {
-      // no-op
-    });
+    refreshTableConfigAndMaybeEnable().catch(() => {});
   }
 
-  refreshTableConfigAndMaybeEnable().catch(() => {
-    // no-op
-  });
+  refreshTableConfigAndMaybeEnable().catch(() => {});
 
   if (chrome.storage?.onChanged) {
     chrome.storage.onChanged.addListener((changes, areaName) => {
@@ -82,25 +77,19 @@ export function setupTableAutoExec(
     });
   }
 
-  // タブが非アクティブ時にMutationObserverを停止し、メモリとCPUを節約
-  // アクティブ時は再開（既存テーブルの処理も含む）
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
       stop();
     } else {
-      // 最新の設定を再取得してから判定（タイミング問題を回避）
       refreshTableConfig()
         .then((configs) => {
           tableConfig = configs;
-          // 非同期処理中にタブが再び非表示になった場合は処理をスキップ（競合状態を回避）
           if (document.hidden) {
             return;
           }
           maybeEnableTableSortFromConfig();
         })
-        .catch(() => {
-          // 設定読み込み失敗時は何もしない（エラーログは不要）
-        });
+        .catch(() => {});
     }
   });
 

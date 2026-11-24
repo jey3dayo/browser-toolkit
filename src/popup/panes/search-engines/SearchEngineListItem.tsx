@@ -20,17 +20,13 @@ export function SearchEngineListItem(
 
   const handleToggleEnabled = useCallback(
     (checked: boolean) => {
-      onToggleEnabled(engine.id, checked).catch(() => {
-        // no-op
-      });
+      onToggleEnabled(engine.id, checked).catch(() => {});
     },
     [onToggleEnabled, engine.id]
   );
 
   const handleRemove = useCallback(() => {
-    onRemove(engine.id).catch(() => {
-      // no-op
-    });
+    onRemove(engine.id).catch(() => {});
   }, [onRemove, engine.id]);
 
   return (

@@ -19,33 +19,30 @@ describe("fetchWithTimeout", () => {
   });
 
   it("タイムアウト時にFetchTimeoutErrorをスロー", async () => {
-    const mockFetch = vi.fn().mockImplementation((_url, options) => {
-      return new Promise((_resolve, reject) => {
-        // AbortSignalをリスニング
-        const signal = options?.signal as AbortSignal | undefined;
-        if (signal) {
-          signal.addEventListener("abort", () => {
-            const abortError = new Error("AbortError");
-            abortError.name = "AbortError";
-            reject(abortError);
-          });
-        }
-        // レスポンスは1秒後（タイムアウトより遅い）
-        setTimeout(() => {
-          // このresolveは到達しない
-        }, 1000);
-      });
-    });
+    const mockFetch = vi.fn().mockImplementation(
+      (_url, options) =>
+        new Promise((_resolve, reject) => {
+          const signal = options?.signal as AbortSignal | undefined;
+          if (signal) {
+            signal.addEventListener("abort", () => {
+              const abortError = new Error("AbortError");
+              abortError.name = "AbortError";
+              reject(abortError);
+            });
+          }
+          setTimeout(() => {}, 1000);
+        })
+    );
 
     await expect(
       fetchWithTimeout(
         mockFetch as unknown as typeof fetch,
         "https://example.com",
         {},
-        10 // 10msでタイムアウト
+        10
       )
     ).rejects.toThrow(FetchTimeoutError);
-  }, 2000); // テストタイムアウトを2秒に設定
+  }, 2000);
 
   it("AbortErrorをFetchTimeoutErrorに変換", async () => {
     const abortError = new Error("AbortError");

@@ -136,8 +136,6 @@ describe("popup search groups state across two instances (onChanged rehydration)
   });
 
   it("keeps both mutations when two instances mutate concurrently", async () => {
-    // 2つのインスタンスの mutation は realm 共有の shared lock で直列化され、
-    // 後続の mutation は readLatest で先行事象を含めて rebase される。
     const storageStub = createSyncStorageStub({
       searchEngineGroups: [...DEFAULT_SEARCH_ENGINE_GROUPS],
       searchEngines: [...DEFAULT_SEARCH_ENGINES],
@@ -190,7 +188,6 @@ describe("popup search groups state across two instances (onChanged rehydration)
     const second = await mountHook({ dom, storageStub });
 
     const [shopping, trend] = DEFAULT_SEARCH_ENGINE_GROUPS;
-    // drag handler が掴んだレコードは toggle 前の stale な値を持つ
     const staleForDrag = [...DEFAULT_SEARCH_ENGINE_GROUPS];
     await act(async () => {
       const toggle = first.output.current?.toggleGroupEnabled(

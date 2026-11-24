@@ -39,9 +39,7 @@ function FocusPatternRowAction({
   onRemove,
 }: FocusPatternRowActionProps): React.JSX.Element {
   const handleRemove = useCallback(() => {
-    onRemove(pattern).catch(() => {
-      // no-op
-    });
+    onRemove(pattern).catch(() => {});
   }, [onRemove, pattern]);
 
   return (
@@ -106,9 +104,7 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
   ].join(" · ");
 
   const handleEnableNow = useCallback(() => {
-    enableNow().catch(() => {
-      // no-op
-    });
+    enableNow().catch(() => {});
   }, [enableNow]);
 
   const handlePatternSubmitError = useCallback(() => {
@@ -116,15 +112,11 @@ export function TablePane(props: TablePaneProps): React.JSX.Element {
   }, [props.notify]);
 
   const handleRefreshFocusDiagnostic = useCallback(() => {
-    runFocusDiagnostic(true).catch(() => {
-      // no-op
-    });
+    runFocusDiagnostic(true).catch(() => {});
   }, [runFocusDiagnostic]);
 
   const handleReloadCurrentTab = useCallback(() => {
-    reloadCurrentTab().catch(() => {
-      // no-op
-    });
+    reloadCurrentTab().catch(() => {});
   }, [reloadCurrentTab]);
 
   return (

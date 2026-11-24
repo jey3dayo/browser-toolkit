@@ -20,7 +20,6 @@ const DebugLogEntrySchema = object({
   timestamp: string(),
 }) satisfies BaseSchema<unknown, DebugLogEntry, BaseIssue<unknown>>;
 
-/** background の getDebugLogStats 成功応答。ok:false など他の形は検証失敗になる。 */
 export const DebugLogStatsResponseSchema = object({
   entryCount: number(),
   ok: literal(true),
@@ -28,7 +27,6 @@ export const DebugLogStatsResponseSchema = object({
   sizeKB: string(),
 });
 
-/** background の getDebugLogs 成功応答。ok:false など他の形は検証失敗になる。 */
 export const DebugLogsResponseSchema = object({
   logs: array(DebugLogEntrySchema),
   ok: literal(true),

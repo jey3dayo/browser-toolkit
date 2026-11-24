@@ -14,9 +14,6 @@ export const OVERLAY_TOAST_SURFACE_INSET_BELOW = `calc(100% + ${OVERLAY_TOAST_GA
 export const OVERLAY_TOAST_SURFACE_INSET_ABOVE = `auto 0 calc(100% + ${OVERLAY_TOAST_GAP_PX}px) 12px`;
 export const OVERLAY_TOAST_SURFACE_INSET_INSIDE = "auto 0 12px 12px";
 
-/**
- * Regex patterns at module level for performance (lint/performance/useTopLevelRegex)
- */
 const SELECTION_SECONDARY_REGEX = /^選択範囲:\s*\n([\s\S]*)$/;
 
 export function statusLabelFromStatus(

@@ -45,24 +45,15 @@ export function persistTheme(theme: Theme): Promise<void> {
   });
 }
 
-/**
- * Subscribe to stored theme changes (chrome.storage.local "theme").
- * Returns an unsubscribe function; a no-op unsubscribe when storage
- * change events are unavailable.
- */
 export function subscribeStoredTheme(
   onThemeChange: (theme: Theme) => void
 ): () => void {
   if (typeof chrome === "undefined") {
-    return () => {
-      // no-op
-    };
+    return () => {};
   }
   const onChanged = chrome.storage?.onChanged;
   if (!onChanged?.addListener) {
-    return () => {
-      // no-op
-    };
+    return () => {};
   }
 
   const handleChange = (

@@ -31,20 +31,13 @@ export function SettingsModelSection({
       }
       const normalized = normalizeAiModel(provider, value);
       setModel(normalized);
-      saveModel(normalized).catch(() => {
-        // no-op
-      });
+      saveModel(normalized).catch(() => {});
     },
     [provider, setModel, saveModel]
   );
 
   return (
     <SettingsPaneCard section="model">
-      {/* legend がこのカード唯一の可視ラベル。以前は同じ t("settings.model") を
-          Field label にも渡していて「モデル」が二重に表示され、しかもその Field は
-          htmlFor 未指定のため <label> ではなく <span> になっていた（コントロールと
-          紐付かない見せかけのラベル）。Select のトリガは button なので、
-          アクセシブル名は ariaLabel が担う。 */}
       <Fieldset legend={t("settings.model")} spacing="stack">
         <Select
           ariaLabel={t("settings.model")}

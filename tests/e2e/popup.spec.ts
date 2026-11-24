@@ -4,8 +4,6 @@ test.describe("Popup UI", () => {
   test("should navigate between panes", async ({ page, extensionId }) => {
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
 
-    // The popup header carries the current pane name (src/popup/App.tsx reads
-    // it from src/popup/navigation-items.ts); panes no longer repeat it.
     await expect(page.locator("h1")).toHaveText("アクション");
 
     await page.click('button[aria-label="サイト別機能"]');
@@ -100,9 +98,6 @@ test.describe("Popup UI", () => {
     await expect(tokenInput).toBeVisible();
   });
 
-  // TODO(advisor/013): 「すべてのサイトで有効化」トグルは table-pane リファクタで
-  // 廃止され、URL パターン + enableCurrentTab モデルへ移行済み。このテスト全体は
-  // 新モデル向けに書き直しが必要（pattern-add セレクタの再検証を含む、要インタラクティブ検証）。
   test.skip("should manage table sort patterns", async ({
     page,
     extensionId,

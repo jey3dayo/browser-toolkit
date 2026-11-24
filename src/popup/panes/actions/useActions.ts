@@ -55,12 +55,8 @@ export function useActions(params: {
         await params.runtime.storageSyncSet({
           contextActions: DEFAULT_CONTEXT_ACTIONS,
         });
-      } catch {
-        // no-op
-      }
-    })().catch(() => {
-      // no-op
-    });
+      } catch {}
+    })().catch(() => {});
     return () => {
       cancelled = true;
     };

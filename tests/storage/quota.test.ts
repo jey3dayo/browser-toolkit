@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { checkStorageQuota, QUOTA_BYTES_PER_ITEM } from "@/background/storage";
 
-// Chrome API のモック
 global.chrome = {
   runtime: {
     lastError: undefined,
@@ -27,7 +26,6 @@ describe("Storage Quota Management", () => {
     });
 
     it("should return ok:false for data exceeding 8KB", () => {
-      // Create a string larger than 8KB
       const largeValue = "x".repeat(QUOTA_BYTES_PER_ITEM + 1);
       const items = { key1: largeValue };
       const result = checkStorageQuota(items);

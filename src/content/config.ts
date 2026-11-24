@@ -6,10 +6,6 @@ import {
 } from "@/domain-pattern-configs";
 import { storageSyncGet } from "@/storage/helpers";
 
-/**
- * ストレージから設定をリフレッシュ
- * @returns 正規化されたDomainPatternConfig配列
- */
 export async function refreshTableConfig(): Promise<DomainPatternConfig[]> {
   const result = await storageSyncGet<DomainPatternConfigStorageData>([
     "domainPatternConfigs",

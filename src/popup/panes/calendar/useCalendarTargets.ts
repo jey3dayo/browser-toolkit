@@ -49,9 +49,7 @@ export function useCalendarTargets(params: {
           { error: formatErrorLog("", {}, error) },
           "error"
         );
-      } catch {
-        // no-op
-      }
+      } catch {}
     });
     return () => {
       cancelled = true;
@@ -86,9 +84,7 @@ export function useCalendarTargets(params: {
     const next = targets.includes(target)
       ? targets.filter((item) => item !== target)
       : [...targets, target];
-    saveTargets(next).catch(() => {
-      // no-op
-    });
+    saveTargets(next).catch(() => {});
   };
 
   return { hasGoogle, hasIcs, targets, toggleTarget };

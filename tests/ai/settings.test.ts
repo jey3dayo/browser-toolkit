@@ -212,7 +212,6 @@ describe("ai/settings", () => {
         }),
         set: (items: Record<string, unknown>) => {
           expect(items.aiProvider).toBe("openai");
-          // openaiApiTokenはそのまま維持（プロバイダー別キー）
           expect(items.aiModel).toBe("unsupported-model");
           expect(items.aiCustomPrompt).toBe("old prompt");
           return Promise.resolve();

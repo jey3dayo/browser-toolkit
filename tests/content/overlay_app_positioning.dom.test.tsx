@@ -7,7 +7,6 @@ import {
 } from "@/content/overlay/OverlayApp";
 import type { Size } from "@/shared_types";
 
-// Enable React's act() behavior warnings to be handled correctly in this test suite.
 (
   globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;
@@ -22,9 +21,7 @@ async function flushEffects(times = 3): Promise<void> {
   );
 }
 
-function noop(): void {
-  // no-op
-}
+function noop(): void {}
 
 function setWindowSize(size: Size): void {
   Object.defineProperty(window, "innerWidth", {

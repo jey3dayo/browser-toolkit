@@ -2,12 +2,6 @@ import type { Result } from "@praha/byethrow";
 import { t } from "@/i18n";
 import { enableSingleTable } from "./table-sort";
 
-/**
- * 動的に追加されるテーブルを監視開始
- * @param onNotify - 通知コールバック
- * @param getRowFilterSetting - 行フィルタリング設定取得関数
- * @returns 監視と未実行のデバウンス処理を停止する関数
- */
 export function observeTables(
   onNotify: (message: string) => void,
   getRowFilterSetting?: () => Result.Result<boolean, string>

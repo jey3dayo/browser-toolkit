@@ -48,9 +48,7 @@ export function SearchGroupsList(
 
   const handleSortableReorder = useCallback(
     (reordered: SearchEngineGroup[]) => {
-      handleReorder(reordered).catch(() => {
-        // no-op
-      });
+      handleReorder(reordered).catch(() => {});
     },
     [handleReorder]
   );

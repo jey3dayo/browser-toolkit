@@ -32,9 +32,7 @@ export type ActionsPaneProps = {
 };
 
 export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
-  const resetEditorStateRef = useRef<() => void>(() => {
-    // no-op
-  });
+  const resetEditorStateRef = useRef<() => void>(() => {});
 
   const {
     actions,
@@ -102,17 +100,13 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
 
   const handleRunAction = useCallback(
     (actionId: string) => {
-      runAction(actionId).catch(() => {
-        // no-op
-      });
+      runAction(actionId).catch(() => {});
     },
     [runAction]
   );
 
   const handleCopyOutput = useCallback(() => {
-    copyOutput().catch(() => {
-      // no-op
-    });
+    copyOutput().catch(() => {});
   }, [copyOutput]);
 
   const handleChangeKind = useCallback(
@@ -141,21 +135,15 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
   }, [selectActionForEdit]);
 
   const handleDeleteEditor = useCallback(() => {
-    deleteEditor().catch(() => {
-      // no-op
-    });
+    deleteEditor().catch(() => {});
   }, [deleteEditor]);
 
   const handleResetActions = useCallback(() => {
-    resetActions().catch(() => {
-      // no-op
-    });
+    resetActions().catch(() => {});
   }, [resetActions]);
 
   const handleSaveEditor = useCallback(() => {
-    saveEditor().catch(() => {
-      // no-op
-    });
+    saveEditor().catch(() => {});
   }, [saveEditor]);
 
   const handleSelectActionId = useCallback(
@@ -167,9 +155,7 @@ export function ActionsPane(props: ActionsPaneProps): React.JSX.Element {
 
   const handleReorderList = useCallback(
     (reordered: ContextAction[]) => {
-      handleReorder(reordered).catch(() => {
-        // no-op
-      });
+      handleReorder(reordered).catch(() => {});
     },
     [handleReorder]
   );

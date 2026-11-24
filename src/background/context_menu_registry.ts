@@ -98,9 +98,6 @@ function createBuiltinRootMenuItems(): chrome.contextMenus.CreateProperties[] {
   ];
 }
 
-/**
- * Exact-match menu items ハンドラー。処理した場合 true を返す。
- */
 function handleExactMenuItemClick(
   menuItemId: string,
   tabId: number,
@@ -164,9 +161,7 @@ export function registerContextMenuHandlers(): void {
         const formatId = menuItemId.slice(CONTEXT_MENU_COPY_LINK_PREFIX.length);
         const format = coerceLinkFormat(formatId) ?? undefined;
         handleCopyTitleLinkContextMenuClick({ tab, tabId }, format).catch(
-          () => {
-            // no-op
-          }
+          () => {}
         );
         return;
       }
@@ -223,9 +218,7 @@ export function registerContextMenuHandlers(): void {
               selectionContext.initialSource,
               error
             );
-          } catch {
-            // no-op
-          }
+          } catch {}
         }
       })();
     }
@@ -395,12 +388,6 @@ export async function refreshContextMenus(): Promise<boolean> {
   }
 }
 
-/**
- * Schedules a context menu refresh with queue management.
- * Ensures refreshes are executed sequentially to avoid race conditions.
- *
- * @returns Promise that resolves when the refresh is complete
- */
 export function scheduleRefreshContextMenus(): Promise<void> {
   contextMenuRefreshQueue = contextMenuRefreshQueue
     .catch((error) => {
@@ -411,8 +398,6 @@ export function scheduleRefreshContextMenus(): Promise<void> {
       );
     })
     .then(async () => {
-      // SW 復帰ごとの再構築を廃止した分、失敗時の自己回復機会が減るため、
-      // 途中失敗で空/部分メニューのまま固定されないよう1回だけ再試行する。
       const succeeded = await refreshContextMenus();
       if (!succeeded) {
         await refreshContextMenus();

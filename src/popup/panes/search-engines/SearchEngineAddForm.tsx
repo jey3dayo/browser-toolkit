@@ -28,9 +28,7 @@ export function SearchEngineAddForm(
   const { onAddEngine, onEncodingInputChange } = props;
 
   const submitAddEngine = useCallback((): void => {
-    onAddEngine().catch(() => {
-      // no-op
-    });
+    onAddEngine().catch(() => {});
   }, [onAddEngine]);
 
   const handleEncodingChange = useCallback(

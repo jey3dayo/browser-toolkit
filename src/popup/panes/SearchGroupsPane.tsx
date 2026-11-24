@@ -37,9 +37,7 @@ export function SearchGroupsPane(
   } = useSearchGroupsState(props);
 
   const handleResetToDefaults = useCallback(() => {
-    resetToDefaults().catch(() => {
-      // no-op
-    });
+    resetToDefaults().catch(() => {});
   }, [resetToDefaults]);
 
   const handleSubmitError = useCallback(() => {

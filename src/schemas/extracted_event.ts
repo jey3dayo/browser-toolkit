@@ -17,10 +17,6 @@ export const ExtractedEventSchema = object({
   title: string(),
 }) satisfies BaseSchema<unknown, ExtractedEvent, BaseIssue<unknown>>;
 
-/**
- * Anthropic の output_config.format へ渡す JSON Schema。
- * ExtractedEventSchema と同じ形を保つこと。
- */
 export const EXTRACTED_EVENT_JSON_SCHEMA = {
   additionalProperties: false,
   properties: {

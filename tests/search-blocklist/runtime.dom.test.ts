@@ -102,9 +102,7 @@ describe("createBlocklistState fail-open behavior", () => {
     mockChromeStorage();
     const pendingRead: Promise<
       Result.Result<StoredSearchBlocklistData, StorageError>
-    > = new Promise(() => {
-      // intentionally never resolves within this test
-    });
+    > = new Promise(() => {});
 
     const container = createContainer();
     const state = createBlocklistState("google", pendingRead, () => []);

@@ -30,9 +30,7 @@ function fallbackStorageGet(
     }
     try {
       data[key] = JSON.parse(raw) as unknown;
-    } catch {
-      // Keep parity with Chrome Storage: ignore invalid JSON payloads.
-    }
+    } catch {}
   }
   return data;
 }
@@ -47,9 +45,7 @@ function fallbackStorageSet(
         `${FALLBACK_STORAGE_PREFIX}${scope}:${key}`,
         JSON.stringify(value)
       );
-    } catch {
-      // Best-effort fallback: quota/disabled storage can make this throw.
-    }
+    } catch {}
   }
 }
 
@@ -63,9 +59,7 @@ function fallbackStorageRemove(
       window.localStorage.removeItem(
         `${FALLBACK_STORAGE_PREFIX}${scope}:${key}`
       );
-    } catch {
-      // Best-effort fallback: quota/disabled storage can make this throw.
-    }
+    } catch {}
   }
 }
 function getStorageArea(area: StorageAreaName): chrome.storage.StorageArea {

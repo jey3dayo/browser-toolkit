@@ -3,10 +3,6 @@ import type { ChatMessage } from "@/background/runtime_types";
 import { t } from "@/i18n";
 import { isRecord } from "@/utils/guards";
 
-/**
- * Manage overlay chat follow-up state: message history, in-flight request
- * tracking, and reset when the underlying AI result (primary text) changes.
- */
 export function useOverlayChat(primary: string) {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isChatting, setIsChatting] = useState(false);

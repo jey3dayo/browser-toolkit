@@ -20,16 +20,12 @@ export function PatternConfigListItem({
   onToggleRowFilter,
 }: PatternConfigListItemProps): React.JSX.Element {
   const handleRemove = useCallback(() => {
-    onRemove(config.pattern).catch(() => {
-      // no-op
-    });
+    onRemove(config.pattern).catch(() => {});
   }, [config.pattern, onRemove]);
 
   const handleToggleRowFilter = useCallback(
     (checked: boolean) => {
-      onToggleRowFilter(config.pattern, checked).catch(() => {
-        // no-op
-      });
+      onToggleRowFilter(config.pattern, checked).catch(() => {});
     },
     [config.pattern, onToggleRowFilter]
   );

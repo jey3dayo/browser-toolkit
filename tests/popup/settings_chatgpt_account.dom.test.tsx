@@ -38,9 +38,7 @@ function buildRuntime(overrides: Partial<PopupRuntime> = {}): PopupRuntime {
     isExtensionPage: true,
     matchesFocusOverridePatterns: () => false,
     openOptionsPane: async () => Result.succeed(),
-    openUrl: () => {
-      // no-op
-    },
+    openUrl: () => {},
     reloadTab: async () => Result.succeed(),
     sendMessageToBackground: async () => Result.succeed({}),
     sendMessageToTab: async () => Result.succeed({}),
@@ -246,9 +244,7 @@ describe("SettingsChatGptAccountSection", () => {
   });
 
   it("続行押下で応答を待たず disabled になり chatgptSignIn を送る", async () => {
-    let release: () => void = () => {
-      // replaced below
-    };
+    let release: () => void = () => {};
     const gate = new Promise<void>((resolve) => {
       release = resolve;
     });

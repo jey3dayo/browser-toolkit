@@ -123,7 +123,6 @@ describe("table sort with nested tables", () => {
       expect(header.getAttribute("aria-sort")).toBe("none");
     }
 
-    // ネスト table 自身の enableSingleTable が装飾を担当する
     const innerHeaders = Array.from(innerTable.querySelectorAll("th"));
     expect(innerHeaders).toHaveLength(2);
     for (const header of innerHeaders) {

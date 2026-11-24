@@ -336,9 +336,7 @@ export function createBlocklistState(
     .then(() => {
       try {
         rescan();
-      } catch {
-        // fail open: initial scan must never reject `ready`
-      }
+      } catch {}
     });
 
   function getSnapshot(): BlocklistSnapshot {

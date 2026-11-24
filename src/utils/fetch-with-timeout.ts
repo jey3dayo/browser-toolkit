@@ -1,10 +1,3 @@
-/**
- * Fetch with timeout utility
- *
- * Service Worker タイムアウト（30秒）対策として、
- * API呼び出しに明示的なタイムアウトを設定します。
- */
-
 import { API_FETCH_TIMEOUT_MS } from "@/constants/timeouts";
 import { FetchTimeoutError } from "@/utils/custom-errors";
 

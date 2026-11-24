@@ -9,7 +9,6 @@ import {
   setSchemaVersion,
 } from "@/storage/migrations";
 
-// Chrome API のモック
 const mockStorage = new Map<string, any>();
 
 function setupChromeMocks() {
@@ -22,7 +21,6 @@ function setupChromeMocks() {
         get: vi.fn((keys, callback) => {
           const result: Record<string, any> = {};
           if (keys === null || keys === undefined) {
-            // Get all items
             for (const [key, value] of mockStorage.entries()) {
               result[key] = value;
             }
@@ -52,7 +50,6 @@ function setupChromeMocks() {
         get: vi.fn((keys, callback) => {
           const result: Record<string, any> = {};
           if (keys === null || keys === undefined) {
-            // Get all items
             for (const [key, value] of mockStorage.entries()) {
               if (
                 !key.startsWith("backup_") &&
@@ -152,7 +149,6 @@ describe("Storage Migrations", () => {
 
   describe("cleanOldBackups", () => {
     it("should keep only last 3 backups", async () => {
-      // Create 5 backups with different timestamps
       const baseTime = Date.now();
       for (let i = 0; i < 5; i += 1) {
         const backup: BackupData = {
@@ -176,12 +172,10 @@ describe("Storage Migrations", () => {
     it("should complete without error on empty storage", async () => {
       await expect(runMigrations()).resolves.not.toThrow();
 
-      // All defined migrations ran: the schema version advanced from 0
       expect(await getCurrentSchemaVersion()).toBeGreaterThan(0);
     });
 
     it("should skip completed migrations", async () => {
-      // Set current version to 5 (past every defined migration)
       await setSchemaVersion(5);
       mockStorage.set("openaiModel", "gpt-4");
 
@@ -189,7 +183,6 @@ describe("Storage Migrations", () => {
 
       const version = await getCurrentSchemaVersion();
       expect(version).toBe(5);
-      // The v1 migration must not re-apply: openaiModel stays unmigrated
       expect(mockStorage.has("aiModel")).toBe(false);
     });
   });
@@ -231,7 +224,6 @@ describe("Storage Migrations", () => {
 
       await runMigrations();
 
-      // Should keep existing aiModel
       expect(mockStorage.get("aiModel")).toBe("gpt-3.5-turbo");
     });
 
@@ -241,7 +233,6 @@ describe("Storage Migrations", () => {
 
       await runMigrations();
 
-      // Should keep existing aiProvider
       expect(mockStorage.get("aiProvider")).toBe("anthropic");
     });
 
@@ -253,7 +244,6 @@ describe("Storage Migrations", () => {
       const aiModelAfterFirst = mockStorage.get("aiModel");
       const aiCustomPromptAfterFirst = mockStorage.get("aiCustomPrompt");
 
-      // Run again
       await runMigrations();
       const aiModelAfterSecond = mockStorage.get("aiModel");
       const aiCustomPromptAfterSecond = mockStorage.get("aiCustomPrompt");
@@ -263,7 +253,6 @@ describe("Storage Migrations", () => {
     });
 
     it("should handle missing old keys gracefully", async () => {
-      // No old keys present
       await expect(runMigrations()).resolves.not.toThrow();
 
       const version = await getCurrentSchemaVersion();

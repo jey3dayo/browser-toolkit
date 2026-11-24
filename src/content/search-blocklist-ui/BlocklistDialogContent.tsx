@@ -13,9 +13,7 @@ import { suggestPatternFromUrl } from "./dom";
 function openSearchBlocklistSettings(): void {
   chrome.runtime
     .sendMessage({ action: "openPopupPane", paneId: "pane-search-blocklist" })
-    .catch(() => {
-      // no-op
-    });
+    .catch(() => {});
 }
 
 export type BlocklistDialogContentProps = {

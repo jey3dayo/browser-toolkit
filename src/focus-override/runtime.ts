@@ -24,9 +24,7 @@ function defineGetter(
       configurable: true,
       get: getter,
     });
-  } catch {
-    // no-op
-  }
+  } catch {}
 }
 
 function defineValue(target: object, property: string, value: unknown): void {
@@ -36,9 +34,7 @@ function defineValue(target: object, property: string, value: unknown): void {
       value,
       writable: true,
     });
-  } catch {
-    // no-op
-  }
+  } catch {}
 }
 
 function ignoreEventHandlerProperty(target: object, property: string): void {
@@ -46,13 +42,9 @@ function ignoreEventHandlerProperty(target: object, property: string): void {
     Object.defineProperty(target, property, {
       configurable: true,
       get: () => null,
-      set: () => {
-        // no-op
-      },
+      set: () => {},
     });
-  } catch {
-    // no-op
-  }
+  } catch {}
 }
 
 function stopImmediatePropagation(event: Event): void {
@@ -71,9 +63,7 @@ export function applyAlwaysFocusedOverrides(
 
   try {
     targetDocument.documentElement?.setAttribute(APPLIED_ATTRIBUTE, "true");
-  } catch {
-    // no-op
-  }
+  } catch {}
 
   defineGetter(targetDocument, "visibilityState", () => "visible");
   defineGetter(targetDocument, "hidden", () => false);

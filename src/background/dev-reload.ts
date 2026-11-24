@@ -1,12 +1,7 @@
-/**
- * Development-only auto-reload client
- * Connects to the dev server's WebSocket and reloads the extension on file changes
- */
-
 export {};
 
 const DEV_SERVER_URL = "ws://localhost:8090";
-const RECONNECT_INTERVAL = 3000; // 3 seconds
+const RECONNECT_INTERVAL = 3000;
 const MAX_RECONNECT_ATTEMPTS = 10;
 
 let ws: WebSocket | null = null;

@@ -41,21 +41,15 @@ export function SettingsTokenSection({
   testToken,
 }: SettingsTokenSectionProps): React.JSX.Element {
   const handleSaveToken = useCallback(() => {
-    saveToken().catch(() => {
-      // no-op
-    });
+    saveToken().catch(() => {});
   }, [saveToken]);
 
   const handleTestToken = useCallback(() => {
-    testToken().catch(() => {
-      // no-op
-    });
+    testToken().catch(() => {});
   }, [testToken]);
 
   const handleClearToken = useCallback(() => {
-    clearToken().catch(() => {
-      // no-op
-    });
+    clearToken().catch(() => {});
   }, [clearToken]);
 
   return (

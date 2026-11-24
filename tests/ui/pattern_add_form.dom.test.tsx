@@ -9,9 +9,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function noop(): void {
-  // no-op
-}
+function noop(): void {}
 
 describe("PatternAddForm", () => {
   it("reports submit failures to the caller", async () => {

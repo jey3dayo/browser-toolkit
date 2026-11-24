@@ -89,9 +89,7 @@ export function HistoryPane(props: PopupPaneBaseProps): React.JSX.Element {
       if (Result.isSuccess(result)) {
         setHistory(result.value.actionHistory ?? []);
       }
-    })().catch(() => {
-      // no-op
-    });
+    })().catch(() => {});
     return () => {
       cancelled = true;
     };
@@ -117,16 +115,12 @@ export function HistoryPane(props: PopupPaneBaseProps): React.JSX.Element {
   };
 
   const handleClearHistoryClick = useCallback(() => {
-    clearHistory().catch(() => {
-      // no-op
-    });
+    clearHistory().catch(() => {});
   }, [clearHistory]);
 
   const handleCopyEntry = useCallback(
     (text: string) => {
-      copyEntry(text).catch(() => {
-        // no-op
-      });
+      copyEntry(text).catch(() => {});
     },
     [copyEntry]
   );

@@ -6,10 +6,6 @@ import {
   themeFromHost,
 } from "@/ui/themeStorage";
 
-/**
- * Manage overlay theme state: initial value from host dataset, async load
- * from storage, and live sync with chrome.storage.onChanged.
- */
 export function useOverlayTheme(
   host: HTMLDivElement,
   portalContainer: ShadowRoot
@@ -28,9 +24,7 @@ export function useOverlayTheme(
         setTheme(storedTheme);
         applyTheme(storedTheme, portalContainer);
       })
-      .catch(() => {
-        // no-op
-      });
+      .catch(() => {});
 
     const unsubscribe = subscribeStoredTheme((nextTheme) => {
       setTheme(nextTheme);

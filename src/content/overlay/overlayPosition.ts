@@ -189,9 +189,7 @@ export function startOverlayDrag(params: OverlayDragStartParams): void {
   );
   try {
     params.event.currentTarget.setPointerCapture(params.event.pointerId);
-  } catch {
-    // no-op
-  }
+  } catch {}
 }
 
 export function moveOverlayDrag(
@@ -230,9 +228,7 @@ export function endOverlayDrag(params: OverlayDragEndParams): void {
   params.dragOffsetRef.current = null;
   try {
     params.event.currentTarget.releasePointerCapture(params.event.pointerId);
-  } catch {
-    // no-op
-  }
+  } catch {}
 }
 
 export function toggleOverlayPinned(params: OverlayPinnedParams): void {

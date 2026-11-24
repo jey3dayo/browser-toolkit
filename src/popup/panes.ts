@@ -56,12 +56,10 @@ function resolvePaneId(value: string): PaneId | null {
   return Object.hasOwn(LEGACY_PANE_IDS, value) ? LEGACY_PANE_IDS[value] : null;
 }
 
-/** Home surface: where a pane opens from the popup or the background. */
 export function getPaneSurface(paneId: PaneId): PaneSurface {
   return PANE_SURFACES[paneId];
 }
 
-/** The options page is the full console, so it renders every pane. */
 export function canSurfaceRender(
   surface: PaneSurface,
   paneId: PaneId

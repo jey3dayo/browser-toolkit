@@ -201,9 +201,7 @@ export function useActionRunner(params: {
               { error },
               "error"
             );
-          } catch {
-            // no-op
-          }
+          } catch {}
         });
     }
   };

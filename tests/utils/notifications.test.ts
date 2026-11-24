@@ -2,24 +2,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { showErrorNotification, showNotification } from "@/utils/notifications";
 
-/**
- * Chrome Notifications API のモック
- */
 const mockChromeNotifications = {
   create: vi.fn(),
 };
 
 const MOCK_ICON_URL = "chrome-extension://mock/images/icon128.png";
 
-/**
- * テスト用の正規表現パターン（パフォーマンス最適化のためトップレベルで定義）
- */
 const TRUNCATED_TITLE_PATTERN = /^A+\.\.\.$/;
 const TRUNCATED_MESSAGE_PATTERN = /^B+\.\.\.$/;
 
 describe("utils/notifications", () => {
   beforeEach(() => {
-    // chrome API をモック
     global.chrome = {
       notifications: mockChromeNotifications,
       runtime: {
@@ -123,9 +116,7 @@ describe("utils/notifications", () => {
     it("エラーが発生してもクラッシュしない", async () => {
       const consoleErrorSpy = vi
         .spyOn(console, "error")
-        .mockImplementation(() => {
-          // console.error をモックして出力を抑制
-        });
+        .mockImplementation(() => {});
       mockChromeNotifications.create.mockRejectedValue(
         new Error("Notification failed")
       );

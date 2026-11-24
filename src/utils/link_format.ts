@@ -124,7 +124,6 @@ export function formatLink(source: LinkSource, format: LinkFormat): string {
   if (!url) {
     return "";
   }
-  // 型外の値が来た場合は従来どおり bbcode 扱いにする
   const formatter = Object.hasOwn(LINK_FORMATTERS, format)
     ? LINK_FORMATTERS[format]
     : LINK_FORMATTERS.bbcode;
