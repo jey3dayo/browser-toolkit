@@ -33,9 +33,7 @@ function InlineEditRow({
   onCancel,
 }: InlineEditRowProps): React.JSX.Element {
   const save = useCallback(() => {
-    onSave(ruleId).catch(() => {
-      // no-op
-    });
+    onSave(ruleId).catch(() => {});
   }, [onSave, ruleId]);
 
   const handleKeyDown = useCallback(
@@ -97,9 +95,7 @@ export function SearchBlocklistListItem({
   }, [onStartEditing, rule]);
 
   const handleRemove = useCallback(() => {
-    onRemove(rule.id).catch(() => {
-      // no-op
-    });
+    onRemove(rule.id).catch(() => {});
   }, [onRemove, rule.id]);
 
   if (isEditing) {

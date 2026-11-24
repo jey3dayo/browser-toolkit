@@ -5,7 +5,7 @@ import type { LocalStorageData } from "@/storage/types";
  * Chrome Storage Sync のクォータ制限
  * @see https://developer.chrome.com/docs/extensions/reference/api/storage#property-sync-QUOTA_BYTES_PER_ITEM
  */
-export const QUOTA_BYTES_PER_ITEM = 8192; // 8KB
+export const QUOTA_BYTES_PER_ITEM = 8192;
 
 type QuotaCheckResult =
   | { ok: true }
@@ -25,10 +25,6 @@ export function checkStorageQuota(
   return { ok: true };
 }
 
-/**
- * Generic factory that wraps a callback-style Chrome Storage operation in a Promise.
- * The operation receives resolve/reject and is responsible for checking chrome.runtime.lastError.
- */
 function createStorageWrapper<TArgs extends unknown[], TResult>(
   operation: (
     resolve: (value: TResult) => void,
@@ -232,7 +228,6 @@ export const storageSyncSet = createStorageWrapper<
         console.error("Failed to create notification:", err);
       });
 
-    // chrome.storage.local にフォールバック（同期はされない）
     persistFallbackItems(items, resolve, reject);
     return;
   }

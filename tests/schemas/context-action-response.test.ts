@@ -39,7 +39,6 @@ describe("isRunContextActionResponse", () => {
     const invalid = Result.succeed({
       resultType: "text" as const,
       source: "selection" as const,
-      // missing text
     });
 
     expect(isRunContextActionResponse(invalid)).toBe(false);
@@ -49,7 +48,6 @@ describe("isRunContextActionResponse", () => {
     const invalid = Result.succeed({
       resultType: "event" as const,
       source: "page" as const,
-      // missing eventText
     });
 
     expect(isRunContextActionResponse(invalid)).toBe(false);
@@ -59,7 +57,6 @@ describe("isRunContextActionResponse", () => {
     const invalid = Result.succeed({
       resultType: "text" as const,
       text: "Summary",
-      // missing source
     });
 
     expect(isRunContextActionResponse(invalid)).toBe(false);

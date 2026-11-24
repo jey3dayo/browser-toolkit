@@ -14,8 +14,6 @@ const DENYLISTED_INPUT_SEGMENTS = [
   "/node_modules/.pnpm/react@",
 ];
 
-// Some metafile inputs are absolute; strip projectRoot so the denylist can't
-// match a segment of the checkout directory itself.
 function normalizeInputPath(inputPath: string, projectRoot: string): string {
   const relative = path.isAbsolute(inputPath)
     ? path.relative(projectRoot, inputPath)

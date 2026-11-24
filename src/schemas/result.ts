@@ -2,18 +2,6 @@ import { Result } from "@praha/byethrow";
 import type { BaseIssue, BaseSchema } from "valibot";
 import { safeParse } from "valibot";
 
-/**
- * Validates that a value conforms to Result.Result<T, E> structure.
- *
- * This validates:
- * 1. The Result discriminator (type field)
- * 2. The concrete value shape for Success
- * 3. The concrete error shape for Failure
- *
- * @param value - The value to validate
- * @param successSchema - Valibot schema for the success value
- * @param errorSchema - Valibot schema for the error value
- */
 export function isResultType<T, E>(
   value: unknown,
   successSchema: BaseSchema<unknown, T, BaseIssue<unknown>>,

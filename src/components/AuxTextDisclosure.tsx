@@ -75,9 +75,7 @@ export function AuxTextDisclosure(props: Props): React.JSX.Element | null {
       if (!storage) {
         return;
       }
-      storage.set({ [storageKey]: nextOpen }, () => {
-        // no-op
-      });
+      storage.set({ [storageKey]: nextOpen }, () => {});
     },
     [props.storageKey]
   );

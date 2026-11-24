@@ -100,7 +100,6 @@ export function useSettingsState(params: PopupPaneBaseProps): UseSettingsState {
       }
       const raw: Partial<LocalStorageData> = loaded.value;
 
-      // プロバイダー（新キー優先、旧キーフォールバック）
       const providerValue = raw.aiProvider ?? "openai";
       const resolvedProvider = safeParseAiProvider(providerValue) ?? "openai";
       setProvider(resolvedProvider);
@@ -110,10 +109,8 @@ export function useSettingsState(params: PopupPaneBaseProps): UseSettingsState {
         : undefined;
       setToken(typeof tokenValue === "string" ? tokenValue : "");
 
-      // カスタムプロンプト（新キー優先、旧キーフォールバック）
       setCustomPrompt(raw.aiCustomPrompt ?? raw.openaiCustomPrompt ?? "");
 
-      // モデル（新キー優先、旧キーフォールバック、プロバイダー別に正規化）
       const modelValue = raw.aiModel ?? raw.openaiModel;
       const resolvedModel = normalizeAiModel(resolvedProvider, modelValue);
       setModel(resolvedModel);
@@ -131,9 +128,7 @@ export function useSettingsState(params: PopupPaneBaseProps): UseSettingsState {
           { error: formatErrorLog("", {}, error) },
           "error"
         );
-      } catch {
-        // no-op
-      }
+      } catch {}
     };
 
     loadSettings().catch(reportLoadFailure);

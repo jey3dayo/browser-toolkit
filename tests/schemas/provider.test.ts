@@ -89,8 +89,6 @@ describe("schemas/provider", () => {
   });
 
   describe("anthropic provider config", () => {
-    // 設定画面に出る選択肢と default は利用者向けの契約なので固定する。
-    // モデル世代を更新するときは、この期待値も同じ差分で更新すること。
     it("offers the current Claude generation", () => {
       expect(PROVIDER_CONFIGS.anthropic.models).toEqual([
         "claude-opus-5",

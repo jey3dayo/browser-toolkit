@@ -17,7 +17,5 @@ export function clearActionBadgeForTab(tabId: number): void {
       tabId,
       title: APP_NAME,
     });
-  } catch {
-    // no-op
-  }
+  } catch {}
 }

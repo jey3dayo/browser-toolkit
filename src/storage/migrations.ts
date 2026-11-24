@@ -324,7 +324,6 @@ export async function runMigrations(): Promise<void> {
     await logMigration(entry);
   };
 
-  // Run pending migrations in version order.
   await runSequentially(
     migrations.filter((migration) => migration.version > currentVersion),
     runMigration

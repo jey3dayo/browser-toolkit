@@ -63,9 +63,7 @@ describe("popup templates state (empty array contract)", () => {
       getSearchResultTabId: async () => Result.succeed(null),
       isExtensionPage: true,
       matchesFocusOverridePatterns: () => false,
-      openUrl: () => {
-        // no-op
-      },
+      openUrl: () => {},
       reloadTab: async () => Result.succeed(),
       sendMessageToBackground: async () => Result.succeed({}),
       sendMessageToTab: async () => Result.succeed({}),

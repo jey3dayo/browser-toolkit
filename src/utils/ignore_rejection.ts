@@ -6,9 +6,7 @@ export function ignoreRejection<T>(
   scope: string
 ): Promise<void> {
   return promise.then(
-    () => {
-      // success: no-op
-    },
+    () => {},
     async (error: unknown) => {
       try {
         await debugLog(
@@ -16,13 +14,11 @@ export function ignoreRejection<T>(
           scope,
           formatErrorLog(scope, {}, error)
         );
-        // biome-ignore lint/suspicious/noEmptyBlockStatements: intentionally swallow debugLog failure
       } catch {}
     }
   );
 }
 
-// biome-ignore lint/suspicious/noEmptyBlockStatements: intentionally empty for stories
 export const NOOP = (): void => {};
 
 export function debugLogSilently(
@@ -31,6 +27,5 @@ export function debugLogSilently(
   data?: Record<string, unknown>,
   level?: "debug" | "info" | "warn" | "error"
 ): void {
-  // biome-ignore lint/suspicious/noEmptyBlockStatements: intentionally swallow debugLog failure
   debugLog(context, message, data, level).catch(() => {});
 }

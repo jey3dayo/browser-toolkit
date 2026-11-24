@@ -22,9 +22,7 @@ export function SettingsThemeSection({
       }
       setTheme(value);
       applyTheme(value, document);
-      saveTheme(value).catch(() => {
-        // no-op
-      });
+      saveTheme(value).catch(() => {});
     },
     [setTheme, saveTheme]
   );

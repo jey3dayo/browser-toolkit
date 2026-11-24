@@ -13,7 +13,6 @@ import type { Theme } from "@/ui/theme";
 const OVERLAY_HOST_ID = "browser-toolkit-overlay";
 const OVERLAY_ROOT_ID = "mtk-overlay-react-root";
 
-// Regex patterns at module level for performance (lint/performance/useTopLevelRegex)
 const SOURCE_SUFFIX_REGEX = /（(?:選択範囲|ページ本文)）\s*$/;
 
 export type OverlayMount = {
@@ -39,9 +38,7 @@ export function closeOverlay(mount: OverlayMount | null): void {
   }
   try {
     mount.root.unmount();
-  } catch {
-    // no-op
-  }
+  } catch {}
   mount.host.remove();
 }
 

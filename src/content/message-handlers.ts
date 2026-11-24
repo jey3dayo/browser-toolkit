@@ -162,9 +162,7 @@ function handleGetSummaryTargetText(
         url: window.location.href,
       } satisfies SummaryTarget);
     }
-  })().catch(() => {
-    // no-op
-  });
+  })().catch(() => {});
   return true;
 }
 

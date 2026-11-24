@@ -131,12 +131,10 @@ describe("background: focus override registration", () => {
       "@/background/focus_override_registration"
     );
 
-    // First sync fails but should not poison the queue
     await expect(syncFocusOverrideContentScript()).rejects.toThrow(
       "First sync failed"
     );
 
-    // Second sync should succeed despite previous failure
     await syncFocusOverrideContentScript();
     expect(callCount).toBe(1);
   });

@@ -18,7 +18,6 @@ const ChatGptCredentialsSchema = object({
   accessToken: string(),
   clientId: string(),
   email: nullable(string()),
-  /** epoch ms */
   expiresAt: number(),
   idToken: string(),
   refreshToken: string(),

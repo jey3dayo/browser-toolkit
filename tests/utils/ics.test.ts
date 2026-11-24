@@ -37,7 +37,6 @@ describe("src/utils/ics.ts", () => {
     expect(ics).not.toBeNull();
     expect(ics).toContain("\r\n ");
 
-    // Reconstruct the SUMMARY line by joining folded continuations back.
     const rawLines = (ics ?? "").split("\r\n");
     let reconstructed = "";
     let collecting = false;

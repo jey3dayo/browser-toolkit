@@ -7,9 +7,7 @@ type SafeParseResult<T> =
 function parseJsonObject(text: string): unknown | null {
   try {
     return JSON.parse(text) as unknown;
-  } catch {
-    // noop
-  }
+  } catch {}
 
   const trimmed = text.trim();
   const start = trimmed.indexOf("{");

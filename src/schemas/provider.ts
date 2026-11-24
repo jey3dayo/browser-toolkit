@@ -11,7 +11,6 @@ import {
 export const AI_PROVIDERS = ["openai", "chatgpt", "anthropic", "zai"] as const;
 export type AiProvider = (typeof AI_PROVIDERS)[number];
 
-/** API キーで認証する provider。chatgpt は OAuth（Sign in with ChatGPT）で認証する */
 export type ApiKeyProvider = Exclude<AiProvider, "chatgpt">;
 
 export function isApiKeyProvider(

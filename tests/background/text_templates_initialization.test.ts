@@ -107,12 +107,10 @@ describe("background: text templates initialization", () => {
       Object.hasOwn(call[0], "textTemplates")
     );
 
-    // Should not set textTemplates (empty array should be preserved)
     expect(templateSets.length).toBe(0);
   });
 
   it("returns existing templates when they exist", async () => {
-    // Arrange: textTemplates has existing items
     const existingTemplates = [
       {
         content: "Custom content",
@@ -123,19 +121,16 @@ describe("background: text templates initialization", () => {
     ];
     mockStorage = { textTemplates: existingTemplates };
 
-    // Act: Import and trigger initialization
     const { refreshContextMenus } = await import(
       "@/background/context_menu_registry"
     );
     await refreshContextMenus();
 
-    // Assert: Should use existing templates
     const setCalls = (chrome.storage.sync.set as any).mock.calls;
     const templateSets = setCalls.filter((call: any) =>
       Object.hasOwn(call[0], "textTemplates")
     );
 
-    // Should not overwrite existing templates
     expect(templateSets.length).toBe(0);
   });
 });

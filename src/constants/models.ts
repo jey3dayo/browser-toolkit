@@ -3,7 +3,6 @@ export const OPENAI_MODELS = {
   GPT_6_1_SOL: "gpt-6.1-sol",
 } as const;
 
-/** OpenAI の既定モデル。未設定・未対応の設定の fallback はこの値を参照する。 */
 export const DEFAULT_OPENAI_MODEL = OPENAI_MODELS.GPT_6_LUNA;
 
 /**

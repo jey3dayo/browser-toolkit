@@ -24,13 +24,6 @@ export async function loadCalendarTargets(): Promise<
   return resolveCalendarTargets(stored.calendarTargets);
 }
 
-/**
- * Single extraction path shared by the popup CalendarPane, the calendar
- * context menu, and Context Actions of kind "event": run the AI extraction
- * once, then build every artifact (eventText / calendarUrl / ics / errors)
- * for the requested targets. Callers only differ in presentation.
- * When `targets` is omitted, the stored calendar targets are resolved.
- */
 export async function extractCalendarArtifacts(params: {
   target: SummaryTarget;
   targets?: CalendarRegistrationTarget[];

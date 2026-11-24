@@ -66,9 +66,7 @@ export function useSearchEnginesController(
           { error: formatErrorLog("", {}, error) },
           "error"
         );
-      } catch {
-        // no-op
-      }
+      } catch {}
     };
 
     loadEngines().catch(reportLoadFailure);
@@ -80,12 +78,10 @@ export function useSearchEnginesController(
 
   const saveEngines = async (
     nextEngines: SearchEngine[]
-  ): Promise<Result.Result<void, string>> => {
-    // ストレージ保存のみ。メニューは background.ts の storage.onChanged で自動更新される
-    return await props.runtime.storageSyncSet({
+  ): Promise<Result.Result<void, string>> =>
+    await props.runtime.storageSyncSet({
       searchEngines: nextEngines,
     });
-  };
 
   const toggleEngineEnabled = async (
     engineId: string,

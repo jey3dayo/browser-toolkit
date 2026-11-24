@@ -1,6 +1,3 @@
-/**
- * Service Workerの30秒タイムアウトより前に中断された場合にスローされる。
- */
 export class FetchTimeoutError extends Error {
   constructor(timeoutMs: number) {
     super(
@@ -10,9 +7,6 @@ export class FetchTimeoutError extends Error {
   }
 }
 
-/**
- * ポップアップからbackgroundへのメッセージ送信がタイムアウトした場合にスローされる。
- */
 export class ClientTimeoutError extends Error {
   constructor(timeoutMs: number) {
     super(

@@ -25,6 +25,11 @@
         "noDescendingSpecificity": "off",
         "useConsistentTypeDefinitions": "off",
         "useFilenamingConvention": "off"
+      },
+      "suspicious": {
+        // 意図的な空 catch / 空コールバック（フォールバックや fire-and-forget）が
+        // このコードベースの常套形で、ルールは // no-op のなだめコメントを量産するだけだった
+        "noEmptyBlockStatements": "off"
       }
     }
   },

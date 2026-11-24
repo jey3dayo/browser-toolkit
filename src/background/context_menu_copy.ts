@@ -178,9 +178,7 @@ async function showCopyTitleLinkFailureIndicator(
         { error: formatErrorLog("", {}, error), tabId },
         "error"
       );
-    } catch {
-      // no-op
-    }
+    } catch {}
   }
 
   const pageLabel =
@@ -236,7 +234,5 @@ async function clearCopyTitleLinkFailureIndicator(
   try {
     chrome.action.setBadgeText({ tabId, text: "" });
     chrome.action.setTitle({ tabId, title: APP_NAME });
-  } catch {
-    // no-op
-  }
+  } catch {}
 }

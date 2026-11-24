@@ -1,12 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type ChromeStub, createChromeStub } from "../helpers/chromeStub";
 
-const debugLogMock = vi.fn(async () => {
-  // no-op
-});
-const showErrorNotificationMock = vi.fn(async () => {
-  // no-op
-});
+const debugLogMock = vi.fn(async () => {});
+const showErrorNotificationMock = vi.fn(async () => {});
 
 vi.mock("@/utils/debug_log", () => ({
   debugLog: debugLogMock,

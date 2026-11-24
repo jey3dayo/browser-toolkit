@@ -123,9 +123,7 @@ export function useSearchGroupsState(
           { error: formatErrorLog("", {}, error) },
           "error"
         );
-      } catch {
-        // no-op
-      }
+      } catch {}
     };
 
     loadGroups().catch(reportLoadFailure);
@@ -158,9 +156,6 @@ export function useSearchGroupsState(
     };
   }, [props.runtime]);
 
-  // 保存前に storage を再読込し、直近の配列（自分の保存結果または別タブの更新）に
-  // local mutation を再適用する。複数編集画面・連打保存での lost update を止めるため。
-  // 読み込み失敗時は直前のローカル state にフォールバックする。
   const readLatestGroups = async (): Promise<SearchEngineGroup[] | null> => {
     const data = await props.runtime.storageSyncGet(["searchEngineGroups"]);
     if (Result.isFailure(data)) {
@@ -181,18 +176,11 @@ export function useSearchGroupsState(
 
   const saveGroups = async (
     nextGroups: SearchEngineGroup[]
-  ): Promise<Result.Result<void, string>> => {
-    // ストレージ保存のみ。メニューは background.ts の storage.onChanged で自動更新される
-    return await props.runtime.storageSyncSet({
+  ): Promise<Result.Result<void, string>> =>
+    await props.runtime.storageSyncSet({
       searchEngineGroups: nextGroups,
     });
-  };
 
-  // 保存は同一 origin の各インスタンス（popup / options）間で共有される lock で
-  // 直列化する（Web Locks、テスト環境では realm 内共有 queue）。lock 内の
-  // read-latest → write → re-read verify が自分の書き込みと一致しない
-  // (別 popup が先んじた / 先に割り込んだ) 場合は最新 base でやり直す。
-  // persist 失敗時は既存の rollback / notify を維持し、再試行しない。
   const verifyGroupsPersisted = async (
     next: SearchEngineGroup[]
   ): Promise<boolean> => {
@@ -429,9 +417,6 @@ export function useSearchGroupsState(
       },
     }));
 
-  // 並び替えは drag handler が渡した全オブジェクトではなく、直近の storage の
-  // レコードを要求された ID 順に並べて保存する。別インスタンスの直後の
-  // 有効 / 名前編集が並び替え write で戻されないようにするため。
   const handleReorder = (reorderedGroups: SearchEngineGroup[]) =>
     runGroupMutation((base) => {
       const byId = new Map(base.map((group) => [group.id, group]));

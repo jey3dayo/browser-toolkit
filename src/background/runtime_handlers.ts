@@ -95,16 +95,13 @@ function handleRunContextActionRequest(
             source: target.source,
             status: "error",
             title: action.title,
-          }).catch(() => {
-            // Best-effort overlay: the action error is already notified and returned below.
-          });
+          }).catch(() => {});
         }
         sendResponse(Result.fail(result.error));
         return;
       }
 
       const output = result.value;
-      // The runtime contract omits the structured event used by direct menu overlays.
       const payload: RunContextActionSuccessPayload =
         output.kind === "event"
           ? {

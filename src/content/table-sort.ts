@@ -28,8 +28,6 @@ export function enableSingleTable(
   }
 
   table.dataset.sortable = "true";
-  // th closest table === table で、ネストした table の th を外側テーブルの
-  // ヘッダー列挙から除外する（外側由来の誤ソート/listener 二重付与の防止）
   const headers = Array.from(
     table.querySelectorAll<HTMLTableCellElement>("th")
   ).filter((header) => header.closest("table") === table);

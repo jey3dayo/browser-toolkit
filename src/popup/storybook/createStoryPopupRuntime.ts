@@ -197,9 +197,7 @@ export function createStoryPopupRuntime(options: Options = {}): PopupRuntime {
           return;
         }
         window.open(trimmed, "_blank", "noopener,noreferrer");
-      } catch {
-        // no-op
-      }
+      } catch {}
     },
     reloadTab: async () => Result.succeed(),
     sendMessageToBackground: async (message) => {
@@ -212,7 +210,6 @@ export function createStoryPopupRuntime(options: Options = {}): PopupRuntime {
           );
           return Result.succeed(response as never);
         }
-        // TestOpenAiTokenResponse is Result<void, string>
         return Result.succeed(Result.succeed() as never);
       }
 
@@ -223,7 +220,6 @@ export function createStoryPopupRuntime(options: Options = {}): PopupRuntime {
           );
           return Result.succeed(response as never);
         }
-        // RunContextActionResponse is Result<RunContextActionSuccessPayload, string>
         return Result.succeed(
           Result.fail("storybook runtime: not implemented") as never
         );
@@ -236,7 +232,6 @@ export function createStoryPopupRuntime(options: Options = {}): PopupRuntime {
           );
           return Result.succeed(response as never);
         }
-        // SummarizeEventResponse is Result<SummarizeEventSuccessPayload, string>
         return Result.succeed(
           Result.fail("storybook runtime: not implemented") as never
         );

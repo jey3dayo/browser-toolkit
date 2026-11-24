@@ -79,7 +79,6 @@ function fetchChatCompletionJson(
 ): Result.ResultAsync<ChatCompletionResponsePayload, string> {
   const { url, init } = adapter.buildRequest(token, body);
 
-  // SECURITY: ホワイトリストチェック
   if (!isAllowedApiOrigin(url)) {
     return Promise.resolve(
       Result.fail(

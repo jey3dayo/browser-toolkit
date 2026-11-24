@@ -57,7 +57,6 @@ describe("context_menu_registry queue recovery", () => {
 
     let callCount = 0;
 
-    // First call throws error
     chromeStub.contextMenus.removeAll
       .mockImplementationOnce(() => {
         callCount += 1;
@@ -80,14 +79,11 @@ describe("context_menu_registry queue recovery", () => {
       "@/background/context_menu_registry"
     );
 
-    // First refresh throws and rejects, but error is absorbed by ignoreRejection
     await scheduleRefreshContextMenus();
     const countAfterFirst = callCount;
 
-    // Second refresh should succeed despite previous failure (queue recovered)
     await scheduleRefreshContextMenus();
 
-    // Verify that the second call actually ran (queue didn't stay poisoned)
     expect(callCount).toBeGreaterThan(countAfterFirst);
   });
 });

@@ -53,9 +53,7 @@ export function SettingsProviderSection({
             const tokenValue = raw[tokenKey];
             setToken(typeof tokenValue === "string" ? tokenValue : "");
           }
-        } catch {
-          // no-op
-        }
+        } catch {}
       } else {
         setToken("");
       }
@@ -71,9 +69,7 @@ export function SettingsProviderSection({
             { error: formatErrorLog("", {}, error) },
             "error"
           );
-        } catch {
-          // no-op
-        }
+        } catch {}
       }
     },
     [runtime, setProvider, setModel, setToken, saveProvider, saveModel]

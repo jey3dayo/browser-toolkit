@@ -24,9 +24,7 @@ function buildRuntime(): PopupRuntime {
     isExtensionPage: true,
     matchesFocusOverridePatterns: () => false,
     openOptionsPane: async () => Result.succeed(),
-    openUrl: () => {
-      // no-op
-    },
+    openUrl: () => {},
     reloadTab: async () => Result.succeed(),
     sendMessageToBackground: async () => Result.succeed({}),
     sendMessageToTab: async () => Result.succeed({ available: false }),
@@ -95,9 +93,7 @@ describe("HistoryPane copy", () => {
   });
 
   it("トリム済みの本文をコピーして成功を通知する", async () => {
-    const writeText = vi.fn(async (_text: string) => {
-      // resolves
-    });
+    const writeText = vi.fn(async (_text: string) => {});
     stubClipboard(writeText);
     const props: PopupPaneBaseProps = {
       notify: { error: vi.fn(), info: vi.fn(), success: vi.fn() },

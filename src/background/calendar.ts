@@ -11,7 +11,6 @@ import { computeEventDateRange } from "@/utils/event_date_range";
 import { buildIcs } from "@/utils/ics";
 import { normalizeOptionalText } from "@/utils/text";
 
-// Regex patterns at module level for performance (lint/performance/useTopLevelRegex)
 const WAVE_SEPARATOR_REGEX = /^(.*?)\s*(?:〜|~|–|—)\s*(.*?)$/;
 const DASH_SEPARATOR_REGEX = /^(.*?)\s+-\s+(.*?)$/;
 const TIME_DASH_REGEX =
@@ -67,7 +66,6 @@ function normalizeEventRange(
 
   // モデルが `start: "2025-12-16 14:00〜15:00"` のようにレンジを一つの文字列に詰めるケースがあるため補正する。
   if (end || !start) {
-    // 正規化が不要なケースは failure にして呼び出し元で元の値に戻す。
     return Result.fail(baseRange);
   }
 
@@ -78,12 +76,10 @@ function normalizeEventRange(
 
   const [left, right] = parts;
 
-  // date-only range: "2025-12-16〜2025-12-17"
   if (parseDateOnlyToYyyyMmDd(left) && parseDateOnlyToYyyyMmDd(right)) {
     return Result.succeed({ allDay: allDay ?? true, end: right, start: left });
   }
 
-  // datetime range with time-only end: "2025-12-16 14:00〜15:00"
   const leftDatePrefix = left.match(DATE_PREFIX_REGEX)?.[1];
   const rightTimeOnly = right.match(TIME_ONLY_REGEX)?.[1];
 

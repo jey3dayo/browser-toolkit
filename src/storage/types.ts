@@ -28,9 +28,9 @@ export type CopyTitleLinkFailure = {
 };
 
 export type LocalStorageData = {
-  aiProvider?: string; // "openai" | "chatgpt" | "anthropic" | "zai"
-  aiModel?: string; // アクティブプロバイダーのモデル
-  aiCustomPrompt?: string; // 共有カスタムプロンプト
+  aiProvider?: string;
+  aiModel?: string;
+  aiCustomPrompt?: string;
   openaiApiToken?: string;
   anthropicApiToken?: string;
   zaiApiToken?: string;

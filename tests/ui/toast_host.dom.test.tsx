@@ -4,7 +4,6 @@ import { describe, expect, it } from "vitest";
 import { ToastHost } from "@/ui/toast";
 import { createNotifications } from "@/ui/toast-manager";
 
-// Enable React's act() behavior warnings to be handled correctly in this test suite.
 (
   globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;

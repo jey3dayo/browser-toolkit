@@ -27,7 +27,6 @@ async function getPointerInteractions() {
 }
 
 async function clickOutsideDialog(element: HTMLElement): Promise<void> {
-  // The dialog opens 8px below the trigger and can cover the element's center, so press a corner it never reaches.
   if ("__vitest_browser__" in globalThis) {
     const { userEvent: browserUserEvent } = await import("vitest/browser");
     await browserUserEvent.click(element, { position: { x: 8, y: 8 } });

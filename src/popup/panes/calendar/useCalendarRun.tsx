@@ -108,7 +108,6 @@ export function useCalendarRun(params: {
   }, [navigate]);
 
   const reportError = (message: string): void => {
-    // トークン関連エラーの場合は「→ 設定を開く」リンク付きで表示
     if (
       message.includes("Token") ||
       message.includes("トークン") ||

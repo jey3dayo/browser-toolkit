@@ -145,9 +145,7 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
           { error: formatErrorLog("", {}, error) },
           "error"
         );
-      } catch {
-        // no-op
-      }
+      } catch {}
     });
     return () => {
       cancelled = true;
@@ -225,9 +223,7 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
   };
 
   const handleCopyClick = useCallback(() => {
-    copyOutput().catch(() => {
-      // no-op
-    });
+    copyOutput().catch(() => {});
   }, [copyOutput]);
 
   const handleFormatValueChange = useCallback(
@@ -235,9 +231,7 @@ export function CreateLinkPane(props: CreateLinkPaneProps): React.JSX.Element {
       if (value === null) {
         return;
       }
-      handleFormatChange(value).catch(() => {
-        // no-op
-      });
+      handleFormatChange(value).catch(() => {});
     },
     [handleFormatChange]
   );

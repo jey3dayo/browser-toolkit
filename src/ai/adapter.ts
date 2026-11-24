@@ -1,10 +1,3 @@
-/**
- * AIプロバイダーアダプターインターフェース
- *
- * OpenAIメッセージ形式を内部標準とし、各プロバイダー用のアダプターが
- * HTTPリクエスト/レスポンスを変換する。
- */
-
 export type ChatRequestBody = {
   model: string;
   messages: Array<{ role: string; content: string }>;

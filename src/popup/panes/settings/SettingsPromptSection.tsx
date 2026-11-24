@@ -24,9 +24,7 @@ export function SettingsPromptSection({
   clearPrompt,
 }: SettingsPromptSectionProps): React.JSX.Element {
   const handleFormSubmit = useCallback(() => {
-    savePrompt().catch(() => {
-      // no-op
-    });
+    savePrompt().catch(() => {});
   }, [savePrompt]);
 
   const handlePromptChange = useCallback(
@@ -36,9 +34,7 @@ export function SettingsPromptSection({
   );
 
   const handleClearPrompt = useCallback(() => {
-    clearPrompt().catch(() => {
-      // no-op
-    });
+    clearPrompt().catch(() => {});
   }, [clearPrompt]);
 
   return (

@@ -8,7 +8,6 @@ import {
   parseISO,
 } from "date-fns";
 
-// Regex patterns at module level for performance (lint/performance/useTopLevelRegex)
 const TZ_OFFSET_NO_COLON_REGEX = /([+-]\d{2})(\d{2})$/;
 const TIME_HHMM_REGEX = /\d{1,2}:\d{2}/;
 const YYYYMMDD_REGEX = /^\d{8}$/;
@@ -23,7 +22,7 @@ function normalizeDateTimeInput(value: string): string {
     .replace(/／/g, "/")
     .replace(/[－‐‑‒–—―]/g, "-")
     .replace(/\s+/g, " ")
-    .replace(TZ_OFFSET_NO_COLON_REGEX, "$1:$2") // +0900 -> +09:00
+    .replace(TZ_OFFSET_NO_COLON_REGEX, "$1:$2")
     .replace(
       /(\d{1,2})時(\d{1,2})分?/g,
       (_m, h, m) => `${h}:${String(m).padStart(2, "0")}`

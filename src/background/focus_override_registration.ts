@@ -69,7 +69,6 @@ let focusOverrideSyncQueue: Promise<void> = Promise.resolve();
 export function syncFocusOverrideContentScript(): Promise<void> {
   focusOverrideSyncQueue = focusOverrideSyncQueue
     .catch((error) => {
-      // 前回の失敗を吸収し、キューを継続可能にする
       debugLogSilently(
         "syncFocusOverrideContentScript",
         "recovered from previous sync failure",

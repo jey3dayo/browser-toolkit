@@ -32,16 +32,11 @@ interface SortableListProps<T extends { id: string }> {
   onReorder: (items: T[]) => void;
 }
 
-/**
- * 汎用的なドラッグ&ドロップ可能なリストコンポーネント
- * @template T - IDを持つオブジェクト型
- */
 export function SortableList<T extends { id: string }>({
   children,
   items,
   onReorder,
 }: SortableListProps<T>) {
-  // センサー設定（マウス・タッチ・キーボード対応）
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -107,9 +102,6 @@ interface SortableItemProps {
   id: string;
 }
 
-/**
- * ドラッグ&ドロップ可能な個別アイテムコンポーネント
- */
 function SortableItem({ id, children }: SortableItemProps) {
   const {
     attributes,

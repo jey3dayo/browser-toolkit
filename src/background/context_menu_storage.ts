@@ -72,10 +72,6 @@ async function initializeOnEmptyPattern<T>(
   return defaults;
 }
 
-/**
- * Handles storage initialization for patterns that only initialize if undefined.
- * Used by textTemplates (empty array means user deleted all templates).
- */
 async function initializeOnUndefinedPattern<T>(
   raw: unknown,
   storageKey: keyof SyncStorageData,

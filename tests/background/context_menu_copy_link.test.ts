@@ -18,8 +18,6 @@ describe("background: context menu", () => {
     const registry = await import("@/background/context_menu_registry");
     const scheduleSpy = vi.spyOn(registry, "scheduleRefreshContextMenus");
     await import("@/background.ts");
-    // モジュールロードだけでは再構築が走らないこと（SW復帰ごとの
-    // removeAll→再作成による空白ウィンドウ再発の regression guard）
     expect(scheduleSpy).not.toHaveBeenCalled();
     const onInstalledListener =
       chromeStub.runtime.onInstalled.addListener.mock.calls[0]?.[0];
