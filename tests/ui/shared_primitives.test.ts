@@ -21,7 +21,6 @@ const allowedBaseUiImportFiles = new Set([
   "src/components/shared/RadioFieldset.tsx",
   "src/components/shared/ScrollArea.tsx",
   "src/components/shared/Select.tsx",
-  "src/components/shared/Separator.tsx",
   "src/components/shared/Switch.tsx",
   "src/components/shared/Tabs.tsx",
   "src/components/shared/Toggle.tsx",

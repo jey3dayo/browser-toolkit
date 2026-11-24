@@ -8,11 +8,11 @@ export function runSequentially<T>(
   );
 }
 
-export type ExclusiveQueue = {
+type ExclusiveQueue = {
   runExclusive: <T>(task: () => Promise<T>) => Promise<T>;
 };
 
-export function createExclusiveQueue(): ExclusiveQueue {
+function createExclusiveQueue(): ExclusiveQueue {
   let tail: Promise<unknown> = Promise.resolve();
 
   return {

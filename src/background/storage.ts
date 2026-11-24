@@ -45,16 +45,6 @@ export const STORAGE_RESERVED_KEYS = {
   SCHEMA_VERSION: "schemaVersion",
 } as const;
 
-type ReservedKey =
-  (typeof STORAGE_RESERVED_KEYS)[keyof typeof STORAGE_RESERVED_KEYS];
-
-export function isReservedStorageKey(key: string): key is ReservedKey {
-  return (
-    Object.values(STORAGE_RESERVED_KEYS).includes(key as ReservedKey) ||
-    key.startsWith(STORAGE_RESERVED_KEYS.BACKUP_PREFIX)
-  );
-}
-
 function clearFallbackStateForKeys(
   keys: string[],
   resolve: () => void,
