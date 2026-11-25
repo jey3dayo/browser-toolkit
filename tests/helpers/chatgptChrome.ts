@@ -100,7 +100,7 @@ export function sampleCredentials(
     accessToken: "access-1",
     clientId: "client-1",
     email: "me@example.com",
-    expiresAt: Date.now() + 3_600_000,
+    expiresAtMs: Date.now() + 3_600_000,
     idToken: "id-token-1",
     refreshToken: "refresh-1",
     scope: "openid chatgpt.tokens.use.direct",

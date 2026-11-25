@@ -653,7 +653,7 @@ describe("background: chatgpt_session", () => {
     it("refreshes an expired token and stores the rotated refresh token", async () => {
       harness.local.set(
         "chatgptCredentials",
-        sampleCredentials({ expiresAt: Date.now() + 30_000 })
+        sampleCredentials({ expiresAtMs: Date.now() + 30_000 })
       );
       const calls = recordFetch(refreshSuccess);
       const { getChatGptAccessToken } = await import(
@@ -675,7 +675,7 @@ describe("background: chatgpt_session", () => {
     it("keeps the stored scope when the refresh response omits it", async () => {
       harness.local.set(
         "chatgptCredentials",
-        sampleCredentials({ expiresAt: Date.now() - 1000 })
+        sampleCredentials({ expiresAtMs: Date.now() - 1000 })
       );
       recordFetch(() =>
         jsonResponse(200, {
@@ -700,7 +700,7 @@ describe("background: chatgpt_session", () => {
         "chatgptCredentials",
         sampleCredentials({
           accessToken: "access-other",
-          expiresAt: Date.now() - 1000,
+          expiresAtMs: Date.now() - 1000,
         })
       );
       const calls = recordFetch(refreshSuccess);
@@ -720,7 +720,7 @@ describe("background: chatgpt_session", () => {
     it("removes credentials when the refreshed scope lacks the plan scope", async () => {
       harness.local.set(
         "chatgptCredentials",
-        sampleCredentials({ expiresAt: Date.now() - 1000 })
+        sampleCredentials({ expiresAtMs: Date.now() - 1000 })
       );
       const calls = recordFetch((call) =>
         call.url.endsWith("/oauth/revoke")
@@ -747,7 +747,7 @@ describe("background: chatgpt_session", () => {
     it("sends a single refresh request for concurrent callers", async () => {
       harness.local.set(
         "chatgptCredentials",
-        sampleCredentials({ expiresAt: Date.now() - 1000 })
+        sampleCredentials({ expiresAtMs: Date.now() - 1000 })
       );
       const calls = recordFetch(refreshSuccess);
       const { getChatGptAccessToken } = await import(
@@ -779,7 +779,7 @@ describe("background: chatgpt_session", () => {
     it("removes credentials when the server requires re-authentication", async () => {
       harness.local.set(
         "chatgptCredentials",
-        sampleCredentials({ expiresAt: Date.now() - 1000 })
+        sampleCredentials({ expiresAtMs: Date.now() - 1000 })
       );
       recordFetch(() => jsonResponse(400, { error: "invalid_grant" }));
       const { getChatGptAccessToken } = await import(
@@ -795,7 +795,7 @@ describe("background: chatgpt_session", () => {
     it("keeps credentials on network failure", async () => {
       harness.local.set(
         "chatgptCredentials",
-        sampleCredentials({ expiresAt: Date.now() - 1000 })
+        sampleCredentials({ expiresAtMs: Date.now() - 1000 })
       );
       vi.stubGlobal(
         "fetch",
@@ -814,7 +814,7 @@ describe("background: chatgpt_session", () => {
     it("keeps credentials on a 5xx response", async () => {
       harness.local.set(
         "chatgptCredentials",
-        sampleCredentials({ expiresAt: Date.now() - 1000 })
+        sampleCredentials({ expiresAtMs: Date.now() - 1000 })
       );
       recordFetch(() => jsonResponse(503, {}));
       const { getChatGptAccessToken } = await import(

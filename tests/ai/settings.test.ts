@@ -17,7 +17,7 @@ describe("ai/settings", () => {
           accessToken: "a",
           clientId: "c",
           email: null,
-          expiresAt: 1,
+          expiresAtMs: 1,
           idToken: "i",
           refreshToken: "r",
           scope: "s",

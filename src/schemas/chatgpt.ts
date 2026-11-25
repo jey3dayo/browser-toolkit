@@ -18,7 +18,7 @@ const ChatGptCredentialsSchema = object({
   accessToken: string(),
   clientId: string(),
   email: nullable(string()),
-  expiresAt: number(),
+  expiresAtMs: number(),
   idToken: string(),
   refreshToken: string(),
   scope: string(),
@@ -48,8 +48,23 @@ export type ChatGptSignInState = InferOutput<typeof ChatGptSignInStateSchema>;
 export function safeParseChatGptCredentials(
   value: unknown
 ): ChatGptCredentials | null {
-  const result = safeParse(ChatGptCredentialsSchema, value);
+  const result = safeParse(ChatGptCredentialsSchema, normalizeLegacy(value));
   return result.success ? result.output : null;
+}
+
+function normalizeLegacy(value: unknown): unknown {
+  if (typeof value !== "object" || value === null) {
+    return value;
+  }
+  const record = value as Record<string, unknown>;
+  if (typeof record.expiresAtMs === "number") {
+    return value;
+  }
+  if (typeof record.expiresAt !== "number") {
+    return value;
+  }
+  const { expiresAt, ...rest } = record;
+  return { ...rest, expiresAtMs: expiresAt };
 }
 
 export function safeParseChatGptSignInState(
