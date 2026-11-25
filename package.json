@@ -36,7 +36,9 @@
     "test:watch": "vitest --project=node --project=dom --maxWorkers=1",
     "test-storybook": "pnpm run test:storybook",
     "typecheck": "tsc --noEmit",
-    "watch": "node scripts/bundle.mjs --watch"
+    "watch": "node scripts/bundle.mjs --watch",
+    "package:cws": "node scripts/package-cws.mjs",
+    "publish:cws": "node scripts/publish-cws.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
