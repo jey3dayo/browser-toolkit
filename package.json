@@ -1,6 +1,6 @@
 {
   "name": "browser-toolkit",
-  "version": "0.6.14",
+  "version": "0.6.15",
   "description": "個人用のツールキット Chrome拡張機能（テーブルソート、AI連携など）",
   "keywords": [],
   "license": "ISC",
