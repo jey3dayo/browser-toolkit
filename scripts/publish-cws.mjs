@@ -117,15 +117,15 @@ console.log(
 
 // アップロードは非同期処理になることがあるため、IN_PROGRESS の間は
 // fetchStatus の lastAsyncUploadState を上限付きでポーリングする
-async function waitForUpload(initialState) {
-  let state = initialState;
-  for (let attempt = 0; state === "IN_PROGRESS" && attempt < 60; attempt++) {
-    await new Promise((resolve) => setTimeout(resolve, 5000));
-    const status = await fetchStatus();
-    state = status.lastAsyncUploadState ?? state;
-    console.log(`アップロード処理待ち: state=${state}`);
+async function waitForUpload(state, attemptsLeft = 60) {
+  if (state !== "IN_PROGRESS" || attemptsLeft <= 0) {
+    return state;
   }
-  return state;
+  await new Promise((resolve) => setTimeout(resolve, 5000));
+  const status = await fetchStatus();
+  const nextState = status.lastAsyncUploadState ?? state;
+  console.log(`アップロード処理待ち: state=${nextState}`);
+  return waitForUpload(nextState, attemptsLeft - 1);
 }
 
 const finalUploadState = await waitForUpload(upload.uploadState);
