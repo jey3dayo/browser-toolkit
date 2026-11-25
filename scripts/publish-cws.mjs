@@ -76,22 +76,20 @@ const token = await accessToken();
 const itemName = `publishers/${publisherId}/items/${itemId}`;
 const headers = { Authorization: `Bearer ${token}` };
 
-async function fetchItem() {
+async function fetchStatus() {
   const res = await fetch(
-    `https://chromewebstore.googleapis.com/v2/${itemName}`,
+    `https://chromewebstore.googleapis.com/v2/${itemName}:fetchStatus`,
     { headers }
   );
   if (!res.ok) {
-    throw new Error(`アイテム取得に失敗: ${res.status} ${await res.text()}`);
+    throw new Error(`状態取得に失敗: ${res.status} ${await res.text()}`);
   }
   return res.json();
 }
 
 if (dryRun) {
-  const item = await fetchItem();
-  console.log(
-    `疎通 OK: state=${item.state ?? "不明"} crxVersion=${item.crxVersion ?? "不明"}`
-  );
+  const status = await fetchStatus();
+  console.log(`疎通 OK: ${JSON.stringify(status)}`);
   process.exit(0);
 }
 
@@ -114,14 +112,30 @@ if (!uploadRes.ok) {
 }
 const upload = await uploadRes.json();
 console.log(
-  `アップロード完了: state=${upload.uploadState} crxVersion=${upload.crxVersion ?? manifest.version}`
+  `アップロード応答: state=${upload.uploadState} crxVersion=${upload.crxVersion ?? manifest.version}`
 );
-if (upload.uploadState !== "SUCCEEDED") {
+
+// アップロードは非同期処理になることがあるため、IN_PROGRESS の間は
+// fetchStatus の lastAsyncUploadState を上限付きでポーリングする
+async function waitForUpload(initialState) {
+  let state = initialState;
+  for (let attempt = 0; state === "IN_PROGRESS" && attempt < 60; attempt++) {
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    const status = await fetchStatus();
+    state = status.lastAsyncUploadState ?? state;
+    console.log(`アップロード処理待ち: state=${state}`);
+  }
+  return state;
+}
+
+const finalUploadState = await waitForUpload(upload.uploadState);
+if (finalUploadState !== "SUCCEEDED") {
   console.error(
-    "アップロードが SUCCEEDED にならなかったため、審査提出を中止します"
+    `アップロードが SUCCEEDED にならなかったため、審査提出を中止します: state=${finalUploadState}`
   );
   process.exit(1);
 }
+console.log("アップロード完了");
 
 if (skipPublish) {
   console.log("--skip-publish のため審査提出はしません");

@@ -22,6 +22,8 @@
     "hooks:install": "lefthook install",
     "lint": "ultracite check",
     "lint:fix": "ultracite fix",
+    "package:cws": "node scripts/package-cws.mjs",
+    "publish:cws": "node scripts/publish-cws.mjs",
     "report:jev": "pnpm dlx --config.minimum-release-age=0 --allow-build=@ast-grep/cli jev-lint@latest review --base origin/main",
     "storybook": "storybook dev -p 6006",
     "test": "vitest run --project=node --project=dom --maxWorkers=1",
@@ -36,9 +38,7 @@
     "test:watch": "vitest --project=node --project=dom --maxWorkers=1",
     "test-storybook": "pnpm run test:storybook",
     "typecheck": "tsc --noEmit",
-    "watch": "node scripts/bundle.mjs --watch",
-    "package:cws": "node scripts/package-cws.mjs",
-    "publish:cws": "node scripts/publish-cws.mjs"
+    "watch": "node scripts/bundle.mjs --watch"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

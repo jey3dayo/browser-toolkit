@@ -1,56 +1,127 @@
 <!doctype html>
 <html lang="ja">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Browser Toolkit プライバシーポリシー</title>
-<style>
-  body { font-family: system-ui, -apple-system, "Hiragino Sans", sans-serif; line-height: 1.8; max-width: 760px; margin: 2rem auto; padding: 0 1rem; color: #1a2433; }
-  h1 { font-size: 1.5rem; } h2 { font-size: 1.1rem; margin-top: 2rem; }
-  p, li { font-size: 0.95rem; }
-</style>
-</head>
-<body>
-<h1>Browser Toolkit プライバシーポリシー</h1>
-<p>最終更新日: 2026年11月25日</p>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Browser Toolkit プライバシーポリシー</title>
+    <style>
+    body {
+      max-width: 760px;
+      padding: 0 1rem;
+      margin: 2rem auto;
+      font-family: system-ui, -apple-system, "Hiragino Sans", sans-serif;
+      line-height: 1.8;
+      color: #1a2433;
+    }
+    h1 {
+      font-size: 1.5rem;
+    }
+    h2 {
+      margin-top: 2rem;
+      font-size: 1.1rem;
+    }
+    p,
+    li {
+      font-size: 0.95rem;
+    }
+    </style>
+  </head>
+  <body>
+    <h1>Browser Toolkit プライバシーポリシー</h1>
+    <p>最終更新日: 2026年11月25日</p>
 
-<p>Browser Toolkit（以下「本拡張」）は、開発者（jey3dayo）が個人で開発・提供する Chrome 拡張機能です。本ポリシーは、本拡張が扱う情報とその利用方法を説明します。</p>
+    <p>
+      Browser
+      Toolkit（以下「本拡張」）は、開発者（jey3dayo）が個人で開発・提供する
+      Chrome
+      拡張機能です。本ポリシーは、本拡張が扱う情報とその利用方法を説明します。
+    </p>
 
-<h2>基本方針</h2>
-<ul>
-  <li>本拡張は、開発者が運営するサーバーを持ちません。利用者の情報を開発者が収集・蓄積することはありません。</li>
-  <li>解析ツール（アナリティクス）や広告のためのトラッキングは行いません。</li>
-  <li>利用者の情報を第三者へ販売することはありません。</li>
-</ul>
+    <h2>基本方針</h2>
+    <ul>
+      <li>
+        本拡張は、開発者が運営するサーバーを持ちません。利用者の情報を開発者が収集・蓄積することはありません。
+      </li>
+      <li>
+        解析ツール（アナリティクス）や広告のためのトラッキングは行いません。
+      </li>
+      <li>利用者の情報を第三者へ販売することはありません。</li>
+    </ul>
 
-<h2>ブラウザ内に保存される情報</h2>
-<p>本拡張は、機能の提供のために以下の情報を利用者のブラウザ内（Chrome のストレージ）にのみ保存します。これらが開発者に送信されることはありません。</p>
-<ul>
-  <li>設定、テキストテンプレート、検索エンジン・検索グループの定義（<code>chrome.storage.sync</code> / <code>chrome.storage.local</code>）</li>
-  <li>AI サービスの API キーなどの認証情報（<code>chrome.storage.local</code> に保存し、デバイス間では同期されません）</li>
-  <li>直近に選択したテキストの一時キャッシュ（有効期限の目安は約30秒）</li>
-  <li>アクションの実行履歴</li>
-</ul>
+    <h2>ブラウザ内に保存される情報</h2>
+    <p>
+      本拡張は、機能の提供のために以下の情報を利用者のブラウザ内（Chrome
+      のストレージ）にのみ保存します。これらが開発者に送信されることはありません。
+    </p>
+    <ul>
+      <li>
+        設定、テキストテンプレート、検索エンジン・検索グループの定義（<code
+          >chrome.storage.sync</code
+        >
+        / <code>chrome.storage.local</code>）
+      </li>
+      <li>
+        AI サービスの API キーなどの認証情報（<code>chrome.storage.local</code>
+        に保存し、デバイス間では同期されません）
+      </li>
+      <li>直近に選択したテキストの一時キャッシュ（有効期限の目安は約30秒）</li>
+      <li>アクションの実行履歴</li>
+    </ul>
 
-<h2>外部サービスへ送信される情報</h2>
-<p>外部へのデータ送信は、利用者が明示的にアクションを実行したときに限って発生します。</p>
-<ul>
-  <li><strong>AI サービス（OpenAI / Anthropic / z.ai / ChatGPT）</strong>：Context Actions（要約・翻訳・コードレビューなど）を実行したとき、対象テキスト（選択範囲、なければページ本文）に加えて、ページのタイトルと URL がプロンプトの一部として、利用者が設定した AI サービスへ送信されます。API キーは該当サービスの認証にのみ使用されます。各サービスでのデータの取り扱いは、各サービスのプライバシーポリシーに従います。</li>
-  <li><strong>Google Gemini</strong>：「Gemini で調べる」を実行したとき、選択テキスト（または対象リンク）とページのタイトル・URL を含むプロンプトが Gemini（gemini.google.com）へ自動入力・送信されます。</li>
-  <li><strong>Google カレンダー</strong>：カレンダー登録を実行したとき、抽出されたイベント情報（タイトル・日時・場所・概要）を使って Google カレンダーの登録画面を開くか、iCal ファイルを生成します。</li>
-</ul>
+    <h2>外部サービスへ送信される情報</h2>
+    <p>
+      外部へのデータ送信は、利用者が明示的にアクションを実行したときに限って発生します。
+    </p>
+    <ul>
+      <li>
+        <strong>AI サービス（OpenAI / Anthropic / z.ai / ChatGPT）</strong
+        >：Context
+        Actions（要約・翻訳・コードレビューなど）を実行したとき、対象テキスト（選択範囲、なければページ本文）に加えて、ページのタイトルと
+        URL がプロンプトの一部として、利用者が設定した AI
+        サービスへ送信されます。API
+        キーは該当サービスの認証にのみ使用されます。各サービスでのデータの取り扱いは、各サービスのプライバシーポリシーに従います。
+      </li>
+      <li>
+        <strong>Google Gemini</strong>：「Gemini
+        で調べる」を実行したとき、選択テキスト（または対象リンク）とページのタイトル・URL
+        を含むプロンプトが Gemini（gemini.google.com）へ自動入力・送信されます。
+      </li>
+      <li>
+        <strong>Google カレンダー</strong
+        >：カレンダー登録を実行したとき、抽出されたイベント情報（タイトル・日時・場所・概要）を使って
+        Google カレンダーの登録画面を開くか、iCal ファイルを生成します。
+      </li>
+    </ul>
 
-<h2>権限の利用目的</h2>
-<ul>
-  <li><code>storage</code>：上記の設定等をブラウザ内に保存するため</li>
-  <li><code>activeTab</code> / <code>scripting</code> / ホスト権限（<code>&lt;all_urls&gt;</code>）：利用者が操作したページで、テーブルソート、選択テキストの取得、結果のオーバーレイ表示を行うため</li>
-  <li><code>contextMenus</code>：右クリックメニューから機能を呼び出すため</li>
-  <li><code>alarms</code>：認証情報の有効期限管理など、バックグラウンド処理の補助のため</li>
-  <li><code>notifications</code>：処理完了などを通知するため</li>
-  <li><code>downloads</code>：iCal ファイルなど、利用者が生成したファイルを保存するため</li>
-</ul>
+    <h2>権限の利用目的</h2>
+    <ul>
+      <li><code>storage</code>：上記の設定等をブラウザ内に保存するため</li>
+      <li>
+        <code>activeTab</code>
+        / <code>scripting</code> / ホスト権限（<code>&lt;all_urls&gt;</code
+        >）：利用者が操作したページで、テーブルソート、選択テキストの取得、結果のオーバーレイ表示を行うため
+      </li>
+      <li>
+        <code>contextMenus</code>：右クリックメニューから機能を呼び出すため
+      </li>
+      <li>
+        <code>alarms</code
+        >：認証情報の有効期限管理など、バックグラウンド処理の補助のため
+      </li>
+      <li><code>notifications</code>：処理完了などを通知するため</li>
+      <li>
+        <code>downloads</code>：iCal
+        ファイルなど、利用者が生成したファイルを保存するため
+      </li>
+    </ul>
 
-<h2>お問い合わせ</h2>
-<p>本ポリシーや本拡張に関するお問い合わせは、<a href="https://github.com/jey3dayo/browser-toolkit/issues">GitHub リポジトリの Issue</a> からお願いします。</p>
-</body>
+    <h2>お問い合わせ</h2>
+    <p>
+      本ポリシーや本拡張に関するお問い合わせは、<a
+        href="https://github.com/jey3dayo/browser-toolkit/issues"
+        >GitHub リポジトリの Issue</a
+      >
+      からお願いします。
+    </p>
+  </body>
 </html>
