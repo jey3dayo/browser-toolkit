@@ -404,7 +404,7 @@ async function exchangeAuthorizationCode(
       accessToken: tokenSet.accessToken,
       clientId,
       email: identity.email,
-      expiresAt: now + tokenSet.expiresIn * 1000,
+      expiresAtMs: now + tokenSet.expiresIn * 1000,
       idToken: tokenSet.idToken,
       refreshToken: tokenSet.refreshToken,
       scope: tokenSet.scope,
@@ -513,7 +513,7 @@ export async function handleChatGptTabRemoved(tabId: number): Promise<void> {
 }
 
 function isFresh(credentials: ChatGptCredentials): boolean {
-  return credentials.expiresAt - ACCESS_TOKEN_SKEW_MS > Date.now();
+  return credentials.expiresAtMs - ACCESS_TOKEN_SKEW_MS > Date.now();
 }
 
 async function refreshCredentials(
@@ -553,7 +553,7 @@ async function refreshCredentials(
   const renewed: ChatGptCredentials = {
     ...credentials,
     accessToken: tokenSet.accessToken,
-    expiresAt: Date.now() + tokenSet.expiresIn * 1000,
+    expiresAtMs: Date.now() + tokenSet.expiresIn * 1000,
     idToken: tokenSet.idToken ?? credentials.idToken,
     refreshToken: tokenSet.refreshToken,
     scope,
