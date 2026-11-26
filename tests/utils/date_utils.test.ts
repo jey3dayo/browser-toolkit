@@ -47,4 +47,14 @@ describe("src/utils/date_utils.ts", () => {
   it("computes next date for YYYYMMDD", () => {
     expect(nextDateYyyyMmDd("20250131")).toBe("20250201");
   });
+
+  it("parses a date followed by a colon-less timezone offset", () => {
+    const parsed = parseDateTimeLoose("2025-12-16 +0900");
+    expect(parsed).not.toBeNull();
+    expect(parsed?.toISOString()).toBe("2025-12-15T15:00:00.000Z");
+  });
+
+  it("does not treat a trailing 4-digit number as a time", () => {
+    expect(parseDateTimeLoose("2025-12-16 1000")).toBeNull();
+  });
 });

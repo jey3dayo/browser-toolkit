@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import type { ExtractedEvent } from "@/shared_types";
 import { buildIcs } from "@/utils/ics";
 
+const UID_REGEX =
+  /^UID:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
 function baseEvent(overrides: Partial<ExtractedEvent> = {}): ExtractedEvent {
   return {
     end: "2025-12-16T11:00:00+09:00",
@@ -97,5 +100,74 @@ describe("src/utils/ics.ts", () => {
     expect(ics).toContain("VERSION:2.0");
     expect(ics).toContain("BEGIN:VEVENT");
     expect(ics).toContain("END:VEVENT");
+  });
+
+  it("falls back to 予定 when the title is only whitespace", () => {
+    const ics = buildIcs(baseEvent({ title: "   " }));
+    const summaryLine = ics
+      ?.split("\r\n")
+      .find((line) => line.startsWith("SUMMARY:"));
+    expect(summaryLine).toBe("SUMMARY:予定");
+  });
+
+  it("omits LOCATION/DESCRIPTION lines when those fields are only whitespace", () => {
+    const ics = buildIcs(baseEvent({ description: "   ", location: " " }));
+    expect(ics).not.toBeNull();
+    expect(ics).not.toContain("LOCATION:");
+    expect(ics).not.toContain("DESCRIPTION:");
+  });
+
+  it("emits a trimmed LOCATION line when a location is present", () => {
+    const ics = buildIcs(baseEvent({ location: " 会議室A " }));
+    expect(ics).toContain("LOCATION:会議室A\r\n");
+  });
+
+  it("escapes every occurrence of special characters and strips every CR", () => {
+    const ics = buildIcs(
+      baseEvent({
+        description: "H\rI\rJ",
+        title: "A\\B\\C\nD\nE;F;G",
+      })
+    );
+    const summaryLine = ics
+      ?.split("\r\n")
+      .find((line) => line.startsWith("SUMMARY:"));
+    expect(summaryLine).toBe("SUMMARY:A\\\\B\\\\C\\nD\\nE\\;F\\;G");
+    const descriptionLine = ics
+      ?.split("\r\n")
+      .find((line) => line.startsWith("DESCRIPTION:"));
+    expect(descriptionLine).toBe("DESCRIPTION:HIJ");
+  });
+
+  it("does not leave a dangling fold separator for a line of exactly 2x75 characters", () => {
+    const title = "A".repeat(142);
+    const ics = buildIcs(baseEvent({ title }));
+    expect(ics).not.toBeNull();
+    const rawLines = (ics ?? "").split("\r\n");
+    expect(rawLines.every((line) => line !== " ")).toBe(true);
+
+    let reconstructed = "";
+    let collecting = false;
+    for (const line of rawLines) {
+      if (line.startsWith("SUMMARY:")) {
+        collecting = true;
+        reconstructed = line.slice("SUMMARY:".length);
+        continue;
+      }
+      if (collecting && line.startsWith(" ")) {
+        reconstructed += line.slice(1);
+        continue;
+      }
+      if (collecting) {
+        break;
+      }
+    }
+    expect(reconstructed).toBe(title);
+  });
+
+  it("generates a UUID-formatted UID", () => {
+    const ics = buildIcs(baseEvent());
+    const uidLine = ics?.split("\r\n").find((line) => line.startsWith("UID:"));
+    expect(uidLine).toMatch(UID_REGEX);
   });
 });
