@@ -10,7 +10,10 @@ export const BUILTIN_SEARCH_ENGINE_IDS = {
   AMAZON_JP: "builtin:amazon-jp",
   BICCAMERA: "builtin:biccamera",
   DUCKDUCKGO: "builtin:duckduckgo",
+  GITHUB: "builtin:github",
   GOOGLE: "builtin:google",
+  GOOGLE_MAPS: "builtin:google-maps",
+  KAKAKU: "builtin:kakaku",
   MERCARI: "builtin:mercari",
   RAKUTEN: "builtin:rakuten",
   SOUNDHOUSE: "builtin:soundhouse",
@@ -53,6 +56,18 @@ export const DEFAULT_SEARCH_ENGINES: SearchEngine[] = [
   YANDEX_SEARCH_ENGINE,
   {
     enabled: true,
+    id: BUILTIN_SEARCH_ENGINE_IDS.GITHUB,
+    name: "GitHub",
+    urlTemplate: "https://github.com/search?q={query}&type=repositories",
+  },
+  {
+    enabled: true,
+    id: BUILTIN_SEARCH_ENGINE_IDS.GOOGLE_MAPS,
+    name: "Google マップ",
+    urlTemplate: "https://www.google.com/maps/search/{query}",
+  },
+  {
+    enabled: true,
     id: BUILTIN_SEARCH_ENGINE_IDS.X_TWITTER,
     name: "X（日本語）",
     urlTemplate:
@@ -89,6 +104,13 @@ export const DEFAULT_SEARCH_ENGINES: SearchEngine[] = [
     id: BUILTIN_SEARCH_ENGINE_IDS.YAHOO_SHOPPING,
     name: "Yahoo!ショッピング",
     urlTemplate: "https://shopping.yahoo.co.jp/search?p={query}",
+  },
+  {
+    enabled: true,
+    encoding: "shift_jis",
+    id: BUILTIN_SEARCH_ENGINE_IDS.KAKAKU,
+    name: "価格.com",
+    urlTemplate: "https://kakaku.com/search_results/{query}/",
   },
   {
     enabled: true,

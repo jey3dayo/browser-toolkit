@@ -80,6 +80,36 @@ describe("search engines", () => {
     );
   });
 
+  it("includes GitHub and Google Maps in default search engines", () => {
+    expect(DEFAULT_SEARCH_ENGINES).toContainEqual({
+      enabled: true,
+      id: BUILTIN_SEARCH_ENGINE_IDS.GITHUB,
+      name: "GitHub",
+      urlTemplate: "https://github.com/search?q={query}&type=repositories",
+    });
+    expect(DEFAULT_SEARCH_ENGINES).toContainEqual({
+      enabled: true,
+      id: BUILTIN_SEARCH_ENGINE_IDS.GOOGLE_MAPS,
+      name: "Google マップ",
+      urlTemplate: "https://www.google.com/maps/search/{query}",
+    });
+  });
+
+  it("builds the Kakaku search URL with the Shift_JIS encoded query", () => {
+    const kakaku = DEFAULT_SEARCH_ENGINES.find(
+      (engine) => engine.id === BUILTIN_SEARCH_ENGINE_IDS.KAKAKU
+    );
+
+    expect(kakaku).toBeDefined();
+    if (!kakaku) {
+      return;
+    }
+
+    expect(buildSearchUrl(kakaku.urlTemplate, "掃除機", kakaku.encoding)).toBe(
+      "https://kakaku.com/search_results/%91%7C%8F%9C%8B%40/"
+    );
+  });
+
   it("includes SoundHouse in the default shopping search group", () => {
     const shoppingGroup = DEFAULT_SEARCH_ENGINE_GROUPS.find(
       (group) => group.id === SEARCH_ENGINE_GROUP_IDS.SHOPPING
@@ -87,6 +117,9 @@ describe("search engines", () => {
 
     expect(shoppingGroup?.engineIds).toContain(
       BUILTIN_SEARCH_ENGINE_IDS.SOUNDHOUSE
+    );
+    expect(shoppingGroup?.engineIds).toContain(
+      BUILTIN_SEARCH_ENGINE_IDS.KAKAKU
     );
   });
 });
