@@ -95,4 +95,41 @@ describe("src/utils/event_date_range.ts", () => {
     expect(computeEventDateRange({ start: "" })).toBeNull();
     expect(computeEventDateRange({ start: "not a date" })).toBeNull();
   });
+
+  it("derives the all-day start date from a datetime start when allDay is set", () => {
+    const range = computeEventDateRange({
+      allDay: true,
+      start: "2026-01-01 10:00",
+    });
+    expect(range).toEqual({
+      endYyyyMmDdExclusive: "20260102",
+      kind: "allDay",
+      startYyyyMmDd: "20260101",
+    });
+  });
+
+  it("derives the all-day end date from a datetime end on a later day", () => {
+    const range = computeEventDateRange({
+      allDay: true,
+      end: "2026-01-03 15:00",
+      start: "2026-01-01",
+    });
+    expect(range).toEqual({
+      endYyyyMmDdExclusive: "20260103",
+      kind: "allDay",
+      startYyyyMmDd: "20260101",
+    });
+  });
+
+  it("extends a zero-length datetime event to +1 hour", () => {
+    const range = computeEventDateRange({
+      end: "2025-12-16T10:00:00+09:00",
+      start: "2025-12-16T10:00:00+09:00",
+    });
+    expect(range).toEqual({
+      endUtc: "20251216T020000Z",
+      kind: "dateTime",
+      startUtc: "20251216T010000Z",
+    });
+  });
 });

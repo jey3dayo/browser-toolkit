@@ -88,4 +88,22 @@ describe("parseNumericValue", () => {
       expect(Number.isNaN(parseNumericValue("N/A"))).toBe(true);
     });
   });
+
+  describe("数値らしくない入力の扱い", () => {
+    it("カンマの後ろに英字が続く場合は先頭の数値だけを読む", () => {
+      expect(parseNumericValue("1,0x00")).toBe(1);
+    });
+
+    it("末尾に英字が付いた場合は先頭の数値だけを読む", () => {
+      expect(parseNumericValue("1,000a")).toBe(1);
+    });
+
+    it("プラス記号で始まる入力は数値として扱わない", () => {
+      expect(Number.isNaN(parseNumericValue("+,500"))).toBe(true);
+    });
+
+    it("数値でも通貨でもない入力はカンマ除去の整形を通らない", () => {
+      expect(parseNumericValue("1,2,3abc")).toBe(1);
+    });
+  });
 });
