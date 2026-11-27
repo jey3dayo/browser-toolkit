@@ -1,36 +1,40 @@
 ---
 type: guide
 title: アイコン・ロゴセットアップガイド
-description: Browser Toolkit の拡張機能アイコンとロゴを作成、更新、検証する手順を説明する。
+description: Browser Toolkit の拡張機能アイコンと元画像を作成、更新、検証する手順を説明する。
 resource: urn:browser-toolkit:docs:icon-setup
 tags:
   - category/assets
   - audience/developer
-timestamp: 2026-06-29
+timestamp: 2026-11-27
 audience: developer
 owner: browser-toolkit
 ---
 
 # アイコン・ロゴセットアップガイド
 
-Chrome 拡張機能で使用するアイコンとロゴを作成・更新するための手順書です。
+Chrome 拡張機能で使用するアイコン画像を作成・差し替えするための手順書です。
 
 ## ディレクトリ構成
 
 ```
 browser-toolkit/
-└── images/            # ロゴ・拡張機能アイコン
-    ├── icon16.png     # ツールバー用（16x16）
-    ├── icon48.png     # 拡張機能管理画面用（48x48）
-    ├── icon128.png    # Chrome ウェブストア用（128x128）
-    └── logo.png       # ポップアップヘッダーロゴ（透過 PNG）
+└── images/            # 拡張機能アイコンと元画像
+    ├── icon16.png     # ツールバー用（16x16、manifest.json 参照）
+    ├── icon48.png     # 拡張機能管理画面・ポップアップサイドバー用（48x48）
+    ├── icon128.png    # Chrome Web Store 用（128x128）
+    ├── logo.png       # 各サイズ生成のベースとなる透過済み PNG
+    ├── icon.svg       # ベクター素材（参考）
+    └── original.png   # 加工前の元画像（参考）
 ```
+
+拡張機能のパッケージ（`scripts/package-cws.mjs`）に同梱されるのは `icon16.png`、`icon48.png`、`icon128.png` の 3 ファイルです。ポップアップおよびオプションページのサイドバーブランド表示にも `images/icon48.png` を使っています。
 
 ## ロゴから透過アイコンを作成する手順
 
 ### 前提条件
 
-ImageMagick（v7 以降）がインストールされている必要があります。
+ImageMagick（v7 以降）をインストールしておきます。
 
 ```bash
 # macOS の場合
@@ -40,39 +44,27 @@ brew install imagemagick
 magick -version
 ```
 
-### 手順 1: 元ロゴの配置
+### 手順 1: 元画像の配置
 
-1. 元となるロゴ画像（JPG / PNG）を用意します。
-2. プロジェクトルートに配置します（例: `logo-source.jpg`）。
+元となる画像（JPG / PNG）を用意し、作業用の場所またはプロジェクトルートに置きます（例: `logo-source.jpg`）。作業後に不要な元画像は削除してください。
 
 ### 手順 2: 白背景を透過処理
 
 ```bash
-# 白背景を透過にして PNG として保存
+# 白背景を透過にしてベース PNG を作成
 magick logo-source.jpg -fuzz 10% -transparent white images/logo.png
 ```
 
-#### オプションの説明
-
-- `-fuzz 10%`: 白色として扱う許容範囲（0〜100%。値が大きいほど広い範囲を透過します）
-- `-transparent white`: 白色を透過に変換します
-
-#### 注意点
-
-- JPEG は透過に対応していないため、出力は必ず PNG 形式にしてください。
-- `-fuzz` の適切な値は元画像によって変わります（目安は 5〜15% です）。
+- `-fuzz 10%`: 白色として扱う許容範囲（0〜100%、目安は 5〜15%）
+- `-transparent white`: 白色を透過に変換
+- JPEG は透過に対応していないため、出力は必ず PNG 形式にします
 
 ### 手順 3: 各サイズのアイコンを生成
 
 ```bash
-# 16x16 アイコン
-magick images/logo.png -fuzz 10% -transparent white -resize 16x16 images/icon16.png
-
-# 48x48 アイコン
-magick images/logo.png -fuzz 10% -transparent white -resize 48x48 images/icon48.png
-
-# 128x128 アイコン
-magick images/logo.png -fuzz 10% -transparent white -resize 128x128 images/icon128.png
+magick images/logo.png -resize 16x16 images/icon16.png
+magick images/logo.png -resize 48x48 images/icon48.png
+magick images/logo.png -resize 128x128 images/icon128.png
 ```
 
 ### 手順 4: 生成したファイルの確認
@@ -86,30 +78,24 @@ file images/icon16.png
 
 # ImageMagick で詳細確認（透過チャンネルを含む）
 identify images/icon16.png
-# 出力例: images/icon16.png PNG 16x16 16x16+0+0 8-bit sRGB 3329B
+# 出力例: images/icon16.png PNG 16x16 16x16+0+0 8-bit sRGB 782B
 ```
 
-#### 確認ポイント
+確認ポイント:
 
-- ファイル形式が PNG であること
-- 透過（RGBA）が含まれていること
-- ファイルサイズが妥当であること（目安: 16x16 は 1〜5KB、48x48 は 5〜10KB、128x128 は 15〜30KB）
+- ファイル形式が PNG で、透過（RGBA）が含まれていること
+- Chrome の `chrome://extensions/` で拡張機能を更新し、ツールバー（ダーク・ライト両テーマ）やポップアップのサイドバーで背景が透過されていること
 
 ## アイコン更新フロー
 
-既存のアイコンを差し替えるときは、次の手順で更新します。
+既存のアイコンを差し替えるときは、元画像から再生成してリロードで見た目を確認します。
 
 ```bash
-# バックアップを作成（推奨）
-cp -r images/ images_backup/
-
-# 新しいロゴから再生成
+# 新しいロゴからベース透過 PNG と各サイズを再生成
 magick new-logo.jpg -fuzz 10% -transparent white images/logo.png
 magick images/logo.png -resize 16x16 images/icon16.png
 magick images/logo.png -resize 48x48 images/icon48.png
 magick images/logo.png -resize 128x128 images/icon128.png
-
-# Chrome の chrome://extensions/ で「更新」ボタンをクリックして反映を確認
 ```
 
 ## トラブルシューティング
@@ -122,10 +108,8 @@ magick images/logo.png -resize 128x128 images/icon128.png
 # fuzz 値を広げる（10% → 15%）
 magick logo.jpg -fuzz 15% -transparent white output.png
 
-# 特定の RGB 値を指定する
+# 特定の背景色を指定する
 magick logo.jpg -fuzz 10% -transparent '#FFFFFF' output.png
-
-# 背景色が薄いグレーの場合
 magick logo.jpg -fuzz 10% -transparent '#F0F0F0' output.png
 ```
 
@@ -137,7 +121,7 @@ magick logo.jpg -fuzz 10% -transparent '#F0F0F0' output.png
 # ランチョス法でシャープにリサイズ
 magick images/logo.png -filter Lanczos -resize 16x16 images/icon16.png
 
-# アンシャープマスクを併用してさらに輪郭を強調
+# アンシャープマスクを併用して輪郭を強調
 magick images/logo.png -resize 16x16 -unsharp 0x1 images/icon16.png
 ```
 
@@ -157,17 +141,12 @@ optipng -o7 images/icon*.png
 
 | 用途 | サイズ | フォーマット | 透過 | 備考 |
 | --- | --- | --- | --- | --- |
-| ツールバーアイコン | 16x16 | PNG | 必須 | Retina ディスプレイ向けに 32x32 の用意も推奨 |
-| 拡張機能管理画面 | 48x48 | PNG | 必須 | - |
-| Chrome ウェブストア | 128x128 | PNG | 必須 | ストア掲載時に使用 |
-| ポップアップロゴ | 任意 | PNG | 推奨 | 横長を推奨（例: 432x66） |
+| ツールバーアイコン | 16x16 | PNG | 必須 | - |
+| 拡張機能管理画面・サイドバー | 48x48 | PNG | 必須 | ポップアップのサイドバーでも使用 |
+| Chrome Web Store | 128x128 | PNG | 必須 | ストア掲載時に使用 |
 
 ## 参考リンク
 
 - [Chrome 拡張機能のアイコンガイドライン](https://developer.chrome.com/docs/extensions/mv3/manifest/icons/)
 - [ImageMagick 公式ドキュメント](https://imagemagick.org/script/command-line-processing.php/)
 - [透過処理のベストプラクティス](https://usage.imagemagick.org/masking/)
-
-## 更新履歴
-
-- 2024-12-11: 初版作成（ImageMagick を使った透過アイコン生成手順、`logo.jpg` 1024x1024 からの各サイズ生成手順を記録）

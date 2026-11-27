@@ -1,106 +1,84 @@
 ---
 type: reference
-title: Style Management
-description: Browser Toolkit の design token layers、theme switching、ShadowRoot stylesheet integration を説明する。
+title: スタイル管理（Design Tokens）
+description: Browser Toolkit の Design Token 階層、テーマ切り替え、ShadowRoot へのスタイルシート適用とモーダル制御を説明する。
 resource: urn:browser-toolkit:docs:style-management
 tags:
   - category/design-system
   - audience/developer
-timestamp: 2026-06-29
+timestamp: 2026-11-27
 audience: developer
 owner: browser-toolkit
 ---
 
-# Style Management (Design Tokens)
+# スタイル管理（Design Tokens）
 
-This project manages UI styling via **Design Tokens** (CSS custom properties) and a `data-theme` attribute for runtime theme switching.
+Browser Toolkit では、UI のスタイルを **Design Tokens**（CSS カスタムプロパティ）と、実行時テーマ切り替え用の `data-theme` 属性で管理しています。
 
-The same token system is used for:
+このトークン体系は次の両方で共通利用しています。
 
-- The extension popup (document-level CSS)
-- ShadowRoot UIs injected by the content script (overlay + toasts)
+- 拡張機能のポップアップおよびオプションページ（ドキュメントレベルの CSS）
+- コンテンツスクリプトが Web ページ上に注入する ShadowRoot UI（オーバーレイ、トースト、検索結果ブロック UI、X の画像ズームビューア）
 
-## Token Layers
+## トークンの 3 層構造
 
-The token system is structured in 3 layers:
+トークンは役割ごとに 3 層に分けています。
 
-1. Primitive tokens (`src/styles/tokens/primitives.css`)
-   - Physical values (palette, spacing, radii, shadows, typography)
-2. Semantic tokens (`src/styles/tokens/semantic.css`)
-   - Meaning-based values (surface/text/border/primary/etc), theme-aware
-3. Component tokens (`src/styles/tokens/components.css`)
-   - Component-specific values (button/input/card tokens) and shared component styles (toast/overlay)
+1. **Primitive tokens**（`src/styles/tokens/primitives.css`）
+   - パレット色、余白、角丸、影、タイポグラフィなどの物理的な基準値
+2. **Semantic tokens**（`src/styles/tokens/semantic.css`）
+   - 背景面・文字色・枠線・アクセント色など用途別の値（ライト・ダークの各テーマに対応）
+3. **Component tokens**（`src/styles/tokens/components.css`）
+   - ボタン・入力欄・カードなどのコンポーネント固有トークンと、ポップアップ・ShadowRoot 間で共有するコンポーネントスタイル（トースト、オーバーレイなど）
 
-## Theme Switching (`data-theme`)
+## テーマ切り替え（`data-theme`）
 
-Theme switching is done via `data-theme="dark" | "light"`.
+テーマの切り替えには `data-theme="dark"` または `data-theme="light"` を使います。`data-theme` 属性がない場合は、`prefers-color-scheme` に従ってシステムテーマに追従します（自動）。
 
-Additionally, when `data-theme` is **absent**, the UI follows the system theme via `prefers-color-scheme` (Auto).
+- ポップアップ・オプションページ: `document.documentElement` に適用
+- ShadowRoot UI: `shadowRoot.host` に適用
 
-- Popup: applied to `document.documentElement`
-- ShadowRoot: applied to `shadowRoot.host`
+実装箇所:
 
-Implementation:
+- `src/ui/theme.ts`: `applyTheme()` と `Theme` 型を提供
+- `src/popup/bootstrap.ts`（`src/popup.ts` / `src/options.ts` から呼び出し）: 保存済みのテーマ（既定は `auto`）を読み込み、起動時に適用
+- `src/popup/panes/SettingsPane.tsx`: 自動・ライト・ダークの選択 UI を提供し、`chrome.storage.local` へ保存
+- `src/content.ts`: 保存済みのテーマ（既定は `auto`）を読み込み、注入した ShadowRoot UI（オーバーレイ、トーストなど）へ適用
 
-- `src/ui/theme.ts` exports `applyTheme()` and `Theme`
-- `src/popup.ts` loads the stored theme (defaults to `auto`) and applies it at startup
-- `src/popup/panes/SettingsPane.tsx` provides an Auto/Dark/Light selector and persists it to `chrome.storage.local`
-- `src/content.ts` loads the stored theme (defaults to `auto`) and applies it to injected ShadowRoot surfaces (overlay + toasts)
+## スタイルシート構成
 
-## Stylesheet Layout
+ポップアップおよびオプションページ向けの CSS は責務ごとに分割しています。
 
-Popup styles are split by responsibility:
+- `src/styles/base.css`: ドキュメントの基本設定（リセット、レイアウトに依存する基本変数）
+- `src/styles/layout.css`: 画面レイアウト（アプリシェル、サイドバー、ドロワー、ヘッダー）
+- `src/styles/utilities.css`: 小さなユーティリティクラス（`.stack`、`.row-between` など）
+- `src/styles/tokens/components.css`: ポップアップと ShadowRoot の両方で共有するコンポーネントスタイル
 
-- `src/styles/base.css`: document base (reset + base variables that depend on layout)
-- `src/styles/layout.css`: popup layout (app shell, sidebar, drawer, header)
-- `src/styles/utilities.css`: small utility classes (`.stack`, `.row-between`, etc)
+## ShadowRoot への適用
 
-Shared component styles (used by both popup and ShadowRoot) live in:
+### マウントとスタイル読み込み
 
-- `src/styles/tokens/components.css`
+`src/ui/shadow-host.ts` の `ensureShadowHost` がホスト用 `<div>` と `ShadowRoot` の検索・生成を担います。このモジュール自体はスタイルや i18n を import しません。`src/content/shadow_mount.ts` の `ensureShadowMount` と `src/image-zoom/mount.ts` の `ensureViewerShadowMount` は、いずれも `ensureShadowHost` を土台にスタイルとテーマを適用します。
 
-## ShadowRoot Integration
+ShadowRoot UI は用途に応じて次の 2 つの関数を使い分けます。
 
-`src/ui/shadow-host.ts` (`ensureShadowHost`) finds-or-creates the host `<div>` and its
-`ShadowRoot`, with no style or i18n imports of its own. `src/content/shadow_mount.ts`
-(`ensureShadowMount`) and `src/image-zoom/mount.ts` (`ensureViewerShadowMount`) both build on
-it, then apply styles and theme as below.
+- `src/ui/styles.ts`（`ensureShadowUiBaseStyles`）: Primitive + Semantic + 全コンポーネント CSS を読み込みます。オーバーレイやトーストなど、共有コンポーネントを使う UI 向けです。
+- `src/ui/styles-tokens.ts`（`ensureShadowTokenStyles`）: Primitive + Semantic のみに加え、呼び出し側が渡す `extraCss` とその識別子 `id` を読み込みます。全コンポーネント CSS を入れるとバンドルが膨らむ `src/image-zoom/mount.ts` などで使います。**呼び出し側の契約として、同じ `extraCss` の `id` には常に同じ CSS 文字列を渡してください。** 構築したスタイルシートは `id` ごとにキャッシュされるため、同一 `id` で別の CSS を渡しても 2 回目以降は無視されます。
 
-ShadowRoot UIs load the same token/stylesheets via:
+各トークン・コンポーネント・追加 CSS のテキストは、モジュールスコープ（または `extraCss` の `id` ごとの遅延キャッシュ）で 1 つだけ `CSSStyleSheet` インスタンスを構築し、`adoptedStyleSheets` 経由で各 ShadowRoot へ共有適用します。ShadowRoot ごとに再生成はしません。
 
-- `src/ui/styles.ts` (`ensureShadowUiBaseStyles`): primitives + semantic + all component CSS, for overlay/toast/popup-style ShadowRoot UIs.
-- `src/ui/styles-tokens.ts` (`ensureShadowTokenStyles`): primitives + semantic only, plus a caller-supplied `extraCss`/id. Used where the full component CSS would bloat the bundle (e.g. `src/image-zoom/mount.ts`). Caller contract: the same `extraCss` id must always carry the same CSS text — the constructed sheet is cached per id, so a second call with that id and different CSS is silently ignored.
+`CSSStyleSheet` 構築に対応していない環境（jsdom など）では、同じ CSS をインライン `<style>` タグとして挿入します。`adoptedStyleSheets` が使える環境でも、適用後に `shadowHasTokens` がホスト要素の `--mbu-surface` の計算値を検証し、値が空であれば安全策として `<style>` タグのフォールバックを重ねます。ホストが DOM 未接続のときや `getComputedStyle` 未対応の環境ではこの確認を省略します。いずれの経路も `<link rel="stylesheet">` は使わず、`<link>` による読み込みはドキュメントレベルのポップアップ・オプションページ経路（`ensurePopupUiBaseStyles`）だけで行います。
 
-Each token/component/extra CSS text has exactly one constructed `CSSStyleSheet` instance,
-built once at module scope (or lazily cached per `extraCss` id). That single instance is
-adopted into every ShadowRoot that calls these functions via `adoptedStyleSheets` — it is
-not re-created per shadow root. When constructed stylesheets are unsupported (e.g. jsdom),
-both functions inject the same CSS as inline `<style>` tags instead. Even when constructed
-stylesheets ARE supported and adopted, `shadowHasTokens` re-checks the host's computed
-`--mbu-surface` value (skipped as "ok" while the host is disconnected or `getComputedStyle`
-is unavailable); if that check still comes back empty, the `<style>` fallback runs as a
-belt-and-suspenders layer on top of the already-adopted sheets. Neither path attaches
-`<link rel="stylesheet">` tags — that mechanism is only used by the document-level
-popup/options path (`ensurePopupUiBaseStyles`).
+### モーダル ShadowRoot のキーボード・フォーカス制御
 
-Keyboard/focus behavior for modal ShadowRoot UIs (Tab trap, Escape-to-close, page key
-isolation, focus restore on close) is centralized in `src/ui/modal-controller.ts`
-(`activateModal`), used by both `src/content/qrcode-overlay.ts` and
-`src/image-zoom/viewer.ts`. Since those two files ship in separate bundles
-(`content.js` / `image-zoom.js`) that still run in the same extension isolated
-world, `activateModal` tracks which modal is topmost via a `globalThis` stack
-(`__MBU_MODAL_STACK__`, declared in `src/types/globals.d.ts`) rather than
-module-scope state. Key isolation covers document/element listeners and any
-window-capture listener registered after the modal opened; a window-capture
-listener registered before the modal opened still receives the event first
-and is not isolated.
+モーダル型の ShadowRoot UI では、Tab トラップ、Escape での終了、ページ側キーイベントの遮断、閉じた際のフォーカス復元を `src/ui/modal-controller.ts` の `activateModal` に集約しています。現在は `src/content/qrcode-overlay.ts` と `src/image-zoom/viewer.ts` の両方でこの関数を利用しています。
 
-Base UI's `Portal` renders to `document.body` by default, which escapes the ShadowRoot and
-loses styling. Any Base UI component with a portal (`Dialog`, `Toast`, etc.) rendered inside a
-ShadowRoot must pass an explicit `container` pointing at the ShadowRoot. See
-`src/ui/toast.tsx` (`Toast.Portal container`) and `src/components/shared/Dialog.tsx`
-(`portalContainer` prop) for the established pattern.
+この 2 ファイルは別バンドル（`content.js` と `image-zoom.js`）として出力されますが、同じ拡張機能の isolated world で動作します。そのため、最前面のモーダル管理にはモジュールスコープ変数ではなく、`globalThis` 上のスタック（`__MBU_MODAL_STACK__`、`src/types/globals.d.ts` で型宣言）を使っています。キーイベントの遮断は、document・要素のリスナーと、モーダルを開いた後に登録された window-capture リスナーに適用されます。モーダルを開く前から登録されていた window-capture リスナーには先にイベントが届くため、遮断できません。
 
-## Legacy Alias Variables
+### Base UI の Portal に関する注意
 
-`src/styles/tokens/semantic.css` still exposes a small set of legacy aliases (e.g. `--bg`, `--panel`, `--text`, and `--mbu-*`) to keep incremental refactors stable while migrating older styles.
+Base UI の `Portal` は既定で `document.body` 配下に描画されるため、そのまま使うと ShadowRoot の外に出てスタイルが外れます。ShadowRoot 内で Portal を持つコンポーネント（`Dialog`、`Toast` など）を描画するときは、対象の ShadowRoot を明示的に `container` として渡してください。実装例は `src/ui/toast.tsx`（`Toast.Portal container`）と `src/components/shared/Dialog.tsx`（`portalContainer` prop）を参照してください。
+
+## 互換用エイリアス変数
+
+`src/styles/tokens/semantic.css` には、段階的な移行中に既存スタイルを壊さないための互換エイリアス（`--bg`、`--panel`、`--text`、`--mbu-*` など）を一部残しています。新規スタイルでは現行の Semantic tokens を使ってください。
