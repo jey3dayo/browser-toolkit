@@ -195,7 +195,7 @@ describe("Storage Migrations", () => {
 
       expect(mockStorage.get("aiModel")).toBe("gpt-4");
       const version = await getCurrentSchemaVersion();
-      expect(version).toBe(3);
+      expect(version).toBe(4);
     });
 
     it("should migrate openaiCustomPrompt to aiCustomPrompt", async () => {
@@ -205,7 +205,7 @@ describe("Storage Migrations", () => {
 
       expect(mockStorage.get("aiCustomPrompt")).toBe("Custom prompt");
       const version = await getCurrentSchemaVersion();
-      expect(version).toBe(3);
+      expect(version).toBe(4);
     });
 
     it("should set aiProvider to openai when openaiApiToken exists", async () => {
@@ -215,7 +215,7 @@ describe("Storage Migrations", () => {
 
       expect(mockStorage.get("aiProvider")).toBe("openai");
       const version = await getCurrentSchemaVersion();
-      expect(version).toBe(3);
+      expect(version).toBe(4);
     });
 
     it("should not overwrite existing aiModel", async () => {
@@ -256,7 +256,7 @@ describe("Storage Migrations", () => {
       await expect(runMigrations()).resolves.not.toThrow();
 
       const version = await getCurrentSchemaVersion();
-      expect(version).toBe(3);
+      expect(version).toBe(4);
     });
   });
 
@@ -295,7 +295,7 @@ describe("Storage Migrations", () => {
         id: "group:shopping-e8c8a7d5",
         name: "お買い物",
       });
-      expect(mockStorage.get("schemaVersion")).toBe(3);
+      expect(mockStorage.get("schemaVersion")).toBe(4);
     });
 
     it("does not duplicate SoundHouse in existing settings", async () => {
@@ -377,7 +377,7 @@ describe("Storage Migrations", () => {
         name: "Yandex",
         urlTemplate: "https://yandex.com/search/?text={query}",
       });
-      expect(mockStorage.get("schemaVersion")).toBe(3);
+      expect(mockStorage.get("schemaVersion")).toBe(4);
     });
 
     it("does not duplicate Yandex in existing settings", async () => {
@@ -400,6 +400,79 @@ describe("Storage Migrations", () => {
       expect(
         engines.filter((engine) => engine.id === "builtin:yandex")
       ).toHaveLength(1);
+    });
+  });
+
+  describe("Migration v4: flea-market engines and group rework", () => {
+    const defaultShoppingGroup = {
+      enabled: true,
+      engineIds: [
+        "builtin:amazon-jp",
+        "builtin:rakuten",
+        "builtin:kakaku",
+        "builtin:biccamera",
+        "builtin:yodobashi",
+        "builtin:soundhouse",
+        "builtin:mercari",
+      ],
+      id: "group:shopping-e8c8a7d5",
+      name: "お買い物",
+    };
+
+    it("appends new engines and splits the default shopping group", async () => {
+      mockStorage.set("schemaVersion", 3);
+      mockStorage.set("searchEngines", [
+        {
+          enabled: true,
+          id: "builtin:mercari",
+          name: "メルカリ",
+          urlTemplate: "https://jp.mercari.com/search?keyword={query}",
+        },
+      ]);
+      mockStorage.set("searchEngineGroups", [defaultShoppingGroup]);
+
+      await runMigrations();
+
+      const engines = mockStorage.get("searchEngines") as Array<{
+        id: string;
+      }>;
+      const engineIds = engines.map((engine) => engine.id);
+      expect(engineIds).toContain("builtin:yahoo-auctions");
+      expect(engineIds).toContain("builtin:rakuma");
+      expect(engineIds).toContain("builtin:paypay-fleamarket");
+      expect(engineIds).toContain("builtin:github");
+
+      const groups = mockStorage.get("searchEngineGroups") as Array<{
+        engineIds: string[];
+        id: string;
+        name: string;
+      }>;
+      expect(groups.map((group) => group.name)).toEqual([
+        "日用品系",
+        "徹底比較",
+      ]);
+      expect(groups[0].engineIds).not.toContain("builtin:mercari");
+      expect(groups[1].engineIds).toContain("builtin:rakuma");
+      expect(mockStorage.get("schemaVersion")).toBe(4);
+    });
+
+    it("leaves a customized shopping group untouched", async () => {
+      mockStorage.set("schemaVersion", 3);
+      mockStorage.set("searchEngines", []);
+      mockStorage.set("searchEngineGroups", [
+        {
+          ...defaultShoppingGroup,
+          engineIds: ["builtin:amazon-jp"],
+        },
+      ]);
+
+      await runMigrations();
+
+      const groups = mockStorage.get("searchEngineGroups") as Array<{
+        id: string;
+      }>;
+      expect(groups).toHaveLength(1);
+      expect(groups[0].id).toBe("group:shopping-e8c8a7d5");
     });
   });
 });

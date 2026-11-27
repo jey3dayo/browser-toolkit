@@ -6,6 +6,7 @@ import {
   storageSyncSet,
 } from "@/background/storage";
 import {
+  DEFAULT_SEARCH_ENGINE_GROUPS,
   normalizeSearchEngineGroups,
   SEARCH_ENGINE_GROUP_IDS,
   type SearchEngineGroup,
@@ -13,6 +14,8 @@ import {
 import type { SearchEngine } from "@/search_engine_types";
 import {
   BUILTIN_SEARCH_ENGINE_IDS,
+  DEFAULT_SEARCH_ENGINES,
+  MAX_SEARCH_ENGINES,
   normalizeSearchEngines,
   YANDEX_SEARCH_ENGINE,
 } from "@/search_engines";
@@ -74,6 +77,78 @@ function appendSoundHouseToShoppingGroup(
       engineIds: [...group.engineIds, BUILTIN_SEARCH_ENGINE_IDS.SOUNDHOUSE],
     };
   });
+}
+
+const SEARCH_ENGINE_IDS_ADDED_IN_V4: string[] = [
+  BUILTIN_SEARCH_ENGINE_IDS.GITHUB,
+  BUILTIN_SEARCH_ENGINE_IDS.GOOGLE_MAPS,
+  BUILTIN_SEARCH_ENGINE_IDS.KAKAKU,
+  BUILTIN_SEARCH_ENGINE_IDS.YAHOO_AUCTIONS,
+  BUILTIN_SEARCH_ENGINE_IDS.RAKUMA,
+  BUILTIN_SEARCH_ENGINE_IDS.PAYPAY_FLEAMARKET,
+];
+
+const SEARCH_ENGINES_ADDED_IN_V4: SearchEngine[] =
+  DEFAULT_SEARCH_ENGINES.filter((engine) =>
+    SEARCH_ENGINE_IDS_ADDED_IN_V4.includes(engine.id)
+  );
+
+function appendSearchEnginesAddedInV4(
+  searchEngines: SearchEngine[]
+): SearchEngine[] {
+  const existingIds = new Set(searchEngines.map((engine) => engine.id));
+  const missing = SEARCH_ENGINES_ADDED_IN_V4.filter(
+    (engine) => !existingIds.has(engine.id)
+  );
+  const capacity = MAX_SEARCH_ENGINES - searchEngines.length;
+  if (missing.length === 0 || capacity <= 0) {
+    return searchEngines;
+  }
+  return [...searchEngines, ...missing.slice(0, capacity)];
+}
+
+const DEFAULT_SHOPPING_GROUP_ENGINE_IDS: string[] = [
+  BUILTIN_SEARCH_ENGINE_IDS.AMAZON_JP,
+  BUILTIN_SEARCH_ENGINE_IDS.RAKUTEN,
+  BUILTIN_SEARCH_ENGINE_IDS.KAKAKU,
+  BUILTIN_SEARCH_ENGINE_IDS.BICCAMERA,
+  BUILTIN_SEARCH_ENGINE_IDS.YODOBASHI,
+  BUILTIN_SEARCH_ENGINE_IDS.SOUNDHOUSE,
+  BUILTIN_SEARCH_ENGINE_IDS.MERCARI,
+];
+
+function reworkDefaultShoppingGroup(
+  searchEngineGroups: SearchEngineGroup[]
+): SearchEngineGroup[] {
+  const index = searchEngineGroups.findIndex(
+    (group) => group.id === SEARCH_ENGINE_GROUP_IDS.SHOPPING
+  );
+  const shoppingGroup = searchEngineGroups[index];
+  if (!shoppingGroup) {
+    return searchEngineGroups;
+  }
+
+  const isDefaultMembership =
+    shoppingGroup.engineIds.length ===
+      DEFAULT_SHOPPING_GROUP_ENGINE_IDS.length &&
+    DEFAULT_SHOPPING_GROUP_ENGINE_IDS.every((id) =>
+      shoppingGroup.engineIds.includes(id)
+    );
+  if (!isDefaultMembership) {
+    return searchEngineGroups;
+  }
+
+  const replacements = DEFAULT_SEARCH_ENGINE_GROUPS.filter(
+    (group) =>
+      group.id === SEARCH_ENGINE_GROUP_IDS.DAILY_NEEDS ||
+      group.id === SEARCH_ENGINE_GROUP_IDS.DEEP_COMPARISON
+  ).map((group) => ({ ...group, enabled: shoppingGroup.enabled }));
+
+  return [
+    ...searchEngineGroups.slice(0, index),
+    ...replacements,
+    ...searchEngineGroups.slice(index + 1),
+  ];
 }
 
 const migrations: Migration[] = [
@@ -174,6 +249,46 @@ const migrations: Migration[] = [
       }
     },
     version: 3,
+  },
+  {
+    description:
+      "Add flea-market search engines and split the default shopping group",
+    migrate: async () => {
+      const data = (await storageSyncGet([
+        "searchEngines",
+        "searchEngineGroups",
+      ])) as Record<string, unknown>;
+
+      const updates: {
+        searchEngineGroups?: SearchEngineGroup[];
+        searchEngines?: SearchEngine[];
+      } = {};
+
+      if (Array.isArray(data.searchEngines)) {
+        const searchEngines = normalizeSearchEngines(data.searchEngines);
+        const nextSearchEngines = appendSearchEnginesAddedInV4(searchEngines);
+        if (nextSearchEngines.length !== searchEngines.length) {
+          updates.searchEngines = nextSearchEngines;
+        }
+      }
+
+      if (Array.isArray(data.searchEngineGroups)) {
+        const searchEngineGroups = normalizeSearchEngineGroups(
+          data.searchEngineGroups
+        );
+        const nextSearchEngineGroups =
+          reworkDefaultShoppingGroup(searchEngineGroups);
+        if (nextSearchEngineGroups !== searchEngineGroups) {
+          updates.searchEngineGroups = nextSearchEngineGroups;
+        }
+      }
+
+      if (Object.keys(updates).length > 0) {
+        await storageSyncSet(updates);
+        console.log("[migration v4] Search settings migrated");
+      }
+    },
+    version: 4,
   },
 ];
 

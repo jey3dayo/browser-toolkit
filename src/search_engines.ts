@@ -15,10 +15,13 @@ export const BUILTIN_SEARCH_ENGINE_IDS = {
   GOOGLE_MAPS: "builtin:google-maps",
   KAKAKU: "builtin:kakaku",
   MERCARI: "builtin:mercari",
+  PAYPAY_FLEAMARKET: "builtin:paypay-fleamarket",
+  RAKUMA: "builtin:rakuma",
   RAKUTEN: "builtin:rakuten",
   SOUNDHOUSE: "builtin:soundhouse",
   X_TWITTER: "builtin:x-twitter",
   X_TWITTER_EXACT: "builtin:x-twitter-exact",
+  YAHOO_AUCTIONS: "builtin:yahoo-auctions",
   YAHOO_SHOPPING: "builtin:yahoo-shopping",
   YANDEX: "builtin:yandex",
   YODOBASHI: "builtin:yodobashi",
@@ -131,6 +134,24 @@ export const DEFAULT_SEARCH_ENGINES: SearchEngine[] = [
     id: BUILTIN_SEARCH_ENGINE_IDS.MERCARI,
     name: "メルカリ",
     urlTemplate: "https://jp.mercari.com/search?keyword={query}",
+  },
+  {
+    enabled: true,
+    id: BUILTIN_SEARCH_ENGINE_IDS.YAHOO_AUCTIONS,
+    name: "ヤフオク",
+    urlTemplate: "https://auctions.yahoo.co.jp/search/search/{query}",
+  },
+  {
+    enabled: true,
+    id: BUILTIN_SEARCH_ENGINE_IDS.RAKUMA,
+    name: "ラクマ",
+    urlTemplate: "https://fril.jp/s/?query={query}",
+  },
+  {
+    enabled: true,
+    id: BUILTIN_SEARCH_ENGINE_IDS.PAYPAY_FLEAMARKET,
+    name: "PayPayフリマ",
+    urlTemplate: "https://paypayfleamarket.yahoo.co.jp/search/{query}",
   },
 ];
 

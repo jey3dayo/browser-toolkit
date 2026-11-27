@@ -110,16 +110,77 @@ describe("search engines", () => {
     );
   });
 
-  it("includes SoundHouse in the default shopping search group", () => {
-    const shoppingGroup = DEFAULT_SEARCH_ENGINE_GROUPS.find(
-      (group) => group.id === SEARCH_ENGINE_GROUP_IDS.SHOPPING
+  it("includes flea-market services in default search engines", () => {
+    expect(DEFAULT_SEARCH_ENGINES).toContainEqual({
+      enabled: true,
+      id: BUILTIN_SEARCH_ENGINE_IDS.YAHOO_AUCTIONS,
+      name: "ヤフオク",
+      urlTemplate: "https://auctions.yahoo.co.jp/search/search/{query}",
+    });
+    expect(DEFAULT_SEARCH_ENGINES).toContainEqual({
+      enabled: true,
+      id: BUILTIN_SEARCH_ENGINE_IDS.RAKUMA,
+      name: "ラクマ",
+      urlTemplate: "https://fril.jp/s/?query={query}",
+    });
+    expect(DEFAULT_SEARCH_ENGINES).toContainEqual({
+      enabled: true,
+      id: BUILTIN_SEARCH_ENGINE_IDS.PAYPAY_FLEAMARKET,
+      name: "PayPayフリマ",
+      urlTemplate: "https://paypayfleamarket.yahoo.co.jp/search/{query}",
+    });
+  });
+
+  it("builds the Yahoo Auctions search URL with the encoded query", () => {
+    const yahooAuctions = DEFAULT_SEARCH_ENGINES.find(
+      (engine) => engine.id === BUILTIN_SEARCH_ENGINE_IDS.YAHOO_AUCTIONS
     );
 
-    expect(shoppingGroup?.engineIds).toContain(
-      BUILTIN_SEARCH_ENGINE_IDS.SOUNDHOUSE
+    expect(yahooAuctions).toBeDefined();
+    if (!yahooAuctions) {
+      return;
+    }
+
+    expect(
+      buildSearchUrl(
+        yahooAuctions.urlTemplate,
+        "掃除機",
+        yahooAuctions.encoding
+      )
+    ).toBe(
+      "https://auctions.yahoo.co.jp/search/search/%E6%8E%83%E9%99%A4%E6%A9%9F"
     );
-    expect(shoppingGroup?.engineIds).toContain(
-      BUILTIN_SEARCH_ENGINE_IDS.KAKAKU
+  });
+
+  it("keeps flea-market services out of the daily-needs group", () => {
+    const dailyGroup = DEFAULT_SEARCH_ENGINE_GROUPS.find(
+      (group) => group.id === SEARCH_ENGINE_GROUP_IDS.DAILY_NEEDS
+    );
+
+    expect(dailyGroup?.engineIds).toContain(BUILTIN_SEARCH_ENGINE_IDS.KAKAKU);
+    expect(dailyGroup?.engineIds).not.toContain(
+      BUILTIN_SEARCH_ENGINE_IDS.MERCARI
+    );
+    expect(dailyGroup?.engineIds).not.toContain(
+      BUILTIN_SEARCH_ENGINE_IDS.YAHOO_AUCTIONS
+    );
+  });
+
+  it("includes flea-market services in the deep-comparison group", () => {
+    const deepGroup = DEFAULT_SEARCH_ENGINE_GROUPS.find(
+      (group) => group.id === SEARCH_ENGINE_GROUP_IDS.DEEP_COMPARISON
+    );
+
+    expect(deepGroup?.engineIds).toContain(BUILTIN_SEARCH_ENGINE_IDS.MERCARI);
+    expect(deepGroup?.engineIds).toContain(
+      BUILTIN_SEARCH_ENGINE_IDS.YAHOO_AUCTIONS
+    );
+    expect(deepGroup?.engineIds).toContain(BUILTIN_SEARCH_ENGINE_IDS.RAKUMA);
+    expect(deepGroup?.engineIds).toContain(
+      BUILTIN_SEARCH_ENGINE_IDS.PAYPAY_FLEAMARKET
+    );
+    expect(deepGroup?.engineIds).toContain(
+      BUILTIN_SEARCH_ENGINE_IDS.SOUNDHOUSE
     );
   });
 });
