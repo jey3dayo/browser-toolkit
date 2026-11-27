@@ -158,6 +158,7 @@ describe("popup search groups state inventory (characterization)", () => {
     const expected = [
       { ...DEFAULT_SEARCH_ENGINE_GROUPS[0], name: "お買物改" },
       DEFAULT_SEARCH_ENGINE_GROUPS[1],
+      DEFAULT_SEARCH_ENGINE_GROUPS[2],
     ];
     expect(storageStub.store.searchEngineGroups).toEqual(expected);
     expect(output.current?.editingNameGroupId).toBeNull();
@@ -282,15 +283,15 @@ describe("popup search groups state inventory (characterization)", () => {
     });
 
     const stored = storageStub.store.searchEngineGroups as SearchEngineGroup[];
-    expect(stored).toHaveLength(3);
-    expect(stored[2]).toEqual({
+    expect(stored).toHaveLength(4);
+    expect(stored[3]).toEqual({
       enabled: true,
       engineIds: [DEFAULT_SEARCH_ENGINES[0].id],
       id: generateGroupId("特売"),
       name: "特売",
     });
     expect(output.current?.newGroupNameInput).toBe("");
-    expect(output.current?.expandedGroupId).toBe(stored[2].id);
+    expect(output.current?.expandedGroupId).toBe(stored[3].id);
     expect(notify.error).not.toHaveBeenCalled();
 
     await act(async () => {
@@ -377,8 +378,12 @@ describe("popup search groups state inventory (characterization)", () => {
 
     expect(storageStub.store.searchEngineGroups).toEqual([
       DEFAULT_SEARCH_ENGINE_GROUPS[1],
+      DEFAULT_SEARCH_ENGINE_GROUPS[2],
     ]);
-    expect(output.current?.groups).toEqual([DEFAULT_SEARCH_ENGINE_GROUPS[1]]);
+    expect(output.current?.groups).toEqual([
+      DEFAULT_SEARCH_ENGINE_GROUPS[1],
+      DEFAULT_SEARCH_ENGINE_GROUPS[2],
+    ]);
     expect(notify.success).toHaveBeenCalled();
     expect(notify.error).not.toHaveBeenCalled();
 

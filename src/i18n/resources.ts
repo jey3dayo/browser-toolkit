@@ -504,13 +504,13 @@ export const resources = {
           updateFailed: "更新に失敗しました",
         },
         example:
-          "例: 「お買い物」グループでAmazon、楽天、ビックカメラ、ヨドバシを一括検索",
+          "例: 「日用品系」グループでAmazon、楽天、価格.comなどを一括検索",
         expandAria: "{{name}}を展開",
         includeEngineAria: "{{group}}に{{engine}}を含める",
         info: {
           duplicate: "既に同じ名前のグループが存在します",
         },
-        namePlaceholder: "グループ名（例: お買い物）",
+        namePlaceholder: "グループ名（例: 日用品系）",
         saveName: "保存",
         success: {
           added: "追加しました",
