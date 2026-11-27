@@ -2,7 +2,7 @@
  * 検索エンジングループ機能
  *
  * 複数の検索エンジンをまとめて実行するグループ機能です。
- * 例: 「お買い物」グループでAmazon、楽天、ビックカメラ、ヨドバシを一括検索
+ * 例: 「日用品系」グループでAmazon、楽天、価格.comなどを一括検索
  */
 
 import { BUILTIN_SEARCH_ENGINE_IDS } from "@/search_engines";
@@ -39,6 +39,8 @@ export type SearchEngineGroup = {
  * デフォルトの検索エンジングループ
  */
 export const SEARCH_ENGINE_GROUP_IDS = {
+  DAILY_NEEDS: "group:daily-needs-5e2b8f14",
+  DEEP_COMPARISON: "group:deep-comparison-9a4c6d27",
   SHOPPING: "group:shopping-e8c8a7d5",
   TREND: "group:trend-9f3b2d1a",
 } as const;
@@ -50,13 +52,26 @@ export const DEFAULT_SEARCH_ENGINE_GROUPS: SearchEngineGroup[] = [
       BUILTIN_SEARCH_ENGINE_IDS.AMAZON_JP,
       BUILTIN_SEARCH_ENGINE_IDS.RAKUTEN,
       BUILTIN_SEARCH_ENGINE_IDS.KAKAKU,
-      BUILTIN_SEARCH_ENGINE_IDS.BICCAMERA,
       BUILTIN_SEARCH_ENGINE_IDS.YODOBASHI,
+      BUILTIN_SEARCH_ENGINE_IDS.BICCAMERA,
+    ],
+    id: SEARCH_ENGINE_GROUP_IDS.DAILY_NEEDS,
+    name: "日用品系",
+  },
+  {
+    enabled: true,
+    engineIds: [
+      BUILTIN_SEARCH_ENGINE_IDS.KAKAKU,
+      BUILTIN_SEARCH_ENGINE_IDS.AMAZON_JP,
+      BUILTIN_SEARCH_ENGINE_IDS.RAKUTEN,
       BUILTIN_SEARCH_ENGINE_IDS.SOUNDHOUSE,
       BUILTIN_SEARCH_ENGINE_IDS.MERCARI,
+      BUILTIN_SEARCH_ENGINE_IDS.YAHOO_AUCTIONS,
+      BUILTIN_SEARCH_ENGINE_IDS.RAKUMA,
+      BUILTIN_SEARCH_ENGINE_IDS.PAYPAY_FLEAMARKET,
     ],
-    id: SEARCH_ENGINE_GROUP_IDS.SHOPPING,
-    name: "お買い物",
+    id: SEARCH_ENGINE_GROUP_IDS.DEEP_COMPARISON,
+    name: "徹底比較",
   },
   {
     enabled: true,

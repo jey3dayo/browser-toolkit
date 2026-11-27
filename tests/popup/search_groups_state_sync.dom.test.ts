@@ -100,7 +100,7 @@ describe("popup search groups state across two instances (onChanged rehydration)
     const first = await mountHook({ dom, storageStub });
     const second = await mountHook({ dom, storageStub });
 
-    const [shopping, trend] = DEFAULT_SEARCH_ENGINE_GROUPS;
+    const [shopping, deep, trend] = DEFAULT_SEARCH_ENGINE_GROUPS;
     await act(async () => {
       await first.output.current?.toggleGroupEnabled(shopping.id, false);
       await flush(dom.window);
@@ -108,6 +108,7 @@ describe("popup search groups state across two instances (onChanged rehydration)
 
     expect(second.output.current?.groups).toEqual([
       { ...shopping, enabled: false },
+      deep,
       trend,
     ]);
 
@@ -123,6 +124,7 @@ describe("popup search groups state across two instances (onChanged rehydration)
 
     const expected = [
       { ...shopping, enabled: false },
+      deep,
       { ...trend, name: "お買物改" },
     ];
     expect(
@@ -153,13 +155,13 @@ describe("popup search groups state across two instances (onChanged rehydration)
       await flush(dom.window);
     });
 
-    const [shopping, trend] = DEFAULT_SEARCH_ENGINE_GROUPS;
+    const [shopping, deep, trend] = DEFAULT_SEARCH_ENGINE_GROUPS;
     await act(async () => {
       const toggle = first.output.current?.toggleGroupEnabled(
         shopping.id,
         false
       );
-      const save = second.output.current?.saveGroupName(trend.id);
+      const save = second.output.current?.saveGroupName(deep.id);
       await Promise.all([
         toggle ?? Promise.resolve(),
         save ?? Promise.resolve(),
@@ -169,7 +171,8 @@ describe("popup search groups state across two instances (onChanged rehydration)
 
     const expected = [
       { ...shopping, enabled: false },
-      { ...trend, name: "お買物改" },
+      { ...deep, name: "お買物改" },
+      trend,
     ];
     expect(
       normalizeSearchEngineGroups(storageStub.store.searchEngineGroups)
@@ -187,7 +190,7 @@ describe("popup search groups state across two instances (onChanged rehydration)
     const first = await mountHook({ dom, storageStub });
     const second = await mountHook({ dom, storageStub });
 
-    const [shopping, trend] = DEFAULT_SEARCH_ENGINE_GROUPS;
+    const [shopping, deep, trend] = DEFAULT_SEARCH_ENGINE_GROUPS;
     const staleForDrag = [...DEFAULT_SEARCH_ENGINE_GROUPS];
     await act(async () => {
       const toggle = first.output.current?.toggleGroupEnabled(
@@ -197,6 +200,7 @@ describe("popup search groups state across two instances (onChanged rehydration)
       const reorder = second.output.current?.handleReorder([
         staleForDrag[1],
         staleForDrag[0],
+        staleForDrag[2],
       ]);
       await Promise.all([
         toggle ?? Promise.resolve(),
@@ -205,7 +209,11 @@ describe("popup search groups state across two instances (onChanged rehydration)
       await flush(dom.window);
     });
 
-    const expected = [{ ...trend }, { ...shopping, enabled: false }];
+    const expected = [
+      { ...deep },
+      { ...shopping, enabled: false },
+      { ...trend },
+    ];
     expect(
       normalizeSearchEngineGroups(storageStub.store.searchEngineGroups)
     ).toEqual(expected);
@@ -223,7 +231,7 @@ describe("popup search groups state across two instances (onChanged rehydration)
     const first = await mountHook({ dom, storageStub });
     const second = await mountHook({ dom, storageStub });
 
-    const [shopping, trend] = DEFAULT_SEARCH_ENGINE_GROUPS;
+    const [shopping, deep, trend] = DEFAULT_SEARCH_ENGINE_GROUPS;
     await act(async () => {
       second.output.current?.startEditingGroupName(trend);
       second.output.current?.setEditingNameValue("お買物改");
@@ -242,6 +250,7 @@ describe("popup search groups state across two instances (onChanged rehydration)
 
     const expected = [
       { ...shopping, enabled: false },
+      deep,
       { ...trend, name: "お買物改" },
     ];
     expect(storageStub.store.searchEngineGroups).toEqual(expected);
