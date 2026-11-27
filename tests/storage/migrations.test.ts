@@ -474,5 +474,27 @@ describe("Storage Migrations", () => {
       expect(groups).toHaveLength(1);
       expect(groups[0].id).toBe("group:shopping-e8c8a7d5");
     });
+
+    it("does not split the shopping group when the group limit is reached", async () => {
+      mockStorage.set("schemaVersion", 3);
+      mockStorage.set("searchEngines", []);
+      mockStorage.set("searchEngineGroups", [
+        defaultShoppingGroup,
+        ...Array.from({ length: 9 }, (_, index) => ({
+          enabled: true,
+          engineIds: ["builtin:amazon-jp"],
+          id: `group:custom-${index}`,
+          name: `カスタム${index}`,
+        })),
+      ]);
+
+      await runMigrations();
+
+      const groups = mockStorage.get("searchEngineGroups") as Array<{
+        id: string;
+      }>;
+      expect(groups).toHaveLength(10);
+      expect(groups[0].id).toBe("group:shopping-e8c8a7d5");
+    });
   });
 });

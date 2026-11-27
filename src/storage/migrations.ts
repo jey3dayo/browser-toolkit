@@ -7,6 +7,7 @@ import {
 } from "@/background/storage";
 import {
   DEFAULT_SEARCH_ENGINE_GROUPS,
+  MAX_SEARCH_ENGINE_GROUPS,
   normalizeSearchEngineGroups,
   SEARCH_ENGINE_GROUP_IDS,
   type SearchEngineGroup,
@@ -134,7 +135,12 @@ function reworkDefaultShoppingGroup(
     DEFAULT_SHOPPING_GROUP_ENGINE_IDS.every((id) =>
       shoppingGroup.engineIds.includes(id)
     );
-  if (!isDefaultMembership) {
+  // Splitting one group into two must not push the total past the limit,
+  // otherwise normalization would silently drop the last group.
+  if (
+    !isDefaultMembership ||
+    searchEngineGroups.length >= MAX_SEARCH_ENGINE_GROUPS
+  ) {
     return searchEngineGroups;
   }
 
