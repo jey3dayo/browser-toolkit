@@ -44,6 +44,16 @@ function redactSensitiveData(
   return value;
 }
 
+function isExtensionContextInvalidated(error: unknown): boolean {
+  // After the extension is reloaded or updated, content scripts left in
+  // already-open pages lose their context and every chrome.* call throws
+  // this error. It is expected and unactionable, so callers stay silent.
+  return (
+    error instanceof Error &&
+    error.message.includes("Extension context invalidated")
+  );
+}
+
 function safeStringify(value: unknown): string {
   try {
     const json: string | undefined = JSON.stringify(value);
@@ -111,7 +121,9 @@ export async function debugLog(
       return;
     }
   } catch (error) {
-    console.error("Failed to check debug mode:", error);
+    if (!isExtensionContextInvalidated(error)) {
+      console.error("Failed to check debug mode:", error);
+    }
     return;
   }
 
@@ -137,7 +149,9 @@ export async function debugLog(
       });
     });
   } catch (error) {
-    console.error("Failed to save debug log to storage:", error);
+    if (!isExtensionContextInvalidated(error)) {
+      console.error("Failed to save debug log to storage:", error);
+    }
   }
 }
 
