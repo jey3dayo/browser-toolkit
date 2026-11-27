@@ -160,4 +160,29 @@ describe("utils/debug_log", () => {
 
     await expect(clearDebugLogs()).rejects.toThrow("storage unavailable");
   });
+
+  it("拡張コンテキストが無効化されているときは失敗ログを出さずに黙って終わる", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    global.chrome = {
+      storage: {
+        local: {
+          get: vi.fn(() => {
+            throw new Error("Extension context invalidated.");
+          }),
+          remove: vi.fn(),
+          set: vi.fn(),
+        },
+      },
+    } as any;
+
+    await expect(
+      debugLog("context", "some event", undefined, "debug")
+    ).resolves.toBeUndefined();
+    expect(consoleErrorSpy).not.toHaveBeenCalledWith(
+      "Failed to check debug mode:",
+      expect.anything()
+    );
+  });
 });
