@@ -65,7 +65,7 @@ parent.innerHTML = `<div>${userInput}</div>`;
 
 ### 3. Markdown の表示
 
-既に導入している `react-markdown` を使用します。
+導入済みの `react-markdown` を使用します（生 HTML を有効にするプラグインは入れません）。
 
 ```tsx
 // 安全（src/content/overlay/OverlayComponents.tsx）
@@ -89,7 +89,7 @@ const cleanHtml = DOMPurify.sanitize(userInput, {
 element.innerHTML = cleanHtml;
 ```
 
-`DOMPurify` を使う場合も、以下の 3 点を徹底してください。
+`DOMPurify` を使う場合も、以下の 3 点を守ってください。
 
 1. コードレビューで必要性と安全性を確認する
 2. ユニットテストに XSS を想定したケースを追加する
@@ -101,17 +101,18 @@ element.innerHTML = cleanHtml;
 
 - **テーブルソート（`src/content/table-sort.ts`）**: `cell.textContent = value` でテキストとして扱っています。
 - **オーバーレイ（`src/content/overlay/`）**: `react-markdown`（生 HTML 無効）で描画しています。
-- **ポップアップ（`src/popup/`）**: React の自動エスケープに任せて描画しています。
+- **ポップアップ・オプションページ（`src/popup/`）**: React の自動エスケープに任せて描画しています。
 
 ### 変更時に注意が必要な箇所
 
-- **テキスト挿入（`src/content/template-paste.ts`、`src/background/context_menu_gemini.ts`）**: いずれも `element.value` への代入や contenteditable への `execCommand("insertText")` によるプレーンテキスト挿入のみを行っており、現状は安全です。`innerHTML` や `insertAdjacentHTML` に置き換えないでください。
+- **テキスト挿入（`src/content/template-paste.ts`、`src/background/context_menu_gemini.ts`）**: いずれも `element.value` への代入や `contenteditable` への `execCommand("insertText")` によるプレーンテキスト挿入のみを行っており、現状は安全です。`innerHTML` や `insertAdjacentHTML` に置き換えないでください。
+- **元画像ダウンロード（`src/image-zoom/download-url.ts`）**: コンテンツスクリプトから渡される URL をそのまま信用せず、background 側で `https://pbs.twimg.com/media/` のみを許可し、ファイル名もメディア ID と許可リストの拡張子から組み立てています。
 
 ## その他のセキュリティ方針
 
-### 1. API トークンの保護
+### 1. API トークンと認証情報の保護
 
-API トークンや認証情報は必ずローカルストレージに保存し、同期ストレージには書き込まないでください。
+API トークンや OAuth 認証情報は必ずローカルストレージに保存し、同期ストレージには書き込まないでください。
 
 ```typescript
 // 安全: ローカルストレージに保存（同期しない）
@@ -123,7 +124,7 @@ await chrome.storage.sync.set({ openaiApiToken });
 
 ### 2. Content Security Policy（CSP）の遵守
 
-`manifest.json` では以下のように厳格な CSP を設定しています（Issue #143）。
+`manifest.json` では以下のように厳格な CSP を設定しています。
 
 ```json
 {
@@ -133,7 +134,7 @@ await chrome.storage.sync.set({ openaiApiToken });
 }
 ```
 
-`connect-src` は、拡張機能ページから `fetch` や `XMLHttpRequest` で接続できるホストを制限する重要な制約です。AI プロバイダーのエンドポイントを追加・変更する場合は、`src/constants/api-endpoints.ts` の `ALLOWED_API_ORIGINS`、`manifest.json` の `host_permissions`、`content_security_policy.connect-src` を必ず同じ差分で揃えてください（詳細は `AGENTS.md` の「Release / Permission Review」を参照）。
+`connect-src` は、拡張機能ページから `fetch` や `XMLHttpRequest` で接続できるホストを制限します。AI プロバイダーのエンドポイントを追加・変更する場合は、`src/constants/api-endpoints.ts` の `ALLOWED_API_ORIGINS`、`manifest.json` の `host_permissions`、`content_security_policy.connect-src` を必ず同じ差分で揃えてください（詳細は `AGENTS.md` の「Release / Permission Review」を参照）。
 
 ### 3. 入力検証
 
@@ -156,16 +157,16 @@ const url = new URL(userInput); // 不正な場合は例外を送出
 
 ### 4. ログ出力とプライバシー保護
 
-ユーザー入力や機密情報はログに出力しないでください。デバッグログが必要な場合も開発環境のみに限定し、文字列の内容ではなく長さなどのメタ情報にとどめます。
+ユーザー入力の本文や機密情報はログに出力しないでください。デバッグログには `src/utils/debug_log.ts` の `debugLog` を使い、本文そのものではなく長さなどのメタ情報にとどめます。`debugLog` は `token` / `apikey` / `authorization` / `secret` / `password` を含むキーを自動でマスクします。
 
 ```typescript
-// 危険: ユーザー入力をそのままログに出力
+import { debugLog } from "@/utils/debug_log";
+
+// 危険: ユーザー入力やトークンをそのまま出力
 console.log("User input:", userInput);
 
-// 安全: 開発環境のみ、内容を含めない形で出力
-if (import.meta.env.DEV) {
-  console.debug("Input length:", userInput.length);
-}
+// 安全: 長さなどのメタ情報のみを記録
+await debugLog("context", "input received", { length: userInput.length });
 ```
 
 ## ユーザー入力から URL 判定器を構築する場合（ReDoS 対策）
@@ -175,7 +176,7 @@ if (import.meta.env.DEV) {
 - **避けるべき実装**: ユーザー入力の glob や match pattern をそのまま `RegExp` にコンパイルして判定する
 - **推奨する実装**: `new URL()` によるパース、ホストラベル単位の接尾辞比較、およびバックトラッキングしない線形時間のパス glob マッチャーで判定する
 
-また、パターンやルールに上限を設けないと、入力量に比例して判定コストが増大します。以下の上限を設定し、超過時は**暗黙に切り捨てず明示的なエラー**を返してください（暗黙の切り捨ては、保存できたつもりのルールが欠落する事故につながります）。
+パターンやルールに上限を設けないと、入力量に応じて判定コストが増大します。以下の上限を設定し、超過時は**暗黙に切り捨てず明示的なエラー**を返してください（暗黙の切り捨ては、保存できたつもりのルールが欠落する事故につながります）。
 
 ```typescript
 // src/search-blocklist/rules.ts の上限値
@@ -198,7 +199,7 @@ PR レビュー時は以下の観点を確認してください。
 
 ### データ保護
 
-- [ ] API トークンは `chrome.storage.local` に保存しているか
+- [ ] API トークン・OAuth 認証情報は `chrome.storage.local` に保存しているか
 - [ ] 機密情報をコンソールログに出力していないか
 - [ ] ユーザー入力を外部サービスへ送信する経路が意図どおりか
 
@@ -216,10 +217,10 @@ PR レビュー時は以下の観点を確認してください。
 pnpm audit
 
 # innerHTML の使用箇所を検索
-grep -r "innerHTML" src/
+git grep -n "innerHTML" -- src/
 
 # eval の使用箇所を検索
-grep -r "eval(" src/
+git grep -n "eval(" -- src/
 ```
 
 ## 参考資料
@@ -240,4 +241,4 @@ XSS やセキュリティ上の問題を発見した場合は、以下の手順�
 
 ---
 
-最終更新: 2026-02-13（ガイドラインは実装の変化に合わせて定期的に見直してください）
+最終更新: 2026-11-27（ガイドラインは実装の変化に合わせて定期的に見直してください）

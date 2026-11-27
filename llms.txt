@@ -1,96 +1,110 @@
 # Browser Toolkit
 
-> 個人用のツールキット Chrome 拡張（Manifest V3）。テーブルソート、AI 連携（OpenAI / Anthropic / z.ai）によるコンテキストアクション、カレンダー登録、検索エンジン、テキストテンプレート、QR コード生成などをまとめた生産性向上ユーティリティ集。
+> 個人用の Chrome 拡張機能（Manifest V3）。テーブルソート、フォーカス維持、AI 連携（OpenAI / ChatGPT プラン / Anthropic / z.ai）による Context Actions、Gemini 連携、カレンダー登録、リンク作成、検索エンジン・まとめて検索、テキストテンプレート、QR コード生成、Google 検索結果ブロックリスト、X 画像ズームをまとめたユーティリティ集。
 
 ## Overview
 
 - Platform: Chrome Extension (Manifest V3)
 - Language: TypeScript (strict mode)
-- UI: React 19 + Base UI (`@base-ui/react`) + Shadow DOM (content overlay)
+- UI: React 19 + Base UI (`@base-ui/react`) + Shadow DOM (content overlay / image zoom)
 - Bundler: esbuild
 - Tests: Vitest (unit + Storybook) / Playwright (E2E)
 - Lint/Format: Ultracite (Biome)
-- Package manager: pnpm 11.x / Node 24+ (`mise.toml` pins Node 26.x)
+- Package manager: pnpm 12.x / Node 24+ (`mise.toml` pins Node 26.x)
 - Error handling: `@praha/byethrow` Result 型
 - Schema validation: Valibot
-- AI providers: OpenAI, Anthropic (Claude), z.ai (GLM)
+- AI providers: OpenAI, ChatGPT プラン (SIWC OAuth + Responses API), Anthropic (Claude), z.ai (GLM)
 
 ## Runtime boundaries
 
-- `src/background.ts` — Service Worker。contextMenus、AI API 呼び出し、storage、runtime メッセージ。
-- `src/content.ts` — Content Script。テーブルソート、オーバーレイ、選択キャッシュ、QR コード表示、テンプレート貼り付け。
-- `src/popup.ts` — Popup UI (React root)。pane ベースで設定/履歴/アクション等を提供。
-- `src/search-blocklist.ts` — Content Script（`document_start`、React 無し）。検索結果ブロックリストの判定・非表示のみ。
+- `src/background.ts` — Service Worker。contextMenus、AI API 呼び出し、ChatGPT OAuth セッション、storage、runtime メッセージ、元画像ダウンロード。
+- `src/content.ts` — Content Script（全ページ、`document_idle`）。テーブルソート、オーバーレイ、選択キャッシュ、QR コード表示、テンプレート貼り付け、検索ブロック UI の遅延ロード。
+- `src/popup.ts` / `src/options.ts` — Popup UI / Options UI（React root）。`PopupApp` を `surface` prop で出し分け、ポップアップは日常操作 5 ペイン、オプションページは管理系を含む全 10 ペインを描画。
+- `src/search-blocklist.ts` — Content Script（Google 検索限定、`document_start`、React なし）。検索結果ブロックリストの判定と非表示のみ。
+- `src/image-zoom.ts` — Content Script（`x.com` / `twitter.com` 限定、`document_idle`、軽量バンドル）。Shadow DOM の画像ズームビューアと元画像保存依頼。
+- `src/focus-override.ts` — 登録ドメイン向けに動的に注入するフォーカス維持スクリプト。
 
 ## Docs
 
-- [README](README.md): 機能概要・インストール・開発コマンド・プライバシー方針
-- [AGENTS.md](AGENTS.md): Claude / AI エージェント向け開発ガイド。Source Of Truth 表が各対象の正本を定める
-- [docs/architecture.md](docs/architecture.md): アーキテクチャ設計（ランタイム境界、AI 統一 I/F、Result 型）
-- [docs/context-actions.md](docs/context-actions.md): Context Actions の詳細
-- [docs/style-management.md](docs/style-management.md): Design Tokens / テーマ管理
-- [docs/icon-setup.md](docs/icon-setup.md): アイコン作成手順
-- [docs/e2e-test-checklist.md](docs/e2e-test-checklist.md): E2E テスト項目
-- [.claude/rules/development.md](.claude/rules/development.md): コーディング規約
-- [.claude/rules/security.md](.claude/rules/security.md): セキュリティガイドライン（XSS 対策、APIトークン、CSP）
+- [README.md](README.md): 機能概要・インストール・設定・開発コマンド・プライバシー方針
+- [AGENTS.md](AGENTS.md): AI エージェント向け開発ガイド（Source Of Truth 表・Permission Review）
+- [DESIGN.md](DESIGN.md): UI デザインシステム（Design Tokens、色・タイポグラフィ・コンポーネント方針）
+- [DESIGN_REVIEW.md](DESIGN_REVIEW.md): UI デザインレビュー手順と振り分け基準
+- [docs/architecture.md](docs/architecture.md): アーキテクチャ設計（ランタイム境界、AI 統一 I/F、Result 型、ストレージ運用）
+- [docs/context-actions.md](docs/context-actions.md): Context Actions の仕様・プロバイダー・プライバシー方針
+- [docs/style-management.md](docs/style-management.md): Design Tokens・テーマ管理・ShadowRoot スタイル適用
+- [docs/icon-setup.md](docs/icon-setup.md): アイコン作成・更新手順
+- [docs/e2e-test-checklist.md](docs/e2e-test-checklist.md): 手動 E2E テスト項目
+- [docs/knip.md](docs/knip.md): Knip の report-only 運用とエントリ設定
+- [docs/privacy-policy.html](docs/privacy-policy.html): プライバシーポリシー
+- [.claude/rules/development.md](.claude/rules/development.md): コーディング規約・テスト配置・リリースフロー
+- [.claude/rules/security.md](.claude/rules/security.md): セキュリティガイドライン（XSS 対策、API トークン、CSP、ReDoS 対策）
 
 ## Key source paths
 
-- `src/ai/` — AI アダプター（OpenAI / Anthropic / z.ai）と設定ローダー
+- `src/ai/` — AI アダプター（OpenAI / Anthropic / z.ai）、ChatGPT OAuth / Responses API、設定ローダー
   - `src/ai/adapter.ts`, `src/ai/get-adapter.ts`, `src/ai/{openai,anthropic,zai}-adapter.ts`
   - `src/ai/chat-completion-client.ts` — 共通 HTTP 送信 / timeout / origin 検証
   - `src/ai/openai-request-policy.ts` — UI 選択肢とは独立した OpenAI の送信制約
+  - `src/ai/chatgpt/{oauth,responses}.ts` — Sign in with ChatGPT の OAuth 検証と Responses SSE 処理
   - `src/ai/settings.ts` — `loadAiSettings` / `AiSettings` 型
 - `src/background/` — Service Worker モジュール
-  - `ai_requests.ts`, `ai_input.ts` — AI リクエスト共通処理（`prepareAiInput` / `requestAiText`）
-  - `context_menu_registry.ts`, `context_menu_actions.ts`, `context_menu_qrcode.ts`, `context_menu_copy.ts`
-  - `runtime_handlers.ts`, `runtime_types.ts` — 型安全なメッセージハンドラ
-  - `calendar.ts` — イベント抽出と ICS 生成
-  - `storage.ts` — chrome.storage 抽象化
+  - `action_executor.ts`, `ai_credentials.ts`, `ai_requests.ts`, `ai_input.ts` — Context Actions 実行と AI リクエスト処理
+  - `chatgpt_session.ts` — ChatGPT プランのサインイン・リフレッシュ・サインアウト
+  - `context_menu_registry.ts`, `context_menu_actions.ts`, `context_menu_gemini.ts`, `context_menu_qrcode.ts`, `context_menu_copy.ts`
+  - `focus_override_registration.ts` — フォーカス維持スクリプトの登録制御
+  - `runtime_handlers.ts`, `runtime_chatgpt_handlers.ts`, `runtime_search_blocklist_handlers.ts`, `runtime_debug_handlers.ts`, `runtime_types.ts` — 型安全なメッセージハンドラ
+  - `calendar.ts`, `calendar_extraction.ts` — イベント抽出と `.ics` 生成
+  - `storage.ts` — `chrome.storage` 抽象化とクォータフォールバック
 - `src/content/` — Content Script モジュール
   - `content/overlay/` — React + Shadow DOM のオーバーレイ UI
-  - `content/table-sort.ts` — テーブルソート
-  - `content/template-paste.ts` — `execCommand('insertText')` による安全な貼り付け
-- `src/popup/` — Popup UI
-  - `App.tsx`, `navigation-items.ts`, `panes/` — pane ベースのナビゲーション
-  - `runtime.ts` — popup 側の chrome.runtime 呼び出し
+  - `content/table-sort.ts`, `content/table-auto-exec.ts`, `content/table-observer.ts` — テーブルソートと動的監視
+  - `content/template-paste.ts` — `execCommand('insertText')` によるプレーンテキスト貼り付け
+  - `content/search-blocklist-ui/` — 検索結果ブロックリストの UI（浮動ボタン・ダイアログ・件数バー、`content.js` から遅延ロード）
+- `src/search-blocklist/` — 検索結果ブロックリストの判定ロジック（ルール構文、線形マッチング、エンジンアダプター）
+- `src/image-zoom/` — X の画像ズームビューア、ShadowRoot マウント、元画像 URL 検証
+- `src/focus-override/` — フォーカス維持のランタイムとパターン管理
+- `src/popup/` — Popup / Options UI
+  - `App.tsx`, `bootstrap.ts`, `panes.ts`, `navigation-items.ts`, `panes/` — surface 別ペイン構成
+  - `runtime.ts` — UI 側の `chrome.runtime` / `chrome.storage` 呼び出し
+- `src/i18n/` — `resources.ts`（UI 文言の正本）、`lite.ts`（軽量バンドル向け）
 - `src/schemas/provider.ts` — `AiProvider` / `PROVIDER_CONFIGS` / `normalizeAiModel`
-- `src/constants/models.ts` — 対応モデルの一覧と既定値
-- `src/storage/` — 永続化スキーマとマイグレーション
+- `src/constants/` — `api-endpoints.ts`（`ALLOWED_API_ORIGINS`）、`models.ts`、`timeouts.ts`
+- `src/storage/` — 永続化型定義とマイグレーション（`migrations.ts`）
 - `src/prompts/` — 組み込みアクションプロンプト（TOML）
-- `src/search-blocklist/` — 検索結果ブロックリストの判定ロジック（ルール構文、マッチング、engine adapter）
-- `src/content/search-blocklist-ui/` — 検索結果ブロックリストの UI（浮動ボタン/ダイアログ/件数バー、`content.js` から遅延ロード）
-- `manifest.json` — permissions: `activeTab`, `contextMenus`, `scripting`, `storage`, `notifications`, `downloads`, `alarms`
-  - host_permissions: `<all_urls>`, `api.openai.com`, `api.anthropic.com`, `api.z.ai`
-  - CSP: `script-src 'self'; object-src 'self'; connect-src 'self' https://api.openai.com https://api.anthropic.com https://api.z.ai`
-  - `content_scripts` は2エントリ（既存 `dist/content.js` に加え、検索結果ページ限定で `document_start` 注入される `dist/search-blocklist.js`）。permissions/host_permissions/CSP に変更はない
+- `manifest.json`:
+  - `permissions`: `activeTab`, `alarms`, `contextMenus`, `scripting`, `storage`, `notifications`, `downloads`
+  - `host_permissions`: `<all_urls>`, `api.openai.com`, `api.anthropic.com`, `api.z.ai`, `auth.openai.com`, `gemini.google.com`
+  - CSP (`extension_pages`): `script-src 'self'; object-src 'self'; connect-src 'self' https://api.openai.com https://api.anthropic.com https://api.z.ai https://auth.openai.com`
+  - `content_scripts`: 3 エントリ（`dist/content.js`、`dist/search-blocklist.js`、`dist/image-zoom.js`）
 
 ## Development commands
 
 - `pnpm install` — 依存関係のインストール
 - `pnpm run build` — 本番ビルド（`dist/` 生成）
-- `pnpm run watch` — バンドルの watch
+- `pnpm run watch` — バンドルの監視ビルド
 - `pnpm run dev` — 開発サーバー（自動ビルド + 拡張機能の自動リロード、WebSocket `ws://localhost:8090`）
 - `pnpm run storybook` — Storybook（`http://localhost:6006`）
 - `pnpm run test` — Vitest ユニットテスト
-- `pnpm run test:storybook` — Storybook/Vitest テスト
+- `pnpm run test:storybook` — Storybook / Vitest テスト
 - `pnpm run test:e2e` — Playwright E2E テスト
 - `pnpm run test:visual` — Visual Regression Testing
-- `mise run ci` — format + lint + test + storybook test + build
+- `pnpm run package:cws` / `pnpm run publish:cws` — Chrome Web Store 提出用 zip 生成とアップロード・審査提出
+- `mise run ci` — format + actions lint/lock + lint + test + storybook test + build
 
 ## Conventions
 
 - TypeScript strict mode、`any` 型禁止、型アサーション回避
 - エラーハンドリングは `Result` / `ResultAsync`（`@praha/byethrow`）
 - DOM 操作は `textContent` / `createElement` を優先、`innerHTML` は禁止
-- Markdown 表示は `react-markdown`（XSS 対策済み）
-- APIトークンは `chrome.storage.local` に保存（`chrome.storage.sync` は禁止）
-- UI テキストは日本語
-- フォーマッタ: Ultracite (Biome)、シングルクォート、広めの行幅
+- Markdown 表示は `react-markdown`（生 HTML 無効）
+- API トークン・OAuth 認証情報は `chrome.storage.local` に保存（`chrome.storage.sync` は禁止）
+- UI テキストは `src/i18n/resources.ts` に日本語で一元管理
+- フォーマッタ: Ultracite (Biome)
 
 ## Optional
 
-- [.github/](./.github) — GitHub Actions ワークフロー
+- [.github/](./.github) — GitHub Actions ワークフロー（CI、Chrome Web Store 提出等）
 - [.storybook/](./.storybook) — Storybook 設定
 - [tests/](./tests) — Vitest / Playwright テスト
-- [scripts/](./scripts) — bundle / dev-server / clean スクリプト
+- [scripts/](./scripts) — bundle / dev-server / clean / package-cws / publish-cws スクリプト

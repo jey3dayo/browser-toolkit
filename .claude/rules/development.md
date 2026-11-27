@@ -6,31 +6,35 @@ paths:
 
 # Chrome 拡張機能 開発ルール
 
-このプロジェクトの開発における基本ルールとガイドラインをまとめています。
+Browser Toolkit の開発における基本ルールとガイドラインをまとめています。
 
-> **セキュリティガイドライン**: XSS 対策、API トークン保護、入力検証などの詳細は [security.md](security.md) を参照してください。
+> **セキュリティガイドライン**: XSS 対策、API トークン保護、入力検証、ReDoS 対策の詳細は [security.md](security.md) を参照してください。
 
 ## プロジェクト構造
 
 ```
 browser-toolkit/
 ├── .claude/
-│   └── rules/           # 開発ルール（このディレクトリ）
-├── dist/                # ビルド出力（自動生成）
-├── docs/                # プロジェクトドキュメント
-├── images/              # ロゴ・拡張機能アイコン
-├── manifest.json        # 拡張機能マニフェスト
-├── content.css          # コンテンツスクリプト用スタイル
-├── popup.html           # ポップアップ UI
-├── popup_bootstrap.js   # ポップアップ読み込み（dist 未生成時のガードを含む）
-├── options.html         # オプションページ UI
-├── options_bootstrap.js # オプションページ読み込み（dist 未生成時のガードを含む）
-└── src/                 # TypeScript ソース
+│   └── rules/             # 開発ルール・セキュリティルール
+├── dist/                  # ビルド出力（自動生成）
+├── docs/                  # プロジェクトドキュメント
+├── images/                # 拡張機能アイコン・元画像
+├── manifest.json          # 拡張機能マニフェスト（MV3）
+├── content.css            # コンテンツスクリプト用スタイル
+├── popup.html             # ポップアップ UI
+├── popup_bootstrap.js     # ポップアップ読み込み（dist 未生成時のガードを含む）
+├── options.html           # オプションページ UI
+├── options_bootstrap.js   # オプションページ読み込み（dist 未生成時のガードを含む）
+├── scripts/               # ビルド・開発サーバー・Chrome Web Store 提出スクリプト
+└── src/                   # TypeScript ソース
     ├── background.ts
     ├── content.ts
+    ├── search-blocklist.ts
+    ├── image-zoom.ts
+    ├── focus-override.ts
     ├── popup.ts
     ├── options.ts
-    └── styles/          # ポップアップ・共通 UI スタイル（Design Tokens）
+    └── styles/            # ポップアップ・共通 UI スタイル（Design Tokens）
         ├── base.css
         ├── layout.css
         ├── utilities.css
@@ -44,7 +48,7 @@ browser-toolkit/
 
 ### TypeScript
 
-- strict mode 前提で実装し、`any` や型アサーションは使わない（`unknown` と型ガードで絞る）
+- strict mode 前提で実装し、`any` や安易な型アサーションは使わない（`unknown` と型ガードで絞る）
 - エラーを握りつぶさず、境界では `Result` / `ResultAsync`（`@praha/byethrow`）として返す
 - 非同期処理は `async` / `await` を使う
 - フォーマットは Ultracite（Biome）に従う
@@ -54,7 +58,7 @@ browser-toolkit/
 - セマンティックな HTML を書き、`div` の乱用を避ける
 - スタイルは `src/styles/tokens/` の Design Token 経由で指定し、生の値を直書きしない
 - ポップアップ幅の正本は `--layout-popup-width`（`src/styles/tokens/semantic.css`）とする
-- `alt` 属性や `aria` 属性を適切に設定し、アクセシビリティを保つ
+- `alt` 属性や `aria` 属性を設定し、アクセシビリティを保つ
 
 ## デザインガイドライン
 
@@ -65,24 +69,24 @@ browser-toolkit/
 ### XSS 対策
 
 - ユーザー入力は DOM へ挿入する前に必ずエスケープする
-- `innerHTML` は使用せず、`textContent` や `createElement` を使う
+- `innerHTML` は使わず、`textContent` や `createElement` を使う
 - HTML 文字列を組み立てる箇所では `src/utils/link_format.ts` のエスケープ関数を使う
 
 ### バリデーション
 
 - 入力値の長さ・文字種・形式を検証する
 - 許可する値のみを受け入れるホワイトリスト方式を基本とする
-- エラー時はユーザーが状況を理解しやすいメッセージを返す
+- エラー時はユーザーが状況を把握しやすいメッセージを返す
 
 ### ストレージ
 
 - `chrome.storage.sync`: デバイス間で同期したいユーザー設定（1 キーあたり 8,192 bytes 上限 / `QUOTA_BYTES_PER_ITEM`）
-- `chrome.storage.local`: API トークンとデバイス固有のデータ
-- API トークンは必ず `chrome.storage.local` に保存し、`sync` には置かない（詳細は [security.md](security.md)）
+- `chrome.storage.local`: API トークン・OAuth 認証情報と端末固有のデータ
+- API トークンや認証情報は必ず `chrome.storage.local` に保存し、`sync` には置かない（詳細は [security.md](security.md)）
 
 ## テスト方針
 
-自動テストは `mise run ci`（format / lint / Vitest / Storybook テスト / build）を基準とします。
+自動テストは `mise run ci`（format / actions lint・lock / lint / Vitest / Storybook テスト / build）を基準とします。
 
 テストファイルの配置ルールは次のとおりです。
 
@@ -92,26 +96,13 @@ browser-toolkit/
 - ビルド契約のテストは `tests/build/` に配置する
 - jsdom が必要なテストは `*.dom.test.ts(x)` とする
 
-自動テストに加えて、以下の項目は必要に応じて手動で確認します。
-
-### 手動テスト項目
-
-1. パターン登録・削除: 正常系および異常系（重複、件数上限）
-2. URL マッチング: ワイルドカード、プロトコルの扱い
-3. `MutationObserver`: 動的に追加されるテーブルへの適用
-4. 既存機能: 手動有効化ボタン、グローバル有効化フラグ
-5. ブラウザ互換性: 最新の Chrome での動作確認
-
-### テスト用ページの目安
-
-- [HTML Table Generator](https://www.tablesgenerator.com/html_tables) でテスト用テーブルを作成して確認する
-- 動的テーブル追加の確認には、スクリプトでテーブルを後挿入する HTML ページを使う
+実ブラウザでの手動確認が必要な変更では、[docs/e2e-test-checklist.md](../../docs/e2e-test-checklist.md) の該当項目を確認してください。
 
 ## リリースフロー
 
 ### バージョニング
 
-セマンティックバージョニング（SemVer）に従います。
+セマンティックバージョニング（SemVer）に従います。出荷バージョンの正本は `manifest.json`（通常は `package.json` と揃えて更新）です。
 
 - MAJOR: 破壊的変更
 - MINOR: 後方互換性のある機能追加
@@ -119,17 +110,21 @@ browser-toolkit/
 
 ### リリース前チェックリスト
 
-- [ ] すべての機能が正常に動作することを確認した
-- [ ] `manifest.json` のバージョンを更新した
-- [ ] 必要に応じて `README.md` を更新した
+- [ ] `mise run ci` が通り、主要な機能が動作することを確認した
+- [ ] `manifest.json`（および `package.json`）のバージョンを更新した
+- [ ] 必要に応じて `README.md` や関連ドキュメントを更新した
 - [ ] デバッグ用の不要な `console.log` を削除した
-- [ ] アイコンやロゴが正しく表示されることを確認した
+- [ ] アイコンが正しく表示されることを確認した
+
+### Chrome Web Store 提出
+
+GitHub Release を公開すると `.github/workflows/publish-cws.yml` が `pnpm run build` → `pnpm run package:cws` → `pnpm run publish:cws` を自動実行します。ローカルで提出用 zip を作成する場合は `pnpm run package:cws`（`tmp/browser-toolkit-<version>.zip` 出力）を使います。
 
 ## 開発のヒント
 
 ### 拡張機能のリロード
 
-Chrome で `chrome://extensions/` を開き、拡張機能の「更新」ボタンをクリックします（ショートカット: Mac は `Cmd+R`、Windows は `Ctrl+R`）。
+Chrome で `chrome://extensions/` を開き、拡張機能の「更新」ボタンをクリックします（自動リロードを使う場合は `pnpm run dev`）。
 
 ### デバッグ方法
 
@@ -141,11 +136,11 @@ Chrome で `chrome://extensions/` を開き、拡張機能の「更新」ボタ�
 
 #### `"Could not load icon"`
 
-`images/` ディレクトリに必要なアイコンファイルが揃っているか確認してください。
+`images/` ディレクトリに必要なアイコンファイル（`icon16.png`、`icon48.png`、`icon128.png`）が揃っているか確認してください。
 
 #### `"Extension context invalidated"`
 
-拡張機能がリロードされたことで古いコンテンツスクリプトとの接続が切れています。対象ページを再読み込みしてください。
+拡張機能がリロードされたことで、既に開いていたページのコンテンツスクリプトとの接続が切れています。対象ページを再読み込みしてください。
 
 #### `chrome.storage is undefined`
 
@@ -153,16 +148,7 @@ Chrome で `chrome://extensions/` を開き、拡張機能の「更新」ボタ�
 
 ## アセット更新
 
-### アイコン更新
-
-詳しい手順は `docs/icon-setup.md` を参照してください。
-
-```bash
-# 透過アイコンの生成
-magick images/logo.png -fuzz 10% -transparent white -resize 16x16 images/icon16.png
-magick images/logo.png -fuzz 10% -transparent white -resize 48x48 images/icon48.png
-magick images/logo.png -fuzz 10% -transparent white -resize 128x128 images/icon128.png
-```
+アイコンの作成・差し替え手順は [docs/icon-setup.md](../../docs/icon-setup.md) を参照してください。
 
 ## 参考リンク
 
